@@ -42,6 +42,7 @@ The application runs on port 5000 via the "Start application" workflow.
 - **Review**: User reviews
 - **MicroTask**: Quick tasks
 - **Referral**: Referral system
+- **SiteStats**: Site statistics (visitor counter)
 
 ## Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
@@ -52,5 +53,6 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 11, 2025: Added Calmic logo and visitor counter to footer
 - December 11, 2025: Fixed Railway deployment - replaced psycopg2-binary with psycopg for Python 3.13 compatibility
 - December 11, 2025: Initial import and setup for Replit environment
