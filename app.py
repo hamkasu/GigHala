@@ -132,6 +132,21 @@ def reset_rate_limit(identifier):
     if identifier in login_attempts:
         login_attempts[identifier] = {'count': 0, 'first_attempt': datetime.utcnow(), 'locked_until': None}
 
+# Admin authentication decorator
+def admin_required(f):
+    """Decorator to require admin authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'error': 'Unauthorized - Please login'}), 401
+
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            return jsonify({'error': 'Forbidden - Admin access required'}), 403
+
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -151,6 +166,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, default=False)
     halal_verified = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -358,7 +374,8 @@ def login():
                     'email': user.email,
                     'user_type': user.user_type,
                     'total_earnings': user.total_earnings,
-                    'rating': user.rating
+                    'rating': user.rating,
+                    'is_admin': user.is_admin
                 }
             }), 200
 
@@ -705,6 +722,324 @@ def get_categories():
     
     return jsonify(categories)
 
+# Admin Routes
+@app.route('/admin')
+def admin_page():
+    """Serve admin dashboard page"""
+    if 'user_id' not in session:
+        return render_template('index.html')
+
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return render_template('index.html')
+
+    return render_template('admin.html')
+
+@app.route('/api/admin/check', methods=['GET'])
+def check_admin():
+    """Check if current user is admin"""
+    if 'user_id' not in session:
+        return jsonify({'is_admin': False}), 200
+
+    user = User.query.get(session['user_id'])
+    return jsonify({
+        'is_admin': user.is_admin if user else False,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        } if user and user.is_admin else None
+    }), 200
+
+@app.route('/api/admin/stats', methods=['GET'])
+@admin_required
+def admin_stats():
+    """Get admin dashboard statistics"""
+    try:
+        total_users = User.query.count()
+        total_freelancers = User.query.filter_by(user_type='freelancer').count()
+        total_clients = User.query.filter_by(user_type='client').count()
+        verified_users = User.query.filter_by(is_verified=True).count()
+        halal_verified_users = User.query.filter_by(halal_verified=True).count()
+
+        total_gigs = Gig.query.count()
+        open_gigs = Gig.query.filter_by(status='open').count()
+        in_progress_gigs = Gig.query.filter_by(status='in_progress').count()
+        completed_gigs = Gig.query.filter_by(status='completed').count()
+        halal_gigs = Gig.query.filter_by(halal_compliant=True).count()
+
+        total_applications = Application.query.count()
+        pending_applications = Application.query.filter_by(status='pending').count()
+
+        total_transactions = Transaction.query.count()
+        total_revenue = db.session.query(db.func.sum(Transaction.amount)).scalar() or 0
+        total_commission = db.session.query(db.func.sum(Transaction.commission)).scalar() or 0
+
+        # Recent users (last 7 days)
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        recent_users = User.query.filter(User.created_at >= week_ago).count()
+
+        # Recent gigs (last 7 days)
+        recent_gigs = Gig.query.filter(Gig.created_at >= week_ago).count()
+
+        return jsonify({
+            'users': {
+                'total': total_users,
+                'freelancers': total_freelancers,
+                'clients': total_clients,
+                'verified': verified_users,
+                'halal_verified': halal_verified_users,
+                'recent_week': recent_users
+            },
+            'gigs': {
+                'total': total_gigs,
+                'open': open_gigs,
+                'in_progress': in_progress_gigs,
+                'completed': completed_gigs,
+                'halal_compliant': halal_gigs,
+                'recent_week': recent_gigs
+            },
+            'applications': {
+                'total': total_applications,
+                'pending': pending_applications
+            },
+            'transactions': {
+                'total': total_transactions,
+                'revenue': float(total_revenue),
+                'commission': float(total_commission)
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin stats error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve statistics'}), 500
+
+@app.route('/api/admin/users', methods=['GET'])
+@admin_required
+def admin_get_users():
+    """Get all users for admin management"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        search = sanitize_input(request.args.get('search', ''), max_length=100)
+
+        query = User.query
+
+        if search:
+            search_pattern = f'%{search}%'
+            query = query.filter(
+                (User.username.ilike(search_pattern)) |
+                (User.email.ilike(search_pattern)) |
+                (User.full_name.ilike(search_pattern))
+            )
+
+        users = query.order_by(User.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        return jsonify({
+            'users': [{
+                'id': u.id,
+                'username': u.username,
+                'email': u.email,
+                'full_name': u.full_name,
+                'user_type': u.user_type,
+                'location': u.location,
+                'rating': u.rating,
+                'total_earnings': u.total_earnings,
+                'completed_gigs': u.completed_gigs,
+                'is_verified': u.is_verified,
+                'halal_verified': u.halal_verified,
+                'is_admin': u.is_admin,
+                'created_at': u.created_at.isoformat()
+            } for u in users.items],
+            'total': users.total,
+            'pages': users.pages,
+            'current_page': users.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get users error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve users'}), 500
+
+@app.route('/api/admin/users/<int:user_id>', methods=['PUT'])
+@admin_required
+def admin_update_user(user_id):
+    """Update user details (verify, ban, make admin)"""
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Update verification status
+        if 'is_verified' in data:
+            user.is_verified = bool(data['is_verified'])
+
+        if 'halal_verified' in data:
+            user.halal_verified = bool(data['halal_verified'])
+
+        # Update admin status
+        if 'is_admin' in data:
+            user.is_admin = bool(data['is_admin'])
+
+        # Update user type
+        if 'user_type' in data and data['user_type'] in ['freelancer', 'client', 'both']:
+            user.user_type = data['user_type']
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'User updated successfully',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'is_verified': user.is_verified,
+                'halal_verified': user.halal_verified,
+                'is_admin': user.is_admin
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin update user error: {str(e)}")
+        return jsonify({'error': 'Failed to update user'}), 500
+
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_user(user_id):
+    """Delete a user (use with caution)"""
+    try:
+        # Prevent deleting yourself
+        if session['user_id'] == user_id:
+            return jsonify({'error': 'Cannot delete your own account'}), 400
+
+        user = User.query.get_or_404(user_id)
+
+        # Delete associated data
+        Application.query.filter_by(freelancer_id=user_id).delete()
+        Review.query.filter(
+            (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
+        ).delete()
+
+        # Delete user's gigs and related applications
+        user_gigs = Gig.query.filter_by(client_id=user_id).all()
+        for gig in user_gigs:
+            Application.query.filter_by(gig_id=gig.id).delete()
+            db.session.delete(gig)
+
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({'message': 'User deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin delete user error: {str(e)}")
+        return jsonify({'error': 'Failed to delete user'}), 500
+
+@app.route('/api/admin/gigs', methods=['GET'])
+@admin_required
+def admin_get_gigs():
+    """Get all gigs for admin management"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        status = request.args.get('status', '')
+
+        query = Gig.query
+
+        if status:
+            query = query.filter_by(status=status)
+
+        gigs = query.order_by(Gig.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        result = []
+        for g in gigs.items:
+            client = User.query.get(g.client_id)
+            result.append({
+                'id': g.id,
+                'title': g.title,
+                'description': g.description,
+                'category': g.category,
+                'budget_min': g.budget_min,
+                'budget_max': g.budget_max,
+                'status': g.status,
+                'halal_compliant': g.halal_compliant,
+                'halal_verified': g.halal_verified,
+                'views': g.views,
+                'applications': g.applications,
+                'created_at': g.created_at.isoformat(),
+                'client': {
+                    'id': client.id,
+                    'username': client.username,
+                    'email': client.email
+                } if client else None
+            })
+
+        return jsonify({
+            'gigs': result,
+            'total': gigs.total,
+            'pages': gigs.pages,
+            'current_page': gigs.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get gigs error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve gigs'}), 500
+
+@app.route('/api/admin/gigs/<int:gig_id>', methods=['PUT'])
+@admin_required
+def admin_update_gig(gig_id):
+    """Update gig status or verification"""
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Update status
+        if 'status' in data and data['status'] in ['open', 'in_progress', 'completed', 'cancelled']:
+            gig.status = data['status']
+
+        # Update halal verification
+        if 'halal_verified' in data:
+            gig.halal_verified = bool(data['halal_verified'])
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig updated successfully',
+            'gig': {
+                'id': gig.id,
+                'title': gig.title,
+                'status': gig.status,
+                'halal_verified': gig.halal_verified
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin update gig error: {str(e)}")
+        return jsonify({'error': 'Failed to update gig'}), 500
+
+@app.route('/api/admin/gigs/<int:gig_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_gig(gig_id):
+    """Delete a gig"""
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Delete associated applications
+        Application.query.filter_by(gig_id=gig_id).delete()
+
+        db.session.delete(gig)
+        db.session.commit()
+
+        return jsonify({'message': 'Gig deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin delete gig error: {str(e)}")
+        return jsonify({'error': 'Failed to delete gig'}), 500
+
 # Initialize database
 with app.app_context():
     db.create_all()
@@ -737,9 +1072,23 @@ with app.app_context():
             location='Penang',
             is_verified=True
         )
-        
+
+        # Admin user
+        admin_user = User(
+            username='admin',
+            email='admin@gighalal.com',
+            password_hash=generate_password_hash('Admin123!'),
+            full_name='GigHala Administrator',
+            user_type='both',
+            location='Kuala Lumpur',
+            is_verified=True,
+            halal_verified=True,
+            is_admin=True
+        )
+
         db.session.add(sample_user)
         db.session.add(sample_client)
+        db.session.add(admin_user)
         db.session.commit()
         
         # Sample gigs
