@@ -47,5 +47,10 @@ The application runs on port 5000 via the "Start application" workflow.
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
 - `SECRET_KEY`: Flask session secret (auto-generated if not set)
 
+## Deployment Notes
+- Uses `psycopg[binary]` instead of `psycopg2-binary` for Python 3.13 compatibility
+- Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
+
 ## Recent Changes
+- December 11, 2025: Fixed Railway deployment - replaced psycopg2-binary with psycopg for Python 3.13 compatibility
 - December 11, 2025: Initial import and setup for Replit environment
