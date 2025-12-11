@@ -110,10 +110,22 @@ class Referral(db.Model):
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class SiteStats(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.Integer, default=0)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 # Routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    stats = SiteStats.query.filter_by(key='visitor_count').first()
+    if not stats:
+        stats = SiteStats(key='visitor_count', value=0)
+        db.session.add(stats)
+    stats.value += 1
+    db.session.commit()
+    return render_template('index.html', visitor_count=stats.value)
 
 @app.route('/api/register', methods=['POST'])
 def register():

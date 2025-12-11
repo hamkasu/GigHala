@@ -991,12 +991,39 @@ body {
 
 .footer-bottom {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     padding-top: 32px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 14px;
     color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-company {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calmic-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.visitor-counter {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.visitor-counter strong {
+    color: var(--primary-gold);
+    font-weight: 700;
 }
 
 .footer-badges {
