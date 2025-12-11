@@ -5,5 +5,5 @@ Werkzeug==3.0.1
 psycopg2-binary==2.9.9
 gunicorn==21.2.0
 python-dotenv==1.0.0
-SQLAlchemy==2.0.23
+SQLAlchemy>=2.0.35
 email-validator==2.1.0
