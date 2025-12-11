@@ -1,0 +1,111 @@
+    from .ddl import sort_tables as sort_tables  # noqa: F401
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/events.py", line 19, in <module>
+    from . import util as sql_util
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    from . import events as events
+    from .base import Connection
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 30, in <module>
+    from .compiler import COLLECT_CARTESIAN_PRODUCTS as COLLECT_CARTESIAN_PRODUCTS
+    from .interfaces import BindTyping
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/compiler.py", line 61, in <module>
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/interfaces.py", line 38, in <module>
+    from . import crud
+    from ..sql.compiler import Compiled as Compiled
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/__init__.py", line 14, in <module>
+    from .elements import ClauseElement
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 808, in <module>
+    class SQLCoreOperations(Generic[_T_co], ColumnOperators, TypingOnly):
+    ...<472 lines>...
+                ...
+  File "/mise/installs/python/3.13.11/lib/python3.13/typing.py", line 1269, in _generic_init_subclass
+    super(Generic, cls).__init_subclass__(*args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/util/langhelpers.py", line 1988, in __init_subclass__
+    raise AssertionError(
+    ...<2 lines>...
+    )
+AssertionError: Class <class 'sqlalchemy.sql.elements.SQLCoreOperations'> directly inherits TypingOnly but has additional attributes {'__static_attributes__', '__firstlineno__'}.
+[2025-12-11 10:46:11 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2025-12-11 10:46:11 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2025-12-11 10:46:11 +0000] [1] [ERROR] Shutting down: Master
+[2025-12-11 10:46:11 +0000] [1] [ERROR] Reason: Worker failed to boot.
+[2025-12-11 10:46:12 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-12-11 10:46:12 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+[2025-12-11 10:46:12 +0000] [1] [INFO] Using worker: sync
+[2025-12-11 10:46:12 +0000] [2] [INFO] Booting worker with pid: 2
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/util.py", line 371, in import_app
+[2025-12-11 10:46:13 +0000] [2] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/arbiter.py", line 609, in spawn_worker
+    worker.init_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+    ~~~~~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+                ~~~~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+                    ~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/flask_sqlalchemy/extension.py", line 9, in <module>
+    mod = importlib.import_module(module)
+    import sqlalchemy as sa
+  File "/mise/installs/python/3.13.11/lib/python3.13/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/__init__.py", line 13, in <module>
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    from .engine import AdaptedConnection as AdaptedConnection
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/__init__.py", line 18, in <module>
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1023, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/app/app.py", line 3, in <module>
+    from flask_sqlalchemy import SQLAlchemy
+  File "/app/.venv/lib/python3.13/site-packages/flask_sqlalchemy/__init__.py", line 5, in <module>
+    from .extension import SQLAlchemy
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/util.py", line 46, in <module>
+    from .ddl import sort_tables as sort_tables  # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/ddl.py", line 30, in <module>
+    from . import events as events
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/events.py", line 19, in <module>
+    from .base import Connection
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 30, in <module>
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/crud.py", line 34, in <module>
+    from .interfaces import BindTyping
+    from ..sql.compiler import Compiled as Compiled
+    from . import dml
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/interfaces.py", line 38, in <module>
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/__init__.py", line 14, in <module>
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/dml.py", line 34, in <module>
+    from .compiler import COLLECT_CARTESIAN_PRODUCTS as COLLECT_CARTESIAN_PRODUCTS
+    from . import util as sql_util
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/compiler.py", line 61, in <module>
+    from . import crud
+    from .elements import ClauseElement
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 808, in <module>
+    class SQLCoreOperations(Generic[_T_co], ColumnOperators, TypingOnly):
+    ...<472 lines>...
+                ...
+  File "/mise/installs/python/3.13.11/lib/python3.13/typing.py", line 1269, in _generic_init_subclass
+    super(Generic, cls).__init_subclass__(*args, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/util/langhelpers.py", line 1988, in __init_subclass__
+    raise AssertionError(
+    ...<2 lines>...
+    )
+AssertionError: Class <class 'sqlalchemy.sql.elements.SQLCoreOperations'> directly inherits TypingOnly but has additional attributes {'__static_attributes__', '__firstlineno__'}.
+[2025-12-11 10:46:13 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2025-12-11 10:46:13 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2025-12-11 10:46:13 +0000] [1] [ERROR] Shutting down: Master
+[2025-12-11 10:46:13 +0000] [1] [ERROR] Reason: Worker failed to boot.
