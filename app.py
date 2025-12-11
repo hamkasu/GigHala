@@ -389,8 +389,306 @@ def get_categories():
         {'id': 'voice', 'name': 'Voice Over', 'icon': '🎤'},
         {'id': 'data', 'name': 'Data Entry', 'icon': '📊'}
     ]
-    
+
     return jsonify(categories)
+
+# Dashboard endpoints
+@app.route('/api/dashboard', methods=['GET'])
+def get_dashboard():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    user = User.query.get(session['user_id'])
+
+    # Get user's posted gigs (if client)
+    posted_gigs = []
+    if user.user_type in ['client', 'both']:
+        gigs = Gig.query.filter_by(client_id=user.id).order_by(Gig.created_at.desc()).all()
+        posted_gigs = [{
+            'id': g.id,
+            'title': g.title,
+            'status': g.status,
+            'budget_min': g.budget_min,
+            'budget_max': g.budget_max,
+            'applications': g.applications,
+            'created_at': g.created_at.isoformat()
+        } for g in gigs]
+
+    # Get user's applications (if freelancer)
+    applications = []
+    if user.user_type in ['freelancer', 'both']:
+        apps = Application.query.filter_by(freelancer_id=user.id).order_by(Application.created_at.desc()).all()
+        for app in apps:
+            gig = Gig.query.get(app.gig_id)
+            applications.append({
+                'id': app.id,
+                'gig_title': gig.title,
+                'gig_id': gig.id,
+                'status': app.status,
+                'proposed_price': app.proposed_price,
+                'created_at': app.created_at.isoformat()
+            })
+
+    # Get transactions
+    transactions = Transaction.query.filter(
+        (Transaction.freelancer_id == user.id) | (Transaction.client_id == user.id)
+    ).order_by(Transaction.transaction_date.desc()).limit(10).all()
+
+    transaction_list = [{
+        'id': t.id,
+        'amount': t.amount,
+        'status': t.status,
+        'payment_method': t.payment_method,
+        'transaction_date': t.transaction_date.isoformat()
+    } for t in transactions]
+
+    return jsonify({
+        'user': {
+            'username': user.username,
+            'user_type': user.user_type,
+            'rating': user.rating,
+            'total_earnings': user.total_earnings,
+            'completed_gigs': user.completed_gigs
+        },
+        'posted_gigs': posted_gigs,
+        'applications': applications,
+        'transactions': transaction_list
+    })
+
+@app.route('/api/gigs/<int:gig_id>/applications', methods=['GET'])
+def get_gig_applications(gig_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    gig = Gig.query.get_or_404(gig_id)
+
+    # Only the gig owner can see applications
+    if gig.client_id != session['user_id']:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    applications = Application.query.filter_by(gig_id=gig_id).order_by(Application.created_at.desc()).all()
+
+    app_list = []
+    for app in applications:
+        freelancer = User.query.get(app.freelancer_id)
+        app_list.append({
+            'id': app.id,
+            'freelancer': {
+                'id': freelancer.id,
+                'username': freelancer.username,
+                'rating': freelancer.rating,
+                'completed_gigs': freelancer.completed_gigs,
+                'skills': json.loads(freelancer.skills) if freelancer.skills else []
+            },
+            'cover_letter': app.cover_letter,
+            'proposed_price': app.proposed_price,
+            'status': app.status,
+            'created_at': app.created_at.isoformat()
+        })
+
+    return jsonify(app_list)
+
+@app.route('/api/applications/<int:app_id>/accept', methods=['POST'])
+def accept_application(app_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    application = Application.query.get_or_404(app_id)
+    gig = Gig.query.get(application.gig_id)
+
+    # Only the gig owner can accept applications
+    if gig.client_id != session['user_id']:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    # Update application status
+    application.status = 'accepted'
+
+    # Update gig
+    gig.freelancer_id = application.freelancer_id
+    gig.status = 'in_progress'
+
+    # Reject other applications
+    Application.query.filter(
+        Application.gig_id == gig.id,
+        Application.id != app_id
+    ).update({'status': 'rejected'})
+
+    db.session.commit()
+
+    return jsonify({'message': 'Application accepted successfully'})
+
+@app.route('/api/applications/<int:app_id>/reject', methods=['POST'])
+def reject_application(app_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    application = Application.query.get_or_404(app_id)
+    gig = Gig.query.get(application.gig_id)
+
+    # Only the gig owner can reject applications
+    if gig.client_id != session['user_id']:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    application.status = 'rejected'
+    db.session.commit()
+
+    return jsonify({'message': 'Application rejected'})
+
+# Payment endpoints
+@app.route('/api/payment/initiate', methods=['POST'])
+def initiate_payment():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.json
+    gig_id = data.get('gig_id')
+    payment_method = data.get('payment_method', 'stripe')
+
+    gig = Gig.query.get_or_404(gig_id)
+
+    # Calculate amounts
+    amount = float(data.get('amount', gig.budget_max))
+    commission = amount * 0.10  # 10% commission
+    net_amount = amount - commission
+
+    # Create transaction record
+    transaction = Transaction(
+        gig_id=gig_id,
+        freelancer_id=gig.freelancer_id,
+        client_id=gig.client_id,
+        amount=amount,
+        commission=commission,
+        net_amount=net_amount,
+        payment_method=payment_method,
+        status='pending'
+    )
+
+    db.session.add(transaction)
+    db.session.commit()
+
+    # In a real app, this would integrate with Stripe/payment gateway
+    # For now, return a mock payment intent
+    return jsonify({
+        'transaction_id': transaction.id,
+        'amount': amount,
+        'client_secret': 'mock_client_secret_' + str(transaction.id),
+        'status': 'pending'
+    }), 201
+
+@app.route('/api/payment/<int:transaction_id>/complete', methods=['POST'])
+def complete_payment(transaction_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    transaction = Transaction.query.get_or_404(transaction_id)
+
+    # Update transaction status
+    transaction.status = 'completed'
+
+    # Update gig status
+    gig = Gig.query.get(transaction.gig_id)
+    gig.status = 'completed'
+
+    # Update freelancer earnings
+    freelancer = User.query.get(transaction.freelancer_id)
+    freelancer.total_earnings += transaction.net_amount
+    freelancer.completed_gigs += 1
+
+    db.session.commit()
+
+    return jsonify({'message': 'Payment completed successfully'})
+
+# Admin endpoints
+@app.route('/api/admin/users', methods=['GET'])
+def admin_get_users():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Check if user is admin (you'd implement proper admin checking)
+    user = User.query.get(session['user_id'])
+    if user.email not in ['admin@gighalal.com', 'client@gighalal.com']:  # Simple admin check
+        return jsonify({'error': 'Forbidden - Admin only'}), 403
+
+    users = User.query.order_by(User.created_at.desc()).all()
+
+    return jsonify([{
+        'id': u.id,
+        'username': u.username,
+        'email': u.email,
+        'user_type': u.user_type,
+        'rating': u.rating,
+        'total_earnings': u.total_earnings,
+        'completed_gigs': u.completed_gigs,
+        'is_verified': u.is_verified,
+        'created_at': u.created_at.isoformat()
+    } for u in users])
+
+@app.route('/api/admin/gigs', methods=['GET'])
+def admin_get_gigs():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    user = User.query.get(session['user_id'])
+    if user.email not in ['admin@gighalal.com', 'client@gighalal.com']:
+        return jsonify({'error': 'Forbidden - Admin only'}), 403
+
+    gigs = Gig.query.order_by(Gig.created_at.desc()).all()
+
+    return jsonify([{
+        'id': g.id,
+        'title': g.title,
+        'category': g.category,
+        'status': g.status,
+        'budget_min': g.budget_min,
+        'budget_max': g.budget_max,
+        'applications': g.applications,
+        'views': g.views,
+        'created_at': g.created_at.isoformat()
+    } for g in gigs])
+
+@app.route('/api/admin/stats', methods=['GET'])
+def admin_get_stats():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    user = User.query.get(session['user_id'])
+    if user.email not in ['admin@gighalal.com', 'client@gighalal.com']:
+        return jsonify({'error': 'Forbidden - Admin only'}), 403
+
+    total_users = User.query.count()
+    total_gigs = Gig.query.count()
+    active_gigs = Gig.query.filter_by(status='open').count()
+    completed_gigs = Gig.query.filter_by(status='completed').count()
+    total_applications = Application.query.count()
+    total_transactions = Transaction.query.filter_by(status='completed').count()
+    total_revenue = db.session.query(db.func.sum(Transaction.commission)).filter_by(status='completed').scalar() or 0
+    total_paid_out = db.session.query(db.func.sum(Transaction.net_amount)).filter_by(status='completed').scalar() or 0
+
+    return jsonify({
+        'total_users': total_users,
+        'total_gigs': total_gigs,
+        'active_gigs': active_gigs,
+        'completed_gigs': completed_gigs,
+        'total_applications': total_applications,
+        'total_transactions': total_transactions,
+        'total_revenue': float(total_revenue),
+        'total_paid_out': float(total_paid_out)
+    })
+
+@app.route('/api/admin/users/<int:user_id>/verify', methods=['POST'])
+def admin_verify_user(user_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    admin = User.query.get(session['user_id'])
+    if admin.email not in ['admin@gighalal.com', 'client@gighalal.com']:
+        return jsonify({'error': 'Forbidden - Admin only'}), 403
+
+    user = User.query.get_or_404(user_id)
+    user.is_verified = not user.is_verified
+    db.session.commit()
+
+    return jsonify({'message': f'User verification toggled', 'is_verified': user.is_verified})
 
 # Initialize database
 with app.app_context():

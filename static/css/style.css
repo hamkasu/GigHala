@@ -1203,3 +1203,37 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Dashboard & Admin Pages */
+.page-content {
+    min-height: 100vh;
+    background: var(--soft-cream);
+}
+
+.stat-card {
+    background: var(--pure-white);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-gray);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--primary-green);
+    font-family: var(--font-display);
+}

@@ -3,7 +3,10 @@ const app = {
     currentUser: null,
     gigs: [],
     categories: [],
-    
+    currentGigId: null,
+    gigsOffset: 0,
+    gigsLimit: 50,
+
     // Initialize app
     async init() {
         console.log('Initializing GigHalal App...');
@@ -195,37 +198,52 @@ const app = {
         }
     },
     
-    // Apply to gig
+    // Apply to gig (show form modal instead of prompt)
     applyToGig(gigId) {
         if (!this.currentUser) {
             this.showLogin();
             return;
         }
-        
-        const coverLetter = prompt('Masukkan cover letter anda (optional):');
-        const proposedPrice = prompt('Harga cadangan anda (RM):');
-        
-        if (proposedPrice) {
-            fetch(`/api/gigs/${gigId}/apply`, {
+
+        this.currentGigId = gigId;
+        this.closeModal('gigModal');
+        const modal = document.getElementById('applyModal');
+        modal.classList.add('active');
+    },
+
+    // Handle apply form submission
+    async handleApplyToGig(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const data = {
+            cover_letter: formData.get('cover_letter'),
+            proposed_price: parseFloat(formData.get('proposed_price'))
+        };
+
+        try {
+            const response = await fetch(`/api/gigs/${this.currentGigId}/apply`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    cover_letter: coverLetter,
-                    proposed_price: parseFloat(proposedPrice)
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert('Application submitted successfully!');
-                this.closeModal('gigModal');
-                this.loadGigs();
-            })
-            .catch(error => {
-                console.error('Error applying to gig:', error);
-                alert('Error submitting application. Please try again.');
+                body: JSON.stringify(data)
             });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Application submitted successfully!');
+                this.closeModal('applyModal');
+                form.reset();
+                this.loadGigs();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error applying to gig:', error);
+            alert('Error submitting application. Please try again.');
         }
     },
     
@@ -423,8 +441,377 @@ const app = {
     // Update UI for logged in user
     updateUIForLoggedInUser() {
         console.log('User logged in:', this.currentUser);
-        // Update navigation to show profile link
-        // This would be implemented based on your UI requirements
+        document.getElementById('guestNav').style.display = 'none';
+        document.getElementById('userNav').style.display = 'flex';
+    },
+
+    // Logout
+    async handleLogout() {
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+            this.currentUser = null;
+            document.getElementById('guestNav').style.display = 'flex';
+            document.getElementById('userNav').style.display = 'none';
+            this.hideAllPages();
+            alert('Logout berjaya!');
+            window.location.reload();
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    },
+
+    // Show create gig modal
+    showCreateGig() {
+        if (!this.currentUser) {
+            this.showLogin();
+            return;
+        }
+
+        // Populate category dropdown
+        const select = document.getElementById('createGigCategory');
+        select.innerHTML = '<option value="">Pilih kategori</option>' +
+            this.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+
+        const modal = document.getElementById('createGigModal');
+        modal.classList.add('active');
+    },
+
+    // Handle create gig form submission
+    async handleCreateGig(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const data = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            category: formData.get('category'),
+            budget_min: parseFloat(formData.get('budget_min')),
+            budget_max: parseFloat(formData.get('budget_max')),
+            duration: formData.get('duration'),
+            location: formData.get('location'),
+            deadline: formData.get('deadline'),
+            is_remote: formData.get('is_remote') === 'on',
+            halal_compliant: formData.get('halal_compliant') === 'on',
+            is_instant_payout: formData.get('is_instant_payout') === 'on'
+        };
+
+        try {
+            const response = await fetch('/api/gigs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Gig berjaya dipost!');
+                this.closeModal('createGigModal');
+                form.reset();
+                this.loadGigs();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error creating gig:', error);
+            alert('Error creating gig. Please try again.');
+        }
+    },
+
+    // Show profile modal
+    async showProfile() {
+        if (!this.currentUser) {
+            this.showLogin();
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/profile');
+            const profile = await response.json();
+
+            document.getElementById('profile_full_name').value = profile.full_name || '';
+            document.getElementById('profile_phone').value = profile.phone || '';
+            document.getElementById('profile_location').value = profile.location || '';
+            document.getElementById('profile_bio').value = profile.bio || '';
+            document.getElementById('profile_skills').value = profile.skills ? profile.skills.join(', ') : '';
+
+            const modal = document.getElementById('profileModal');
+            modal.classList.add('active');
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    },
+
+    // Handle profile update
+    async handleUpdateProfile(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const skillsString = formData.get('skills');
+        const skills = skillsString ? skillsString.split(',').map(s => s.trim()) : [];
+
+        const data = {
+            full_name: formData.get('full_name'),
+            phone: formData.get('phone'),
+            location: formData.get('location'),
+            bio: formData.get('bio'),
+            skills: skills
+        };
+
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Profil berjaya dikemaskini!');
+                this.closeModal('profileModal');
+                this.checkAuth();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Error updating profile. Please try again.');
+        }
+    },
+
+    // Show dashboard
+    async showDashboard() {
+        if (!this.currentUser) {
+            this.showLogin();
+            return;
+        }
+
+        this.hideAllPages();
+        document.getElementById('dashboardPage').style.display = 'block';
+
+        try {
+            const response = await fetch('/api/dashboard');
+            const data = await response.json();
+
+            // Update stats
+            document.getElementById('dash_earnings').textContent = `RM ${data.user.total_earnings.toFixed(2)}`;
+            document.getElementById('dash_completed').textContent = data.user.completed_gigs;
+            document.getElementById('dash_rating').textContent = `${data.user.rating.toFixed(1)} ⭐`;
+
+            // Render posted gigs
+            const postedGigsList = document.getElementById('postedGigsList');
+            if (data.posted_gigs.length === 0) {
+                postedGigsList.innerHTML = '<p style="color: var(--text-gray);">Tiada gig dipost lagi.</p>';
+            } else {
+                postedGigsList.innerHTML = data.posted_gigs.map(gig => `
+                    <div class="gig-card" style="margin-bottom: 16px;">
+                        <h3>${this.escapeHtml(gig.title)}</h3>
+                        <p>Status: <strong>${gig.status}</strong></p>
+                        <p>Budget: RM ${gig.budget_min}-${gig.budget_max}</p>
+                        <p>Aplikasi: ${gig.applications}</p>
+                        <button class="btn-primary" onclick="app.viewGigApplications(${gig.id})">Lihat Aplikasi</button>
+                    </div>
+                `).join('');
+            }
+
+            // Render applications
+            const applicationsList = document.getElementById('applicationsList');
+            if (data.applications.length === 0) {
+                applicationsList.innerHTML = '<p style="color: var(--text-gray);">Tiada aplikasi lagi.</p>';
+            } else {
+                applicationsList.innerHTML = data.applications.map(app => `
+                    <div class="gig-card" style="margin-bottom: 16px;">
+                        <h3>${this.escapeHtml(app.gig_title)}</h3>
+                        <p>Status: <strong>${app.status}</strong></p>
+                        <p>Harga Cadangan: RM ${app.proposed_price}</p>
+                        <button class="btn-secondary" onclick="app.showGigDetails(${app.gig_id})">Lihat Gig</button>
+                    </div>
+                `).join('');
+            }
+
+            // Render transactions
+            const transactionsList = document.getElementById('transactionsList');
+            if (data.transactions.length === 0) {
+                transactionsList.innerHTML = '<p style="color: var(--text-gray);">Tiada transaksi lagi.</p>';
+            } else {
+                transactionsList.innerHTML = data.transactions.map(t => `
+                    <div class="gig-card" style="margin-bottom: 16px;">
+                        <p>Jumlah: RM ${t.amount.toFixed(2)}</p>
+                        <p>Status: <strong>${t.status}</strong></p>
+                        <p>Kaedah: ${t.payment_method || 'N/A'}</p>
+                        <p style="font-size: 14px; color: var(--text-gray);">${new Date(t.transaction_date).toLocaleString('ms-MY')}</p>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            alert('Error loading dashboard');
+        }
+    },
+
+    // View gig applications
+    async viewGigApplications(gigId) {
+        try {
+            const response = await fetch(`/api/gigs/${gigId}/applications`);
+            const applications = await response.json();
+
+            const modal = document.getElementById('gigApplicationsModal');
+            const list = document.getElementById('gigApplicationsList');
+
+            if (applications.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-gray);">Tiada aplikasi lagi.</p>';
+            } else {
+                list.innerHTML = applications.map(app => `
+                    <div class="gig-card" style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <h3>${this.escapeHtml(app.freelancer.username)}</h3>
+                                <p>Rating: ${app.freelancer.rating} ⭐ | Completed: ${app.freelancer.completed_gigs} gigs</p>
+                                <p>Skills: ${app.freelancer.skills.join(', ') || 'N/A'}</p>
+                                <p><strong>Harga Cadangan: RM ${app.proposed_price}</strong></p>
+                                ${app.cover_letter ? `<p style="margin-top: 12px;">${this.escapeHtml(app.cover_letter)}</p>` : ''}
+                            </div>
+                            <div>
+                                ${app.status === 'pending' ? `
+                                    <button class="btn-primary" onclick="app.acceptApplication(${app.id})" style="margin-bottom: 8px; width: 100%;">Terima</button>
+                                    <button class="btn-secondary" onclick="app.rejectApplication(${app.id})">Tolak</button>
+                                ` : `<span class="badge">${app.status}</span>`}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            modal.classList.add('active');
+        } catch (error) {
+            console.error('Error loading applications:', error);
+        }
+    },
+
+    // Accept application
+    async acceptApplication(appId) {
+        if (!confirm('Terima aplikasi ini?')) return;
+
+        try {
+            const response = await fetch(`/api/applications/${appId}/accept`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                alert('Aplikasi diterima!');
+                this.closeModal('gigApplicationsModal');
+                this.showDashboard();
+            }
+        } catch (error) {
+            console.error('Error accepting application:', error);
+        }
+    },
+
+    // Reject application
+    async rejectApplication(appId) {
+        if (!confirm('Tolak aplikasi ini?')) return;
+
+        try {
+            const response = await fetch(`/api/applications/${appId}/reject`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                alert('Aplikasi ditolak.');
+                this.closeModal('gigApplicationsModal');
+                this.showDashboard();
+            }
+        } catch (error) {
+            console.error('Error rejecting application:', error);
+        }
+    },
+
+    // Show admin dashboard
+    async showAdminDashboard() {
+        if (!this.currentUser) {
+            this.showLogin();
+            return;
+        }
+
+        this.hideAllPages();
+        document.getElementById('adminPage').style.display = 'block';
+
+        try {
+            // Load stats
+            const statsResponse = await fetch('/api/admin/stats');
+            const stats = await statsResponse.json();
+
+            const adminStats = document.getElementById('adminStats');
+            adminStats.innerHTML = `
+                <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value">${stats.total_users}</div></div>
+                <div class="stat-card"><div class="stat-label">Total Gigs</div><div class="stat-value">${stats.total_gigs}</div></div>
+                <div class="stat-card"><div class="stat-label">Active Gigs</div><div class="stat-value">${stats.active_gigs}</div></div>
+                <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value">${stats.completed_gigs}</div></div>
+                <div class="stat-card"><div class="stat-label">Applications</div><div class="stat-value">${stats.total_applications}</div></div>
+                <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">RM ${stats.total_revenue.toFixed(2)}</div></div>
+                <div class="stat-card"><div class="stat-label">Paid Out</div><div class="stat-value">RM ${stats.total_paid_out.toFixed(2)}</div></div>
+            `;
+
+            // Load users
+            const usersResponse = await fetch('/api/admin/users');
+            const users = await usersResponse.json();
+
+            const usersList = document.getElementById('adminUsersList');
+            usersList.innerHTML = users.slice(0, 10).map(user => `
+                <div class="gig-card" style="margin-bottom: 12px;">
+                    <p><strong>${this.escapeHtml(user.username)}</strong> (${user.email})</p>
+                    <p>${user.user_type} | ⭐ ${user.rating} | RM ${user.total_earnings}</p>
+                    <button class="btn-secondary" onclick="app.toggleUserVerification(${user.id})" style="margin-top: 8px;">
+                        ${user.is_verified ? 'Unverify' : 'Verify'}
+                    </button>
+                </div>
+            `).join('');
+
+            // Load gigs
+            const gigsResponse = await fetch('/api/admin/gigs');
+            const gigs = await gigsResponse.json();
+
+            const gigsList = document.getElementById('adminGigsList');
+            gigsList.innerHTML = gigs.slice(0, 10).map(gig => `
+                <div class="gig-card" style="margin-bottom: 12px;">
+                    <p><strong>${this.escapeHtml(gig.title)}</strong></p>
+                    <p>${gig.category} | ${gig.status}</p>
+                    <p>RM ${gig.budget_min}-${gig.budget_max} | 📝 ${gig.applications}</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading admin dashboard:', error);
+            alert('Error loading admin dashboard. You may not have admin permissions.');
+        }
+    },
+
+    // Toggle user verification
+    async toggleUserVerification(userId) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/verify`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                alert('User verification toggled');
+                this.showAdminDashboard();
+            }
+        } catch (error) {
+            console.error('Error toggling verification:', error);
+        }
+    },
+
+    // Hide all pages
+    hideAllPages() {
+        document.getElementById('dashboardPage').style.display = 'none';
+        document.getElementById('adminPage').style.display = 'none';
     },
     
     // Scroll to section
@@ -444,9 +831,36 @@ const app = {
     },
     
     // Load more gigs
-    loadMoreGigs() {
-        alert('Load more functionality would paginate through more gigs');
-        // Implementation would involve pagination
+    async loadMoreGigs() {
+        this.gigsOffset += this.gigsLimit;
+
+        try {
+            const filters = {};
+            const search = document.getElementById('searchInput');
+            if (search && search.value) filters.search = search.value;
+
+            const category = document.getElementById('categoryFilter');
+            if (category && category.value) filters.category = category.value;
+
+            const location = document.getElementById('locationFilter');
+            if (location && location.value) filters.location = location.value;
+
+            const halal = document.getElementById('halalFilter');
+            if (halal) filters.halal_only = halal.checked ? 'true' : 'false';
+
+            const params = new URLSearchParams(filters);
+            const response = await fetch(`/api/gigs?${params}`);
+            const newGigs = await response.json();
+
+            if (newGigs.length > 0) {
+                this.gigs = [...this.gigs, ...newGigs];
+                this.renderGigs();
+            } else {
+                alert('Tiada lagi gig untuk dipaparkan');
+            }
+        } catch (error) {
+            console.error('Error loading more gigs:', error);
+        }
     },
     
     // Escape HTML to prevent XSS

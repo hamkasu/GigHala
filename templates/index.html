@@ -19,12 +19,20 @@
                     <span class="halal-badge">HALAL ✓</span>
                 </div>
                 
-                <div class="nav-links">
+                <div class="nav-links" id="navLinks">
                     <a href="#cari-gig" class="nav-link">Cari Gig</a>
                     <a href="#kategori" class="nav-link">Kategori</a>
                     <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
-                    <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
-                    <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+                    <span id="guestNav">
+                        <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
+                        <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+                    </span>
+                    <span id="userNav" style="display: none;">
+                        <a href="#" class="nav-link" onclick="app.showDashboard()">Dashboard</a>
+                        <button class="btn-nav" onclick="app.showCreateGig()">Post Gig</button>
+                        <button class="btn-nav" onclick="app.showProfile()">Profil</button>
+                        <button class="btn-primary" onclick="app.handleLogout()">Logout</button>
+                    </span>
                 </div>
                 
                 <div class="mobile-menu-btn" onclick="app.toggleMobileMenu()">
@@ -425,6 +433,194 @@
             <div class="modal-content modal-large">
                 <button class="modal-close" onclick="app.closeModal('gigModal')">&times;</button>
                 <div id="gigDetails">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Create Gig -->
+        <div id="createGigModal" class="modal">
+            <div class="modal-content modal-large">
+                <button class="modal-close" onclick="app.closeModal('createGigModal')">&times;</button>
+                <h2 class="modal-title">Post Gig Baru</h2>
+                <form id="createGigForm" onsubmit="app.handleCreateGig(event)">
+                    <div class="form-group">
+                        <label>Tajuk Gig</label>
+                        <input type="text" name="title" required placeholder="Contoh: Design Logo untuk Restoran Halal">
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi</label>
+                        <textarea name="description" required rows="5" placeholder="Terangkan detail gig anda..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori</label>
+                        <select name="category" id="createGigCategory" required>
+                            <option value="">Pilih kategori</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label>Budget Minimum (RM)</label>
+                            <input type="number" name="budget_min" required min="0" step="0.01" placeholder="200">
+                        </div>
+                        <div class="form-group">
+                            <label>Budget Maximum (RM)</label>
+                            <input type="number" name="budget_max" required min="0" step="0.01" placeholder="500">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tempoh Masa</label>
+                        <input type="text" name="duration" placeholder="Contoh: 3-5 hari">
+                    </div>
+                    <div class="form-group">
+                        <label>Lokasi</label>
+                        <input type="text" name="location" placeholder="Contoh: Kuala Lumpur atau Remote">
+                    </div>
+                    <div class="form-group">
+                        <label>Deadline</label>
+                        <input type="date" name="deadline">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="is_remote" checked>
+                            <span>Remote/Kerja dari rumah</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="halal_compliant" checked>
+                            <span>Halal Compliant</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="is_instant_payout">
+                            <span>Instant Payout (24 jam)</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-modal-primary">Post Gig</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Profile Edit -->
+        <div id="profileModal" class="modal">
+            <div class="modal-content modal-large">
+                <button class="modal-close" onclick="app.closeModal('profileModal')">&times;</button>
+                <h2 class="modal-title">Edit Profil</h2>
+                <form id="profileForm" onsubmit="app.handleUpdateProfile(event)">
+                    <div class="form-group">
+                        <label>Nama Penuh</label>
+                        <input type="text" name="full_name" id="profile_full_name">
+                    </div>
+                    <div class="form-group">
+                        <label>No. Telefon</label>
+                        <input type="tel" name="phone" id="profile_phone" placeholder="+60">
+                    </div>
+                    <div class="form-group">
+                        <label>Lokasi</label>
+                        <input type="text" name="location" id="profile_location">
+                    </div>
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea name="bio" id="profile_bio" rows="4" placeholder="Ceritakan tentang diri anda..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Skills (pisahkan dengan koma)</label>
+                        <input type="text" name="skills" id="profile_skills" placeholder="Graphic Design, Video Editing, Canva">
+                    </div>
+                    <button type="submit" class="btn-modal-primary">Simpan Perubahan</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Apply to Gig -->
+        <div id="applyModal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="app.closeModal('applyModal')">&times;</button>
+                <h2 class="modal-title">Apply ke Gig</h2>
+                <form id="applyForm" onsubmit="app.handleApplyToGig(event)">
+                    <div class="form-group">
+                        <label>Harga Cadangan (RM)</label>
+                        <input type="number" name="proposed_price" required min="0" step="0.01" placeholder="300">
+                    </div>
+                    <div class="form-group">
+                        <label>Cover Letter</label>
+                        <textarea name="cover_letter" rows="6" placeholder="Terangkan kenapa anda sesuai untuk gig ini..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-modal-primary">Submit Application</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="dashboardPage" class="page-content" style="display: none;">
+            <div class="container" style="padding-top: 100px;">
+                <h1 style="font-size: 36px; font-family: var(--font-display); margin-bottom: 32px;">Dashboard</h1>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                    <div class="stat-card">
+                        <div class="stat-label">Pendapatan</div>
+                        <div class="stat-value" id="dash_earnings">RM 0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Gig Selesai</div>
+                        <div class="stat-value" id="dash_completed">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Rating</div>
+                        <div class="stat-value" id="dash_rating">0.0 ⭐</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr; gap: 32px;">
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Gig yang Dipost</h2>
+                        <div id="postedGigsList"></div>
+                    </div>
+
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Aplikasi Saya</h2>
+                        <div id="applicationsList"></div>
+                    </div>
+
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Transaksi Terkini</h2>
+                        <div id="transactionsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Page -->
+        <div id="adminPage" class="page-content" style="display: none;">
+            <div class="container" style="padding-top: 100px;">
+                <h1 style="font-size: 36px; font-family: var(--font-display); margin-bottom: 32px;">Admin Dashboard</h1>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px;" id="adminStats">
+                    <!-- Stats will be populated by JS -->
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Users</h2>
+                        <div id="adminUsersList"></div>
+                    </div>
+
+                    <div>
+                        <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Gigs</h2>
+                        <div id="adminGigsList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gig Applications Page -->
+        <div id="gigApplicationsModal" class="modal">
+            <div class="modal-content modal-large">
+                <button class="modal-close" onclick="app.closeModal('gigApplicationsModal')">&times;</button>
+                <h2 class="modal-title">Aplikasi untuk Gig</h2>
+                <div id="gigApplicationsList">
                     <!-- Will be populated by JavaScript -->
                 </div>
             </div>
