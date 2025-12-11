@@ -1,11 +1,18 @@
 [phases.setup]
-nixPkgs = ['python311', 'postgresql']
+nixPkgs = ['python311', 'postgresql', 'gcc', 'pkgconfig']
+nixLibs = ['postgresql']
 
 [phases.install]
-cmds = ['pip install --upgrade pip', 'pip install -r requirements.txt']
+cmds = [
+    'pip install --upgrade pip setuptools wheel',
+    'pip install -r requirements.txt --no-cache-dir'
+]
 
 [phases.build]
-cmds = ['echo "Build phase complete"']
+cmds = ['python -c "print(\"Build phase complete\")"']
 
 [start]
 cmd = 'gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 120 --access-logfile - --error-logfile -'
+
+[variables]
+PYTHON_VERSION = '3.11'
