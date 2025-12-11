@@ -3,9 +3,12 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from functools import wraps
+from email_validator import validate_email, EmailNotValidError
 import os
 import secrets
 import json
+import re
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
@@ -16,8 +19,118 @@ elif app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgresql://', 'postgresql+psycopg://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Secure session configuration
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+
 db = SQLAlchemy(app)
-CORS(app)
+
+# Secure CORS configuration - restrict to specific origins in production
+allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
+CORS(app,
+     origins=allowed_origins,
+     supports_credentials=True,
+     max_age=3600)
+
+# Rate limiting storage (in-memory, consider Redis for production)
+login_attempts = {}
+api_rate_limits = {}
+
+# Security headers middleware
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'"
+    return response
+
+# Input validation functions
+def validate_password_strength(password):
+    """Validate password meets security requirements"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter"
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain at least one lowercase letter"
+    if not re.search(r'\d', password):
+        return False, "Password must contain at least one number"
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, "Password must contain at least one special character"
+    return True, "Password is valid"
+
+def validate_username(username):
+    """Validate username format"""
+    if not username or len(username) < 3 or len(username) > 30:
+        return False, "Username must be between 3 and 30 characters"
+    if not re.match(r'^[a-zA-Z0-9_]+$', username):
+        return False, "Username can only contain letters, numbers, and underscores"
+    return True, "Username is valid"
+
+def validate_phone(phone):
+    """Validate Malaysian phone number format"""
+    if not phone:
+        return True, "Phone is optional"
+    # Malaysian phone format: +60... or 01...
+    if re.match(r'^(\+?60|0)[1-9]\d{7,9}$', phone):
+        return True, "Phone is valid"
+    return False, "Invalid Malaysian phone number format"
+
+def sanitize_input(text, max_length=1000):
+    """Sanitize text input to prevent injection attacks"""
+    if not text:
+        return text
+    # Remove any potentially harmful characters
+    text = text.strip()
+    if len(text) > max_length:
+        text = text[:max_length]
+    return text
+
+# Rate limiting decorator
+def rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30):
+    """Rate limit decorator to prevent brute force attacks"""
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            identifier = request.remote_addr
+            current_time = datetime.utcnow()
+
+            if identifier not in login_attempts:
+                login_attempts[identifier] = {'count': 0, 'first_attempt': current_time, 'locked_until': None}
+
+            attempt_data = login_attempts[identifier]
+
+            # Check if account is locked
+            if attempt_data['locked_until'] and current_time < attempt_data['locked_until']:
+                remaining = int((attempt_data['locked_until'] - current_time).total_seconds() / 60)
+                return jsonify({'error': f'Too many failed attempts. Account locked for {remaining} more minutes'}), 429
+
+            # Reset if window has passed
+            if (current_time - attempt_data['first_attempt']).total_seconds() > window_minutes * 60:
+                attempt_data['count'] = 0
+                attempt_data['first_attempt'] = current_time
+                attempt_data['locked_until'] = None
+
+            # Check if rate limit exceeded
+            if attempt_data['count'] >= max_attempts:
+                attempt_data['locked_until'] = current_time + timedelta(minutes=lockout_minutes)
+                return jsonify({'error': f'Too many failed attempts. Account locked for {lockout_minutes} minutes'}), 429
+
+            # Increment attempt counter
+            attempt_data['count'] += 1
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
+def reset_rate_limit(identifier):
+    """Reset rate limit for successful login"""
+    if identifier in login_attempts:
+        login_attempts[identifier] = {'count': 0, 'first_attempt': datetime.utcnow(), 'locked_until': None}
 
 # Database Models
 class User(db.Model):
@@ -128,60 +241,133 @@ def index():
     return render_template('index.html', visitor_count=stats.value)
 
 @app.route('/api/register', methods=['POST'])
+@rate_limit(max_attempts=10, window_minutes=60, lockout_minutes=15)
 def register():
-    data = request.json
-    
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email already registered'}), 400
-    
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({'error': 'Username already taken'}), 400
-    
-    new_user = User(
-        username=data['username'],
-        email=data['email'],
-        password_hash=generate_password_hash(data['password']),
-        phone=data.get('phone'),
-        full_name=data.get('full_name'),
-        user_type=data.get('user_type', 'freelancer'),
-        location=data.get('location')
-    )
-    
-    db.session.add(new_user)
-    db.session.commit()
-    
-    session['user_id'] = new_user.id
-    
-    return jsonify({
-        'message': 'Registration successful',
-        'user': {
-            'id': new_user.id,
-            'username': new_user.username,
-            'email': new_user.email,
-            'user_type': new_user.user_type
-        }
-    }), 201
+    try:
+        data = request.json
+
+        # Validate required fields
+        if not data or not data.get('email') or not data.get('username') or not data.get('password'):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Validate email format
+        try:
+            email_info = validate_email(data['email'], check_deliverability=False)
+            email = email_info.normalized
+        except EmailNotValidError as e:
+            return jsonify({'error': f'Invalid email: {str(e)}'}), 400
+
+        # Validate username
+        is_valid, message = validate_username(data['username'])
+        if not is_valid:
+            return jsonify({'error': message}), 400
+
+        # Validate password strength
+        is_valid, message = validate_password_strength(data['password'])
+        if not is_valid:
+            return jsonify({'error': message}), 400
+
+        # Validate phone if provided
+        if data.get('phone'):
+            is_valid, message = validate_phone(data['phone'])
+            if not is_valid:
+                return jsonify({'error': message}), 400
+
+        # Check for existing users
+        if User.query.filter_by(email=email).first():
+            return jsonify({'error': 'Email already registered'}), 400
+
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({'error': 'Username already taken'}), 400
+
+        # Sanitize text inputs
+        full_name = sanitize_input(data.get('full_name', ''), max_length=120)
+        location = sanitize_input(data.get('location', ''), max_length=100)
+
+        # Validate user_type
+        user_type = data.get('user_type', 'freelancer')
+        if user_type not in ['freelancer', 'client', 'both']:
+            user_type = 'freelancer'
+
+        new_user = User(
+            username=data['username'],
+            email=email,
+            password_hash=generate_password_hash(data['password']),
+            phone=data.get('phone'),
+            full_name=full_name,
+            user_type=user_type,
+            location=location
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        session['user_id'] = new_user.id
+        session.permanent = True
+
+        # Reset rate limit on successful registration
+        reset_rate_limit(request.remote_addr)
+
+        return jsonify({
+            'message': 'Registration successful',
+            'user': {
+                'id': new_user.id,
+                'username': new_user.username,
+                'email': new_user.email,
+                'user_type': new_user.user_type
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        # Log the error but don't expose details to user
+        app.logger.error(f"Registration error: {str(e)}")
+        return jsonify({'error': 'Registration failed. Please try again.'}), 500
 
 @app.route('/api/login', methods=['POST'])
+@rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30)
 def login():
-    data = request.json
-    user = User.query.filter_by(email=data['email']).first()
-    
-    if user and check_password_hash(user.password_hash, data['password']):
-        session['user_id'] = user.id
-        return jsonify({
-            'message': 'Login successful',
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'user_type': user.user_type,
-                'total_earnings': user.total_earnings,
-                'rating': user.rating
-            }
-        }), 200
-    
-    return jsonify({'error': 'Invalid credentials'}), 401
+    try:
+        data = request.json
+
+        # Validate required fields
+        if not data or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'Missing email or password'}), 400
+
+        # Validate email format
+        try:
+            email_info = validate_email(data['email'], check_deliverability=False)
+            email = email_info.normalized
+        except EmailNotValidError:
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        user = User.query.filter_by(email=email).first()
+
+        # Use constant-time comparison to prevent timing attacks
+        if user and check_password_hash(user.password_hash, data['password']):
+            session['user_id'] = user.id
+            session.permanent = True
+
+            # Reset rate limit on successful login
+            reset_rate_limit(request.remote_addr)
+
+            return jsonify({
+                'message': 'Login successful',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'user_type': user.user_type,
+                    'total_earnings': user.total_earnings,
+                    'rating': user.rating
+                }
+            }), 200
+
+        # Generic error message to prevent user enumeration
+        return jsonify({'error': 'Invalid credentials'}), 401
+    except Exception as e:
+        # Log the error but don't expose details to user
+        app.logger.error(f"Login error: {str(e)}")
+        return jsonify({'error': 'Login failed. Please try again.'}), 500
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
@@ -190,74 +376,128 @@ def logout():
 
 @app.route('/api/gigs', methods=['GET'])
 def get_gigs():
-    category = request.args.get('category')
-    location = request.args.get('location')
-    halal_only = request.args.get('halal_only', 'true').lower() == 'true'
-    search = request.args.get('search', '')
-    
-    query = Gig.query.filter_by(status='open')
-    
-    if category:
-        query = query.filter_by(category=category)
-    if location:
-        query = query.filter_by(location=location)
-    if halal_only:
-        query = query.filter_by(halal_compliant=True)
-    if search:
-        query = query.filter(Gig.title.contains(search) | Gig.description.contains(search))
-    
-    gigs = query.order_by(Gig.created_at.desc()).limit(50).all()
-    
-    return jsonify([{
-        'id': g.id,
-        'title': g.title,
-        'description': g.description,
-        'category': g.category,
-        'budget_min': g.budget_min,
-        'budget_max': g.budget_max,
-        'location': g.location,
-        'is_remote': g.is_remote,
-        'halal_compliant': g.halal_compliant,
-        'halal_verified': g.halal_verified,
-        'is_instant_payout': g.is_instant_payout,
-        'is_brand_partnership': g.is_brand_partnership,
-        'duration': g.duration,
-        'views': g.views,
-        'applications': g.applications,
-        'created_at': g.created_at.isoformat()
-    } for g in gigs])
+    try:
+        category = sanitize_input(request.args.get('category', ''), max_length=50)
+        location = sanitize_input(request.args.get('location', ''), max_length=100)
+        halal_only = request.args.get('halal_only', 'true').lower() == 'true'
+        search = sanitize_input(request.args.get('search', ''), max_length=200)
+
+        query = Gig.query.filter_by(status='open')
+
+        if category:
+            query = query.filter_by(category=category)
+        if location:
+            query = query.filter_by(location=location)
+        if halal_only:
+            query = query.filter_by(halal_compliant=True)
+        if search:
+            # Use proper parameterized query to prevent SQL injection
+            search_pattern = f'%{search}%'
+            query = query.filter(
+                (Gig.title.ilike(search_pattern)) | (Gig.description.ilike(search_pattern))
+            )
+
+        gigs = query.order_by(Gig.created_at.desc()).limit(50).all()
+
+        return jsonify([{
+            'id': g.id,
+            'title': g.title,
+            'description': g.description,
+            'category': g.category,
+            'budget_min': g.budget_min,
+            'budget_max': g.budget_max,
+            'location': g.location,
+            'is_remote': g.is_remote,
+            'halal_compliant': g.halal_compliant,
+            'halal_verified': g.halal_verified,
+            'is_instant_payout': g.is_instant_payout,
+            'is_brand_partnership': g.is_brand_partnership,
+            'duration': g.duration,
+            'views': g.views,
+            'applications': g.applications,
+            'created_at': g.created_at.isoformat()
+        } for g in gigs])
+    except Exception as e:
+        app.logger.error(f"Get gigs error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve gigs'}), 500
 
 @app.route('/api/gigs', methods=['POST'])
 def create_gig():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    
-    new_gig = Gig(
-        title=data['title'],
-        description=data['description'],
-        category=data['category'],
-        budget_min=data['budget_min'],
-        budget_max=data['budget_max'],
-        duration=data.get('duration'),
-        location=data.get('location'),
-        is_remote=data.get('is_remote', True),
-        client_id=session['user_id'],
-        halal_compliant=data.get('halal_compliant', True),
-        is_instant_payout=data.get('is_instant_payout', False),
-        is_brand_partnership=data.get('is_brand_partnership', False),
-        skills_required=json.dumps(data.get('skills_required', [])),
-        deadline=datetime.fromisoformat(data['deadline']) if data.get('deadline') else None
-    )
-    
-    db.session.add(new_gig)
-    db.session.commit()
-    
-    return jsonify({
-        'message': 'Gig created successfully',
-        'gig_id': new_gig.id
-    }), 201
+
+    try:
+        data = request.json
+
+        # Validate required fields
+        if not data or not data.get('title') or not data.get('description'):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        if not data.get('category') or not data.get('budget_min') or not data.get('budget_max'):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Sanitize text inputs
+        title = sanitize_input(data['title'], max_length=200)
+        description = sanitize_input(data['description'], max_length=5000)
+        category = sanitize_input(data['category'], max_length=50)
+        duration = sanitize_input(data.get('duration', ''), max_length=50)
+        location = sanitize_input(data.get('location', ''), max_length=100)
+
+        # Validate budget values
+        try:
+            budget_min = float(data['budget_min'])
+            budget_max = float(data['budget_max'])
+            if budget_min < 0 or budget_max < 0 or budget_min > budget_max:
+                return jsonify({'error': 'Invalid budget values'}), 400
+            if budget_min > 1000000 or budget_max > 1000000:
+                return jsonify({'error': 'Budget values too high'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid budget format'}), 400
+
+        # Validate and sanitize skills_required
+        skills_required = data.get('skills_required', [])
+        if not isinstance(skills_required, list):
+            skills_required = []
+        skills_required = [sanitize_input(str(skill), max_length=50) for skill in skills_required[:20]]
+
+        # Validate deadline if provided
+        deadline = None
+        if data.get('deadline'):
+            try:
+                deadline = datetime.fromisoformat(data['deadline'])
+                if deadline < datetime.utcnow():
+                    return jsonify({'error': 'Deadline must be in the future'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid deadline format'}), 400
+
+        new_gig = Gig(
+            title=title,
+            description=description,
+            category=category,
+            budget_min=budget_min,
+            budget_max=budget_max,
+            duration=duration,
+            location=location,
+            is_remote=bool(data.get('is_remote', True)),
+            client_id=session['user_id'],
+            halal_compliant=bool(data.get('halal_compliant', True)),
+            is_instant_payout=bool(data.get('is_instant_payout', False)),
+            is_brand_partnership=bool(data.get('is_brand_partnership', False)),
+            skills_required=json.dumps(skills_required),
+            deadline=deadline
+        )
+
+        db.session.add(new_gig)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig created successfully',
+            'gig_id': new_gig.id
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Create gig error: {str(e)}")
+        return jsonify({'error': 'Failed to create gig. Please try again.'}), 500
 
 @app.route('/api/gigs/<int:gig_id>', methods=['GET'])
 def get_gig(gig_id):
@@ -296,29 +536,60 @@ def get_gig(gig_id):
 def apply_to_gig(gig_id):
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
-    data = request.json
-    gig = Gig.query.get_or_404(gig_id)
-    
-    # Check if already applied
-    existing = Application.query.filter_by(gig_id=gig_id, freelancer_id=session['user_id']).first()
-    if existing:
-        return jsonify({'error': 'Already applied to this gig'}), 400
-    
-    application = Application(
-        gig_id=gig_id,
-        freelancer_id=session['user_id'],
-        cover_letter=data.get('cover_letter'),
-        proposed_price=data.get('proposed_price'),
-        video_pitch=data.get('video_pitch')
-    )
-    
-    gig.applications += 1
-    
-    db.session.add(application)
-    db.session.commit()
-    
-    return jsonify({'message': 'Application submitted successfully'}), 201
+
+    try:
+        data = request.json
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Check if gig is still open
+        if gig.status != 'open':
+            return jsonify({'error': 'This gig is no longer accepting applications'}), 400
+
+        # Prevent clients from applying to their own gigs
+        if gig.client_id == session['user_id']:
+            return jsonify({'error': 'Cannot apply to your own gig'}), 400
+
+        # Check if already applied
+        existing = Application.query.filter_by(gig_id=gig_id, freelancer_id=session['user_id']).first()
+        if existing:
+            return jsonify({'error': 'Already applied to this gig'}), 400
+
+        # Sanitize and validate inputs
+        cover_letter = sanitize_input(data.get('cover_letter', ''), max_length=2000)
+
+        # Validate proposed price
+        proposed_price = None
+        if data.get('proposed_price'):
+            try:
+                proposed_price = float(data['proposed_price'])
+                if proposed_price < 0 or proposed_price > 1000000:
+                    return jsonify({'error': 'Invalid proposed price'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid price format'}), 400
+
+        # Sanitize video pitch URL (basic validation)
+        video_pitch = sanitize_input(data.get('video_pitch', ''), max_length=255)
+        if video_pitch and not re.match(r'^https?://', video_pitch):
+            return jsonify({'error': 'Video pitch must be a valid URL'}), 400
+
+        application = Application(
+            gig_id=gig_id,
+            freelancer_id=session['user_id'],
+            cover_letter=cover_letter,
+            proposed_price=proposed_price,
+            video_pitch=video_pitch
+        )
+
+        gig.applications += 1
+
+        db.session.add(application)
+        db.session.commit()
+
+        return jsonify({'message': 'Application submitted successfully'}), 201
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Apply to gig error: {str(e)}")
+        return jsonify({'error': 'Failed to submit application. Please try again.'}), 500
 
 @app.route('/api/profile', methods=['GET'])
 def get_profile():
@@ -349,19 +620,47 @@ def get_profile():
 def update_profile():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
-    user = User.query.get(session['user_id'])
-    data = request.json
-    
-    user.full_name = data.get('full_name', user.full_name)
-    user.phone = data.get('phone', user.phone)
-    user.location = data.get('location', user.location)
-    user.bio = data.get('bio', user.bio)
-    user.skills = json.dumps(data.get('skills', [])) if data.get('skills') else user.skills
-    
-    db.session.commit()
-    
-    return jsonify({'message': 'Profile updated successfully'})
+
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Sanitize and validate inputs
+        if 'full_name' in data:
+            user.full_name = sanitize_input(data['full_name'], max_length=120)
+
+        if 'phone' in data:
+            is_valid, message = validate_phone(data['phone'])
+            if not is_valid:
+                return jsonify({'error': message}), 400
+            user.phone = data['phone']
+
+        if 'location' in data:
+            user.location = sanitize_input(data['location'], max_length=100)
+
+        if 'bio' in data:
+            user.bio = sanitize_input(data['bio'], max_length=2000)
+
+        if 'skills' in data:
+            skills = data['skills']
+            if not isinstance(skills, list):
+                return jsonify({'error': 'Skills must be an array'}), 400
+            # Limit to 20 skills, each max 50 chars
+            skills = [sanitize_input(str(skill), max_length=50) for skill in skills[:20]]
+            user.skills = json.dumps(skills)
+
+        db.session.commit()
+
+        return jsonify({'message': 'Profile updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Update profile error: {str(e)}")
+        return jsonify({'error': 'Failed to update profile. Please try again.'}), 500
 
 @app.route('/api/microtasks', methods=['GET'])
 def get_microtasks():
