@@ -1632,6 +1632,169 @@ def complete_gig_transaction(gig_id):
         app.logger.error(f"Complete gig transaction error: {str(e)}")
         return jsonify({'error': 'Failed to complete transaction'}), 500
 
+@app.route('/api/gigs/<int:gig_id>/approve-and-pay', methods=['POST'])
+@login_required
+def approve_and_pay_gig(gig_id):
+    """
+    Automatically approve gig completion and process payment
+    Uses the accepted application's proposed price
+    Client just needs to call this endpoint - payment is automatic
+    """
+    try:
+        user_id = session['user_id']
+
+        # Get the gig
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Verify the user is the client
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can approve this gig'}), 403
+
+        # Verify gig has a freelancer assigned
+        if not gig.freelancer_id:
+            return jsonify({'error': 'No freelancer assigned to this gig'}), 400
+
+        # Verify gig is in progress
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'Gig must be in progress to approve'}), 400
+
+        # Find the accepted application to get the agreed price
+        accepted_app = Application.query.filter_by(
+            gig_id=gig_id,
+            freelancer_id=gig.freelancer_id,
+            status='accepted'
+        ).first()
+
+        if not accepted_app or not accepted_app.proposed_price:
+            # Fallback to budget max if no application found
+            amount = gig.budget_max
+        else:
+            amount = accepted_app.proposed_price
+
+        # Get payment method from request (optional)
+        data = request.get_json() or {}
+        payment_method = data.get('payment_method', 'bank_transfer')
+
+        # Calculate commission using tiered structure
+        commission = calculate_commission(amount)
+        net_amount = amount - commission
+
+        # Generate invoice number
+        import random
+        invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+        # Create transaction
+        transaction = Transaction(
+            gig_id=gig_id,
+            freelancer_id=gig.freelancer_id,
+            client_id=gig.client_id,
+            amount=amount,
+            commission=commission,
+            net_amount=net_amount,
+            payment_method=payment_method,
+            status='completed'
+        )
+        db.session.add(transaction)
+        db.session.flush()
+
+        # Create invoice
+        invoice = Invoice(
+            invoice_number=invoice_number,
+            transaction_id=transaction.id,
+            gig_id=gig_id,
+            client_id=gig.client_id,
+            freelancer_id=gig.freelancer_id,
+            amount=amount,
+            platform_fee=commission,
+            tax_amount=0.0,
+            total_amount=amount,
+            status='paid',
+            payment_method=payment_method,
+            paid_at=datetime.utcnow(),
+            notes=f'Auto-payment for completed gig: {gig.title}'
+        )
+        db.session.add(invoice)
+
+        # Update or create freelancer wallet
+        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            db.session.add(freelancer_wallet)
+            db.session.flush()
+
+        # Update wallet balances
+        old_balance = freelancer_wallet.balance
+        freelancer_wallet.balance += net_amount
+        freelancer_wallet.total_earned += net_amount
+
+        # Create payment history for freelancer
+        freelancer_history = PaymentHistory(
+            user_id=gig.freelancer_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=net_amount,
+            balance_before=old_balance,
+            balance_after=freelancer_wallet.balance,
+            description=f'Payment received (auto): {gig.title}',
+            reference_number=invoice_number
+        )
+        db.session.add(freelancer_history)
+
+        # Update or create client wallet
+        client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+        if not client_wallet:
+            client_wallet = Wallet(user_id=gig.client_id)
+            db.session.add(client_wallet)
+            db.session.flush()
+
+        # Update client wallet
+        client_old_balance = client_wallet.balance
+        client_wallet.total_spent += amount
+
+        # Create payment history for client
+        client_history = PaymentHistory(
+            user_id=gig.client_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=amount,
+            balance_before=client_old_balance,
+            balance_after=client_wallet.balance,
+            description=f'Payment made (auto): {gig.title}',
+            reference_number=invoice_number
+        )
+        db.session.add(client_history)
+
+        # Update gig status to completed
+        gig.status = 'completed'
+
+        # Update freelancer stats
+        freelancer = User.query.get(gig.freelancer_id)
+        if freelancer:
+            freelancer.completed_gigs = (freelancer.completed_gigs or 0) + 1
+            freelancer.total_earnings = (freelancer.total_earnings or 0) + net_amount
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Gig approved and payment processed automatically!',
+            'invoice_number': invoice_number,
+            'transaction_id': transaction.id,
+            'payment_details': {
+                'amount_paid': amount,
+                'platform_commission': commission,
+                'freelancer_receives': net_amount
+            },
+            'commission_tier': '15%' if amount <= 500 else ('10%' if amount <= 2000 else '5%')
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Auto-approve and pay error: {str(e)}")
+        return jsonify({'error': f'Failed to process automatic payment: {str(e)}'}), 500
+
 # Admin Billing Routes
 @app.route('/api/admin/billing/payouts', methods=['GET'])
 @admin_required
