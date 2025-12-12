@@ -172,6 +172,27 @@
             font-size: 13px;
         }
 
+        .lang-switcher {
+            background: #2a2a2a;
+            color: #ccc;
+            border: 1px solid #444;
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .lang-switcher:hover {
+            background: #333;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
         .header-categories {
             background: var(--bg-white);
             border-bottom: 1px solid var(--border);
@@ -372,6 +393,9 @@
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">Admin</a>
                     {% endif %}
+                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
+                        <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
+                    </button>
                     <div class="user-menu">
                         <a href="/dashboard" class="user-avatar">{{ user.username[:2]|upper }}</a>
                     </div>
@@ -443,12 +467,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script>
         feather.replace();
-        
+
         document.getElementById('globalSearch')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 window.location.href = '/gigs?search=' + encodeURIComponent(this.value);
             }
         });
+
+        async function toggleLanguage() {
+            const currentLang = '{{ lang }}';
+            const newLang = currentLang === 'ms' ? 'en' : 'ms';
+
+            try {
+                const response = await fetch('/api/language', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ language: newLang })
+                });
+
+                if (response.ok) {
+                    // Reload page to apply language change
+                    location.reload();
+                } else {
+                    console.error('Failed to change language');
+                }
+            } catch (error) {
+                console.error('Error changing language:', error);
+            }
+        }
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>

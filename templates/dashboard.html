@@ -259,59 +259,59 @@
 
 {% block content %}
 <div class="welcome-header">
-    <h1>Welcome back, {{ user.full_name or user.username }}!</h1>
-    <p>Here's what's happening with your account today</p>
+    <h1>{{ t('welcome_back') }}, {{ user.full_name or user.username }}!</h1>
+    <p>{{ t('happening_today') }}</p>
 </div>
 
 <div class="stats-grid">
     <div class="stat-card primary">
-        <div class="stat-label">Wallet Balance</div>
+        <div class="stat-label">{{ t('wallet_balance') }}</div>
         <div class="stat-value">MYR {{ "%.2f"|format(wallet.balance) }}</div>
-        <div class="stat-description">Available to withdraw</div>
+        <div class="stat-description">{{ t('available_withdraw') }}</div>
     </div>
 
     {% if user.user_type in ['freelancer', 'both'] %}
     <div class="stat-card green">
-        <div class="stat-label">Completed Gigs</div>
+        <div class="stat-label">{{ t('completed_gigs') }}</div>
         <div class="stat-value">{{ total_gigs_completed }}</div>
-        <div class="stat-description">Successfully finished</div>
+        <div class="stat-description">{{ t('successfully_finished') }}</div>
     </div>
 
     <div class="stat-card blue">
-        <div class="stat-label">Active Applications</div>
+        <div class="stat-label">{{ t('active_applications') }}</div>
         <div class="stat-value">{{ total_applications }}</div>
-        <div class="stat-description">Submitted proposals</div>
+        <div class="stat-description">{{ t('submitted_proposals') }}</div>
     </div>
     {% endif %}
 
     {% if user.user_type in ['client', 'both'] %}
     <div class="stat-card orange">
-        <div class="stat-label">Posted Gigs</div>
+        <div class="stat-label">{{ t('posted_gigs') }}</div>
         <div class="stat-value">{{ total_gigs_posted }}</div>
-        <div class="stat-description">Total gigs created</div>
+        <div class="stat-description">{{ t('total_gigs_created') }}</div>
     </div>
     {% endif %}
 
     <div class="stat-card green">
-        <div class="stat-label">Total Earned</div>
+        <div class="stat-label">{{ t('total_earned') }}</div>
         <div class="stat-value">MYR {{ "%.2f"|format(wallet.total_earned) }}</div>
-        <div class="stat-description">All-time earnings</div>
+        <div class="stat-description">{{ t('all_time_earnings') }}</div>
     </div>
 
     <div class="stat-card orange">
-        <div class="stat-label">Your Rating</div>
+        <div class="stat-label">{{ t('your_rating') }}</div>
         <div class="stat-value">
             {% if user.review_count > 0 %}
             {{ "%.1f"|format(user.rating) }} ⭐
             {% else %}
-            No ratings yet
+            {{ t('no_ratings_yet') }}
             {% endif %}
         </div>
         <div class="stat-description">
             {% if user.review_count > 0 %}
-            Based on {{ user.review_count }} review{{ 's' if user.review_count != 1 else '' }}
+            {{ t('based_on_review' if user.review_count == 1 else 'based_on_reviews', count=user.review_count) }}
             {% else %}
-            Complete gigs to get rated
+            {{ t('complete_gigs_rated') }}
             {% endif %}
         </div>
     </div>
@@ -431,7 +431,7 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Gigs to Review</h2>
+            <h2 class="section-title">{{ t('gigs_to_review') }}</h2>
         </div>
 
         {% if gigs_to_review %}
@@ -439,22 +439,22 @@
             <div class="gig-item">
                 <div class="gig-title">{{ gig.title }}</div>
                 <div class="gig-meta">
-                    <span>Completed on {{ gig.created_at.strftime('%d %b %Y') }}</span>
+                    <span>{{ t('completed_on') }} {{ gig.created_at.strftime('%d %b %Y') }}</span>
                 </div>
-                <button class="btn btn-primary btn-sm" style="margin-top: 8px;" onclick="openReviewModal({{ gig.id }}, '{{ gig.title }}')">Leave Review</button>
+                <button class="btn btn-primary btn-sm" style="margin-top: 8px;" onclick="openReviewModal({{ gig.id }}, '{{ gig.title }}')">{{ t('leave_review') }}</button>
             </div>
             {% endfor %}
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">⭐</div>
-                <p>No completed gigs to review</p>
+                <p>{{ t('no_completed_gigs_review') }}</p>
             </div>
         {% endif %}
     </div>
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Recent Reviews Received</h2>
+            <h2 class="section-title">{{ t('recent_reviews_received') }}</h2>
         </div>
 
         {% if recent_reviews %}
@@ -474,7 +474,7 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">💬</div>
-                <p>No reviews yet</p>
+                <p>{{ t('no_reviews_yet') }}</p>
             </div>
         {% endif %}
     </div>
@@ -498,12 +498,12 @@
 <div id="reviewModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Leave a Review</h3>
+            <h3 class="modal-title">{{ t('leave_a_review') }}</h3>
             <p style="color: var(--text-gray); font-size: 14px; margin: 0;" id="reviewGigTitle"></p>
         </div>
 
         <div>
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Rating</label>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">{{ t('rating') }}</label>
             <div class="star-rating" id="starRating">
                 <span class="star" data-rating="1">★</span>
                 <span class="star" data-rating="2">★</span>
@@ -514,13 +514,13 @@
         </div>
 
         <div>
-            <label for="reviewComment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Comment (Optional)</label>
-            <textarea id="reviewComment" rows="4" placeholder="Share your experience..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; resize: vertical;"></textarea>
+            <label for="reviewComment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">{{ t('comment_optional') }}</label>
+            <textarea id="reviewComment" rows="4" placeholder="{{ t('share_experience') }}" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; resize: vertical;"></textarea>
         </div>
 
         <div class="modal-buttons">
-            <button class="btn btn-outline" onclick="closeReviewModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+            <button class="btn btn-outline" onclick="closeReviewModal()">{{ t('cancel') }}</button>
+            <button class="btn btn-primary" onclick="submitReview()">{{ t('submit_review') }}</button>
         </div>
     </div>
 </div>
@@ -528,6 +528,14 @@
 
 {% block extra_scripts %}
 <script>
+    // Translation strings for JavaScript
+    const i18n = {
+        please_select_rating: "{{ t('please_select_rating') }}",
+        review_submitted: "{{ t('review_submitted') }}",
+        review_failed: "{{ t('review_failed') }}",
+        error_occurred: "{{ t('error_occurred') }}"
+    };
+
     let currentGigId = null;
     let selectedRating = 0;
 
@@ -576,7 +584,7 @@
 
     async function submitReview() {
         if (!selectedRating) {
-            alert('Please select a rating');
+            alert(i18n.please_select_rating);
             return;
         }
 
@@ -597,15 +605,15 @@
             const data = await response.json();
 
             if (response.ok) {
-                alert('Review submitted successfully!');
+                alert(i18n.review_submitted);
                 closeReviewModal();
                 location.reload(); // Reload to update the dashboard
             } else {
-                alert(data.error || 'Failed to submit review');
+                alert(data.error || i18n.review_failed);
             }
         } catch (error) {
             console.error('Error submitting review:', error);
-            alert('An error occurred. Please try again.');
+            alert(i18n.error_occurred);
         }
     }
 

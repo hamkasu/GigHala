@@ -43,6 +43,155 @@ CORS(app,
 login_attempts = {}
 api_rate_limits = {}
 
+# Translation dictionaries for bilingual support (Malay/English)
+TRANSLATIONS = {
+    'ms': {
+        # Dashboard
+        'welcome_back': 'Selamat kembali',
+        'happening_today': 'Ini yang berlaku dengan akaun anda hari ini',
+        'wallet_balance': 'Baki Dompet',
+        'available_withdraw': 'Boleh dikeluarkan',
+        'completed_gigs': 'Gig Selesai',
+        'successfully_finished': 'Berjaya diselesaikan',
+        'active_applications': 'Permohonan Aktif',
+        'submitted_proposals': 'Cadangan dihantar',
+        'posted_gigs': 'Gig Disiarkan',
+        'total_gigs_created': 'Jumlah gig dicipta',
+        'total_earned': 'Jumlah Perolehan',
+        'all_time_earnings': 'Perolehan sepanjang masa',
+        'your_rating': 'Penarafan Anda',
+        'no_ratings_yet': 'Tiada penarafan lagi',
+        'based_on_reviews': 'Berdasarkan {count} ulasan',
+        'based_on_review': 'Berdasarkan {count} ulasan',
+        'complete_gigs_rated': 'Selesaikan gig untuk diberi penarafan',
+
+        # Reviews
+        'gigs_to_review': 'Gig Untuk Diulas',
+        'recent_reviews_received': 'Ulasan Terkini Diterima',
+        'no_completed_gigs_review': 'Tiada gig selesai untuk diulas',
+        'no_reviews_yet': 'Tiada ulasan lagi',
+        'leave_review': 'Beri Ulasan',
+        'completed_on': 'Selesai pada',
+        'leave_a_review': 'Beri Ulasan',
+        'rating': 'Penarafan',
+        'comment_optional': 'Komen (Pilihan)',
+        'share_experience': 'Kongsi pengalaman anda...',
+        'cancel': 'Batal',
+        'submit_review': 'Hantar Ulasan',
+        'please_select_rating': 'Sila pilih penarafan',
+        'review_submitted': 'Ulasan berjaya dihantar!',
+        'review_failed': 'Gagal menghantar ulasan',
+        'error_occurred': 'Ralat berlaku. Sila cuba lagi.',
+
+        # Other sections
+        'active_gigs': 'Gig Aktif',
+        'recent_applications': 'Permohonan Terkini',
+        'your_posted_gigs': 'Gig Anda Siarkan',
+        'recent_transactions': 'Transaksi Terkini',
+        'quick_actions': 'Tindakan Pantas',
+        'browse_gigs': 'Cari Gig',
+        'view_wallet': 'Lihat Dompet',
+        'post_gig': 'Siarkan Gig',
+        'admin_dashboard': 'Papan Pemuka Admin',
+        'view_all': 'Lihat Semua',
+        'no_active_gigs': 'Tiada gig aktif',
+        'no_applications_yet': 'Tiada permohonan lagi',
+        'no_posted_gigs': 'Tiada gig disiarkan',
+        'no_transactions_yet': 'Tiada transaksi lagi',
+        'payment_sent': 'Bayaran Dihantar',
+        'payment_received': 'Bayaran Diterima',
+        'application': 'Permohonan',
+
+        # Language
+        'language': 'Bahasa',
+        'malay': 'Bahasa Melayu',
+        'english': 'English',
+    },
+    'en': {
+        # Dashboard
+        'welcome_back': 'Welcome back',
+        'happening_today': "Here's what's happening with your account today",
+        'wallet_balance': 'Wallet Balance',
+        'available_withdraw': 'Available to withdraw',
+        'completed_gigs': 'Completed Gigs',
+        'successfully_finished': 'Successfully finished',
+        'active_applications': 'Active Applications',
+        'submitted_proposals': 'Submitted proposals',
+        'posted_gigs': 'Posted Gigs',
+        'total_gigs_created': 'Total gigs created',
+        'total_earned': 'Total Earned',
+        'all_time_earnings': 'All-time earnings',
+        'your_rating': 'Your Rating',
+        'no_ratings_yet': 'No ratings yet',
+        'based_on_reviews': 'Based on {count} reviews',
+        'based_on_review': 'Based on {count} review',
+        'complete_gigs_rated': 'Complete gigs to get rated',
+
+        # Reviews
+        'gigs_to_review': 'Gigs to Review',
+        'recent_reviews_received': 'Recent Reviews Received',
+        'no_completed_gigs_review': 'No completed gigs to review',
+        'no_reviews_yet': 'No reviews yet',
+        'leave_review': 'Leave Review',
+        'completed_on': 'Completed on',
+        'leave_a_review': 'Leave a Review',
+        'rating': 'Rating',
+        'comment_optional': 'Comment (Optional)',
+        'share_experience': 'Share your experience...',
+        'cancel': 'Cancel',
+        'submit_review': 'Submit Review',
+        'please_select_rating': 'Please select a rating',
+        'review_submitted': 'Review submitted successfully!',
+        'review_failed': 'Failed to submit review',
+        'error_occurred': 'An error occurred. Please try again.',
+
+        # Other sections
+        'active_gigs': 'Active Gigs',
+        'recent_applications': 'Recent Applications',
+        'your_posted_gigs': 'Your Posted Gigs',
+        'recent_transactions': 'Recent Transactions',
+        'quick_actions': 'Quick Actions',
+        'browse_gigs': 'Browse Gigs',
+        'view_wallet': 'View Wallet',
+        'post_gig': 'Post a Gig',
+        'admin_dashboard': 'Admin Dashboard',
+        'view_all': 'View All',
+        'no_active_gigs': 'No active gigs',
+        'no_applications_yet': 'No applications yet',
+        'no_posted_gigs': 'No posted gigs',
+        'no_transactions_yet': 'No transactions yet',
+        'payment_sent': 'Payment Sent',
+        'payment_received': 'Payment Received',
+        'application': 'Application',
+
+        # Language
+        'language': 'Language',
+        'malay': 'Bahasa Melayu',
+        'english': 'English',
+    }
+}
+
+def get_user_language():
+    """Get current user's language preference"""
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        return user.language if user and user.language else 'ms'
+    return session.get('language', 'ms')
+
+def t(key, **kwargs):
+    """Translate a key to the user's language"""
+    lang = get_user_language()
+    translation = TRANSLATIONS.get(lang, TRANSLATIONS['ms']).get(key, key)
+    # Replace placeholders
+    for k, v in kwargs.items():
+        translation = translation.replace('{' + k + '}', str(v))
+    return translation
+
+# Make translation function available in templates
+@app.context_processor
+def inject_translations():
+    return dict(t=t, lang=get_user_language())
+
 # Security headers middleware
 @app.after_request
 def set_security_headers(response):
@@ -211,6 +360,7 @@ class User(db.Model):
     total_earnings = db.Column(db.Float, default=0.0)
     completed_gigs = db.Column(db.Integer, default=0)
     profile_video = db.Column(db.String(255))
+    language = db.Column(db.String(5), default='ms')  # ms (Malay) or en (English)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, default=False)
     halal_verified = db.Column(db.Boolean, default=False)
@@ -1105,6 +1255,7 @@ def get_profile():
         'completed_gigs': user.completed_gigs,
         'is_verified': user.is_verified,
         'halal_verified': user.halal_verified,
+        'language': user.language,
         'created_at': user.created_at.isoformat()
     })
 
@@ -1153,6 +1304,36 @@ def update_profile():
         db.session.rollback()
         app.logger.error(f"Update profile error: {str(e)}")
         return jsonify({'error': 'Failed to update profile. Please try again.'}), 500
+
+@app.route('/api/language', methods=['POST'])
+def switch_language():
+    """Switch user's language preference"""
+    try:
+        data = request.json
+        language = data.get('language', 'ms')
+
+        # Validate language
+        if language not in ['ms', 'en']:
+            return jsonify({'error': 'Invalid language. Choose "ms" or "en"'}), 400
+
+        # Update user's language if logged in
+        if 'user_id' in session:
+            user = User.query.get(session['user_id'])
+            if user:
+                user.language = language
+                db.session.commit()
+        else:
+            # Store in session for non-logged in users
+            session['language'] = language
+
+        return jsonify({
+            'message': 'Language updated successfully',
+            'language': language
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Language switch error: {str(e)}")
+        return jsonify({'error': 'Failed to update language'}), 500
 
 @app.route('/api/microtasks', methods=['GET'])
 def get_microtasks():
