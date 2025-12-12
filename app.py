@@ -226,6 +226,7 @@ TRANSLATIONS = {
         'cat_tutoring': 'Tunjuk Ajar',
         'cat_content': 'Penciptaan Kandungan',
         'cat_admin': 'Sokongan Admin',
+        'cat_general': 'Kerja Am',
 
         # Gigs Page
         'search': 'Cari',
@@ -432,6 +433,7 @@ TRANSLATIONS = {
         'cat_tutoring': 'Tutoring',
         'cat_content': 'Content Creation',
         'cat_admin': 'Admin Support',
+        'cat_general': 'General Works',
 
         # Gigs Page
         'search': 'Search',
@@ -3059,12 +3061,25 @@ with app.app_context():
             Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
             Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
             Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
+            Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
         ]
         for cat in default_categories:
             db.session.add(cat)
         db.session.commit()
         print("Default categories added successfully!")
-    
+
+    # Add General Works category if it doesn't exist (for existing databases)
+    if not Category.query.filter_by(slug='general').first():
+        general_cat = Category(
+            name='General Works',
+            slug='general',
+            description='General tasks, miscellaneous work, other services',
+            icon='briefcase'
+        )
+        db.session.add(general_cat)
+        db.session.commit()
+        print("General Works category added!")
+
     # Add sample data if database is empty
     if User.query.count() == 0:
         # Sample users
