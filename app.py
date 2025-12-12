@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, send_from_directory
+from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -345,6 +345,11 @@ class PaymentHistory(db.Model):
 # Routes
 @app.route('/')
 def index():
+    # If user is logged in, redirect to their personalized dashboard
+    if 'user_id' in session:
+        return redirect('/dashboard')
+
+    # Show public homepage for visitors
     stats = SiteStats.query.filter_by(key='visitor_count').first()
     if not stats:
         stats = SiteStats(key='visitor_count', value=0)
