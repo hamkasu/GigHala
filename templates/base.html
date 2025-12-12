@@ -9,16 +9,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
     <style>
         :root {
-            --primary: #1DBF73;
-            --primary-dark: #19A463;
+            --primary: #00C853;
+            --primary-dark: #00A844;
             --secondary: #404145;
+            --header-bg: #1a1a1a;
             --text-dark: #222325;
             --text-gray: #74767E;
             --text-light: #95979D;
             --border: #E4E5E7;
-            --bg-light: #FAFAFA;
+            --bg-light: #F7F7F7;
             --bg-white: #FFFFFF;
-            --success: #1DBF73;
+            --success: #00C853;
             --warning: #FFB33E;
             --error: #F74040;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
@@ -48,8 +49,7 @@
         }
 
         .header {
-            background: var(--bg-white);
-            border-bottom: 1px solid var(--border);
+            background: var(--header-bg);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -59,49 +59,66 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 24px;
+            padding: 14px 24px;
             max-width: 1400px;
             margin: 0 auto;
+            gap: 24px;
         }
 
         .logo {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
-            color: var(--text-dark);
+            color: white;
+            flex-shrink: 0;
         }
 
         .logo-icon {
             color: var(--primary);
-            font-size: 28px;
+            font-size: 26px;
         }
 
         .logo span {
             color: var(--primary);
         }
 
+        .halal-badge-nav {
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
         .header-search {
             flex: 1;
-            max-width: 500px;
-            margin: 0 40px;
+            max-width: 480px;
             position: relative;
         }
 
         .header-search input {
             width: 100%;
             padding: 12px 16px 12px 44px;
-            border: 1px solid var(--border);
+            border: 1px solid #333;
             border-radius: var(--radius-md);
-            font-size: 15px;
+            font-size: 14px;
+            background: #2a2a2a;
+            color: white;
             transition: all 0.2s;
+        }
+
+        .header-search input::placeholder {
+            color: #888;
         }
 
         .header-search input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(29, 191, 115, 0.1);
+            background: #333;
         }
 
         .header-search .search-icon {
@@ -109,19 +126,22 @@
             left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-light);
+            color: #888;
+            width: 18px;
+            height: 18px;
         }
 
         .header-nav {
             display: flex;
             align-items: center;
-            gap: 24px;
+            gap: 28px;
+            flex-shrink: 0;
         }
 
         .nav-link {
-            color: var(--text-gray);
+            color: #ccc;
             font-weight: 500;
-            font-size: 15px;
+            font-size: 14px;
             transition: color 0.2s;
         }
 
@@ -131,6 +151,65 @@
 
         .nav-link.active {
             color: var(--primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .header-categories {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .categories-nav {
+            display: flex;
+            gap: 32px;
+            padding: 14px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            white-space: nowrap;
+        }
+
+        .category-link {
+            color: var(--text-gray);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .category-link:hover {
+            color: var(--text-dark);
+        }
+
+        .category-link.active {
+            color: var(--text-dark);
+            border-bottom-color: var(--text-dark);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: calc(100vh - 200px);
         }
 
         .btn {
@@ -176,63 +255,8 @@
             background: var(--bg-light);
         }
 
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .header-categories {
-            background: var(--bg-white);
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-        }
-
-        .categories-nav {
-            display: flex;
-            gap: 32px;
-            padding: 12px 24px;
-            max-width: 1400px;
-            margin: 0 auto;
-            white-space: nowrap;
-        }
-
-        .category-link {
-            color: var(--text-gray);
-            font-size: 14px;
-            font-weight: 500;
-            padding: 4px 0;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .category-link:hover {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-            min-height: calc(100vh - 200px);
-        }
-
         .footer {
-            background: var(--secondary);
+            background: var(--header-bg);
             color: white;
             padding: 48px 24px 24px;
         }
@@ -299,16 +323,6 @@
             color: rgba(255,255,255,0.6);
         }
 
-        .halal-badge-nav {
-            background: var(--primary);
-            color: white;
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: 700;
-            margin-left: 4px;
-        }
-
         @media (max-width: 1024px) {
             .header-search {
                 display: none;
@@ -340,7 +354,7 @@
             <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
                 <span class="logo-icon">☪</span>
                 Gig<span>Halal</span>
-                <span class="halal-badge-nav">HALAL ✓</span>
+                <span class="halal-badge-nav">HALAL</span>
             </a>
             
             <div class="header-search">
@@ -354,16 +368,16 @@
                     {% if user.user_type in ['client', 'both'] %}
                     <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post Gig</a>
                     {% endif %}
-                    <a href="/billing" class="nav-link">Wallet</a>
+                    <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Wallet</a>
                     {% if user.is_admin %}
-                    <a href="/admin" class="nav-link">Admin</a>
+                    <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">Admin</a>
                     {% endif %}
                     <div class="user-menu">
                         <a href="/dashboard" class="user-avatar">{{ user.username[:2]|upper }}</a>
                     </div>
                 {% else %}
                     <a href="#" class="nav-link" onclick="app.showLogin()">Log Masuk</a>
-                    <button class="btn btn-primary" onclick="app.showRegister()">Daftar</button>
+                    <button class="btn btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
                 {% endif %}
             </nav>
         </div>

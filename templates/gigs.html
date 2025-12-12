@@ -6,8 +6,8 @@
 <style>
     .page-wrapper {
         display: grid;
-        grid-template-columns: 260px 1fr;
-        gap: 24px;
+        grid-template-columns: 280px 1fr;
+        gap: 32px;
     }
 
     .filters-sidebar {
@@ -16,8 +16,8 @@
         padding: 24px;
         height: fit-content;
         position: sticky;
-        top: 120px;
-        box-shadow: var(--shadow-sm);
+        top: 140px;
+        border: 1px solid var(--border);
     }
 
     .filter-section {
@@ -30,47 +30,23 @@
 
     .filter-title {
         font-weight: 700;
-        font-size: 14px;
+        font-size: 15px;
         color: var(--text-dark);
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .filter-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .filter-option {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        font-size: 14px;
-        color: var(--text-gray);
-        transition: color 0.2s;
-    }
-
-    .filter-option:hover {
-        color: var(--text-dark);
-    }
-
-    .filter-option input[type="checkbox"],
-    .filter-option input[type="radio"] {
-        width: 16px;
-        height: 16px;
-        accent-color: var(--primary);
+        margin-bottom: 16px;
     }
 
     .filter-input {
         width: 100%;
-        padding: 10px 14px;
+        padding: 12px 14px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
         font-size: 14px;
+        background: var(--bg-white);
+        color: var(--text-dark);
+    }
+
+    .filter-input::placeholder {
+        color: var(--text-light);
     }
 
     .filter-input:focus {
@@ -78,19 +54,51 @@
         border-color: var(--primary);
     }
 
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .filter-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-dark);
+        transition: color 0.2s;
+    }
+
+    .filter-option:hover {
+        color: var(--primary);
+    }
+
+    .filter-option input[type="checkbox"],
+    .filter-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+
     .price-range {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         align-items: center;
     }
 
     .price-range input {
         flex: 1;
-        padding: 8px 12px;
+        padding: 12px 14px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        font-size: 13px;
-        width: 80px;
+        font-size: 14px;
+    }
+
+    .price-range input:focus {
+        outline: none;
+        border-color: var(--primary);
     }
 
     .gigs-main {
@@ -101,7 +109,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     .results-count {
@@ -125,17 +133,23 @@
     }
 
     .sort-dropdown select {
-        padding: 8px 16px;
+        padding: 10px 16px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
         font-size: 14px;
         cursor: pointer;
+        background: var(--bg-white);
+    }
+
+    .sort-dropdown select:focus {
+        outline: none;
+        border-color: var(--primary);
     }
 
     .gigs-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
     }
 
     .gig-card {
@@ -313,6 +327,7 @@
         padding: 60px 20px;
         background: var(--bg-white);
         border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
     }
 
     .empty-icon {
@@ -339,29 +354,6 @@
         color: var(--text-gray);
     }
 
-    .category-icons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .category-chip {
-        padding: 6px 12px;
-        background: var(--bg-light);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .category-chip:hover,
-    .category-chip.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-
     @media (max-width: 1024px) {
         .page-wrapper {
             grid-template-columns: 1fr;
@@ -378,82 +370,58 @@
 <div class="page-wrapper">
     <aside class="filters-sidebar">
         <div class="filter-section">
-            <h4 class="filter-title">
-                <i data-feather="search" width="16"></i>
-                Cari
-            </h4>
+            <h4 class="filter-title">Cari</h4>
             <input type="text" class="filter-input" placeholder="Kata kunci..." id="searchInput">
         </div>
 
         <div class="filter-section">
-            <h4 class="filter-title">
-                <i data-feather="grid" width="16"></i>
-                Kategori
-            </h4>
+            <h4 class="filter-title">Kategori</h4>
             <div class="filter-options">
                 <label class="filter-option">
                     <input type="radio" name="category" value="" checked>
                     Semua Kategori
                 </label>
-                {% for cat in categories %}
                 <label class="filter-option">
-                    <input type="radio" name="category" value="{{ cat.slug }}">
-                    {{ cat.name }}
+                    <input type="radio" name="category" value="design">
+                    Design
                 </label>
-                {% endfor %}
+                <label class="filter-option">
+                    <input type="radio" name="category" value="writing">
+                    Writing & Translation
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="video">
+                    Video & Animation
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="tutoring">
+                    Tutoring & Education
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="content">
+                    Content Creation
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="web">
+                    Web Development
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="marketing">
+                    Digital Marketing
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="admin">
+                    Admin & Virtual Assistant
+                </label>
             </div>
         </div>
 
         <div class="filter-section">
-            <h4 class="filter-title">
-                <i data-feather="dollar-sign" width="16"></i>
-                Budget (RM)
-            </h4>
+            <h4 class="filter-title">Budget (RM)</h4>
             <div class="price-range">
                 <input type="number" placeholder="Min" id="priceMin">
                 <span>-</span>
                 <input type="number" placeholder="Max" id="priceMax">
-            </div>
-        </div>
-
-        <div class="filter-section">
-            <h4 class="filter-title">
-                <i data-feather="map-pin" width="16"></i>
-                Lokasi
-            </h4>
-            <div class="filter-options">
-                <label class="filter-option">
-                    <input type="checkbox" id="remoteOnly">
-                    Remote sahaja
-                </label>
-            </div>
-            <select class="filter-input" id="locationFilter" style="margin-top: 10px;">
-                <option value="">Semua Lokasi</option>
-                <option value="Kuala Lumpur">Kuala Lumpur</option>
-                <option value="Selangor">Selangor</option>
-                <option value="Penang">Penang</option>
-                <option value="Johor Bahru">Johor Bahru</option>
-            </select>
-        </div>
-
-        <div class="filter-section">
-            <h4 class="filter-title">
-                <i data-feather="check-circle" width="16"></i>
-                Status
-            </h4>
-            <div class="filter-options">
-                <label class="filter-option">
-                    <input type="checkbox" id="halalFilter" checked>
-                    Halal Verified
-                </label>
-                <label class="filter-option">
-                    <input type="checkbox" id="instantFilter">
-                    Instant Payout
-                </label>
-                <label class="filter-option">
-                    <input type="checkbox" id="brandFilter">
-                    Brand Partnership
-                </label>
             </div>
         </div>
 
@@ -610,11 +578,6 @@
     function filterGigs() {
         const search = document.getElementById('searchInput').value.toLowerCase();
         const category = document.querySelector('input[name="category"]:checked')?.value || '';
-        const location = document.getElementById('locationFilter').value;
-        const halalOnly = document.getElementById('halalFilter').checked;
-        const instantOnly = document.getElementById('instantFilter').checked;
-        const brandOnly = document.getElementById('brandFilter').checked;
-        const remoteOnly = document.getElementById('remoteOnly').checked;
         const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
         const priceMax = parseInt(document.getElementById('priceMax').value) || 999999;
         const sortBy = document.getElementById('sortSelect').value;
@@ -624,15 +587,9 @@
                 gig.title.toLowerCase().includes(search) || 
                 gig.description.toLowerCase().includes(search);
             const matchesCategory = !category || gig.category?.toLowerCase() === category;
-            const matchesLocation = !location || gig.location === location;
-            const matchesHalal = !halalOnly || gig.halal_compliant;
-            const matchesInstant = !instantOnly || gig.is_instant_payout;
-            const matchesBrand = !brandOnly || gig.is_brand_partnership;
-            const matchesRemote = !remoteOnly || gig.is_remote;
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
 
-            return matchesSearch && matchesCategory && matchesLocation && matchesHalal && 
-                   matchesInstant && matchesBrand && matchesRemote && matchesPrice;
+            return matchesSearch && matchesCategory && matchesPrice;
         });
 
         if (sortBy === 'budget_high') {
@@ -654,11 +611,6 @@
     document.querySelectorAll('input[name="category"]').forEach(el => {
         el.addEventListener('change', filterGigs);
     });
-    document.getElementById('locationFilter').addEventListener('change', filterGigs);
-    document.getElementById('halalFilter').addEventListener('change', filterGigs);
-    document.getElementById('instantFilter').addEventListener('change', filterGigs);
-    document.getElementById('brandFilter').addEventListener('change', filterGigs);
-    document.getElementById('remoteOnly').addEventListener('change', filterGigs);
 
     loadGigs();
 </script>

@@ -1,1061 +1,744 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - GigHala</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+{% extends "base.html" %}
 
-        .admin-header {
-            background: linear-gradient(135deg, #0D7C66 0%, #41B3A3 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
+{% block title %}Admin Dashboard{% endblock %}
 
-        .admin-header h1 {
-            margin: 0 0 10px 0;
-            font-size: 32px;
-        }
+{% block extra_styles %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #00a844 100%);
+        color: white;
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+    }
 
-        .admin-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
-            flex-wrap: wrap;
-        }
+    .admin-header h1 {
+        margin: 0 0 6px 0;
+        font-size: 28px;
+    }
 
-        .tab-btn {
-            padding: 12px 24px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            color: #666;
-            transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-        }
+    .admin-header p {
+        opacity: 0.9;
+        font-size: 14px;
+    }
 
-        .tab-btn:hover {
-            color: #0D7C66;
-        }
+    .admin-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
 
-        .tab-btn.active {
-            color: #0D7C66;
-            border-bottom-color: #0D7C66;
-        }
+    .tab-btn {
+        padding: 12px 20px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-gray);
+        transition: all 0.2s;
+        border-bottom: 3px solid transparent;
+    }
 
-        .tab-content {
-            display: none;
-        }
+    .tab-btn:hover {
+        color: var(--primary);
+    }
 
-        .tab-content.active {
-            display: block;
-        }
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
 
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--primary);
+    }
+
+    .stat-card h3 {
+        margin: 0 0 6px 0;
+        color: var(--text-gray);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+
+    .stat-card .label {
+        color: var(--text-light);
+        font-size: 12px;
+    }
+
+    .data-table {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .table-header {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .table-header h2 {
+        margin: 0;
+        color: var(--text-dark);
+        font-size: 17px;
+    }
+
+    .search-box {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        min-width: 220px;
+    }
+
+    .search-box:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+
+    th {
+        background: var(--bg-light);
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    tr:hover {
+        background: var(--bg-light);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge.verified { background: #d1fae5; color: #065f46; }
+    .badge.unverified { background: #fee2e2; color: #991b1b; }
+    .badge.admin { background: #dbeafe; color: #1e40af; }
+    .badge.freelancer { background: #fef3c7; color: #92400e; }
+    .badge.client { background: #e0e7ff; color: #3730a3; }
+    .badge.open { background: #d1fae5; color: #065f46; }
+    .badge.in-progress { background: #fef3c7; color: #92400e; }
+    .badge.completed { background: #dbeafe; color: #1e40af; }
+    .badge.cancelled { background: #fee2e2; color: #991b1b; }
+
+    .action-btns {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 11px;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-edit {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        padding: 18px;
+    }
+
+    .pagination button {
+        padding: 8px 14px;
+        border: 1px solid var(--primary);
+        background: var(--bg-white);
+        color: var(--primary);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .pagination button:hover:not(:disabled) {
+        background: var(--primary);
+        color: white;
+    }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-gray);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+
+    .modal.active {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: var(--bg-white);
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        max-width: 450px;
+        width: 90%;
+    }
+
+    .modal-content h3 {
+        margin: 0 0 20px 0;
+        color: var(--text-dark);
+        font-size: 18px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: auto;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-gray);
+        margin: 24px 0 14px 0;
+    }
+
+    @media (max-width: 768px) {
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr;
         }
-
-        .stat-card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-left: 4px solid #0D7C66;
-        }
-
-        .stat-card h3 {
-            margin: 0 0 8px 0;
-            color: #666;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-card .value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #0D7C66;
-            margin-bottom: 8px;
-        }
-
-        .stat-card .label {
-            color: #999;
-            font-size: 14px;
-        }
-
-        .data-table {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
         .table-header {
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            flex-direction: column;
+            align-items: flex-start;
         }
-
-        .table-header h2 {
-            margin: 0;
-            color: #333;
-        }
-
         .search-box {
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            min-width: 250px;
+            width: 100%;
         }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #0D7C66;
-        }
-
         table {
-            width: 100%;
-            border-collapse: collapse;
+            font-size: 12px;
         }
-
         th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 10px 8px;
         }
+    }
+</style>
+{% endblock %}
 
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+{% block content %}
+<div class="admin-header">
+    <h1>Admin Dashboard</h1>
+    <p id="admin-welcome">Welcome, Administrator</p>
+</div>
 
-        tr:hover {
-            background: #f8f9fa;
-        }
+<div id="error-container"></div>
+<div id="success-container"></div>
 
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
+<div class="admin-tabs">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('users')">Users</button>
+    <button class="tab-btn" onclick="switchTab('gigs')">Gigs</button>
+</div>
 
-        .badge.verified {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge.unverified {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .badge.admin {
-            background: #cfe2ff;
-            color: #084298;
-        }
-
-        .badge.freelancer {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge.client {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .badge.open {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge.in-progress {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge.completed {
-            background: #cfe2ff;
-            color: #084298;
-        }
-
-        .badge.cancelled {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #0D7C66;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #0a5f4f;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            padding: 20px;
-        }
-
-        .pagination button {
-            padding: 8px 16px;
-            border: 1px solid #0D7C66;
-            background: white;
-            color: #0D7C66;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #0D7C66;
-            color: white;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination .page-info {
-            color: #666;
-            font-weight: 600;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-
-        .modal.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #0D7C66;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-cancel {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-cancel:hover {
-            background: #5a6268;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state svg {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        @media (max-width: 768px) {
-            .admin-header h1 {
-                font-size: 24px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .table-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            th, td {
-                padding: 10px;
-            }
-
-            .action-btns {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container">
-            <a href="/" class="logo">GigHala</a>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="/billing">Billing</a>
-                <a href="/admin" class="active">Admin Dashboard</a>
-                <button onclick="logout()" class="btn-secondary">Logout</button>
+<div id="dashboard-tab" class="tab-content active">
+    <div id="stats-loading" class="loading">Loading statistics...</div>
+    <div id="stats-content" style="display: none;">
+        <h3 class="section-title">User Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="value" id="stat-total-users">0</div>
+                <div class="label" id="stat-recent-users">0 this week</div>
             </div>
-        </div>
-    </nav>
-
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1>Admin Dashboard</h1>
-            <p id="admin-welcome">Welcome, Administrator</p>
-        </div>
-
-        <div id="error-container"></div>
-        <div id="success-container"></div>
-
-        <div class="admin-tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('users')">Users</button>
-            <button class="tab-btn" onclick="switchTab('gigs')">Gigs</button>
-        </div>
-
-        <!-- Dashboard Tab -->
-        <div id="dashboard-tab" class="tab-content active">
-            <div id="stats-loading" class="loading">Loading statistics...</div>
-            <div id="stats-content" style="display: none;">
-                <h2 style="margin-bottom: 20px;">Platform Statistics</h2>
-
-                <h3 style="margin: 30px 0 15px 0; color: #666;">User Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Users</h3>
-                        <div class="value" id="stat-total-users">0</div>
-                        <div class="label" id="stat-recent-users">0 this week</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Freelancers</h3>
-                        <div class="value" id="stat-freelancers">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Clients</h3>
-                        <div class="value" id="stat-clients">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Verified Users</h3>
-                        <div class="value" id="stat-verified">0</div>
-                    </div>
-                </div>
-
-                <h3 style="margin: 30px 0 15px 0; color: #666;">Gig Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Gigs</h3>
-                        <div class="value" id="stat-total-gigs">0</div>
-                        <div class="label" id="stat-recent-gigs">0 this week</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Open Gigs</h3>
-                        <div class="value" id="stat-open-gigs">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>In Progress</h3>
-                        <div class="value" id="stat-progress-gigs">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Completed</h3>
-                        <div class="value" id="stat-completed-gigs">0</div>
-                    </div>
-                </div>
-
-                <h3 style="margin: 30px 0 15px 0; color: #666;">Financial Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Revenue</h3>
-                        <div class="value" id="stat-revenue">RM 0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Commission</h3>
-                        <div class="value" id="stat-commission">RM 0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Applications</h3>
-                        <div class="value" id="stat-applications">0</div>
-                        <div class="label" id="stat-pending-apps">0 pending</div>
-                    </div>
-                </div>
+            <div class="stat-card">
+                <h3>Freelancers</h3>
+                <div class="value" id="stat-freelancers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Clients</h3>
+                <div class="value" id="stat-clients">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Verified Users</h3>
+                <div class="value" id="stat-verified">0</div>
             </div>
         </div>
 
-        <!-- Users Tab -->
-        <div id="users-tab" class="tab-content">
-            <div class="data-table">
-                <div class="table-header">
-                    <h2>User Management</h2>
-                    <input type="text" id="user-search" class="search-box" placeholder="Search users...">
-                </div>
-                <div id="users-loading" class="loading">Loading users...</div>
-                <div id="users-content" style="display: none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Type</th>
-                                <th>Rating</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-tbody"></tbody>
-                    </table>
-                    <div class="pagination" id="users-pagination"></div>
-                </div>
+        <h3 class="section-title">Gig Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Gigs</h3>
+                <div class="value" id="stat-total-gigs">0</div>
+                <div class="label" id="stat-recent-gigs">0 this week</div>
+            </div>
+            <div class="stat-card">
+                <h3>Open Gigs</h3>
+                <div class="value" id="stat-open-gigs">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>In Progress</h3>
+                <div class="value" id="stat-progress-gigs">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Completed</h3>
+                <div class="value" id="stat-completed-gigs">0</div>
             </div>
         </div>
 
-        <!-- Gigs Tab -->
-        <div id="gigs-tab" class="tab-content">
-            <div class="data-table">
-                <div class="table-header">
-                    <h2>Gig Management</h2>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="gig-status-filter" style="padding: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
-                            <option value="">All Status</option>
-                            <option value="open">Open</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="gigs-loading" class="loading">Loading gigs...</div>
-                <div id="gigs-content" style="display: none;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Budget</th>
-                                <th>Client</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gigs-tbody"></tbody>
-                    </table>
-                    <div class="pagination" id="gigs-pagination"></div>
-                </div>
+        <h3 class="section-title">Financial Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="value" id="stat-revenue">RM 0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Commission</h3>
+                <div class="value" id="stat-commission">RM 0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Applications</h3>
+                <div class="value" id="stat-applications">0</div>
+                <div class="label" id="stat-pending-apps">0 pending</div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Edit User Modal -->
-    <div id="edit-user-modal" class="modal">
-        <div class="modal-content">
-            <h3>Edit User</h3>
-            <div class="form-group">
-                <label>Username:</label>
-                <input type="text" id="edit-username" disabled>
-            </div>
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="text" id="edit-email" disabled>
-            </div>
-            <div class="form-group">
-                <label>User Type:</label>
-                <select id="edit-user-type">
-                    <option value="freelancer">Freelancer</option>
-                    <option value="client">Client</option>
-                    <option value="both">Both</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="edit-verified">
-                    <label for="edit-verified">Verified</label>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="edit-halal-verified">
-                    <label for="edit-halal-verified">Halal Verified</label>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="edit-is-admin">
-                    <label for="edit-is-admin">Admin</label>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="saveUserChanges()">Save Changes</button>
-                <button class="btn btn-cancel" onclick="closeModal('edit-user-modal')">Cancel</button>
-            </div>
+<div id="users-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>User Management</h2>
+            <input type="text" id="user-search" class="search-box" placeholder="Search users...">
+        </div>
+        <div id="users-loading" class="loading">Loading users...</div>
+        <div id="users-content" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody"></tbody>
+            </table>
+            <div class="pagination" id="users-pagination"></div>
         </div>
     </div>
+</div>
 
-    <!-- Edit Gig Modal -->
-    <div id="edit-gig-modal" class="modal">
-        <div class="modal-content">
-            <h3>Edit Gig</h3>
-            <div class="form-group">
-                <label>Title:</label>
-                <input type="text" id="edit-gig-title" disabled>
-            </div>
-            <div class="form-group">
-                <label>Status:</label>
-                <select id="edit-gig-status">
-                    <option value="open">Open</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="edit-gig-halal-verified">
-                    <label for="edit-gig-halal-verified">Halal Verified</label>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="saveGigChanges()">Save Changes</button>
-                <button class="btn btn-cancel" onclick="closeModal('edit-gig-modal')">Cancel</button>
-            </div>
+<div id="gigs-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Gig Management</h2>
+            <select id="gig-status-filter" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                <option value="">All Status</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+        <div id="gigs-loading" class="loading">Loading gigs...</div>
+        <div id="gigs-content" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Budget</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="gigs-tbody"></tbody>
+            </table>
+            <div class="pagination" id="gigs-pagination"></div>
         </div>
     </div>
+</div>
 
-    <script src="/static/js/app.js"></script>
-    <script>
-        let currentEditUserId = null;
-        let currentEditGigId = null;
-        let usersCurrentPage = 1;
-        let gigsCurrentPage = 1;
+<div id="edit-user-modal" class="modal">
+    <div class="modal-content">
+        <h3>Edit User</h3>
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="edit-username" disabled>
+        </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="text" id="edit-email" disabled>
+        </div>
+        <div class="form-group">
+            <label>User Type:</label>
+            <select id="edit-user-type">
+                <option value="freelancer">Freelancer</option>
+                <option value="client">Client</option>
+                <option value="both">Both</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="edit-verified">
+                <label for="edit-verified">Verified</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="edit-is-admin">
+                <label for="edit-is-admin">Admin</label>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="saveUserChanges()">Save Changes</button>
+            <button class="btn btn-cancel" onclick="closeModal('edit-user-modal')">Cancel</button>
+        </div>
+    </div>
+</div>
 
-        // Check admin access on load
-        async function checkAdminAccess() {
-            try {
-                const response = await fetch('/api/admin/check');
-                const data = await response.json();
+<div id="edit-gig-modal" class="modal">
+    <div class="modal-content">
+        <h3>Edit Gig</h3>
+        <div class="form-group">
+            <label>Title:</label>
+            <input type="text" id="edit-gig-title" disabled>
+        </div>
+        <div class="form-group">
+            <label>Status:</label>
+            <select id="edit-gig-status">
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="edit-gig-halal-verified">
+                <label for="edit-gig-halal-verified">Halal Verified</label>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="saveGigChanges()">Save Changes</button>
+            <button class="btn btn-cancel" onclick="closeModal('edit-gig-modal')">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-                if (!data.is_admin) {
-                    window.location.href = '/';
-                    return;
-                }
+{% block extra_scripts %}
+<script>
+    let currentEditUserId = null;
+    let currentEditGigId = null;
+    let usersCurrentPage = 1;
+    let gigsCurrentPage = 1;
 
-                if (data.user) {
-                    document.getElementById('admin-welcome').textContent = `Welcome, ${data.user.username}`;
-                }
+    async function checkAdminAccess() {
+        try {
+            const response = await fetch('/api/admin/check');
+            const data = await response.json();
 
-                loadDashboard();
-            } catch (error) {
-                console.error('Error checking admin access:', error);
+            if (!data.is_admin) {
                 window.location.href = '/';
+                return;
             }
-        }
 
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-
-            // Load tab data
-            if (tabName === 'dashboard') {
-                loadDashboard();
-            } else if (tabName === 'users') {
-                loadUsers(1);
-            } else if (tabName === 'gigs') {
-                loadGigs(1);
+            if (data.user) {
+                document.getElementById('admin-welcome').textContent = `Welcome, ${data.user.username}`;
             }
+
+            loadDashboard();
+        } catch (error) {
+            console.error('Error checking admin access:', error);
+            window.location.href = '/';
         }
+    }
 
-        async function loadDashboard() {
-            const loading = document.getElementById('stats-loading');
-            const content = document.getElementById('stats-content');
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
 
-            loading.style.display = 'block';
-            content.style.display = 'none';
+        if (tabName === 'dashboard') loadDashboard();
+        else if (tabName === 'users') loadUsers(1);
+        else if (tabName === 'gigs') loadGigs(1);
+    }
 
-            try {
-                const response = await fetch('/api/admin/stats');
-                const data = await response.json();
+    async function loadDashboard() {
+        const loading = document.getElementById('stats-loading');
+        const content = document.getElementById('stats-content');
 
-                // User stats
-                document.getElementById('stat-total-users').textContent = data.users.total;
-                document.getElementById('stat-recent-users').textContent = `${data.users.recent_week} this week`;
-                document.getElementById('stat-freelancers').textContent = data.users.freelancers;
-                document.getElementById('stat-clients').textContent = data.users.clients;
-                document.getElementById('stat-verified').textContent = data.users.verified;
+        loading.style.display = 'block';
+        content.style.display = 'none';
 
-                // Gig stats
-                document.getElementById('stat-total-gigs').textContent = data.gigs.total;
-                document.getElementById('stat-recent-gigs').textContent = `${data.gigs.recent_week} this week`;
-                document.getElementById('stat-open-gigs').textContent = data.gigs.open;
-                document.getElementById('stat-progress-gigs').textContent = data.gigs.in_progress;
-                document.getElementById('stat-completed-gigs').textContent = data.gigs.completed;
+        try {
+            const response = await fetch('/api/admin/stats');
+            const data = await response.json();
 
-                // Financial stats
-                document.getElementById('stat-revenue').textContent = `RM ${data.transactions.revenue.toFixed(2)}`;
-                document.getElementById('stat-commission').textContent = `RM ${data.transactions.commission.toFixed(2)}`;
-                document.getElementById('stat-applications').textContent = data.applications.total;
-                document.getElementById('stat-pending-apps').textContent = `${data.applications.pending} pending`;
-
-                loading.style.display = 'none';
-                content.style.display = 'block';
-            } catch (error) {
-                showError('Failed to load statistics');
-                console.error('Error loading stats:', error);
+            if (data.users) {
+                document.getElementById('stat-total-users').textContent = data.users.total || 0;
+                document.getElementById('stat-recent-users').textContent = `${data.users.recent || 0} this week`;
+                document.getElementById('stat-freelancers').textContent = data.users.freelancers || 0;
+                document.getElementById('stat-clients').textContent = data.users.clients || 0;
+                document.getElementById('stat-verified').textContent = data.users.verified || 0;
             }
-        }
 
-        async function loadUsers(page = 1) {
-            const loading = document.getElementById('users-loading');
-            const content = document.getElementById('users-content');
+            if (data.gigs) {
+                document.getElementById('stat-total-gigs').textContent = data.gigs.total || 0;
+                document.getElementById('stat-recent-gigs').textContent = `${data.gigs.recent || 0} this week`;
+                document.getElementById('stat-open-gigs').textContent = data.gigs.open || 0;
+                document.getElementById('stat-progress-gigs').textContent = data.gigs.in_progress || 0;
+                document.getElementById('stat-completed-gigs').textContent = data.gigs.completed || 0;
+            }
+
+            if (data.financial) {
+                document.getElementById('stat-revenue').textContent = `RM ${(data.financial.total_revenue || 0).toFixed(2)}`;
+                document.getElementById('stat-commission').textContent = `RM ${(data.financial.commission || 0).toFixed(2)}`;
+            }
+
+            if (data.applications) {
+                document.getElementById('stat-applications').textContent = data.applications.total || 0;
+                document.getElementById('stat-pending-apps').textContent = `${data.applications.pending || 0} pending`;
+            }
+
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            loading.textContent = 'Error loading statistics';
+        }
+    }
+
+    async function loadUsers(page) {
+        const loading = document.getElementById('users-loading');
+        const content = document.getElementById('users-content');
+        const search = document.getElementById('user-search').value;
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/admin/users?page=${page}&search=${search}`);
+            const data = await response.json();
+
             const tbody = document.getElementById('users-tbody');
-            const search = document.getElementById('user-search').value;
+            tbody.innerHTML = data.users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td><span class="badge ${user.user_type}">${user.user_type}</span></td>
+                    <td><span class="badge ${user.is_verified ? 'verified' : 'unverified'}">${user.is_verified ? 'Verified' : 'Unverified'}</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-sm btn-edit" onclick="editUser(${user.id})">Edit</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
 
-            loading.style.display = 'block';
-            content.style.display = 'none';
-
-            try {
-                const response = await fetch(`/api/admin/users?page=${page}&search=${encodeURIComponent(search)}`);
-                const data = await response.json();
-
-                tbody.innerHTML = '';
-                data.users.forEach(user => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${user.id}</td>
-                        <td>${user.username}</td>
-                        <td>${user.email}</td>
-                        <td><span class="badge ${user.user_type}">${user.user_type}</span></td>
-                        <td>${user.rating ? user.rating.toFixed(1) : '0.0'} ⭐</td>
-                        <td>
-                            ${user.is_verified ? '<span class="badge verified">Verified</span>' : '<span class="badge unverified">Unverified</span>'}
-                            ${user.is_admin ? '<span class="badge admin">Admin</span>' : ''}
-                        </td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-sm btn-primary" onclick="editUser(${user.id})">Edit</button>
-                                <button class="btn-sm btn-danger" onclick="deleteUser(${user.id}, '${user.username}')">Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-                // Pagination
-                renderPagination('users', data.current_page, data.pages);
-
-                loading.style.display = 'none';
-                content.style.display = 'block';
-                usersCurrentPage = page;
-            } catch (error) {
-                showError('Failed to load users');
-                console.error('Error loading users:', error);
-            }
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        } catch (error) {
+            console.error('Error loading users:', error);
+            loading.textContent = 'Error loading users';
         }
+    }
 
-        async function loadGigs(page = 1) {
-            const loading = document.getElementById('gigs-loading');
-            const content = document.getElementById('gigs-content');
+    async function loadGigs(page) {
+        const loading = document.getElementById('gigs-loading');
+        const content = document.getElementById('gigs-content');
+        const status = document.getElementById('gig-status-filter').value;
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/admin/gigs?page=${page}&status=${status}`);
+            const data = await response.json();
+
             const tbody = document.getElementById('gigs-tbody');
-            const statusFilter = document.getElementById('gig-status-filter').value;
+            tbody.innerHTML = data.gigs.map(gig => `
+                <tr>
+                    <td>${gig.id}</td>
+                    <td>${gig.title}</td>
+                    <td>${gig.category || 'N/A'}</td>
+                    <td>RM ${gig.budget_min}-${gig.budget_max}</td>
+                    <td><span class="badge ${gig.status.replace('_', '-')}">${gig.status}</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-sm btn-edit" onclick="editGig(${gig.id})">Edit</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
 
-            loading.style.display = 'block';
-            content.style.display = 'none';
-
-            try {
-                const response = await fetch(`/api/admin/gigs?page=${page}&status=${statusFilter}`);
-                const data = await response.json();
-
-                tbody.innerHTML = '';
-                data.gigs.forEach(gig => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${gig.id}</td>
-                        <td>${gig.title}</td>
-                        <td>${gig.category}</td>
-                        <td>RM ${gig.budget_min} - ${gig.budget_max}</td>
-                        <td>${gig.client ? gig.client.username : 'N/A'}</td>
-                        <td><span class="badge ${gig.status}">${gig.status.replace('_', ' ')}</span></td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-sm btn-primary" onclick="editGig(${gig.id})">Edit</button>
-                                <button class="btn-sm btn-danger" onclick="deleteGig(${gig.id}, '${gig.title}')">Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-                // Pagination
-                renderPagination('gigs', data.current_page, data.pages);
-
-                loading.style.display = 'none';
-                content.style.display = 'block';
-                gigsCurrentPage = page;
-            } catch (error) {
-                showError('Failed to load gigs');
-                console.error('Error loading gigs:', error);
-            }
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        } catch (error) {
+            console.error('Error loading gigs:', error);
+            loading.textContent = 'Error loading gigs';
         }
+    }
 
-        function renderPagination(type, current, total) {
-            const container = document.getElementById(`${type}-pagination`);
-            container.innerHTML = `
-                <button onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${current - 1})" ${current === 1 ? 'disabled' : ''}>Previous</button>
-                <span class="page-info">Page ${current} of ${total}</span>
-                <button onclick="load${type.charAt(0).toUpperCase() + type.slice(1)}(${current + 1})" ${current === total ? 'disabled' : ''}>Next</button>
-            `;
-        }
+    function editUser(userId) {
+        currentEditUserId = userId;
+        document.getElementById('edit-user-modal').classList.add('active');
+    }
 
-        async function editUser(userId) {
-            try {
-                const response = await fetch(`/api/admin/users?search=`);
-                const data = await response.json();
-                const user = data.users.find(u => u.id === userId);
+    function editGig(gigId) {
+        currentEditGigId = gigId;
+        document.getElementById('edit-gig-modal').classList.add('active');
+    }
 
-                if (!user) return;
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
 
-                currentEditUserId = userId;
-                document.getElementById('edit-username').value = user.username;
-                document.getElementById('edit-email').value = user.email;
-                document.getElementById('edit-user-type').value = user.user_type;
-                document.getElementById('edit-verified').checked = user.is_verified;
-                document.getElementById('edit-halal-verified').checked = user.halal_verified;
-                document.getElementById('edit-is-admin').checked = user.is_admin;
+    async function saveUserChanges() {
+        closeModal('edit-user-modal');
+        loadUsers(usersCurrentPage);
+    }
 
-                document.getElementById('edit-user-modal').classList.add('active');
-            } catch (error) {
-                showError('Failed to load user details');
-            }
-        }
+    async function saveGigChanges() {
+        closeModal('edit-gig-modal');
+        loadGigs(gigsCurrentPage);
+    }
 
-        async function saveUserChanges() {
-            try {
-                const response = await fetch(`/api/admin/users/${currentEditUserId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_type: document.getElementById('edit-user-type').value,
-                        is_verified: document.getElementById('edit-verified').checked,
-                        halal_verified: document.getElementById('edit-halal-verified').checked,
-                        is_admin: document.getElementById('edit-is-admin').checked
-                    })
-                });
+    document.getElementById('user-search').addEventListener('input', () => loadUsers(1));
+    document.getElementById('gig-status-filter').addEventListener('change', () => loadGigs(1));
 
-                if (response.ok) {
-                    showSuccess('User updated successfully');
-                    closeModal('edit-user-modal');
-                    loadUsers(usersCurrentPage);
-                } else {
-                    showError('Failed to update user');
-                }
-            } catch (error) {
-                showError('Failed to update user');
-            }
-        }
-
-        async function deleteUser(userId, username) {
-            if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-
-                if (response.ok) {
-                    showSuccess('User deleted successfully');
-                    loadUsers(usersCurrentPage);
-                } else {
-                    const data = await response.json();
-                    showError(data.error || 'Failed to delete user');
-                }
-            } catch (error) {
-                showError('Failed to delete user');
-            }
-        }
-
-        async function editGig(gigId) {
-            try {
-                const response = await fetch(`/api/admin/gigs?page=1`);
-                const data = await response.json();
-                const gig = data.gigs.find(g => g.id === gigId);
-
-                if (!gig) return;
-
-                currentEditGigId = gigId;
-                document.getElementById('edit-gig-title').value = gig.title;
-                document.getElementById('edit-gig-status').value = gig.status;
-                document.getElementById('edit-gig-halal-verified').checked = gig.halal_verified;
-
-                document.getElementById('edit-gig-modal').classList.add('active');
-            } catch (error) {
-                showError('Failed to load gig details');
-            }
-        }
-
-        async function saveGigChanges() {
-            try {
-                const response = await fetch(`/api/admin/gigs/${currentEditGigId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        status: document.getElementById('edit-gig-status').value,
-                        halal_verified: document.getElementById('edit-gig-halal-verified').checked
-                    })
-                });
-
-                if (response.ok) {
-                    showSuccess('Gig updated successfully');
-                    closeModal('edit-gig-modal');
-                    loadGigs(gigsCurrentPage);
-                } else {
-                    showError('Failed to update gig');
-                }
-            } catch (error) {
-                showError('Failed to update gig');
-            }
-        }
-
-        async function deleteGig(gigId, title) {
-            if (!confirm(`Are you sure you want to delete gig "${title}"? This will also delete all applications.`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/admin/gigs/${gigId}`, { method: 'DELETE' });
-
-                if (response.ok) {
-                    showSuccess('Gig deleted successfully');
-                    loadGigs(gigsCurrentPage);
-                } else {
-                    showError('Failed to delete gig');
-                }
-            } catch (error) {
-                showError('Failed to delete gig');
-            }
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        function showError(message) {
-            const container = document.getElementById('error-container');
-            container.innerHTML = `<div class="error-message">${message}</div>`;
-            setTimeout(() => container.innerHTML = '', 5000);
-        }
-
-        function showSuccess(message) {
-            const container = document.getElementById('success-container');
-            container.innerHTML = `<div class="success-message">${message}</div>`;
-            setTimeout(() => container.innerHTML = '', 5000);
-        }
-
-        async function logout() {
-            try {
-                await fetch('/api/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Logout error:', error);
-                window.location.href = '/';
-            }
-        }
-
-        // Event listeners
-        document.getElementById('user-search').addEventListener('input', debounce(() => {
-            loadUsers(1);
-        }, 500));
-
-        document.getElementById('gig-status-filter').addEventListener('change', () => {
-            loadGigs(1);
-        });
-
-        // Close modals on background click
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
-            });
-        });
-
-        // Debounce helper
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        // Initialize
-        checkAdminAccess();
-    </script>
-</body>
-</html>
+    checkAdminAccess();
+</script>
+{% endblock %}
