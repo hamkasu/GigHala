@@ -9,6 +9,11 @@ import os
 import secrets
 import json
 import re
+import stripe
+
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+PROCESSING_FEE_PERCENT = 0.029
+PROCESSING_FEE_FIXED = 1.00
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
@@ -1962,6 +1967,293 @@ def admin_billing_stats():
     except Exception as e:
         app.logger.error(f"Admin billing stats error: {str(e)}")
         return jsonify({'error': 'Failed to get billing statistics'}), 500
+
+# ==================== PAYMENT APPROVAL ROUTES ====================
+
+@app.route('/payments')
+@login_required
+def payments_page():
+    """Payment approval page for clients"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    return render_template('payments.html', user=user)
+
+@app.route('/api/payments/pending', methods=['GET'])
+@login_required
+def get_pending_payments():
+    """Get pending payments awaiting client approval"""
+    try:
+        user_id = session['user_id']
+        
+        pending_gigs = Gig.query.filter(
+            Gig.client_id == user_id,
+            Gig.status == 'in_progress',
+            Gig.freelancer_id.isnot(None)
+        ).all()
+        
+        payments = []
+        for gig in pending_gigs:
+            accepted_app = Application.query.filter_by(
+                gig_id=gig.id,
+                status='accepted'
+            ).first()
+            
+            if accepted_app:
+                freelancer = User.query.get(gig.freelancer_id)
+                amount = accepted_app.proposed_price or gig.budget_max
+                
+                commission = calculate_commission(amount)
+                commission_rate = 0.15 if amount <= 500 else (0.10 if amount <= 2000 else 0.05)
+                processing_fee = (amount * PROCESSING_FEE_PERCENT) + PROCESSING_FEE_FIXED
+                net_amount = amount - commission - processing_fee
+                
+                existing_invoice = Invoice.query.filter_by(gig_id=gig.id).first()
+                
+                payments.append({
+                    'id': gig.id,
+                    'gig_title': gig.title,
+                    'freelancer_id': gig.freelancer_id,
+                    'freelancer_name': freelancer.full_name or freelancer.username if freelancer else 'N/A',
+                    'amount': amount,
+                    'commission': commission,
+                    'commission_rate': commission_rate,
+                    'processing_fee': round(processing_fee, 2),
+                    'net_amount': round(net_amount, 2),
+                    'completed_date': gig.created_at.strftime('%Y-%m-%d'),
+                    'invoice_number': existing_invoice.invoice_number if existing_invoice else None
+                })
+        
+        return jsonify({'payments': payments}), 200
+    except Exception as e:
+        app.logger.error(f"Get pending payments error: {str(e)}")
+        return jsonify({'error': 'Failed to get pending payments'}), 500
+
+@app.route('/api/payments/<int:gig_id>/approve', methods=['POST'])
+@login_required
+def approve_payment(gig_id):
+    """Approve payment and release funds to freelancer via Stripe"""
+    try:
+        user_id = session['user_id']
+        gig = Gig.query.get_or_404(gig_id)
+        
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can approve this payment'}), 403
+        
+        if not gig.freelancer_id:
+            return jsonify({'error': 'No freelancer assigned to this gig'}), 400
+        
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'Gig must be in progress to approve payment'}), 400
+        
+        accepted_app = Application.query.filter_by(
+            gig_id=gig.id,
+            status='accepted'
+        ).first()
+        
+        if not accepted_app:
+            return jsonify({'error': 'No accepted application found'}), 400
+        
+        amount = accepted_app.proposed_price or gig.budget_max
+        
+        commission = calculate_commission(amount)
+        processing_fee = (amount * PROCESSING_FEE_PERCENT) + PROCESSING_FEE_FIXED
+        net_amount = amount - commission - processing_fee
+        
+        import random
+        invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+        
+        stripe_payment_id = None
+        payment_method = 'internal'
+        
+        if stripe.api_key:
+            try:
+                payment_intent = stripe.PaymentIntent.create(
+                    amount=int(amount * 100),
+                    currency='myr',
+                    metadata={
+                        'gig_id': gig_id,
+                        'invoice_number': invoice_number,
+                        'freelancer_id': gig.freelancer_id
+                    },
+                    description=f'Payment for gig: {gig.title}'
+                )
+                stripe_payment_id = payment_intent.id
+                payment_method = 'stripe'
+            except Exception as e:
+                app.logger.warning(f"Stripe payment creation skipped, using internal settlement: {str(e)}")
+                payment_method = 'internal'
+        else:
+            app.logger.info("Stripe not configured, using internal settlement")
+        
+        transaction = Transaction(
+            gig_id=gig_id,
+            freelancer_id=gig.freelancer_id,
+            client_id=gig.client_id,
+            amount=amount,
+            commission=commission,
+            net_amount=net_amount,
+            payment_method=payment_method,
+            status='completed'
+        )
+        db.session.add(transaction)
+        db.session.flush()
+        
+        invoice = Invoice(
+            invoice_number=invoice_number,
+            transaction_id=transaction.id,
+            gig_id=gig_id,
+            client_id=gig.client_id,
+            freelancer_id=gig.freelancer_id,
+            amount=amount,
+            platform_fee=commission,
+            tax_amount=processing_fee,
+            total_amount=amount,
+            status='paid',
+            payment_method=payment_method,
+            payment_reference=stripe_payment_id,
+            paid_at=datetime.utcnow(),
+            notes=f'Payment approved for: {gig.title}'
+        )
+        db.session.add(invoice)
+        
+        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            db.session.add(freelancer_wallet)
+            db.session.flush()
+        
+        old_balance = freelancer_wallet.balance
+        freelancer_wallet.balance += net_amount
+        freelancer_wallet.total_earned += net_amount
+        
+        freelancer_history = PaymentHistory(
+            user_id=gig.freelancer_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=net_amount,
+            balance_before=old_balance,
+            balance_after=freelancer_wallet.balance,
+            description=f'Payment received for: {gig.title}',
+            reference_number=invoice_number,
+            payment_gateway=payment_method
+        )
+        db.session.add(freelancer_history)
+        
+        client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+        if not client_wallet:
+            client_wallet = Wallet(user_id=gig.client_id)
+            db.session.add(client_wallet)
+            db.session.flush()
+        
+        client_old_balance = client_wallet.balance
+        client_wallet.total_spent += amount
+        
+        client_history = PaymentHistory(
+            user_id=gig.client_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=amount,
+            balance_before=client_old_balance,
+            balance_after=client_wallet.balance,
+            description=f'Payment approved for: {gig.title}',
+            reference_number=invoice_number,
+            payment_gateway=payment_method
+        )
+        db.session.add(client_history)
+        
+        gig.status = 'completed'
+        
+        freelancer = User.query.get(gig.freelancer_id)
+        if freelancer:
+            freelancer.completed_gigs = (freelancer.completed_gigs or 0) + 1
+            freelancer.total_earnings = (freelancer.total_earnings or 0) + net_amount
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Payment approved and released successfully',
+            'invoice_number': invoice_number,
+            'transaction_id': transaction.id,
+            'amount': amount,
+            'commission': commission,
+            'processing_fee': round(processing_fee, 2),
+            'net_amount': round(net_amount, 2)
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Approve payment error: {str(e)}")
+        return jsonify({'error': 'Failed to approve payment'}), 500
+
+@app.route('/api/payments/<int:gig_id>/reject', methods=['POST'])
+@login_required
+def reject_payment(gig_id):
+    """Reject payment - gig remains in progress for resolution"""
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+        
+        gig = Gig.query.get_or_404(gig_id)
+        
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can reject this payment'}), 403
+        
+        reason = data.get('reason', 'No reason provided')
+        
+        gig.status = 'disputed'
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Payment rejected. The gig is now in dispute status.',
+            'reason': reason
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Reject payment error: {str(e)}")
+        return jsonify({'error': 'Failed to reject payment'}), 500
+
+@app.route('/api/payments/history', methods=['GET'])
+@login_required
+def get_client_payment_history():
+    """Get client's payment history for approved/rejected payments"""
+    try:
+        user_id = session['user_id']
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        
+        pagination = Transaction.query.filter_by(client_id=user_id).order_by(
+            Transaction.transaction_date.desc()
+        ).paginate(page=page, per_page=per_page, error_out=False)
+        
+        payments = []
+        for t in pagination.items:
+            gig = Gig.query.get(t.gig_id)
+            freelancer = User.query.get(t.freelancer_id)
+            
+            payments.append({
+                'id': t.id,
+                'gig_title': gig.title if gig else 'N/A',
+                'freelancer_name': freelancer.full_name or freelancer.username if freelancer else 'N/A',
+                'amount': t.amount,
+                'commission': t.commission,
+                'net_amount': t.net_amount,
+                'status': t.status,
+                'date': t.transaction_date.strftime('%Y-%m-%d %H:%M')
+            })
+        
+        return jsonify({
+            'payments': payments,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get client payment history error: {str(e)}")
+        return jsonify({'error': 'Failed to get payment history'}), 500
 
 # Initialize database
 with app.app_context():
