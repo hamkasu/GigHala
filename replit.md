@@ -58,6 +58,8 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 12, 2025: Updated dashboard.html, billing.html, and admin.html to extend base.html template for consistent styling
+- December 12, 2025: Applied new dark navbar design (#1F2937) with "GigHalal" green branding (#1DBF73) across all pages
 - December 12, 2025: Added Category model to fix Internal Server Error on /gigs and /post-gig pages
 - December 11, 2025: Added Calmic logo and visitor counter to footer
 - December 11, 2025: Fixed Railway deployment - replaced psycopg2-binary with psycopg for Python 3.13 compatibility
