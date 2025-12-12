@@ -154,6 +154,16 @@ def calculate_commission(amount):
     else:
         return round(amount * 0.05, 2)  # 5%
 
+# Login required decorator
+def login_required(f):
+    """Decorator to require user authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'error': 'Unauthorized - Please login'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Admin authentication decorator
 def admin_required(f):
     """Decorator to require admin authentication"""
