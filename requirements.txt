@@ -7,3 +7,17 @@ gunicorn==21.2.0
 python-dotenv==1.0.0
 SQLAlchemy>=2.0.35
 email-validator==2.1.0
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-cors
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+python-dotenv
+sqlalchemy
+werkzeug
