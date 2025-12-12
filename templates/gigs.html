@@ -499,6 +499,17 @@
             const response = await fetch('/api/gigs');
             if (response.ok) {
                 allGigs = await response.json();
+
+                // Filter out invalid gigs (missing required fields)
+                allGigs = allGigs.filter(gig => {
+                    return gig.title &&
+                           gig.category &&
+                           gig.budget_min !== null &&
+                           gig.budget_min !== undefined &&
+                           gig.budget_max !== null &&
+                           gig.budget_max !== undefined;
+                });
+
                 // Sort by highest budget by default
                 allGigs.sort((a, b) => b.budget_max - a.budget_max);
                 renderGigs(allGigs);
