@@ -1,466 +1,665 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Gigs - GigHalal</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 0;
-        }
+{% block title %}Browse Gigs{% endblock %}
 
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 0;
-            margin-bottom: 20px;
-        }
+{% block extra_styles %}
+<style>
+    .page-wrapper {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 24px;
+    }
 
-        .navbar .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .filters-sidebar {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        height: fit-content;
+        position: sticky;
+        top: 120px;
+        box-shadow: var(--shadow-sm);
+    }
 
-        .navbar .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            text-decoration: none;
-        }
+    .filter-section {
+        margin-bottom: 28px;
+    }
 
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
+    .filter-section:last-child {
+        margin-bottom: 0;
+    }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #666;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
+    .filter-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--text-dark);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: #667eea;
-        }
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px 40px;
-        }
+    .filter-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-gray);
+        transition: color 0.2s;
+    }
 
-        .page-header {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
+    .filter-option:hover {
+        color: var(--text-dark);
+    }
 
-        .page-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-        }
+    .filter-option input[type="checkbox"],
+    .filter-option input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--primary);
+    }
 
-        .page-subtitle {
-            color: #666;
-            font-size: 16px;
-        }
+    .filter-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
 
-        .filters-section {
-            background: white;
-            border-radius: 16px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
+    .filter-input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
 
-        .search-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 12px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
+    .price-range {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
 
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+    .price-range input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        width: 80px;
+    }
 
-        .filter-select {
-            padding: 12px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            background: white;
-            cursor: pointer;
-            min-width: 150px;
-        }
+    .gigs-main {
+        flex: 1;
+    }
 
-        .filter-select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+    .gigs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
 
-        .halal-filter {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #2ecc71;
-        }
+    .results-count {
+        font-size: 15px;
+        color: var(--text-gray);
+    }
 
-        .gigs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
+    .results-count strong {
+        color: var(--text-dark);
+    }
 
-        .gig-card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
+    .sort-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .gig-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-        }
+    .sort-dropdown label {
+        font-size: 14px;
+        color: var(--text-gray);
+    }
 
-        .gig-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
+    .sort-dropdown select {
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        cursor: pointer;
+    }
 
-        .gig-category {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
+    .gigs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
 
-        .gig-badges {
-            display: flex;
-            gap: 8px;
-        }
+    .gig-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid var(--border);
+    }
 
-        .badge {
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: 600;
-        }
+    .gig-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-4px);
+        border-color: var(--primary);
+    }
 
-        .badge.halal {
-            background: #e8f5e9;
-            color: #2ecc71;
-        }
+    .gig-image {
+        height: 160px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
 
-        .badge.instant {
-            background: #fff3e0;
-            color: #ff9800;
-        }
+    .gig-image-icon {
+        font-size: 48px;
+        opacity: 0.8;
+    }
 
-        .badge.brand {
-            background: #e3f2fd;
-            color: #2196f3;
-        }
+    .gig-badges-overlay {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        display: flex;
+        gap: 6px;
+    }
 
-        .gig-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
-            line-height: 1.4;
-        }
+    .badge {
+        font-size: 10px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
 
-        .gig-description {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+    .badge-halal {
+        background: var(--primary);
+        color: white;
+    }
 
-        .gig-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
+    .badge-instant {
+        background: var(--warning);
+        color: var(--text-dark);
+    }
 
-        .gig-budget {
-            font-size: 18px;
-            font-weight: 700;
-            color: #667eea;
-        }
+    .badge-brand {
+        background: #6366F1;
+        color: white;
+    }
 
-        .gig-stats {
-            display: flex;
-            gap: 15px;
-            color: #999;
-            font-size: 13px;
-        }
+    .gig-content {
+        padding: 16px;
+    }
 
-        .gig-stats span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    .gig-seller {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
 
-        .empty-state {
-            background: white;
-            border-radius: 16px;
-            padding: 60px;
-            text-align: center;
-            grid-column: 1 / -1;
-        }
+    .seller-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+    }
 
-        .empty-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
+    .seller-info {
+        flex: 1;
+    }
 
-        .empty-title {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 10px;
-        }
+    .seller-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
 
-        .empty-text {
-            color: #666;
-            font-size: 16px;
-        }
+    .seller-level {
+        font-size: 11px;
+        color: var(--text-light);
+    }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s;
-        }
+    .gig-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+        line-height: 1.4;
+        margin-bottom: 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
+    .gig-title:hover {
+        color: var(--primary);
+    }
 
-        .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
+    .gig-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 12px;
+        color: var(--text-light);
+        margin-bottom: 12px;
+    }
 
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
+    .gig-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 18px;
-        }
+    .gig-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+    }
 
-        @media (max-width: 768px) {
-            .filters-section {
-                flex-direction: column;
-            }
-            
-            .search-input, .filter-select {
-                width: 100%;
-            }
-            
-            .gigs-grid {
-                grid-template-columns: 1fr;
-            }
+    .gig-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+    }
+
+    .gig-rating .star {
+        color: var(--warning);
+    }
+
+    .gig-rating .count {
+        color: var(--text-light);
+    }
+
+    .gig-price {
+        text-align: right;
+    }
+
+    .price-label {
+        font-size: 11px;
+        color: var(--text-light);
+    }
+
+    .price-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+
+    .empty-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-text {
+        color: var(--text-gray);
+        font-size: 15px;
+    }
+
+    .loading-spinner {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        color: var(--text-gray);
+    }
+
+    .category-icons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .category-chip {
+        padding: 6px 12px;
+        background: var(--bg-light);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .category-chip:hover,
+    .category-chip.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    @media (max-width: 1024px) {
+        .page-wrapper {
+            grid-template-columns: 1fr;
         }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container">
-            <a href="/dashboard" class="logo">GigHalal</a>
-            <div class="nav-links">
-                <a href="/dashboard">Dashboard</a>
-                <a href="/gigs" class="active">Browse Gigs</a>
-                {% if user.user_type in ['client', 'both'] %}
-                <a href="/post-gig">Post a Gig</a>
-                {% endif %}
-                <a href="/billing">Wallet</a>
-                {% if user.is_admin %}
-                <a href="/admin">Admin</a>
-                {% endif %}
+        .filters-sidebar {
+            position: static;
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <aside class="filters-sidebar">
+        <div class="filter-section">
+            <h4 class="filter-title">
+                <i data-feather="search" width="16"></i>
+                Cari
+            </h4>
+            <input type="text" class="filter-input" placeholder="Kata kunci..." id="searchInput">
+        </div>
+
+        <div class="filter-section">
+            <h4 class="filter-title">
+                <i data-feather="grid" width="16"></i>
+                Kategori
+            </h4>
+            <div class="filter-options">
+                <label class="filter-option">
+                    <input type="radio" name="category" value="" checked>
+                    Semua Kategori
+                </label>
+                {% for cat in categories %}
+                <label class="filter-option">
+                    <input type="radio" name="category" value="{{ cat.slug }}">
+                    {{ cat.name }}
+                </label>
+                {% endfor %}
             </div>
         </div>
-    </nav>
 
-    <div class="container">
-        <div class="page-header">
-            <h1 class="page-title">Browse Available Gigs</h1>
-            <p class="page-subtitle">Find halal opportunities that match your skills</p>
+        <div class="filter-section">
+            <h4 class="filter-title">
+                <i data-feather="dollar-sign" width="16"></i>
+                Budget (RM)
+            </h4>
+            <div class="price-range">
+                <input type="number" placeholder="Min" id="priceMin">
+                <span>-</span>
+                <input type="number" placeholder="Max" id="priceMax">
+            </div>
         </div>
 
-        <div class="filters-section">
-            <input type="text" class="search-input" placeholder="Search gigs..." id="searchInput">
-            <select class="filter-select" id="categoryFilter">
-                <option value="">All Categories</option>
-                {% for cat in categories %}
-                <option value="{{ cat.name }}">{{ cat.name }}</option>
-                {% endfor %}
-            </select>
-            <select class="filter-select" id="locationFilter">
-                <option value="">All Locations</option>
+        <div class="filter-section">
+            <h4 class="filter-title">
+                <i data-feather="map-pin" width="16"></i>
+                Lokasi
+            </h4>
+            <div class="filter-options">
+                <label class="filter-option">
+                    <input type="checkbox" id="remoteOnly">
+                    Remote sahaja
+                </label>
+            </div>
+            <select class="filter-input" id="locationFilter" style="margin-top: 10px;">
+                <option value="">Semua Lokasi</option>
                 <option value="Kuala Lumpur">Kuala Lumpur</option>
+                <option value="Selangor">Selangor</option>
                 <option value="Penang">Penang</option>
                 <option value="Johor Bahru">Johor Bahru</option>
-                <option value="Remote">Remote</option>
             </select>
-            <label class="halal-filter">
-                <input type="checkbox" id="halalFilter" checked>
-                <span>Halal Only</span>
-            </label>
+        </div>
+
+        <div class="filter-section">
+            <h4 class="filter-title">
+                <i data-feather="check-circle" width="16"></i>
+                Status
+            </h4>
+            <div class="filter-options">
+                <label class="filter-option">
+                    <input type="checkbox" id="halalFilter" checked>
+                    Halal Verified
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" id="instantFilter">
+                    Instant Payout
+                </label>
+                <label class="filter-option">
+                    <input type="checkbox" id="brandFilter">
+                    Brand Partnership
+                </label>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="filterGigs()">
+            Cari Gig
+        </button>
+    </aside>
+
+    <div class="gigs-main">
+        <div class="gigs-header">
+            <div class="results-count">
+                <strong id="resultCount">0</strong> gig ditemui
+            </div>
+            <div class="sort-dropdown">
+                <label>Susun:</label>
+                <select id="sortSelect" onchange="filterGigs()">
+                    <option value="newest">Terbaru</option>
+                    <option value="budget_high">Budget Tertinggi</option>
+                    <option value="budget_low">Budget Terendah</option>
+                </select>
+            </div>
         </div>
 
         <div class="gigs-grid" id="gigsGrid">
-            <div class="loading">Loading gigs...</div>
+            <div class="loading-spinner">Memuatkan gig...</div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        let allGigs = [];
+{% block extra_scripts %}
+<script>
+    let allGigs = [];
+    const categoryIcons = {
+        'design': '🎨',
+        'writing': '✍️',
+        'video': '🎬',
+        'tutoring': '📚',
+        'content': '📱',
+        'web': '💻',
+        'marketing': '📈',
+        'admin': '📋'
+    };
 
-        async function loadGigs() {
-            try {
-                const response = await fetch('/api/gigs');
-                if (response.ok) {
-                    allGigs = await response.json();
-                    renderGigs(allGigs);
-                } else {
-                    showError();
-                }
-            } catch (error) {
-                console.error('Error loading gigs:', error);
+    async function loadGigs() {
+        try {
+            const response = await fetch('/api/gigs');
+            if (response.ok) {
+                allGigs = await response.json();
+                renderGigs(allGigs);
+            } else {
                 showError();
             }
+        } catch (error) {
+            console.error('Error loading gigs:', error);
+            showError();
+        }
+    }
+
+    function getCategoryIcon(category) {
+        return categoryIcons[category?.toLowerCase()] || '📋';
+    }
+
+    function renderGigs(gigs) {
+        const grid = document.getElementById('gigsGrid');
+        document.getElementById('resultCount').textContent = gigs.length;
+        
+        if (gigs.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h2 class="empty-title">Tiada gig ditemui</h2>
+                    <p class="empty-text">Cuba ubah filter atau semak semula nanti untuk peluang baru</p>
+                </div>
+            `;
+            return;
         }
 
-        function renderGigs(gigs) {
-            const grid = document.getElementById('gigsGrid');
-            
-            if (gigs.length === 0) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🔍</div>
-                        <h2 class="empty-title">No gigs found</h2>
-                        <p class="empty-text">Try adjusting your filters or check back later for new opportunities</p>
+        grid.innerHTML = gigs.map(gig => `
+            <div class="gig-card" onclick="viewGig(${gig.id})">
+                <div class="gig-image" style="background: linear-gradient(135deg, ${getGradient(gig.category)})">
+                    <span class="gig-image-icon">${getCategoryIcon(gig.category)}</span>
+                    <div class="gig-badges-overlay">
+                        ${gig.halal_verified ? '<span class="badge badge-halal">☪ Halal</span>' : ''}
+                        ${gig.is_instant_payout ? '<span class="badge badge-instant">⚡ Instant</span>' : ''}
+                        ${gig.is_brand_partnership ? '<span class="badge badge-brand">🌟 Brand</span>' : ''}
                     </div>
-                `;
-                return;
-            }
-
-            grid.innerHTML = gigs.map(gig => `
-                <div class="gig-card" onclick="viewGig(${gig.id})">
-                    <div class="gig-header">
-                        <span class="gig-category">${gig.category}</span>
-                        <div class="gig-badges">
-                            ${gig.halal_compliant ? '<span class="badge halal">Halal</span>' : ''}
-                            ${gig.is_instant_payout ? '<span class="badge instant">Instant</span>' : ''}
-                            ${gig.is_brand_partnership ? '<span class="badge brand">Brand</span>' : ''}
+                </div>
+                <div class="gig-content">
+                    <div class="gig-seller">
+                        <div class="seller-avatar">${gig.client_name ? gig.client_name.substring(0,2).toUpperCase() : 'CL'}</div>
+                        <div class="seller-info">
+                            <div class="seller-name">${gig.client_name || 'Client'}</div>
+                            <div class="seller-level">${gig.location || 'Malaysia'}</div>
                         </div>
                     </div>
                     <h3 class="gig-title">${gig.title}</h3>
-                    <p class="gig-description">${gig.description}</p>
                     <div class="gig-meta">
-                        <span class="gig-budget">RM ${gig.budget_min} - ${gig.budget_max}</span>
-                        <div class="gig-stats">
-                            <span>👁️ ${gig.views}</span>
-                            <span>📩 ${gig.applications}</span>
+                        <span class="gig-meta-item">
+                            <i data-feather="clock" width="12"></i>
+                            ${gig.duration || 'Flexible'}
+                        </span>
+                        <span class="gig-meta-item">
+                            <i data-feather="eye" width="12"></i>
+                            ${gig.views || 0}
+                        </span>
+                        <span class="gig-meta-item">
+                            <i data-feather="users" width="12"></i>
+                            ${gig.applications || 0}
+                        </span>
+                    </div>
+                    <div class="gig-footer">
+                        <div class="gig-rating">
+                            <span class="star">★</span>
+                            <span>4.8</span>
+                            <span class="count">(12)</span>
+                        </div>
+                        <div class="gig-price">
+                            <div class="price-label">Budget</div>
+                            <div class="price-value">RM ${gig.budget_min}-${gig.budget_max}</div>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            </div>
+        `).join('');
+
+        feather.replace();
+    }
+
+    function getGradient(category) {
+        const gradients = {
+            'design': '#667eea, #764ba2',
+            'writing': '#11998e, #38ef7d',
+            'video': '#fc4a1a, #f7b733',
+            'tutoring': '#4facfe, #00f2fe',
+            'content': '#f857a6, #ff5858',
+            'web': '#00d2ff, #3a7bd5',
+            'marketing': '#f2994a, #f2c94c',
+            'admin': '#667eea, #764ba2'
+        };
+        return gradients[category?.toLowerCase()] || '#667eea, #764ba2';
+    }
+
+    function showError() {
+        document.getElementById('gigsGrid').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚠️</div>
+                <h2 class="empty-title">Ralat memuatkan gig</h2>
+                <p class="empty-text">Sila muat semula halaman</p>
+            </div>
+        `;
+    }
+
+    function filterGigs() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.querySelector('input[name="category"]:checked')?.value || '';
+        const location = document.getElementById('locationFilter').value;
+        const halalOnly = document.getElementById('halalFilter').checked;
+        const instantOnly = document.getElementById('instantFilter').checked;
+        const brandOnly = document.getElementById('brandFilter').checked;
+        const remoteOnly = document.getElementById('remoteOnly').checked;
+        const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
+        const priceMax = parseInt(document.getElementById('priceMax').value) || 999999;
+        const sortBy = document.getElementById('sortSelect').value;
+
+        let filtered = allGigs.filter(gig => {
+            const matchesSearch = !search || 
+                gig.title.toLowerCase().includes(search) || 
+                gig.description.toLowerCase().includes(search);
+            const matchesCategory = !category || gig.category?.toLowerCase() === category;
+            const matchesLocation = !location || gig.location === location;
+            const matchesHalal = !halalOnly || gig.halal_compliant;
+            const matchesInstant = !instantOnly || gig.is_instant_payout;
+            const matchesBrand = !brandOnly || gig.is_brand_partnership;
+            const matchesRemote = !remoteOnly || gig.is_remote;
+            const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
+
+            return matchesSearch && matchesCategory && matchesLocation && matchesHalal && 
+                   matchesInstant && matchesBrand && matchesRemote && matchesPrice;
+        });
+
+        if (sortBy === 'budget_high') {
+            filtered.sort((a, b) => b.budget_max - a.budget_max);
+        } else if (sortBy === 'budget_low') {
+            filtered.sort((a, b) => a.budget_min - b.budget_min);
+        } else {
+            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
 
-        function showError() {
-            document.getElementById('gigsGrid').innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">⚠️</div>
-                    <h2 class="empty-title">Error loading gigs</h2>
-                    <p class="empty-text">Please refresh the page to try again</p>
-                </div>
-            `;
-        }
+        renderGigs(filtered);
+    }
 
-        function filterGigs() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const category = document.getElementById('categoryFilter').value;
-            const location = document.getElementById('locationFilter').value;
-            const halalOnly = document.getElementById('halalFilter').checked;
+    function viewGig(gigId) {
+        alert('Paparan gig akan datang! Gig ID: ' + gigId);
+    }
 
-            const filtered = allGigs.filter(gig => {
-                const matchesSearch = !search || 
-                    gig.title.toLowerCase().includes(search) || 
-                    gig.description.toLowerCase().includes(search);
-                const matchesCategory = !category || gig.category === category;
-                const matchesLocation = !location || gig.location === location || (location === 'Remote' && gig.is_remote);
-                const matchesHalal = !halalOnly || gig.halal_compliant;
+    document.getElementById('searchInput').addEventListener('input', filterGigs);
+    document.querySelectorAll('input[name="category"]').forEach(el => {
+        el.addEventListener('change', filterGigs);
+    });
+    document.getElementById('locationFilter').addEventListener('change', filterGigs);
+    document.getElementById('halalFilter').addEventListener('change', filterGigs);
+    document.getElementById('instantFilter').addEventListener('change', filterGigs);
+    document.getElementById('brandFilter').addEventListener('change', filterGigs);
+    document.getElementById('remoteOnly').addEventListener('change', filterGigs);
 
-                return matchesSearch && matchesCategory && matchesLocation && matchesHalal;
-            });
-
-            renderGigs(filtered);
-        }
-
-        function viewGig(gigId) {
-            alert('Gig details view coming soon! Gig ID: ' + gigId);
-        }
-
-        document.getElementById('searchInput').addEventListener('input', filterGigs);
-        document.getElementById('categoryFilter').addEventListener('change', filterGigs);
-        document.getElementById('locationFilter').addEventListener('change', filterGigs);
-        document.getElementById('halalFilter').addEventListener('change', filterGigs);
-
-        loadGigs();
-    </script>
-</body>
-</html>
+    loadGigs();
+</script>
+{% endblock %}

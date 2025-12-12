@@ -388,7 +388,7 @@ def browse_gigs():
     user_id = session['user_id']
     user = User.query.get(user_id)
     categories = Category.query.all()
-    return render_template('gigs.html', user=user, categories=categories)
+    return render_template('gigs.html', user=user, categories=categories, active_page='gigs')
 
 @app.route('/post-gig')
 @page_login_required
@@ -402,7 +402,7 @@ def post_gig():
         return redirect('/dashboard')
     
     categories = Category.query.all()
-    return render_template('post_gig.html', user=user, categories=categories)
+    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig')
 
 @app.route('/dashboard')
 @page_login_required

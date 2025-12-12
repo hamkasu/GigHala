@@ -1,358 +1,396 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post a Gig - GigHalal</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 0;
-        }
+{% block title %}Post a Gig{% endblock %}
 
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 0;
-            margin-bottom: 20px;
-        }
+{% block extra_styles %}
+<style>
+    .page-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-        .navbar .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .page-header {
+        margin-bottom: 32px;
+    }
 
-        .navbar .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-            text-decoration: none;
-        }
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
 
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-        }
+    .page-subtitle {
+        color: var(--text-gray);
+        font-size: 15px;
+    }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #666;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
+    .form-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+    }
 
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: #667eea;
-        }
+    .form-section {
+        margin-bottom: 32px;
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--border);
+    }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px 40px;
-        }
+    .form-section:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
 
-        .form-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
+    .form-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .form-header {
-            margin-bottom: 30px;
-            text-align: center;
-        }
+    .form-group {
+        margin-bottom: 20px;
+    }
 
-        .form-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-        }
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
 
-        .form-subtitle {
-            color: #666;
-            font-size: 16px;
-        }
+    .form-label .required {
+        color: var(--error);
+    }
 
-        .form-group {
-            margin-bottom: 25px;
-        }
+    .form-input, .form-textarea, .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
 
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(29, 191, 115, 0.1);
+    }
 
-        .form-label .required {
-            color: #e74c3c;
-        }
+    .form-textarea {
+        min-height: 140px;
+        resize: vertical;
+    }
 
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
 
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+    .form-hint {
+        color: var(--text-light);
+        font-size: 12px;
+        margin-top: 6px;
+    }
 
-        .form-textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
 
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .checkbox-item:hover {
+        border-color: var(--primary);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+    }
+
+    .checkbox-item .checkbox-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .checkbox-item .checkbox-desc {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .skills-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        min-height: 50px;
+        background: var(--bg-white);
+    }
+
+    .skill-tag {
+        background: var(--primary);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+    }
+
+    .skill-tag button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        opacity: 0.8;
+    }
+
+    .skill-tag button:hover {
+        opacity: 1;
+    }
+
+    .skills-input {
+        border: none;
+        outline: none;
+        flex: 1;
+        min-width: 120px;
+        font-size: 14px;
+        padding: 4px;
+        font-family: inherit;
+    }
+
+    .category-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .category-card {
+        padding: 16px 12px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .category-card:hover {
+        border-color: var(--primary);
+    }
+
+    .category-card.selected {
+        border-color: var(--primary);
+        background: rgba(29, 191, 115, 0.05);
+    }
+
+    .category-card input {
+        display: none;
+    }
+
+    .category-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .category-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .alert {
+        padding: 14px 18px;
+        border-radius: var(--radius-md);
+        margin-bottom: 20px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #DC2626;
+        border: 1px solid #FECACA;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #059669;
+        border: 1px solid #A7F3D0;
+    }
+
+    .submit-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 32px;
+    }
+
+    .submit-info {
+        font-size: 13px;
+        color: var(--text-light);
+    }
+
+    @media (max-width: 768px) {
         .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr;
         }
-
-        .form-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
+        .category-cards {
+            grid-template-columns: repeat(2, 1fr);
         }
-
-        .form-checkbox input {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+        .checkbox-grid {
+            grid-template-columns: 1fr;
         }
+    }
+</style>
+{% endblock %}
 
-        .form-checkbox label {
-            font-weight: 500;
-            color: #333;
-            cursor: pointer;
-        }
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Post a New Gig</h1>
+        <p class="page-subtitle">Cari freelancer yang sesuai untuk projek anda</p>
+    </div>
 
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
+    <div class="form-card">
+        <div id="alertContainer"></div>
 
-        .btn {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s;
-        }
+        <form id="postGigForm">
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-feather="file-text" width="18"></i>
+                    Maklumat Gig
+                </h3>
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .alert-error {
-            background: #fee2e2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-        }
-
-        .alert-success {
-            background: #d1fae5;
-            color: #059669;
-            border: 1px solid #a7f3d0;
-        }
-
-        .skills-input-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            min-height: 50px;
-        }
-
-        .skill-tag {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .skill-tag button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 1;
-        }
-
-        .skills-input {
-            border: none;
-            outline: none;
-            flex: 1;
-            min-width: 120px;
-            font-size: 16px;
-            padding: 5px;
-        }
-
-        .form-hint {
-            color: #999;
-            font-size: 13px;
-            margin-top: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .form-card {
-                padding: 25px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container" style="max-width: 1400px;">
-            <a href="/dashboard" class="logo">GigHalal</a>
-            <div class="nav-links">
-                <a href="/dashboard">Dashboard</a>
-                <a href="/gigs">Browse Gigs</a>
-                <a href="/post-gig" class="active">Post a Gig</a>
-                <a href="/billing">Wallet</a>
-                {% if user.is_admin %}
-                <a href="/admin">Admin</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="form-card">
-            <div class="form-header">
-                <h1 class="form-title">Post a New Gig</h1>
-                <p class="form-subtitle">Find the perfect freelancer for your project</p>
-            </div>
-
-            <div id="alertContainer"></div>
-
-            <form id="postGigForm">
                 <div class="form-group">
                     <label class="form-label">
-                        Gig Title <span class="required">*</span>
+                        Tajuk Gig <span class="required">*</span>
                     </label>
                     <input type="text" class="form-input" id="title" name="title" 
-                           placeholder="e.g., Design a logo for my business" required>
+                           placeholder="e.g., Design logo untuk restoran halal saya" required>
+                    <p class="form-hint">Tulis tajuk yang jelas dan menarik perhatian</p>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">
-                        Description <span class="required">*</span>
+                        Penerangan <span class="required">*</span>
                     </label>
                     <textarea class="form-textarea" id="description" name="description" 
-                              placeholder="Describe your project in detail. Include requirements, deliverables, and any specific instructions." required></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">
-                            Category <span class="required">*</span>
-                        </label>
-                        <select class="form-select" id="category" name="category" required>
-                            <option value="">Select a category</option>
-                            {% for cat in categories %}
-                            <option value="{{ cat.name }}">{{ cat.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Duration</label>
-                        <select class="form-select" id="duration" name="duration">
-                            <option value="">Select duration</option>
-                            <option value="1-3 days">1-3 days</option>
-                            <option value="1 week">1 week</option>
-                            <option value="2 weeks">2 weeks</option>
-                            <option value="1 month">1 month</option>
-                            <option value="Ongoing">Ongoing</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">
-                            Minimum Budget (RM) <span class="required">*</span>
-                        </label>
-                        <input type="number" class="form-input" id="budget_min" name="budget_min" 
-                               placeholder="e.g., 100" min="1" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            Maximum Budget (RM) <span class="required">*</span>
-                        </label>
-                        <input type="number" class="form-input" id="budget_max" name="budget_max" 
-                               placeholder="e.g., 500" min="1" required>
-                    </div>
+                              placeholder="Terangkan projek anda dengan terperinci. Masukkan keperluan, deliverables, dan arahan khusus." required></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Location</label>
+                    <label class="form-label">
+                        Kategori <span class="required">*</span>
+                    </label>
+                    <div class="category-cards">
+                        {% for cat in categories %}
+                        <label class="category-card" onclick="selectCategory(this)">
+                            <input type="radio" name="category" value="{{ cat.slug }}" required>
+                            <div class="category-icon">
+                                {% if cat.slug == 'design' %}🎨
+                                {% elif cat.slug == 'writing' %}✍️
+                                {% elif cat.slug == 'video' %}🎬
+                                {% elif cat.slug == 'tutoring' %}📚
+                                {% elif cat.slug == 'content' %}📱
+                                {% elif cat.slug == 'web' %}💻
+                                {% elif cat.slug == 'marketing' %}📈
+                                {% elif cat.slug == 'admin' %}📋
+                                {% else %}📋{% endif %}
+                            </div>
+                            <div class="category-name">{{ cat.name }}</div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-feather="dollar-sign" width="18"></i>
+                    Budget & Tempoh
+                </h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Budget Minimum (RM) <span class="required">*</span>
+                        </label>
+                        <input type="number" class="form-input" id="budget_min" name="budget_min" 
+                               placeholder="100" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Budget Maksimum (RM) <span class="required">*</span>
+                        </label>
+                        <input type="number" class="form-input" id="budget_max" name="budget_max" 
+                               placeholder="500" min="1" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tempoh</label>
+                        <select class="form-select" id="duration" name="duration">
+                            <option value="">Pilih tempoh</option>
+                            <option value="1-3 days">1-3 hari</option>
+                            <option value="1 week">1 minggu</option>
+                            <option value="2 weeks">2 minggu</option>
+                            <option value="1 month">1 bulan</option>
+                            <option value="Ongoing">Berterusan</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tarikh Akhir</label>
+                        <input type="date" class="form-input" id="deadline" name="deadline">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-feather="map-pin" width="18"></i>
+                    Lokasi & Kemahiran
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label">Lokasi</label>
                     <select class="form-select" id="location" name="location">
-                        <option value="">Any location</option>
+                        <option value="">Semua lokasi</option>
                         <option value="Kuala Lumpur">Kuala Lumpur</option>
+                        <option value="Selangor">Selangor</option>
                         <option value="Penang">Penang</option>
                         <option value="Johor Bahru">Johor Bahru</option>
                         <option value="Remote">Remote</option>
@@ -360,153 +398,195 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Skills Required</label>
-                    <div class="skills-input-container" id="skillsContainer">
+                    <label class="form-label">Kemahiran Diperlukan</label>
+                    <div class="skills-container" id="skillsContainer">
                         <input type="text" class="skills-input" id="skillInput" 
-                               placeholder="Type a skill and press Enter">
+                               placeholder="Taip kemahiran dan tekan Enter">
                     </div>
-                    <p class="form-hint">Press Enter to add each skill</p>
+                    <p class="form-hint">Tekan Enter untuk menambah setiap kemahiran</p>
                     <input type="hidden" id="skillsHidden" name="skills_required">
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label">Deadline</label>
-                    <input type="date" class="form-input" id="deadline" name="deadline">
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-feather="settings" width="18"></i>
+                    Pilihan Tambahan
+                </h3>
+
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="is_remote" name="is_remote" checked>
+                        <div>
+                            <div class="checkbox-label">🏠 Kerja Remote</div>
+                            <div class="checkbox-desc">Freelancer boleh bekerja dari mana-mana</div>
+                        </div>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="halal_compliant" name="halal_compliant" checked>
+                        <div>
+                            <div class="checkbox-label">☪️ Halal Compliant</div>
+                            <div class="checkbox-desc">Projek patuh syariah</div>
+                        </div>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="is_instant_payout" name="is_instant_payout">
+                        <div>
+                            <div class="checkbox-label">⚡ Instant Payout</div>
+                            <div class="checkbox-desc">Bayaran dalam 24 jam</div>
+                        </div>
+                    </label>
+
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="is_brand_partnership" name="is_brand_partnership">
+                        <div>
+                            <div class="checkbox-label">🌟 Brand Partnership</div>
+                            <div class="checkbox-desc">Kolaborasi dengan jenama</div>
+                        </div>
+                    </label>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label">Options</label>
-                    <div class="checkbox-group">
-                        <div class="form-checkbox">
-                            <input type="checkbox" id="is_remote" name="is_remote" checked>
-                            <label for="is_remote">Remote work allowed</label>
-                        </div>
-                        <div class="form-checkbox">
-                            <input type="checkbox" id="halal_compliant" name="halal_compliant" checked>
-                            <label for="halal_compliant">Halal compliant</label>
-                        </div>
-                        <div class="form-checkbox">
-                            <input type="checkbox" id="is_instant_payout" name="is_instant_payout">
-                            <label for="is_instant_payout">Instant payout</label>
-                        </div>
-                        <div class="form-checkbox">
-                            <input type="checkbox" id="is_brand_partnership" name="is_brand_partnership">
-                            <label for="is_brand_partnership">Brand partnership</label>
-                        </div>
-                    </div>
+            <div class="submit-section">
+                <div class="submit-info">
+                    ✓ Tiada bayaran untuk post gig
                 </div>
-
                 <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i data-feather="send" width="16"></i>
                     Post Gig
                 </button>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
+</div>
+{% endblock %}
 
-    <script>
-        const skills = [];
+{% block extra_scripts %}
+<script>
+    const skills = [];
 
-        function updateSkillsDisplay() {
-            const container = document.getElementById('skillsContainer');
-            const input = document.getElementById('skillInput');
-            
-            const tags = container.querySelectorAll('.skill-tag');
-            tags.forEach(tag => tag.remove());
-            
-            skills.forEach((skill, index) => {
-                const tag = document.createElement('span');
-                tag.className = 'skill-tag';
-                tag.innerHTML = `${skill} <button type="button" onclick="removeSkill(${index})">&times;</button>`;
-                container.insertBefore(tag, input);
-            });
-            
-            document.getElementById('skillsHidden').value = JSON.stringify(skills);
-        }
-
-        function removeSkill(index) {
-            skills.splice(index, 1);
-            updateSkillsDisplay();
-        }
-
-        document.getElementById('skillInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const value = this.value.trim();
-                if (value && !skills.includes(value) && skills.length < 20) {
-                    skills.push(value);
-                    updateSkillsDisplay();
-                    this.value = '';
-                }
-            }
+    function selectCategory(element) {
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('selected');
         });
+        element.classList.add('selected');
+    }
 
-        function showAlert(message, type) {
-            const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-            container.scrollIntoView({ behavior: 'smooth' });
-        }
+    function updateSkillsDisplay() {
+        const container = document.getElementById('skillsContainer');
+        const input = document.getElementById('skillInput');
+        
+        const tags = container.querySelectorAll('.skill-tag');
+        tags.forEach(tag => tag.remove());
+        
+        skills.forEach((skill, index) => {
+            const tag = document.createElement('span');
+            tag.className = 'skill-tag';
+            tag.innerHTML = `${skill} <button type="button" onclick="removeSkill(${index})">&times;</button>`;
+            container.insertBefore(tag, input);
+        });
+        
+        document.getElementById('skillsHidden').value = JSON.stringify(skills);
+    }
 
-        document.getElementById('postGigForm').addEventListener('submit', async function(e) {
+    function removeSkill(index) {
+        skills.splice(index, 1);
+        updateSkillsDisplay();
+    }
+
+    document.getElementById('skillInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
             e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Posting...';
-
-            const budgetMin = parseFloat(document.getElementById('budget_min').value);
-            const budgetMax = parseFloat(document.getElementById('budget_max').value);
-
-            if (budgetMin > budgetMax) {
-                showAlert('Maximum budget must be greater than or equal to minimum budget', 'error');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Post Gig';
-                return;
+            const value = this.value.trim();
+            if (value && !skills.includes(value) && skills.length < 20) {
+                skills.push(value);
+                updateSkillsDisplay();
+                this.value = '';
             }
+        }
+    });
 
-            const data = {
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                category: document.getElementById('category').value,
-                duration: document.getElementById('duration').value,
-                budget_min: budgetMin,
-                budget_max: budgetMax,
-                location: document.getElementById('location').value,
-                is_remote: document.getElementById('is_remote').checked,
-                halal_compliant: document.getElementById('halal_compliant').checked,
-                is_instant_payout: document.getElementById('is_instant_payout').checked,
-                is_brand_partnership: document.getElementById('is_brand_partnership').checked,
-                skills_required: skills,
-                deadline: document.getElementById('deadline').value || null
-            };
+    function showAlert(message, type) {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
 
-            try {
-                const response = await fetch('/api/gigs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
+    document.getElementById('postGigForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-feather="loader" width="16"></i> Memproses...';
+        feather.replace();
 
-                const result = await response.json();
+        const budgetMin = parseFloat(document.getElementById('budget_min').value);
+        const budgetMax = parseFloat(document.getElementById('budget_max').value);
+        const category = document.querySelector('input[name="category"]:checked')?.value;
 
-                if (response.ok) {
-                    showAlert('Gig posted successfully! Redirecting to dashboard...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 2000);
-                } else {
-                    showAlert(result.error || 'Failed to post gig. Please try again.', 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Post Gig';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showAlert('An error occurred. Please try again.', 'error');
+        if (!category) {
+            showAlert('Sila pilih kategori', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-feather="send" width="16"></i> Post Gig';
+            feather.replace();
+            return;
+        }
+
+        if (budgetMin > budgetMax) {
+            showAlert('Budget maksimum mesti lebih besar daripada budget minimum', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-feather="send" width="16"></i> Post Gig';
+            feather.replace();
+            return;
+        }
+
+        const data = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            category: category,
+            duration: document.getElementById('duration').value,
+            budget_min: budgetMin,
+            budget_max: budgetMax,
+            location: document.getElementById('location').value,
+            is_remote: document.getElementById('is_remote').checked,
+            halal_compliant: document.getElementById('halal_compliant').checked,
+            is_instant_payout: document.getElementById('is_instant_payout').checked,
+            is_brand_partnership: document.getElementById('is_brand_partnership').checked,
+            skills_required: skills,
+            deadline: document.getElementById('deadline').value || null
+        };
+
+        try {
+            const response = await fetch('/api/gigs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('Gig berjaya dipost! Mengarahkan ke dashboard...', 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            } else {
+                showAlert(result.error || 'Gagal post gig. Sila cuba lagi.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Post Gig';
+                submitBtn.innerHTML = '<i data-feather="send" width="16"></i> Post Gig';
+                feather.replace();
             }
-        });
-    </script>
-</body>
-</html>
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Ralat berlaku. Sila cuba lagi.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i data-feather="send" width="16"></i> Post Gig';
+            feather.replace();
+        }
+    });
+</script>
+{% endblock %}

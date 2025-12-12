@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GigHalal{% endblock %} - Platform Gig Halal #1 Malaysia</title>
+    <meta name="description" content="Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan.">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+    <style>
+        :root {
+            --primary: #1DBF73;
+            --primary-dark: #19A463;
+            --secondary: #404145;
+            --text-dark: #222325;
+            --text-gray: #74767E;
+            --text-light: #95979D;
+            --border: #E4E5E7;
+            --bg-light: #FAFAFA;
+            --bg-white: #FFFFFF;
+            --success: #1DBF73;
+            --warning: #FFB33E;
+            --error: #F74040;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-dark);
+            background: var(--bg-light);
+            line-height: 1.5;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .header {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .header-search {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 40px;
+            position: relative;
+        }
+
+        .header-search input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .header-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(29, 191, 115, 0.1);
+        }
+
+        .header-search .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav-link {
+            color: var(--text-gray);
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-gray);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-dark);
+            background: var(--bg-light);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .header-categories {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .categories-nav {
+            display: flex;
+            gap: 32px;
+            padding: 12px 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            white-space: nowrap;
+        }
+
+        .category-link {
+            color: var(--text-gray);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .category-link:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .footer {
+            background: var(--secondary);
+            color: white;
+            padding: 48px 24px 24px;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+
+        .footer-brand {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .footer-brand span {
+            color: var(--primary);
+        }
+
+        .footer-desc {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer-heading {
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .halal-badge-nav {
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 1024px) {
+            .header-search {
+                display: none;
+            }
+            .categories-nav {
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-nav {
+                gap: 12px;
+            }
+            .nav-link {
+                display: none;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+            }
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top">
+            <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
+                <span class="logo-icon">☪</span>
+                Gig<span>Halal</span>
+                <span class="halal-badge-nav">HALAL ✓</span>
+            </a>
+            
+            <div class="header-search">
+                <i data-feather="search" class="search-icon"></i>
+                <input type="text" placeholder="Cari gig atau freelancer..." id="globalSearch">
+            </div>
+            
+            <nav class="header-nav">
+                {% if user %}
+                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">Browse Gigs</a>
+                    {% if user.user_type in ['client', 'both'] %}
+                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post Gig</a>
+                    {% endif %}
+                    <a href="/billing" class="nav-link">Wallet</a>
+                    {% if user.is_admin %}
+                    <a href="/admin" class="nav-link">Admin</a>
+                    {% endif %}
+                    <div class="user-menu">
+                        <a href="/dashboard" class="user-avatar">{{ user.username[:2]|upper }}</a>
+                    </div>
+                {% else %}
+                    <a href="#" class="nav-link" onclick="app.showLogin()">Log Masuk</a>
+                    <button class="btn btn-primary" onclick="app.showRegister()">Daftar</button>
+                {% endif %}
+            </nav>
+        </div>
+        
+        <div class="header-categories">
+            <nav class="categories-nav">
+                <a href="/gigs?category=design" class="category-link">Design & Creative</a>
+                <a href="/gigs?category=writing" class="category-link">Writing & Translation</a>
+                <a href="/gigs?category=video" class="category-link">Video & Animation</a>
+                <a href="/gigs?category=web" class="category-link">Web Development</a>
+                <a href="/gigs?category=marketing" class="category-link">Digital Marketing</a>
+                <a href="/gigs?category=tutoring" class="category-link">Tutoring</a>
+                <a href="/gigs?category=content" class="category-link">Content Creation</a>
+                <a href="/gigs?category=admin" class="category-link">Admin Support</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">Gig<span>Halal</span></div>
+                    <p class="footer-desc">Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah dengan peluang freelance yang sesuai dengan kemahiran anda.</p>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Platform</h4>
+                    <ul class="footer-links">
+                        <li><a href="/gigs">Browse Gigs</a></li>
+                        <li><a href="#">Kategori</a></li>
+                        <li><a href="#">Cara Kerja</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Halal Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2025 GigHalal. Calmic Sdn Bhd. All rights reserved.</span>
+                <span>JAKIM Verified | SSM Registered | Secure Payments</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <script>
+        feather.replace();
+        
+        document.getElementById('globalSearch')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window.location.href = '/gigs?search=' + encodeURIComponent(this.value);
+            }
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
