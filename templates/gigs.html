@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Gigs - GigHalal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+
+        .navbar .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .filters-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .halal-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #2ecc71;
+        }
+
+        .gigs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .gig-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .gig-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .gig-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .gig-category {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .gig-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge.halal {
+            background: #e8f5e9;
+            color: #2ecc71;
+        }
+
+        .badge.instant {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .badge.brand {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .gig-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .gig-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .gig-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .gig-budget {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .gig-stats {
+            display: flex;
+            gap: 15px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .gig-stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 60px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .filters-section {
+                flex-direction: column;
+            }
+            
+            .search-input, .filter-select {
+                width: 100%;
+            }
+            
+            .gigs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/dashboard" class="logo">GigHalal</a>
+            <div class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/gigs" class="active">Browse Gigs</a>
+                {% if user.user_type in ['client', 'both'] %}
+                <a href="/post-gig">Post a Gig</a>
+                {% endif %}
+                <a href="/billing">Wallet</a>
+                {% if user.is_admin %}
+                <a href="/admin">Admin</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Browse Available Gigs</h1>
+            <p class="page-subtitle">Find halal opportunities that match your skills</p>
+        </div>
+
+        <div class="filters-section">
+            <input type="text" class="search-input" placeholder="Search gigs..." id="searchInput">
+            <select class="filter-select" id="categoryFilter">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.name }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <select class="filter-select" id="locationFilter">
+                <option value="">All Locations</option>
+                <option value="Kuala Lumpur">Kuala Lumpur</option>
+                <option value="Penang">Penang</option>
+                <option value="Johor Bahru">Johor Bahru</option>
+                <option value="Remote">Remote</option>
+            </select>
+            <label class="halal-filter">
+                <input type="checkbox" id="halalFilter" checked>
+                <span>Halal Only</span>
+            </label>
+        </div>
+
+        <div class="gigs-grid" id="gigsGrid">
+            <div class="loading">Loading gigs...</div>
+        </div>
+    </div>
+
+    <script>
+        let allGigs = [];
+
+        async function loadGigs() {
+            try {
+                const response = await fetch('/api/gigs');
+                if (response.ok) {
+                    allGigs = await response.json();
+                    renderGigs(allGigs);
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                console.error('Error loading gigs:', error);
+                showError();
+            }
+        }
+
+        function renderGigs(gigs) {
+            const grid = document.getElementById('gigsGrid');
+            
+            if (gigs.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h2 class="empty-title">No gigs found</h2>
+                        <p class="empty-text">Try adjusting your filters or check back later for new opportunities</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = gigs.map(gig => `
+                <div class="gig-card" onclick="viewGig(${gig.id})">
+                    <div class="gig-header">
+                        <span class="gig-category">${gig.category}</span>
+                        <div class="gig-badges">
+                            ${gig.halal_compliant ? '<span class="badge halal">Halal</span>' : ''}
+                            ${gig.is_instant_payout ? '<span class="badge instant">Instant</span>' : ''}
+                            ${gig.is_brand_partnership ? '<span class="badge brand">Brand</span>' : ''}
+                        </div>
+                    </div>
+                    <h3 class="gig-title">${gig.title}</h3>
+                    <p class="gig-description">${gig.description}</p>
+                    <div class="gig-meta">
+                        <span class="gig-budget">RM ${gig.budget_min} - ${gig.budget_max}</span>
+                        <div class="gig-stats">
+                            <span>👁️ ${gig.views}</span>
+                            <span>📩 ${gig.applications}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showError() {
+            document.getElementById('gigsGrid').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <h2 class="empty-title">Error loading gigs</h2>
+                    <p class="empty-text">Please refresh the page to try again</p>
+                </div>
+            `;
+        }
+
+        function filterGigs() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const location = document.getElementById('locationFilter').value;
+            const halalOnly = document.getElementById('halalFilter').checked;
+
+            const filtered = allGigs.filter(gig => {
+                const matchesSearch = !search || 
+                    gig.title.toLowerCase().includes(search) || 
+                    gig.description.toLowerCase().includes(search);
+                const matchesCategory = !category || gig.category === category;
+                const matchesLocation = !location || gig.location === location || (location === 'Remote' && gig.is_remote);
+                const matchesHalal = !halalOnly || gig.halal_compliant;
+
+                return matchesSearch && matchesCategory && matchesLocation && matchesHalal;
+            });
+
+            renderGigs(filtered);
+        }
+
+        function viewGig(gigId) {
+            alert('Gig details view coming soon! Gig ID: ' + gigId);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterGigs);
+        document.getElementById('categoryFilter').addEventListener('change', filterGigs);
+        document.getElementById('locationFilter').addEventListener('change', filterGigs);
+        document.getElementById('halalFilter').addEventListener('change', filterGigs);
+
+        loadGigs();
+    </script>
+</body>
+</html>

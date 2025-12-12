@@ -159,13 +159,23 @@ def calculate_commission(amount):
     else:
         return round(amount * 0.05, 2)  # 5%
 
-# Login required decorator
+# Login required decorator for API routes
 def login_required(f):
-    """Decorator to require user authentication"""
+    """Decorator to require user authentication for API routes"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return jsonify({'error': 'Unauthorized - Please login'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Login required decorator for page routes (redirects to home page)
+def page_login_required(f):
+    """Decorator to require user authentication for page routes - redirects to home"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect('/')
         return f(*args, **kwargs)
     return decorated_function
 
@@ -363,8 +373,31 @@ def index():
     db.session.commit()
     return render_template('index.html', visitor_count=stats.value)
 
+@app.route('/gigs')
+@page_login_required
+def browse_gigs():
+    """Browse available gigs page"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    categories = Category.query.all()
+    return render_template('gigs.html', user=user, categories=categories)
+
+@app.route('/post-gig')
+@page_login_required
+def post_gig():
+    """Post a new gig page"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    # Only clients or 'both' user types can post gigs
+    if user.user_type not in ['client', 'both']:
+        return redirect('/dashboard')
+    
+    categories = Category.query.all()
+    return render_template('post_gig.html', user=user, categories=categories)
+
 @app.route('/dashboard')
-@login_required
+@page_login_required
 def dashboard():
     """Personalized user dashboard"""
     user_id = session['user_id']
@@ -1198,7 +1231,7 @@ def admin_delete_gig(gig_id):
 # ==================== BILLING ROUTES ====================
 
 @app.route('/billing')
-@login_required
+@page_login_required
 def billing_page():
     """Billing dashboard page"""
     return render_template('billing.html')
@@ -1971,7 +2004,7 @@ def admin_billing_stats():
 # ==================== PAYMENT APPROVAL ROUTES ====================
 
 @app.route('/payments')
-@login_required
+@page_login_required
 def payments_page():
     """Payment approval page for clients"""
     user_id = session['user_id']

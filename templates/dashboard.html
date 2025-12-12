@@ -344,7 +344,7 @@
             <div class="section">
                 <div class="section-header">
                     <h2 class="section-title">🎯 Active Gigs</h2>
-                    <a href="/" class="view-all">View All →</a>
+                    <a href="/gigs" class="view-all">View All →</a>
                 </div>
 
                 {% if active_gigs %}
@@ -362,7 +362,7 @@
                         <div class="empty-state-icon">📋</div>
                         <p>No active gigs</p>
                         <p style="font-size: 14px; margin-top: 10px;">Browse available gigs and submit proposals</p>
-                        <a href="/" class="btn btn-primary" style="margin-top: 15px;">Browse Gigs</a>
+                        <a href="/gigs" class="btn btn-primary" style="margin-top: 15px;">Browse Gigs</a>
                     </div>
                 {% endif %}
             </div>
@@ -370,7 +370,7 @@
             <div class="section">
                 <div class="section-header">
                     <h2 class="section-title">📝 Recent Applications</h2>
-                    <a href="/" class="view-all">View All →</a>
+                    <a href="/gigs" class="view-all">View All →</a>
                 </div>
 
                 {% if applications %}
@@ -396,7 +396,7 @@
             <div class="section">
                 <div class="section-header">
                     <h2 class="section-title">📌 Your Posted Gigs</h2>
-                    <a href="/" class="view-all">View All →</a>
+                    <a href="/gigs" class="view-all">View All →</a>
                 </div>
 
                 {% if posted_gigs %}
@@ -416,7 +416,7 @@
                         <div class="empty-state-icon">📢</div>
                         <p>No posted gigs</p>
                         <p style="font-size: 14px; margin-top: 10px;">Post your first gig to find freelancers</p>
-                        <a href="/" class="btn btn-primary" style="margin-top: 15px;">Post a Gig</a>
+                        <a href="/post-gig" class="btn btn-primary" style="margin-top: 15px;">Post a Gig</a>
                     </div>
                 {% endif %}
             </div>
@@ -457,10 +457,10 @@
         <div class="section" style="margin-top: 30px;">
             <h2 class="section-title" style="margin-bottom: 20px;">⚡ Quick Actions</h2>
             <div class="quick-actions">
-                <a href="/" class="btn btn-primary">Browse Gigs</a>
+                <a href="/gigs" class="btn btn-primary">Browse Gigs</a>
                 <a href="/billing" class="btn btn-primary">View Wallet</a>
                 {% if user.user_type in ['client', 'both'] %}
-                <a href="/" class="btn btn-primary">Post a Gig</a>
+                <a href="/post-gig" class="btn btn-primary">Post a Gig</a>
                 {% endif %}
                 {% if user.is_admin %}
                 <a href="/admin" class="btn btn-primary">Admin Dashboard</a>
