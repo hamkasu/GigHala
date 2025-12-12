@@ -357,6 +357,14 @@ class PaymentHistory(db.Model):
     gateway_response = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    slug = db.Column(db.String(100), unique=True, nullable=False)
+    description = db.Column(db.Text)
+    icon = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Routes
 @app.route('/')
 def index():
@@ -2291,6 +2299,23 @@ def get_client_payment_history():
 # Initialize database
 with app.app_context():
     db.create_all()
+    
+    # Add default categories if they don't exist
+    if Category.query.count() == 0:
+        default_categories = [
+            Category(name='Design', slug='design', description='Logo design, graphic design, UI/UX', icon='palette'),
+            Category(name='Writing & Translation', slug='writing', description='Content writing, translation, copywriting', icon='edit'),
+            Category(name='Video & Animation', slug='video', description='Video editing, animation, motion graphics', icon='video'),
+            Category(name='Tutoring & Education', slug='tutoring', description='Online tutoring, teaching, coaching', icon='book'),
+            Category(name='Content Creation', slug='content', description='Social media content, TikTok, Instagram Reels', icon='camera'),
+            Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
+            Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
+            Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
+        ]
+        for cat in default_categories:
+            db.session.add(cat)
+        db.session.commit()
+        print("Default categories added successfully!")
     
     # Add sample data if database is empty
     if User.query.count() == 0:
