@@ -132,6 +132,28 @@ def reset_rate_limit(identifier):
     if identifier in login_attempts:
         login_attempts[identifier] = {'count': 0, 'first_attempt': datetime.utcnow(), 'locked_until': None}
 
+# Commission calculation function
+def calculate_commission(amount):
+    """
+    Calculate tiered commission based on transaction amount
+
+    Tier 1: MYR 0 - 500     → 15% commission
+    Tier 2: MYR 501 - 2,000  → 10% commission
+    Tier 3: MYR 2,001+       → 5% commission
+
+    Args:
+        amount (float): Transaction amount in MYR
+
+    Returns:
+        float: Commission amount
+    """
+    if amount <= 500:
+        return round(amount * 0.15, 2)  # 15%
+    elif amount <= 2000:
+        return round(amount * 0.10, 2)  # 10%
+    else:
+        return round(amount * 0.05, 2)  # 5%
+
 # Admin authentication decorator
 def admin_required(f):
     """Decorator to require admin authentication"""
@@ -244,6 +266,71 @@ class SiteStats(db.Model):
     key = db.Column(db.String(50), unique=True, nullable=False)
     value = db.Column(db.Integer, default=0)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Wallet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    balance = db.Column(db.Float, default=0.0, nullable=False)
+    held_balance = db.Column(db.Float, default=0.0, nullable=False)
+    total_earned = db.Column(db.Float, default=0.0, nullable=False)
+    total_spent = db.Column(db.Float, default=0.0, nullable=False)
+    currency = db.Column(db.String(3), default='MYR', nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Invoice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_number = db.Column(db.String(50), unique=True, nullable=False)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    platform_fee = db.Column(db.Float, default=0.0)
+    tax_amount = db.Column(db.Float, default=0.0)
+    total_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='draft')  # draft, issued, paid, cancelled, refunded
+    payment_method = db.Column(db.String(50))
+    payment_reference = db.Column(db.String(100))
+    due_date = db.Column(db.DateTime)
+    paid_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    notes = db.Column(db.Text)
+
+class Payout(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    payout_number = db.Column(db.String(50), unique=True, nullable=False)
+    freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    fee = db.Column(db.Float, default=0.0)
+    net_amount = db.Column(db.Float, nullable=False)
+    payment_method = db.Column(db.String(50), nullable=False)  # bank_transfer, fpx, touch_n_go, grab_pay, boost
+    account_number = db.Column(db.String(100))
+    account_name = db.Column(db.String(200))
+    bank_name = db.Column(db.String(100))
+    status = db.Column(db.String(20), default='pending')  # pending, processing, completed, failed, cancelled
+    requested_at = db.Column(db.DateTime, default=datetime.utcnow)
+    processed_at = db.Column(db.DateTime)
+    completed_at = db.Column(db.DateTime)
+    failure_reason = db.Column(db.Text)
+    admin_notes = db.Column(db.Text)
+
+class PaymentHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'))
+    payout_id = db.Column(db.Integer, db.ForeignKey('payout.id'))
+    type = db.Column(db.String(30), nullable=False)  # deposit, withdrawal, payment, refund, commission, payout, hold, release
+    amount = db.Column(db.Float, nullable=False)
+    balance_before = db.Column(db.Float, nullable=False)
+    balance_after = db.Column(db.Float, nullable=False)
+    description = db.Column(db.Text)
+    reference_number = db.Column(db.String(100))
+    payment_gateway = db.Column(db.String(50))
+    gateway_response = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Routes
 @app.route('/')
@@ -1039,6 +1126,616 @@ def admin_delete_gig(gig_id):
         db.session.rollback()
         app.logger.error(f"Admin delete gig error: {str(e)}")
         return jsonify({'error': 'Failed to delete gig'}), 500
+
+# ==================== BILLING ROUTES ====================
+
+@app.route('/billing')
+@login_required
+def billing_page():
+    """Billing dashboard page"""
+    return render_template('billing.html')
+
+@app.route('/api/billing/wallet', methods=['GET'])
+@login_required
+def get_wallet():
+    """Get user's wallet information"""
+    try:
+        user_id = session['user_id']
+        wallet = Wallet.query.filter_by(user_id=user_id).first()
+
+        # Create wallet if it doesn't exist
+        if not wallet:
+            wallet = Wallet(user_id=user_id)
+            db.session.add(wallet)
+            db.session.commit()
+
+        return jsonify({
+            'balance': wallet.balance,
+            'held_balance': wallet.held_balance,
+            'total_earned': wallet.total_earned,
+            'total_spent': wallet.total_spent,
+            'currency': wallet.currency,
+            'available_balance': wallet.balance - wallet.held_balance
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get wallet error: {str(e)}")
+        return jsonify({'error': 'Failed to get wallet information'}), 500
+
+@app.route('/api/billing/transactions', methods=['GET'])
+@login_required
+def get_transactions():
+    """Get user's transaction history"""
+    try:
+        user_id = session['user_id']
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        transaction_type = request.args.get('type', 'all')  # all, sent, received
+
+        # Build query
+        if transaction_type == 'sent':
+            query = Transaction.query.filter_by(client_id=user_id)
+        elif transaction_type == 'received':
+            query = Transaction.query.filter_by(freelancer_id=user_id)
+        else:
+            query = Transaction.query.filter(
+                (Transaction.client_id == user_id) | (Transaction.freelancer_id == user_id)
+            )
+
+        pagination = query.order_by(Transaction.transaction_date.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        transactions = []
+        for t in pagination.items:
+            gig = Gig.query.get(t.gig_id)
+            client = User.query.get(t.client_id)
+            freelancer = User.query.get(t.freelancer_id)
+
+            transactions.append({
+                'id': t.id,
+                'gig_title': gig.title if gig else 'N/A',
+                'client_name': client.username if client else 'N/A',
+                'freelancer_name': freelancer.username if freelancer else 'N/A',
+                'amount': t.amount,
+                'commission': t.commission,
+                'net_amount': t.net_amount,
+                'payment_method': t.payment_method,
+                'status': t.status,
+                'date': t.transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
+                'type': 'sent' if t.client_id == user_id else 'received'
+            })
+
+        return jsonify({
+            'transactions': transactions,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get transactions error: {str(e)}")
+        return jsonify({'error': 'Failed to get transactions'}), 500
+
+@app.route('/api/billing/invoices', methods=['GET'])
+@login_required
+def get_invoices():
+    """Get user's invoices"""
+    try:
+        user_id = session['user_id']
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        status = request.args.get('status', 'all')
+
+        # Build query
+        query = Invoice.query.filter(
+            (Invoice.client_id == user_id) | (Invoice.freelancer_id == user_id)
+        )
+
+        if status != 'all':
+            query = query.filter_by(status=status)
+
+        pagination = query.order_by(Invoice.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        invoices = []
+        for inv in pagination.items:
+            gig = Gig.query.get(inv.gig_id)
+            client = User.query.get(inv.client_id)
+            freelancer = User.query.get(inv.freelancer_id)
+
+            invoices.append({
+                'id': inv.id,
+                'invoice_number': inv.invoice_number,
+                'gig_title': gig.title if gig else 'N/A',
+                'client_name': client.username if client else 'N/A',
+                'freelancer_name': freelancer.username if freelancer else 'N/A',
+                'amount': inv.amount,
+                'platform_fee': inv.platform_fee,
+                'tax_amount': inv.tax_amount,
+                'total_amount': inv.total_amount,
+                'status': inv.status,
+                'payment_method': inv.payment_method,
+                'created_at': inv.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'paid_at': inv.paid_at.strftime('%Y-%m-%d %H:%M:%S') if inv.paid_at else None,
+                'due_date': inv.due_date.strftime('%Y-%m-%d') if inv.due_date else None,
+                'role': 'client' if inv.client_id == user_id else 'freelancer'
+            })
+
+        return jsonify({
+            'invoices': invoices,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get invoices error: {str(e)}")
+        return jsonify({'error': 'Failed to get invoices'}), 500
+
+@app.route('/api/billing/payouts', methods=['GET'])
+@login_required
+def get_payouts():
+    """Get user's payout history"""
+    try:
+        user_id = session['user_id']
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+
+        pagination = Payout.query.filter_by(freelancer_id=user_id).order_by(
+            Payout.requested_at.desc()
+        ).paginate(page=page, per_page=per_page, error_out=False)
+
+        payouts = []
+        for p in pagination.items:
+            payouts.append({
+                'id': p.id,
+                'payout_number': p.payout_number,
+                'amount': p.amount,
+                'fee': p.fee,
+                'net_amount': p.net_amount,
+                'payment_method': p.payment_method,
+                'bank_name': p.bank_name,
+                'account_number': p.account_number[-4:] if p.account_number else None,  # Last 4 digits
+                'status': p.status,
+                'requested_at': p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'completed_at': p.completed_at.strftime('%Y-%m-%d %H:%M:%S') if p.completed_at else None,
+                'failure_reason': p.failure_reason
+            })
+
+        return jsonify({
+            'payouts': payouts,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get payouts error: {str(e)}")
+        return jsonify({'error': 'Failed to get payouts'}), 500
+
+@app.route('/api/billing/payouts', methods=['POST'])
+@login_required
+def request_payout():
+    """Request a payout"""
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+
+        amount = data.get('amount')
+        payment_method = data.get('payment_method')
+        account_number = data.get('account_number')
+        account_name = data.get('account_name')
+        bank_name = data.get('bank_name')
+
+        # Validate
+        if not all([amount, payment_method, account_number, account_name]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        # Check wallet balance
+        wallet = Wallet.query.filter_by(user_id=user_id).first()
+        if not wallet or wallet.balance < amount:
+            return jsonify({'error': 'Insufficient balance'}), 400
+
+        # Calculate fee (2% platform fee)
+        fee = amount * 0.02
+        net_amount = amount - fee
+
+        # Generate payout number
+        import random
+        payout_number = f"PO-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+        # Create payout request
+        payout = Payout(
+            payout_number=payout_number,
+            freelancer_id=user_id,
+            amount=amount,
+            fee=fee,
+            net_amount=net_amount,
+            payment_method=payment_method,
+            account_number=account_number,
+            account_name=account_name,
+            bank_name=bank_name,
+            status='pending'
+        )
+
+        # Hold the balance
+        wallet.balance -= amount
+        wallet.held_balance += amount
+
+        # Create payment history
+        history = PaymentHistory(
+            user_id=user_id,
+            payout_id=payout.id,
+            type='hold',
+            amount=amount,
+            balance_before=wallet.balance + amount,
+            balance_after=wallet.balance,
+            description=f'Payout request {payout_number}'
+        )
+
+        db.session.add(payout)
+        db.session.add(history)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Payout request submitted successfully',
+            'payout_number': payout_number,
+            'status': 'pending'
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Request payout error: {str(e)}")
+        return jsonify({'error': 'Failed to request payout'}), 500
+
+@app.route('/api/billing/payment-history', methods=['GET'])
+@login_required
+def get_payment_history():
+    """Get detailed payment history"""
+    try:
+        user_id = session['user_id']
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+
+        pagination = PaymentHistory.query.filter_by(user_id=user_id).order_by(
+            PaymentHistory.created_at.desc()
+        ).paginate(page=page, per_page=per_page, error_out=False)
+
+        history = []
+        for h in pagination.items:
+            history.append({
+                'id': h.id,
+                'type': h.type,
+                'amount': h.amount,
+                'balance_before': h.balance_before,
+                'balance_after': h.balance_after,
+                'description': h.description,
+                'reference_number': h.reference_number,
+                'created_at': h.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+
+        return jsonify({
+            'history': history,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get payment history error: {str(e)}")
+        return jsonify({'error': 'Failed to get payment history'}), 500
+
+@app.route('/api/billing/complete-gig/<int:gig_id>', methods=['POST'])
+@login_required
+def complete_gig_transaction(gig_id):
+    """
+    Complete a gig and create transaction/invoice with tiered commission
+    Only the client can mark a gig as complete
+    """
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+
+        # Get the gig
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Verify the user is the client
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can complete this gig'}), 403
+
+        # Verify gig has a freelancer assigned
+        if not gig.freelancer_id:
+            return jsonify({'error': 'No freelancer assigned to this gig'}), 400
+
+        # Verify gig is in progress
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'Gig must be in progress to complete'}), 400
+
+        # Get payment details
+        amount = data.get('amount')
+        payment_method = data.get('payment_method', 'bank_transfer')
+
+        if not amount or amount <= 0:
+            return jsonify({'error': 'Invalid payment amount'}), 400
+
+        # Calculate commission using tiered structure
+        commission = calculate_commission(amount)
+        net_amount = amount - commission
+
+        # Generate invoice number
+        import random
+        invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+        # Create transaction
+        transaction = Transaction(
+            gig_id=gig_id,
+            freelancer_id=gig.freelancer_id,
+            client_id=gig.client_id,
+            amount=amount,
+            commission=commission,
+            net_amount=net_amount,
+            payment_method=payment_method,
+            status='completed'
+        )
+        db.session.add(transaction)
+        db.session.flush()  # Get transaction ID
+
+        # Create invoice
+        invoice = Invoice(
+            invoice_number=invoice_number,
+            transaction_id=transaction.id,
+            gig_id=gig_id,
+            client_id=gig.client_id,
+            freelancer_id=gig.freelancer_id,
+            amount=amount,
+            platform_fee=commission,
+            tax_amount=0.0,
+            total_amount=amount,
+            status='paid',
+            payment_method=payment_method,
+            paid_at=datetime.utcnow(),
+            notes=f'Payment for: {gig.title}'
+        )
+        db.session.add(invoice)
+
+        # Update or create freelancer wallet
+        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            db.session.add(freelancer_wallet)
+            db.session.flush()
+
+        # Update wallet balances
+        old_balance = freelancer_wallet.balance
+        freelancer_wallet.balance += net_amount
+        freelancer_wallet.total_earned += net_amount
+
+        # Create payment history for freelancer (earning)
+        freelancer_history = PaymentHistory(
+            user_id=gig.freelancer_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=net_amount,
+            balance_before=old_balance,
+            balance_after=freelancer_wallet.balance,
+            description=f'Payment received for: {gig.title}',
+            reference_number=invoice_number
+        )
+        db.session.add(freelancer_history)
+
+        # Update or create client wallet
+        client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+        if not client_wallet:
+            client_wallet = Wallet(user_id=gig.client_id)
+            db.session.add(client_wallet)
+            db.session.flush()
+
+        # Update client wallet
+        client_old_balance = client_wallet.balance
+        client_wallet.total_spent += amount
+
+        # Create payment history for client (payment made)
+        client_history = PaymentHistory(
+            user_id=gig.client_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=amount,
+            balance_before=client_old_balance,
+            balance_after=client_wallet.balance,
+            description=f'Payment made for: {gig.title}',
+            reference_number=invoice_number
+        )
+        db.session.add(client_history)
+
+        # Update gig status
+        gig.status = 'completed'
+
+        # Update freelancer stats
+        freelancer = User.query.get(gig.freelancer_id)
+        if freelancer:
+            freelancer.completed_gigs = (freelancer.completed_gigs or 0) + 1
+            freelancer.total_earnings = (freelancer.total_earnings or 0) + net_amount
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig completed successfully',
+            'invoice_number': invoice_number,
+            'transaction_id': transaction.id,
+            'amount': amount,
+            'commission': commission,
+            'net_amount': net_amount,
+            'freelancer_receives': net_amount
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Complete gig transaction error: {str(e)}")
+        return jsonify({'error': 'Failed to complete transaction'}), 500
+
+# Admin Billing Routes
+@app.route('/api/admin/billing/payouts', methods=['GET'])
+@admin_required
+def admin_get_payouts():
+    """Admin: Get all payout requests"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        status = request.args.get('status', 'all')
+
+        query = Payout.query
+        if status != 'all':
+            query = query.filter_by(status=status)
+
+        pagination = query.order_by(Payout.requested_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        payouts = []
+        for p in pagination.items:
+            user = User.query.get(p.freelancer_id)
+            payouts.append({
+                'id': p.id,
+                'payout_number': p.payout_number,
+                'freelancer_name': user.username if user else 'N/A',
+                'freelancer_email': user.email if user else 'N/A',
+                'amount': p.amount,
+                'fee': p.fee,
+                'net_amount': p.net_amount,
+                'payment_method': p.payment_method,
+                'bank_name': p.bank_name,
+                'account_number': p.account_number,
+                'account_name': p.account_name,
+                'status': p.status,
+                'requested_at': p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'processed_at': p.processed_at.strftime('%Y-%m-%d %H:%M:%S') if p.processed_at else None,
+                'completed_at': p.completed_at.strftime('%Y-%m-%d %H:%M:%S') if p.completed_at else None,
+                'failure_reason': p.failure_reason,
+                'admin_notes': p.admin_notes
+            })
+
+        return jsonify({
+            'payouts': payouts,
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get payouts error: {str(e)}")
+        return jsonify({'error': 'Failed to get payouts'}), 500
+
+@app.route('/api/admin/billing/payouts/<int:payout_id>', methods=['PUT'])
+@admin_required
+def admin_update_payout(payout_id):
+    """Admin: Update payout status"""
+    try:
+        payout = Payout.query.get_or_404(payout_id)
+        data = request.get_json()
+
+        new_status = data.get('status')
+        admin_notes = data.get('admin_notes')
+
+        if new_status not in ['pending', 'processing', 'completed', 'failed', 'cancelled']:
+            return jsonify({'error': 'Invalid status'}), 400
+
+        old_status = payout.status
+        payout.status = new_status
+
+        if admin_notes:
+            payout.admin_notes = admin_notes
+
+        if new_status == 'processing' and old_status == 'pending':
+            payout.processed_at = datetime.utcnow()
+
+        if new_status == 'completed':
+            payout.completed_at = datetime.utcnow()
+
+            # Release held balance and update wallet
+            wallet = Wallet.query.filter_by(user_id=payout.freelancer_id).first()
+            if wallet:
+                wallet.held_balance -= payout.amount
+
+                # Create payment history
+                history = PaymentHistory(
+                    user_id=payout.freelancer_id,
+                    payout_id=payout.id,
+                    type='payout',
+                    amount=payout.amount,
+                    balance_before=wallet.balance + payout.amount,
+                    balance_after=wallet.balance,
+                    description=f'Payout completed: {payout.payout_number}',
+                    reference_number=payout.payout_number
+                )
+                db.session.add(history)
+
+        if new_status in ['failed', 'cancelled']:
+            # Return balance to wallet
+            wallet = Wallet.query.filter_by(user_id=payout.freelancer_id).first()
+            if wallet:
+                wallet.balance += payout.amount
+                wallet.held_balance -= payout.amount
+
+                # Create payment history
+                history = PaymentHistory(
+                    user_id=payout.freelancer_id,
+                    payout_id=payout.id,
+                    type='release',
+                    amount=payout.amount,
+                    balance_before=wallet.balance - payout.amount,
+                    balance_after=wallet.balance,
+                    description=f'Payout {new_status}: {payout.payout_number}',
+                    reference_number=payout.payout_number
+                )
+                db.session.add(history)
+
+        if data.get('failure_reason'):
+            payout.failure_reason = data['failure_reason']
+
+        db.session.commit()
+
+        return jsonify({'message': 'Payout updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin update payout error: {str(e)}")
+        return jsonify({'error': 'Failed to update payout'}), 500
+
+@app.route('/api/admin/billing/stats', methods=['GET'])
+@admin_required
+def admin_billing_stats():
+    """Admin: Get billing statistics"""
+    try:
+        # Total transactions
+        total_transactions = Transaction.query.filter_by(status='completed').count()
+        total_revenue = db.session.query(db.func.sum(Transaction.commission)).filter_by(status='completed').scalar() or 0
+
+        # Pending payouts
+        pending_payouts = Payout.query.filter_by(status='pending').count()
+        pending_payout_amount = db.session.query(db.func.sum(Payout.amount)).filter_by(status='pending').scalar() or 0
+
+        # Total invoices
+        total_invoices = Invoice.query.count()
+        paid_invoices = Invoice.query.filter_by(status='paid').count()
+
+        # Recent transactions (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        recent_transactions = Transaction.query.filter(
+            Transaction.transaction_date >= thirty_days_ago,
+            Transaction.status == 'completed'
+        ).count()
+
+        return jsonify({
+            'total_transactions': total_transactions,
+            'total_revenue': float(total_revenue),
+            'pending_payouts_count': pending_payouts,
+            'pending_payouts_amount': float(pending_payout_amount),
+            'total_invoices': total_invoices,
+            'paid_invoices': paid_invoices,
+            'recent_transactions': recent_transactions
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin billing stats error: {str(e)}")
+        return jsonify({'error': 'Failed to get billing statistics'}), 500
 
 # Initialize database
 with app.app_context():
