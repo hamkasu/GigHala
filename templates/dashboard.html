@@ -177,12 +177,175 @@
         margin-top: 24px;
     }
 
+    /* Responsive Design for Different Devices */
+
+    /* Tablet (Portrait) */
+    @media (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section {
+            padding: 20px;
+        }
+
+        .welcome-header {
+            padding: 24px;
+        }
+    }
+
+    /* Mobile (Landscape and Portrait) */
     @media (max-width: 768px) {
         .dashboard-grid {
             grid-template-columns: 1fr;
         }
+
         .stats-grid {
             grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 20px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+        }
+
+        .welcome-header {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-header h1 {
+            font-size: 24px;
+        }
+
+        .welcome-header p {
+            font-size: 14px;
+        }
+
+        .section {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+        }
+
+        .gig-item, .transaction-item {
+            padding: 12px;
+        }
+
+        .gig-title {
+            font-size: 14px;
+        }
+
+        .gig-meta {
+            font-size: 12px;
+            gap: 10px;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+        }
+
+        .quick-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Modal responsive */
+        .modal-content {
+            width: 95%;
+            padding: 24px;
+            margin: 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+        }
+
+        .star {
+            font-size: 28px;
+        }
+
+        .star-rating {
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .modal-buttons {
+            flex-direction: column;
+        }
+
+        .modal-buttons .btn {
+            width: 100%;
+        }
+    }
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+        .stat-value {
+            font-size: 24px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+        }
+
+        .stat-description {
+            font-size: 11px;
+        }
+
+        .welcome-header h1 {
+            font-size: 20px;
+        }
+
+        .section {
+            padding: 16px;
+        }
+
+        .modal-content {
+            padding: 20px;
+        }
+
+        .star {
+            font-size: 24px;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+    }
+
+    /* Touch-friendly improvements for mobile devices */
+    @media (hover: none) and (pointer: coarse) {
+        .btn, .btn-sm, .star {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .star {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-link {
+            padding: 12px 8px;
         }
     }
 

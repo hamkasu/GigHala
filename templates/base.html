@@ -344,25 +344,148 @@
             color: rgba(255,255,255,0.6);
         }
 
+        /* Responsive Design */
+
+        /* Tablet */
         @media (max-width: 1024px) {
             .header-search {
                 display: none;
             }
+
             .categories-nav {
                 gap: 24px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .category-link {
+                white-space: nowrap;
+            }
+
+            .main-content {
+                padding: 20px;
             }
         }
 
+        /* Mobile */
         @media (max-width: 768px) {
-            .header-nav {
+            .header-top {
+                padding: 12px 16px;
                 gap: 12px;
             }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .logo-icon {
+                font-size: 22px;
+            }
+
+            .halal-badge-nav {
+                font-size: 9px;
+                padding: 2px 6px;
+            }
+
+            .header-nav {
+                gap: 8px;
+            }
+
             .nav-link {
                 display: none;
             }
+
+            .lang-switcher {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .btn-primary {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .categories-nav {
+                gap: 16px;
+                padding: 12px 16px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .categories-nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .category-link {
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .main-content {
+                padding: 16px;
+            }
+
             .footer-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 32px;
+            }
+
+            .footer {
+                padding: 32px 16px 16px;
+            }
+        }
+
+        /* Small Mobile */
+        @media (max-width: 480px) {
+            .header-top {
+                padding: 10px 12px;
+            }
+
+            .logo {
+                font-size: 18px;
+            }
+
+            .lang-switcher span#langText {
+                display: none;
+            }
+
+            .lang-switcher {
+                min-width: auto;
+                padding: 6px 8px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .main-content {
+                padding: 12px;
+            }
+
+            .category-link {
+                font-size: 12px;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-link, .category-link, .lang-switcher {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+
+            .user-avatar {
+                min-width: 44px;
+                min-height: 44px;
             }
         }
 
