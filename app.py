@@ -110,6 +110,122 @@ TRANSLATIONS = {
         # Logout
         'logout': 'Log Keluar',
         'logout_confirm': 'Adakah anda pasti mahu log keluar?',
+
+        # Homepage - Navigation
+        'find_gigs': 'Cari Gig',
+        'categories': 'Kategori',
+        'how_it_works': 'Cara Kerja',
+        'login': 'Log Masuk',
+        'register_free': 'Daftar Percuma',
+
+        # Homepage - Hero Section
+        'active_freelancers': '50,000+ Freelancers Aktif',
+        'earn_income': 'Jana Pendapatan',
+        'halal_blessed': 'Halal & Berkah',
+        'from_home': 'dari Rumah',
+        'hero_description': 'Platform gig economy #1 Malaysia yang menawarkan peluang side hustle halal untuk raih RM800-RM4,000 sebulan. Tanpa modal, tanpa komitmen panjang.',
+        'active_gigs_stat': 'Gig Aktif',
+        'paid_this_year': 'Dibayar Tahun Ini',
+        'instant_payout': 'Instant Payout',
+        'start_earning': 'Mula Jana Pendapatan',
+        'watch_demo': 'Tonton Video Demo',
+        'verified_by_jakim': 'Verified oleh JAKIM',
+        'registered_ssm': 'Berdaftar SSM',
+
+        # Homepage - Categories
+        'popular_categories': 'Kategori Popular',
+        'choose_skill_subtitle': 'Pilih skill anda dan mula jana pendapatan hari ini',
+
+        # Homepage - Gigs Section
+        'latest_gigs': 'Gig Terkini',
+        'search_gigs': 'Cari gig...',
+        'all_categories': 'Semua Kategori',
+        'all_locations': 'Semua Lokasi',
+        'halal_only': 'Halal Sahaja',
+        'view_more': 'Lihat Lebih Banyak',
+
+        # Homepage - How It Works
+        'easy_fast_subtitle': 'Mudah & Cepat - Mula jana dalam 5 minit',
+        'step_1_title': 'Daftar Percuma',
+        'step_1_desc': 'Buat akaun dalam 2 minit. Tiada bayaran pendaftaran, tiada syarat rumit.',
+        'step_2_title': 'Cari Gig Sesuai',
+        'step_2_desc': 'Pilih dari 2000+ gig halal mengikut skill, lokasi dan budget anda.',
+        'step_3_title': 'Apply & Kerja',
+        'step_3_desc': 'Submit proposal anda atau buat video pitch 30 saat untuk menonjol.',
+        'step_4_title': 'Terima Bayaran',
+        'step_4_desc': 'Instant payout dalam 24 jam ke Touch \'n Go atau bank anda.',
+
+        # Homepage - Testimonials
+        'success_stories': 'Kisah Kejayaan',
+        'success_subtitle': 'Ratusan freelancers berjaya jana pendapatan konsisten',
+        'testimonial_1': '"Dalam 2 bulan, saya dah buat RM 4,500 dari video editing! Platform ni betul-betul game changer untuk ibu tunggal macam saya."',
+        'testimonial_1_name': 'Nurul Huda',
+        'testimonial_1_role': 'Video Editor • KL',
+        'testimonial_1_earnings': 'Pendapatan: RM 4,500/bulan',
+        'testimonial_2': '"Fresh grad cari kerja susah. GigHalal bagi peluang saya buat income sambil tunggu tawaran tetap. Sekarang side income saya RM 2,800!"',
+        'testimonial_2_name': 'Ahmad Zaki',
+        'testimonial_2_role': 'Graphic Designer • Penang',
+        'testimonial_2_earnings': 'Pendapatan: RM 2,800/bulan',
+        'testimonial_3': '"Saya tutor online part-time. Platform ni connect saya dengan pelajar SPM yang betul-betul perlukan bantuan. Win-win situation!"',
+        'testimonial_3_name': 'Siti Aisyah',
+        'testimonial_3_role': 'SPM Tutor • JB',
+        'testimonial_3_earnings': 'Pendapatan: RM 1,900/bulan',
+
+        # Homepage - CTA
+        'ready_to_earn': 'Siap untuk mula jana pendapatan halal?',
+        'join_freelancers': 'Join 50,000+ freelancers yang dah berjaya. Daftar percuma sekarang!',
+        'register_now_free': 'Daftar Sekarang - 100% Percuma',
+        'cta_benefits': '✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Halal verified',
+
+        # Homepage - Footer
+        'footer_description': 'Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah.',
+        'platform': 'Platform',
+        'pricing': 'Pricing',
+        'resources': 'Resources',
+        'blog': 'Blog',
+        'freelancer_guide': 'Panduan Freelancer',
+        'faq': 'FAQ',
+        'support': 'Support',
+        'legal': 'Legal',
+        'terms_conditions': 'Syarat & Terma',
+        'privacy_policy': 'Privasi Policy',
+        'halal_compliance': 'Halal Compliance',
+        'gig_workers_bill': 'Gig Workers Bill',
+        'rights_reserved': 'Hak cipta terpelihara. Berdaftar dengan SSM (Calmic Sdn Bhd)',
+        'visitor_count': 'Jumlah Pelawat:',
+        'jakim_verified': 'JAKIM Verified',
+        'ssm_registered': 'SSM Registered',
+        'secure_payment': 'Secure Payment',
+
+        # Homepage - Modals
+        'login_title': 'Log Masuk',
+        'register_title': 'Daftar Percuma',
+        'email': 'Email',
+        'password': 'Password',
+        'no_account': 'Belum ada akaun?',
+        'register_now': 'Daftar sekarang',
+        'full_name': 'Nama Penuh',
+        'username': 'Username',
+        'phone_number': 'No. Telefon',
+        'location': 'Lokasi',
+        'select_location': 'Pilih lokasi',
+        'register_as': 'Daftar sebagai',
+        'freelancer_find_work': 'Freelancer (Cari Kerja)',
+        'client_post_work': 'Client (Post Kerja)',
+        'both': 'Kedua-duanya',
+        'have_account': 'Dah ada akaun?',
+        'login_now': 'Log masuk',
+        'payment_received_popup': 'Bayaran Diterima!',
+
+        # Category Names
+        'cat_design': 'Design & Kreatif',
+        'cat_writing': 'Penulisan & Terjemahan',
+        'cat_video': 'Video & Animasi',
+        'cat_web': 'Pembangunan Web',
+        'cat_marketing': 'Pemasaran Digital',
+        'cat_tutoring': 'Tunjuk Ajar',
+        'cat_content': 'Penciptaan Kandungan',
+        'cat_admin': 'Sokongan Admin',
     },
     'en': {
         # Dashboard
@@ -176,6 +292,122 @@ TRANSLATIONS = {
         # Logout
         'logout': 'Logout',
         'logout_confirm': 'Are you sure you want to logout?',
+
+        # Homepage - Navigation
+        'find_gigs': 'Find Gigs',
+        'categories': 'Categories',
+        'how_it_works': 'How It Works',
+        'login': 'Login',
+        'register_free': 'Sign Up Free',
+
+        # Homepage - Hero Section
+        'active_freelancers': '50,000+ Active Freelancers',
+        'earn_income': 'Earn Income',
+        'halal_blessed': 'Halal & Blessed',
+        'from_home': 'from Home',
+        'hero_description': "Malaysia's #1 gig economy platform offering halal side hustle opportunities to earn RM800-RM4,000 per month. No capital required, no long-term commitment.",
+        'active_gigs_stat': 'Active Gigs',
+        'paid_this_year': 'Paid This Year',
+        'instant_payout': 'Instant Payout',
+        'start_earning': 'Start Earning Now',
+        'watch_demo': 'Watch Demo Video',
+        'verified_by_jakim': 'Verified by JAKIM',
+        'registered_ssm': 'SSM Registered',
+
+        # Homepage - Categories
+        'popular_categories': 'Popular Categories',
+        'choose_skill_subtitle': 'Choose your skill and start earning today',
+
+        # Homepage - Gigs Section
+        'latest_gigs': 'Latest Gigs',
+        'search_gigs': 'Search gigs...',
+        'all_categories': 'All Categories',
+        'all_locations': 'All Locations',
+        'halal_only': 'Halal Only',
+        'view_more': 'View More',
+
+        # Homepage - How It Works
+        'easy_fast_subtitle': 'Easy & Fast - Start earning in 5 minutes',
+        'step_1_title': 'Register Free',
+        'step_1_desc': 'Create an account in 2 minutes. No registration fees, no complicated requirements.',
+        'step_2_title': 'Find Suitable Gigs',
+        'step_2_desc': 'Choose from 2000+ halal gigs based on your skills, location and budget.',
+        'step_3_title': 'Apply & Work',
+        'step_3_desc': 'Submit your proposal or create a 30-second video pitch to stand out.',
+        'step_4_title': 'Receive Payment',
+        'step_4_desc': 'Instant payout within 24 hours to your Touch \'n Go or bank account.',
+
+        # Homepage - Testimonials
+        'success_stories': 'Success Stories',
+        'success_subtitle': 'Hundreds of freelancers successfully earning consistent income',
+        'testimonial_1': '"In 2 months, I made RM 4,500 from video editing! This platform is a real game changer for single mothers like me."',
+        'testimonial_1_name': 'Nurul Huda',
+        'testimonial_1_role': 'Video Editor • KL',
+        'testimonial_1_earnings': 'Earnings: RM 4,500/month',
+        'testimonial_2': '"Fresh grad finding work is hard. GigHalal gave me the opportunity to earn income while waiting for permanent offers. Now my side income is RM 2,800!"',
+        'testimonial_2_name': 'Ahmad Zaki',
+        'testimonial_2_role': 'Graphic Designer • Penang',
+        'testimonial_2_earnings': 'Earnings: RM 2,800/month',
+        'testimonial_3': '"I tutor online part-time. This platform connects me with SPM students who really need help. Win-win situation!"',
+        'testimonial_3_name': 'Siti Aisyah',
+        'testimonial_3_role': 'SPM Tutor • JB',
+        'testimonial_3_earnings': 'Earnings: RM 1,900/month',
+
+        # Homepage - CTA
+        'ready_to_earn': 'Ready to start earning halal income?',
+        'join_freelancers': "Join 50,000+ freelancers who've already succeeded. Sign up free now!",
+        'register_now_free': 'Sign Up Now - 100% Free',
+        'cta_benefits': '✓ No hidden fees  •  ✓ Instant payments  •  ✓ Halal verified',
+
+        # Homepage - Footer
+        'footer_description': "Malaysia's #1 halal gig economy platform. Earn blessed income from home.",
+        'platform': 'Platform',
+        'pricing': 'Pricing',
+        'resources': 'Resources',
+        'blog': 'Blog',
+        'freelancer_guide': 'Freelancer Guide',
+        'faq': 'FAQ',
+        'support': 'Support',
+        'legal': 'Legal',
+        'terms_conditions': 'Terms & Conditions',
+        'privacy_policy': 'Privacy Policy',
+        'halal_compliance': 'Halal Compliance',
+        'gig_workers_bill': 'Gig Workers Bill',
+        'rights_reserved': 'All rights reserved. Registered with SSM (Calmic Sdn Bhd)',
+        'visitor_count': 'Total Visitors:',
+        'jakim_verified': 'JAKIM Verified',
+        'ssm_registered': 'SSM Registered',
+        'secure_payment': 'Secure Payment',
+
+        # Homepage - Modals
+        'login_title': 'Login',
+        'register_title': 'Sign Up Free',
+        'email': 'Email',
+        'password': 'Password',
+        'no_account': "Don't have an account?",
+        'register_now': 'Sign up now',
+        'full_name': 'Full Name',
+        'username': 'Username',
+        'phone_number': 'Phone Number',
+        'location': 'Location',
+        'select_location': 'Select location',
+        'register_as': 'Register as',
+        'freelancer_find_work': 'Freelancer (Find Work)',
+        'client_post_work': 'Client (Post Work)',
+        'both': 'Both',
+        'have_account': 'Already have an account?',
+        'login_now': 'Login',
+        'payment_received_popup': 'Payment Received!',
+
+        # Category Names
+        'cat_design': 'Design & Creative',
+        'cat_writing': 'Writing & Translation',
+        'cat_video': 'Video & Animation',
+        'cat_web': 'Web Development',
+        'cat_marketing': 'Digital Marketing',
+        'cat_tutoring': 'Tutoring',
+        'cat_content': 'Content Creation',
+        'cat_admin': 'Admin Support',
     }
 }
 
@@ -542,7 +774,7 @@ def index():
         db.session.add(stats)
     stats.value += 1
     db.session.commit()
-    return render_template('index.html', visitor_count=stats.value)
+    return render_template('index.html', visitor_count=stats.value, lang=get_user_language(), t=t)
 
 @app.route('/gigs')
 @page_login_required

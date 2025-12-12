@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GigHalal - Platform Gig Halal #1 Malaysia</title>
-    <meta name="description" content="Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan dengan pendapatan RM800-RM4000 sebulan.">
+    <title>GigHalal - {% if lang == 'ms' %}Platform Gig Halal #1 Malaysia{% else %}Malaysia's #1 Halal Gig Platform{% endif %}</title>
+    <meta name="description" content="{% if lang == 'ms' %}Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan dengan pendapatan RM800-RM4000 sebulan.{% else %}Malaysia's largest halal gig platform. Find freelance work, side hustles, and part-time projects earning RM800-RM4000 per month.{% endif %}">
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet">
 </head>
@@ -20,11 +20,14 @@
                 </div>
                 
                 <div class="nav-links">
-                    <a href="#cari-gig" class="nav-link">Cari Gig</a>
-                    <a href="#kategori" class="nav-link">Kategori</a>
-                    <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
-                    <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
-                    <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+                    <a href="#cari-gig" class="nav-link">{{ t('find_gigs') }}</a>
+                    <a href="#kategori" class="nav-link">{{ t('categories') }}</a>
+                    <a href="#cara-kerja" class="nav-link">{{ t('how_it_works') }}</a>
+                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-right: 12px;">
+                        <span>🌐</span> <span>{{ 'EN' if lang == 'ms' else 'MS' }}</span>
+                    </button>
+                    <button class="btn-nav" onclick="app.showLogin()">{{ t('login') }}</button>
+                    <button class="btn-primary" onclick="app.showRegister()">{{ t('register_free') }}</button>
                 </div>
                 
                 <div class="mobile-menu-btn" onclick="app.toggleMobileMenu()">
@@ -41,55 +44,54 @@
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-badge">
-                        <span>🔥</span> 50,000+ Freelancers Aktif
+                        <span>🔥</span> {{ t('active_freelancers') }}
                     </div>
                     <h1 class="hero-title">
-                        Jana Pendapatan<br>
-                        <span class="highlight">Halal & Berkah</span><br>
-                        dari Rumah
+                        {{ t('earn_income') }}<br>
+                        <span class="highlight">{{ t('halal_blessed') }}</span><br>
+                        {{ t('from_home') }}
                     </h1>
                     <p class="hero-description">
-                        Platform gig economy #1 Malaysia yang menawarkan peluang side hustle halal 
-                        untuk raih RM800-RM4,000 sebulan. Tanpa modal, tanpa komitmen panjang.
+                        {{ t('hero_description') }}
                     </p>
-                    
+
                     <div class="hero-stats">
                         <div class="stat-item">
                             <div class="stat-number" id="totalGigs">2,847</div>
-                            <div class="stat-label">Gig Aktif</div>
+                            <div class="stat-label">{{ t('active_gigs_stat') }}</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-number">RM 2.3J</div>
-                            <div class="stat-label">Dibayar Tahun Ini</div>
+                            <div class="stat-label">{{ t('paid_this_year') }}</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-number">24 Jam</div>
-                            <div class="stat-label">Instant Payout</div>
+                            <div class="stat-label">{{ t('instant_payout') }}</div>
                         </div>
                     </div>
-                    
+
                     <div class="hero-cta">
                         <button class="btn-hero-primary" onclick="app.showRegister()">
-                            Mula Jana Pendapatan
+                            {{ t('start_earning') }}
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
                         <button class="btn-hero-secondary" onclick="app.scrollTo('cara-kerja')">
-                            Tonton Video Demo
+                            {{ t('watch_demo') }}
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                 <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
                                 <path d="M8 7L13 10L8 13V7Z" fill="currentColor"/>
                             </svg>
                         </button>
                     </div>
-                    
+
                     <div class="hero-trust">
                         <img src="https://via.placeholder.com/40x40" alt="JAKIM">
-                        <span>Verified oleh JAKIM</span>
+                        <span>{{ t('verified_by_jakim') }}</span>
                         <span class="divider">•</span>
                         <img src="https://via.placeholder.com/40x40" alt="Suruhanjaya Syarikat Malaysia">
-                        <span>Berdaftar SSM</span>
+                        <span>{{ t('registered_ssm') }}</span>
                     </div>
                 </div>
                 
@@ -130,7 +132,7 @@
                     <div class="earnings-popup">
                         <div class="popup-icon">💰</div>
                         <div>
-                            <div class="popup-title">Bayaran Diterima!</div>
+                            <div class="popup-title">{{ t('payment_received_popup') }}</div>
                             <div class="popup-amount">+ RM 450.00</div>
                         </div>
                     </div>
@@ -142,10 +144,10 @@
         <section id="kategori" class="categories-section">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Kategori Popular</h2>
-                    <p class="section-subtitle">Pilih skill anda dan mula jana pendapatan hari ini</p>
+                    <h2 class="section-title">{{ t('popular_categories') }}</h2>
+                    <p class="section-subtitle">{{ t('choose_skill_subtitle') }}</p>
                 </div>
-                
+
                 <div class="categories-grid" id="categoriesGrid">
                     <!-- Will be populated by JavaScript -->
                 </div>
@@ -156,14 +158,14 @@
         <section id="cari-gig" class="gigs-section">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Gig Terkini</h2>
+                    <h2 class="section-title">{{ t('latest_gigs') }}</h2>
                     <div class="gigs-filters">
-                        <input type="text" class="search-input" placeholder="Cari gig..." id="searchInput">
+                        <input type="text" class="search-input" placeholder="{{ t('search_gigs') }}" id="searchInput">
                         <select class="filter-select" id="categoryFilter">
-                            <option value="">Semua Kategori</option>
+                            <option value="">{{ t('all_categories') }}</option>
                         </select>
                         <select class="filter-select" id="locationFilter">
-                            <option value="">Semua Lokasi</option>
+                            <option value="">{{ t('all_locations') }}</option>
                             <option value="Kuala Lumpur">Kuala Lumpur</option>
                             <option value="Penang">Penang</option>
                             <option value="Johor Bahru">Johor Bahru</option>
@@ -171,17 +173,17 @@
                         </select>
                         <label class="halal-filter">
                             <input type="checkbox" id="halalFilter" checked>
-                            <span>Halal Sahaja</span>
+                            <span>{{ t('halal_only') }}</span>
                         </label>
                     </div>
                 </div>
-                
+
                 <div class="gigs-grid" id="gigsGrid">
                     <!-- Will be populated by JavaScript -->
                 </div>
-                
+
                 <div class="load-more">
-                    <button class="btn-secondary" onclick="app.loadMoreGigs()">Lihat Lebih Banyak</button>
+                    <button class="btn-secondary" onclick="app.loadMoreGigs()">{{ t('view_more') }}</button>
                 </div>
             </div>
         </section>
@@ -190,37 +192,37 @@
         <section id="cara-kerja" class="how-it-works">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Cara Kerja</h2>
-                    <p class="section-subtitle">Mudah & Cepat - Mula jana dalam 5 minit</p>
+                    <h2 class="section-title">{{ t('how_it_works') }}</h2>
+                    <p class="section-subtitle">{{ t('easy_fast_subtitle') }}</p>
                 </div>
-                
+
                 <div class="steps-grid">
                     <div class="step-card">
                         <div class="step-number">01</div>
                         <div class="step-icon">📝</div>
-                        <h3 class="step-title">Daftar Percuma</h3>
-                        <p class="step-description">Buat akaun dalam 2 minit. Tiada bayaran pendaftaran, tiada syarat rumit.</p>
+                        <h3 class="step-title">{{ t('step_1_title') }}</h3>
+                        <p class="step-description">{{ t('step_1_desc') }}</p>
                     </div>
-                    
+
                     <div class="step-card">
                         <div class="step-number">02</div>
                         <div class="step-icon">🔍</div>
-                        <h3 class="step-title">Cari Gig Sesuai</h3>
-                        <p class="step-description">Pilih dari 2000+ gig halal mengikut skill, lokasi dan budget anda.</p>
+                        <h3 class="step-title">{{ t('step_2_title') }}</h3>
+                        <p class="step-description">{{ t('step_2_desc') }}</p>
                     </div>
-                    
+
                     <div class="step-card">
                         <div class="step-number">03</div>
                         <div class="step-icon">💼</div>
-                        <h3 class="step-title">Apply & Kerja</h3>
-                        <p class="step-description">Submit proposal anda atau buat video pitch 30 saat untuk menonjol.</p>
+                        <h3 class="step-title">{{ t('step_3_title') }}</h3>
+                        <p class="step-description">{{ t('step_3_desc') }}</p>
                     </div>
-                    
+
                     <div class="step-card">
                         <div class="step-number">04</div>
                         <div class="step-icon">💰</div>
-                        <h3 class="step-title">Terima Bayaran</h3>
-                        <p class="step-description">Instant payout dalam 24 jam ke Touch 'n Go atau bank anda.</p>
+                        <h3 class="step-title">{{ t('step_4_title') }}</h3>
+                        <p class="step-description">{{ t('step_4_desc') }}</p>
                     </div>
                 </div>
             </div>
@@ -230,48 +232,48 @@
         <section class="testimonials-section">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Kisah Kejayaan</h2>
-                    <p class="section-subtitle">Ratusan freelancers berjaya jana pendapatan konsisten</p>
+                    <h2 class="section-title">{{ t('success_stories') }}</h2>
+                    <p class="section-subtitle">{{ t('success_subtitle') }}</p>
                 </div>
-                
+
                 <div class="testimonials-grid">
                     <div class="testimonial-card">
                         <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
-                        <p class="testimonial-text">"Dalam 2 bulan, saya dah buat RM 4,500 dari video editing! Platform ni betul-betul game changer untuk ibu tunggal macam saya."</p>
+                        <p class="testimonial-text">{{ t('testimonial_1') }}</p>
                         <div class="testimonial-author">
                             <img src="https://via.placeholder.com/50" alt="Nurul">
                             <div>
-                                <div class="author-name">Nurul Huda</div>
-                                <div class="author-role">Video Editor • KL</div>
+                                <div class="author-name">{{ t('testimonial_1_name') }}</div>
+                                <div class="author-role">{{ t('testimonial_1_role') }}</div>
                             </div>
                         </div>
-                        <div class="testimonial-earnings">Pendapatan: RM 4,500/bulan</div>
+                        <div class="testimonial-earnings">{{ t('testimonial_1_earnings') }}</div>
                     </div>
-                    
+
                     <div class="testimonial-card">
                         <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
-                        <p class="testimonial-text">"Fresh grad cari kerja susah. GigHalal bagi peluang saya buat income sambil tunggu tawaran tetap. Sekarang side income saya RM 2,800!"</p>
+                        <p class="testimonial-text">{{ t('testimonial_2') }}</p>
                         <div class="testimonial-author">
                             <img src="https://via.placeholder.com/50" alt="Ahmad">
                             <div>
-                                <div class="author-name">Ahmad Zaki</div>
-                                <div class="author-role">Graphic Designer • Penang</div>
+                                <div class="author-name">{{ t('testimonial_2_name') }}</div>
+                                <div class="author-role">{{ t('testimonial_2_role') }}</div>
                             </div>
                         </div>
-                        <div class="testimonial-earnings">Pendapatan: RM 2,800/bulan</div>
+                        <div class="testimonial-earnings">{{ t('testimonial_2_earnings') }}</div>
                     </div>
-                    
+
                     <div class="testimonial-card">
                         <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
-                        <p class="testimonial-text">"Saya tutor online part-time. Platform ni connect saya dengan pelajar SPM yang betul-betul perlukan bantuan. Win-win situation!"</p>
+                        <p class="testimonial-text">{{ t('testimonial_3') }}</p>
                         <div class="testimonial-author">
                             <img src="https://via.placeholder.com/50" alt="Siti">
                             <div>
-                                <div class="author-name">Siti Aisyah</div>
-                                <div class="author-role">SPM Tutor • JB</div>
+                                <div class="author-name">{{ t('testimonial_3_name') }}</div>
+                                <div class="author-role">{{ t('testimonial_3_role') }}</div>
                             </div>
                         </div>
-                        <div class="testimonial-earnings">Pendapatan: RM 1,900/bulan</div>
+                        <div class="testimonial-earnings">{{ t('testimonial_3_earnings') }}</div>
                     </div>
                 </div>
             </div>
@@ -281,10 +283,10 @@
         <section class="cta-section">
             <div class="container">
                 <div class="cta-content">
-                    <h2 class="cta-title">Siap untuk mula jana pendapatan halal?</h2>
-                    <p class="cta-description">Join 50,000+ freelancers yang dah berjaya. Daftar percuma sekarang!</p>
-                    <button class="btn-cta" onclick="app.showRegister()">Daftar Sekarang - 100% Percuma</button>
-                    <div class="cta-note">✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Halal verified</div>
+                    <h2 class="cta-title">{{ t('ready_to_earn') }}</h2>
+                    <p class="cta-description">{{ t('join_freelancers') }}</p>
+                    <button class="btn-cta" onclick="app.showRegister()">{{ t('register_now_free') }}</button>
+                    <div class="cta-note">{{ t('cta_benefits') }}</div>
                 </div>
             </div>
         </section>
@@ -298,7 +300,7 @@
                             <span class="logo-icon">☪</span>
                             <span class="logo-text">GigHalal</span>
                         </div>
-                        <p class="footer-description">Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah.</p>
+                        <p class="footer-description">{{ t('footer_description') }}</p>
                         <div class="footer-social">
                             <a href="#" class="social-link">Facebook</a>
                             <a href="#" class="social-link">Instagram</a>
@@ -306,50 +308,50 @@
                             <a href="#" class="social-link">Twitter/X</a>
                         </div>
                     </div>
-                    
+
                     <div class="footer-col">
-                        <h4 class="footer-heading">Platform</h4>
+                        <h4 class="footer-heading">{{ t('platform') }}</h4>
                         <ul class="footer-links">
-                            <li><a href="#cari-gig">Cari Gig</a></li>
-                            <li><a href="#kategori">Kategori</a></li>
-                            <li><a href="#cara-kerja">Cara Kerja</a></li>
-                            <li><a href="#">Pricing</a></li>
+                            <li><a href="#cari-gig">{{ t('find_gigs') }}</a></li>
+                            <li><a href="#kategori">{{ t('categories') }}</a></li>
+                            <li><a href="#cara-kerja">{{ t('how_it_works') }}</a></li>
+                            <li><a href="#">{{ t('pricing') }}</a></li>
                         </ul>
                     </div>
-                    
+
                     <div class="footer-col">
-                        <h4 class="footer-heading">Resources</h4>
+                        <h4 class="footer-heading">{{ t('resources') }}</h4>
                         <ul class="footer-links">
-                            <li><a href="#">Blog</a></li>
-                            <li><a href="#">Panduan Freelancer</a></li>
-                            <li><a href="#">FAQ</a></li>
-                            <li><a href="#">Support</a></li>
+                            <li><a href="#">{{ t('blog') }}</a></li>
+                            <li><a href="#">{{ t('freelancer_guide') }}</a></li>
+                            <li><a href="#">{{ t('faq') }}</a></li>
+                            <li><a href="#">{{ t('support') }}</a></li>
                         </ul>
                     </div>
-                    
+
                     <div class="footer-col">
-                        <h4 class="footer-heading">Legal</h4>
+                        <h4 class="footer-heading">{{ t('legal') }}</h4>
                         <ul class="footer-links">
-                            <li><a href="#">Syarat & Terma</a></li>
-                            <li><a href="#">Privasi Policy</a></li>
-                            <li><a href="#">Halal Compliance</a></li>
-                            <li><a href="#">Gig Workers Bill</a></li>
+                            <li><a href="#">{{ t('terms_conditions') }}</a></li>
+                            <li><a href="#">{{ t('privacy_policy') }}</a></li>
+                            <li><a href="#">{{ t('halal_compliance') }}</a></li>
+                            <li><a href="#">{{ t('gig_workers_bill') }}</a></li>
                         </ul>
                     </div>
                 </div>
-                
+
                 <div class="footer-bottom">
                     <div class="footer-company">
                         <img src="/static/images/calmic-logo.png" alt="Calmic Sdn Bhd" class="calmic-logo">
-                        <p>&copy; 2025 GigHalal. Hak cipta terpelihara. Berdaftar dengan SSM (Calmic Sdn Bhd)</p>
+                        <p>&copy; 2025 GigHalal. {{ t('rights_reserved') }}</p>
                     </div>
                     <div class="visitor-counter">
-                        <span>👁️ Jumlah Pelawat: <strong id="visitorCount">{{ visitor_count }}</strong></span>
+                        <span>👁️ {{ t('visitor_count') }} <strong id="visitorCount">{{ visitor_count }}</strong></span>
                     </div>
                     <div class="footer-badges">
-                        <span class="badge">JAKIM Verified</span>
-                        <span class="badge">SSM Registered</span>
-                        <span class="badge">Secure Payment</span>
+                        <span class="badge">{{ t('jakim_verified') }}</span>
+                        <span class="badge">{{ t('ssm_registered') }}</span>
+                        <span class="badge">{{ t('secure_payment') }}</span>
                     </div>
                 </div>
             </div>
@@ -359,18 +361,18 @@
         <div id="loginModal" class="modal">
             <div class="modal-content">
                 <button class="modal-close" onclick="app.closeModal('loginModal')">&times;</button>
-                <h2 class="modal-title">Log Masuk</h2>
+                <h2 class="modal-title">{{ t('login_title') }}</h2>
                 <form id="loginForm" onsubmit="app.handleLogin(event)">
                     <div class="form-group">
-                        <label>Email</label>
+                        <label>{{ t('email') }}</label>
                         <input type="email" name="email" required>
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
+                        <label>{{ t('password') }}</label>
                         <input type="password" name="password" required>
                     </div>
-                    <button type="submit" class="btn-modal-primary">Log Masuk</button>
-                    <p class="modal-footer-text">Belum ada akaun? <a href="#" onclick="app.switchToRegister()">Daftar sekarang</a></p>
+                    <button type="submit" class="btn-modal-primary">{{ t('login') }}</button>
+                    <p class="modal-footer-text">{{ t('no_account') }} <a href="#" onclick="app.switchToRegister()">{{ t('register_now') }}</a></p>
                 </form>
             </div>
         </div>
@@ -379,32 +381,32 @@
         <div id="registerModal" class="modal">
             <div class="modal-content">
                 <button class="modal-close" onclick="app.closeModal('registerModal')">&times;</button>
-                <h2 class="modal-title">Daftar Percuma</h2>
+                <h2 class="modal-title">{{ t('register_title') }}</h2>
                 <form id="registerForm" onsubmit="app.handleRegister(event)">
                     <div class="form-group">
-                        <label>Nama Penuh</label>
+                        <label>{{ t('full_name') }}</label>
                         <input type="text" name="full_name" required>
                     </div>
                     <div class="form-group">
-                        <label>Username</label>
+                        <label>{{ t('username') }}</label>
                         <input type="text" name="username" required>
                     </div>
                     <div class="form-group">
-                        <label>Email</label>
+                        <label>{{ t('email') }}</label>
                         <input type="email" name="email" required>
                     </div>
                     <div class="form-group">
-                        <label>No. Telefon</label>
+                        <label>{{ t('phone_number') }}</label>
                         <input type="tel" name="phone" placeholder="+60">
                     </div>
                     <div class="form-group">
-                        <label>Password</label>
+                        <label>{{ t('password') }}</label>
                         <input type="password" name="password" required minlength="6">
                     </div>
                     <div class="form-group">
-                        <label>Lokasi</label>
+                        <label>{{ t('location') }}</label>
                         <select name="location" required>
-                            <option value="">Pilih lokasi</option>
+                            <option value="">{{ t('select_location') }}</option>
                             <option value="Kuala Lumpur">Kuala Lumpur</option>
                             <option value="Selangor">Selangor</option>
                             <option value="Penang">Penang</option>
@@ -413,15 +415,15 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Daftar sebagai</label>
+                        <label>{{ t('register_as') }}</label>
                         <select name="user_type" required>
-                            <option value="freelancer">Freelancer (Cari Kerja)</option>
-                            <option value="client">Client (Post Kerja)</option>
-                            <option value="both">Kedua-duanya</option>
+                            <option value="freelancer">{{ t('freelancer_find_work') }}</option>
+                            <option value="client">{{ t('client_post_work') }}</option>
+                            <option value="both">{{ t('both') }}</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn-modal-primary">Daftar Sekarang</button>
-                    <p class="modal-footer-text">Dah ada akaun? <a href="#" onclick="app.switchToLogin()">Log masuk</a></p>
+                    <button type="submit" class="btn-modal-primary">{{ t('register_free') }}</button>
+                    <p class="modal-footer-text">{{ t('have_account') }} <a href="#" onclick="app.switchToLogin()">{{ t('login_now') }}</a></p>
                 </form>
             </div>
         </div>
@@ -438,5 +440,30 @@
     </div>
 
     <script src="/static/js/app.js"></script>
+    <script>
+        async function toggleLanguage() {
+            const currentLang = '{{ lang }}';
+            const newLang = currentLang === 'ms' ? 'en' : 'ms';
+
+            try {
+                const response = await fetch('/api/language', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ language: newLang })
+                });
+
+                if (response.ok) {
+                    // Reload page to apply language change
+                    location.reload();
+                } else {
+                    console.error('Failed to change language');
+                }
+            } catch (error) {
+                console.error('Error changing language:', error);
+            }
+        }
+    </script>
 </body>
 </html>
