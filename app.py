@@ -353,6 +353,54 @@ def index():
     db.session.commit()
     return render_template('index.html', visitor_count=stats.value)
 
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Personalized user dashboard"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    # Get wallet information
+    wallet = Wallet.query.filter_by(user_id=user_id).first()
+    if not wallet:
+        wallet = Wallet(user_id=user_id)
+        db.session.add(wallet)
+        db.session.commit()
+
+    # Get user's gigs
+    if user.user_type in ['client', 'both']:
+        posted_gigs = Gig.query.filter_by(client_id=user_id).order_by(Gig.created_at.desc()).limit(5).all()
+    else:
+        posted_gigs = []
+
+    if user.user_type in ['freelancer', 'both']:
+        active_gigs = Gig.query.filter_by(freelancer_id=user_id, status='in_progress').limit(5).all()
+        applications = Application.query.filter_by(freelancer_id=user_id).order_by(Application.created_at.desc()).limit(5).all()
+    else:
+        active_gigs = []
+        applications = []
+
+    # Get stats
+    total_gigs_posted = Gig.query.filter_by(client_id=user_id).count() if user.user_type in ['client', 'both'] else 0
+    total_gigs_completed = Gig.query.filter_by(freelancer_id=user_id, status='completed').count() if user.user_type in ['freelancer', 'both'] else 0
+    total_applications = Application.query.filter_by(freelancer_id=user_id).count() if user.user_type in ['freelancer', 'both'] else 0
+
+    # Get recent transactions
+    recent_transactions = Transaction.query.filter(
+        (Transaction.client_id == user_id) | (Transaction.freelancer_id == user_id)
+    ).order_by(Transaction.transaction_date.desc()).limit(5).all()
+
+    return render_template('dashboard.html',
+                         user=user,
+                         wallet=wallet,
+                         posted_gigs=posted_gigs,
+                         active_gigs=active_gigs,
+                         applications=applications,
+                         total_gigs_posted=total_gigs_posted,
+                         total_gigs_completed=total_gigs_completed,
+                         total_applications=total_applications,
+                         recent_transactions=recent_transactions)
+
 @app.route('/api/register', methods=['POST'])
 @rate_limit(max_attempts=10, window_minutes=60, lockout_minutes=15)
 def register():
