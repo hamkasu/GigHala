@@ -216,6 +216,16 @@ TRANSLATIONS = {
         'have_account': 'Dah ada akaun?',
         'login_now': 'Log masuk',
         'payment_received_popup': 'Bayaran Diterima!',
+
+        # Category Names
+        'cat_design': 'Design & Kreatif',
+        'cat_writing': 'Penulisan & Terjemahan',
+        'cat_video': 'Video & Animasi',
+        'cat_web': 'Pembangunan Web',
+        'cat_marketing': 'Pemasaran Digital',
+        'cat_tutoring': 'Tunjuk Ajar',
+        'cat_content': 'Penciptaan Kandungan',
+        'cat_admin': 'Sokongan Admin',
     },
     'en': {
         # Dashboard
@@ -388,6 +398,16 @@ TRANSLATIONS = {
         'have_account': 'Already have an account?',
         'login_now': 'Login',
         'payment_received_popup': 'Payment Received!',
+
+        # Category Names
+        'cat_design': 'Design & Creative',
+        'cat_writing': 'Writing & Translation',
+        'cat_video': 'Video & Animation',
+        'cat_web': 'Web Development',
+        'cat_marketing': 'Digital Marketing',
+        'cat_tutoring': 'Tutoring',
+        'cat_content': 'Content Creation',
+        'cat_admin': 'Admin Support',
     }
 }
 
