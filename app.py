@@ -132,6 +132,28 @@ def reset_rate_limit(identifier):
     if identifier in login_attempts:
         login_attempts[identifier] = {'count': 0, 'first_attempt': datetime.utcnow(), 'locked_until': None}
 
+# Commission calculation function
+def calculate_commission(amount):
+    """
+    Calculate tiered commission based on transaction amount
+
+    Tier 1: MYR 0 - 500     → 15% commission
+    Tier 2: MYR 501 - 2,000  → 10% commission
+    Tier 3: MYR 2,001+       → 5% commission
+
+    Args:
+        amount (float): Transaction amount in MYR
+
+    Returns:
+        float: Commission amount
+    """
+    if amount <= 500:
+        return round(amount * 0.15, 2)  # 15%
+    elif amount <= 2000:
+        return round(amount * 0.10, 2)  # 10%
+    else:
+        return round(amount * 0.05, 2)  # 5%
+
 # Admin authentication decorator
 def admin_required(f):
     """Decorator to require admin authentication"""
@@ -1401,6 +1423,156 @@ def get_payment_history():
     except Exception as e:
         app.logger.error(f"Get payment history error: {str(e)}")
         return jsonify({'error': 'Failed to get payment history'}), 500
+
+@app.route('/api/billing/complete-gig/<int:gig_id>', methods=['POST'])
+@login_required
+def complete_gig_transaction(gig_id):
+    """
+    Complete a gig and create transaction/invoice with tiered commission
+    Only the client can mark a gig as complete
+    """
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+
+        # Get the gig
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Verify the user is the client
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can complete this gig'}), 403
+
+        # Verify gig has a freelancer assigned
+        if not gig.freelancer_id:
+            return jsonify({'error': 'No freelancer assigned to this gig'}), 400
+
+        # Verify gig is in progress
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'Gig must be in progress to complete'}), 400
+
+        # Get payment details
+        amount = data.get('amount')
+        payment_method = data.get('payment_method', 'bank_transfer')
+
+        if not amount or amount <= 0:
+            return jsonify({'error': 'Invalid payment amount'}), 400
+
+        # Calculate commission using tiered structure
+        commission = calculate_commission(amount)
+        net_amount = amount - commission
+
+        # Generate invoice number
+        import random
+        invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+        # Create transaction
+        transaction = Transaction(
+            gig_id=gig_id,
+            freelancer_id=gig.freelancer_id,
+            client_id=gig.client_id,
+            amount=amount,
+            commission=commission,
+            net_amount=net_amount,
+            payment_method=payment_method,
+            status='completed'
+        )
+        db.session.add(transaction)
+        db.session.flush()  # Get transaction ID
+
+        # Create invoice
+        invoice = Invoice(
+            invoice_number=invoice_number,
+            transaction_id=transaction.id,
+            gig_id=gig_id,
+            client_id=gig.client_id,
+            freelancer_id=gig.freelancer_id,
+            amount=amount,
+            platform_fee=commission,
+            tax_amount=0.0,
+            total_amount=amount,
+            status='paid',
+            payment_method=payment_method,
+            paid_at=datetime.utcnow(),
+            notes=f'Payment for: {gig.title}'
+        )
+        db.session.add(invoice)
+
+        # Update or create freelancer wallet
+        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            db.session.add(freelancer_wallet)
+            db.session.flush()
+
+        # Update wallet balances
+        old_balance = freelancer_wallet.balance
+        freelancer_wallet.balance += net_amount
+        freelancer_wallet.total_earned += net_amount
+
+        # Create payment history for freelancer (earning)
+        freelancer_history = PaymentHistory(
+            user_id=gig.freelancer_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=net_amount,
+            balance_before=old_balance,
+            balance_after=freelancer_wallet.balance,
+            description=f'Payment received for: {gig.title}',
+            reference_number=invoice_number
+        )
+        db.session.add(freelancer_history)
+
+        # Update or create client wallet
+        client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+        if not client_wallet:
+            client_wallet = Wallet(user_id=gig.client_id)
+            db.session.add(client_wallet)
+            db.session.flush()
+
+        # Update client wallet
+        client_old_balance = client_wallet.balance
+        client_wallet.total_spent += amount
+
+        # Create payment history for client (payment made)
+        client_history = PaymentHistory(
+            user_id=gig.client_id,
+            transaction_id=transaction.id,
+            invoice_id=invoice.id,
+            type='payment',
+            amount=amount,
+            balance_before=client_old_balance,
+            balance_after=client_wallet.balance,
+            description=f'Payment made for: {gig.title}',
+            reference_number=invoice_number
+        )
+        db.session.add(client_history)
+
+        # Update gig status
+        gig.status = 'completed'
+
+        # Update freelancer stats
+        freelancer = User.query.get(gig.freelancer_id)
+        if freelancer:
+            freelancer.completed_gigs = (freelancer.completed_gigs or 0) + 1
+            freelancer.total_earnings = (freelancer.total_earnings or 0) + net_amount
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig completed successfully',
+            'invoice_number': invoice_number,
+            'transaction_id': transaction.id,
+            'amount': amount,
+            'commission': commission,
+            'net_amount': net_amount,
+            'freelancer_receives': net_amount
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Complete gig transaction error: {str(e)}")
+        return jsonify({'error': 'Failed to complete transaction'}), 500
 
 # Admin Billing Routes
 @app.route('/api/admin/billing/payouts', methods=['GET'])

@@ -165,6 +165,7 @@ LEFT JOIN wallet w ON u.id = w.user_id;
 - `GET /api/billing/payouts` - Get payout history
 - `POST /api/billing/payouts` - Request a payout
 - `GET /api/billing/payment-history` - Get detailed payment history
+- `POST /api/billing/complete-gig/<gig_id>` - Complete a gig and create transaction with tiered commission
 
 ### Admin Endpoints:
 - `GET /api/admin/billing/payouts` - Get all payout requests
@@ -202,8 +203,26 @@ LEFT JOIN wallet w ON u.id = w.user_id;
 
 ## Platform Fees
 
-- **Transaction Fee**: Configurable per transaction
-- **Payout Fee**: 2% of withdrawal amount
+### Tiered Transaction Commission (Charged to Freelancers)
+
+The platform uses a **tiered commission structure** based on transaction amount:
+
+| Transaction Amount | Commission Rate | Example |
+|-------------------|----------------|---------|
+| **MYR 0 - 500** | **15%** | MYR 300 gig → MYR 45 fee, freelancer gets MYR 255 |
+| **MYR 501 - 2,000** | **10%** | MYR 1,500 gig → MYR 150 fee, freelancer gets MYR 1,350 |
+| **MYR 2,001+** | **5%** | MYR 5,000 gig → MYR 250 fee, freelancer gets MYR 4,750 |
+
+**How it works:**
+- Client pays the full amount (e.g., MYR 1,000)
+- Platform automatically calculates commission based on the tier
+- Freelancer receives the net amount after commission
+- Invoice and transaction records show the breakdown
+
+### Payout Fee
+
+- **2% of withdrawal amount** (charged when freelancers withdraw earnings)
+- Example: Withdraw MYR 500 → MYR 10 fee, receive MYR 490
 
 ## Notes
 
