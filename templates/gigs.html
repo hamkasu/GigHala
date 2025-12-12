@@ -442,15 +442,24 @@
             <div class="sort-dropdown">
                 <label>{{ t('sort_by') }}</label>
                 <select id="sortSelect" onchange="filterGigs()">
-                    <option value="newest">{{ t('newest') }}</option>
                     <option value="budget_high">{{ t('budget_highest') }}</option>
                     <option value="budget_low">{{ t('budget_lowest') }}</option>
+                    <option value="newest">{{ t('newest') }}</option>
                 </select>
             </div>
         </div>
 
         <div class="gigs-grid" id="gigsGrid">
             <div class="loading-spinner">{{ t('loading_gigs') }}</div>
+        </div>
+
+        <div class="load-more-container" id="loadMoreContainer" style="text-align: center; margin-top: 32px; display: none;">
+            <button class="btn btn-secondary" onclick="loadMore()" id="loadMoreBtn">
+                Load More Gigs
+            </button>
+            <p style="color: var(--text-light); font-size: 14px; margin-top: 12px;">
+                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> gigs
+            </p>
         </div>
     </div>
 </div>
@@ -459,6 +468,10 @@
 {% block extra_scripts %}
 <script>
     let allGigs = [];
+    let filteredGigs = [];
+    let currentPage = 1;
+    const pageSize = 12; // Show 12 gigs per page
+
     const categoryIcons = {
         'design': '🎨',
         'writing': '✍️',
@@ -486,6 +499,8 @@
             const response = await fetch('/api/gigs');
             if (response.ok) {
                 allGigs = await response.json();
+                // Sort by highest budget by default
+                allGigs.sort((a, b) => b.budget_max - a.budget_max);
                 renderGigs(allGigs);
             } else {
                 showError();
@@ -500,9 +515,13 @@
         return categoryIcons[category?.toLowerCase()] || '📋';
     }
 
-    function renderGigs(gigs) {
+    function renderGigs(gigs, append = false) {
         const grid = document.getElementById('gigsGrid');
+        filteredGigs = gigs;
+
+        // Update total count
         document.getElementById('resultCount').textContent = gigs.length;
+        document.getElementById('totalCount').textContent = gigs.length;
 
         if (gigs.length === 0) {
             grid.innerHTML = `
@@ -512,10 +531,20 @@
                     <p class="empty-text">${translations.no_gigs_desc}</p>
                 </div>
             `;
+            document.getElementById('loadMoreContainer').style.display = 'none';
             return;
         }
 
-        grid.innerHTML = gigs.map(gig => `
+        // Calculate which gigs to show
+        const startIndex = append ? (currentPage - 1) * pageSize : 0;
+        const endIndex = currentPage * pageSize;
+        const gigsToShow = gigs.slice(startIndex, endIndex);
+        const showingCount = Math.min(endIndex, gigs.length);
+
+        // Update showing count
+        document.getElementById('showingCount').textContent = showingCount;
+
+        const gigsHTML = gigsToShow.map(gig => `
             <div class="gig-card" onclick="viewGig(${gig.id})">
                 <div class="gig-image" style="background: linear-gradient(135deg, ${getGradient(gig.category)})">
                     <span class="gig-image-icon">${getCategoryIcon(gig.category)}</span>
@@ -563,7 +592,22 @@
             </div>
         `).join('');
 
+        // Append or replace grid content
+        if (append) {
+            grid.innerHTML += gigsHTML;
+        } else {
+            grid.innerHTML = gigsHTML;
+        }
+
         feather.replace();
+
+        // Show/hide Load More button
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        if (showingCount < gigs.length) {
+            loadMoreContainer.style.display = 'block';
+        } else {
+            loadMoreContainer.style.display = 'none';
+        }
     }
 
     function getGradient(category) {
@@ -590,7 +634,15 @@
         `;
     }
 
+    function loadMore() {
+        currentPage++;
+        renderGigs(filteredGigs, true);
+    }
+
     function filterGigs() {
+        // Reset pagination when filters change
+        currentPage = 1;
+
         const search = document.getElementById('searchInput').value.toLowerCase();
         const category = document.querySelector('input[name="category"]:checked')?.value || '';
         const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
@@ -598,8 +650,8 @@
         const sortBy = document.getElementById('sortSelect').value;
 
         let filtered = allGigs.filter(gig => {
-            const matchesSearch = !search || 
-                gig.title.toLowerCase().includes(search) || 
+            const matchesSearch = !search ||
+                gig.title.toLowerCase().includes(search) ||
                 gig.description.toLowerCase().includes(search);
             const matchesCategory = !category || gig.category?.toLowerCase() === category;
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
@@ -615,7 +667,7 @@
             filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
 
-        renderGigs(filtered);
+        renderGigs(filtered, false);
     }
 
     function viewGig(gigId) {
