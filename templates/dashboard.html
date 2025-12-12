@@ -177,6 +177,12 @@
         margin-top: 24px;
     }
 
+    .btn-logout:hover {
+        background: #dc2626 !important;
+        border-color: #dc2626 !important;
+        color: white !important;
+    }
+
     /* Responsive Design for Different Devices */
 
     /* Tablet (Portrait) */
@@ -644,16 +650,19 @@
 </div>
 
 <div class="section" style="margin-top: 24px;">
-    <h2 class="section-title" style="margin-bottom: 16px;">Quick Actions</h2>
+    <h2 class="section-title" style="margin-bottom: 16px;">{{ t('quick_actions') }}</h2>
     <div class="quick-actions">
-        <a href="/gigs" class="btn btn-primary">Browse Gigs</a>
-        <a href="/billing" class="btn btn-outline">View Wallet</a>
+        <a href="/gigs" class="btn btn-primary">{{ t('browse_gigs') }}</a>
+        <a href="/billing" class="btn btn-outline">{{ t('view_wallet') }}</a>
         {% if user.user_type in ['client', 'both'] %}
-        <a href="/post-gig" class="btn btn-outline">Post a Gig</a>
+        <a href="/post-gig" class="btn btn-outline">{{ t('post_gig') }}</a>
         {% endif %}
         {% if user.is_admin %}
-        <a href="/admin" class="btn btn-outline">Admin Dashboard</a>
+        <a href="/admin" class="btn btn-outline">{{ t('admin_dashboard') }}</a>
         {% endif %}
+        <button onclick="logout()" class="btn btn-outline btn-logout" style="background: transparent; border-color: #dc2626; color: #dc2626;">
+            {{ t('logout') }}
+        </button>
     </div>
 </div>
 
@@ -696,7 +705,8 @@
         please_select_rating: "{{ t('please_select_rating') }}",
         review_submitted: "{{ t('review_submitted') }}",
         review_failed: "{{ t('review_failed') }}",
-        error_occurred: "{{ t('error_occurred') }}"
+        error_occurred: "{{ t('error_occurred') }}",
+        logout_confirm: "{{ t('logout_confirm') }}"
     };
 
     let currentGigId = null;
@@ -788,8 +798,8 @@
     });
 
     function logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            fetch('/logout', {
+        if (confirm(i18n.logout_confirm)) {
+            fetch('/api/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

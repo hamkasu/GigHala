@@ -106,6 +106,10 @@ TRANSLATIONS = {
         'language': 'Bahasa',
         'malay': 'Bahasa Melayu',
         'english': 'English',
+
+        # Logout
+        'logout': 'Log Keluar',
+        'logout_confirm': 'Adakah anda pasti mahu log keluar?',
     },
     'en': {
         # Dashboard
@@ -168,6 +172,10 @@ TRANSLATIONS = {
         'language': 'Language',
         'malay': 'Bahasa Melayu',
         'english': 'English',
+
+        # Logout
+        'logout': 'Logout',
+        'logout_confirm': 'Are you sure you want to logout?',
     }
 }
 
