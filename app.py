@@ -207,6 +207,7 @@ class User(db.Model):
     skills = db.Column(db.Text)  # JSON string
     bio = db.Column(db.Text)
     rating = db.Column(db.Float, default=0.0)
+    review_count = db.Column(db.Integer, default=0)
     total_earnings = db.Column(db.Float, default=0.0)
     completed_gigs = db.Column(db.Integer, default=0)
     profile_video = db.Column(db.String(255))
@@ -261,13 +262,17 @@ class Transaction(db.Model):
     transaction_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Review(db.Model):
+    __table_args__ = (
+        db.UniqueConstraint('gig_id', 'reviewer_id', name='unique_review_per_gig'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     reviewer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     reviewee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class MicroTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -441,6 +446,27 @@ def dashboard():
         (Transaction.client_id == user_id) | (Transaction.freelancer_id == user_id)
     ).order_by(Transaction.transaction_date.desc()).limit(5).all()
 
+    # Get gigs that need reviews (completed gigs without user's review)
+    gigs_to_review = []
+    if user.user_type in ['client', 'both']:
+        # Gigs where user is client
+        client_gigs = Gig.query.filter_by(client_id=user_id, status='completed').all()
+        for gig in client_gigs:
+            existing_review = Review.query.filter_by(gig_id=gig.id, reviewer_id=user_id).first()
+            if not existing_review and gig.freelancer_id:
+                gigs_to_review.append(gig)
+
+    if user.user_type in ['freelancer', 'both']:
+        # Gigs where user is freelancer
+        freelancer_gigs = Gig.query.filter_by(freelancer_id=user_id, status='completed').all()
+        for gig in freelancer_gigs:
+            existing_review = Review.query.filter_by(gig_id=gig.id, reviewer_id=user_id).first()
+            if not existing_review and gig.client_id:
+                gigs_to_review.append(gig)
+
+    # Get recent reviews received
+    recent_reviews = Review.query.filter_by(reviewee_id=user_id).order_by(Review.created_at.desc()).limit(5).all()
+
     return render_template('dashboard.html',
                          user=user,
                          wallet=wallet,
@@ -450,7 +476,9 @@ def dashboard():
                          total_gigs_posted=total_gigs_posted,
                          total_gigs_completed=total_gigs_completed,
                          total_applications=total_applications,
-                         recent_transactions=recent_transactions)
+                         recent_transactions=recent_transactions,
+                         gigs_to_review=gigs_to_review,
+                         recent_reviews=recent_reviews)
 
 @app.route('/api/register', methods=['POST'])
 @rate_limit(max_attempts=10, window_minutes=60, lockout_minutes=15)
@@ -804,6 +832,256 @@ def apply_to_gig(gig_id):
         app.logger.error(f"Apply to gig error: {str(e)}")
         return jsonify({'error': 'Failed to submit application. Please try again.'}), 500
 
+# Helper function to recalculate user rating
+def recalculate_user_rating(user_id):
+    """Recalculate and update user's average rating based on all reviews"""
+    reviews = Review.query.filter_by(reviewee_id=user_id).all()
+    if reviews:
+        avg_rating = sum(r.rating for r in reviews) / len(reviews)
+        user = User.query.get(user_id)
+        user.rating = round(avg_rating, 2)
+        user.review_count = len(reviews)
+        db.session.commit()
+    else:
+        user = User.query.get(user_id)
+        user.rating = 0.0
+        user.review_count = 0
+        db.session.commit()
+
+# Review Endpoints
+@app.route('/api/gigs/<int:gig_id>/reviews', methods=['POST'])
+@login_required
+def create_review(gig_id):
+    """Submit a review for a completed gig"""
+    try:
+        data = request.json
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Validate gig is completed
+        if gig.status != 'completed':
+            return jsonify({'error': 'Can only review completed gigs'}), 400
+
+        # Determine reviewer and reviewee based on user role in gig
+        user_id = session['user_id']
+        if gig.client_id == user_id:
+            # Client reviewing freelancer
+            reviewee_id = gig.freelancer_id
+        elif gig.freelancer_id == user_id:
+            # Freelancer reviewing client
+            reviewee_id = gig.client_id
+        else:
+            return jsonify({'error': 'You are not part of this gig'}), 403
+
+        # Validate rating
+        rating = data.get('rating')
+        if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+            return jsonify({'error': 'Rating must be an integer between 1 and 5'}), 400
+
+        # Prevent self-review
+        if user_id == reviewee_id:
+            return jsonify({'error': 'Cannot review yourself'}), 400
+
+        # Check if review already exists
+        existing_review = Review.query.filter_by(gig_id=gig_id, reviewer_id=user_id).first()
+        if existing_review:
+            return jsonify({'error': 'You have already reviewed this gig'}), 400
+
+        # Sanitize comment
+        comment = sanitize_input(data.get('comment', ''), max_length=1000)
+
+        # Create review
+        review = Review(
+            gig_id=gig_id,
+            reviewer_id=user_id,
+            reviewee_id=reviewee_id,
+            rating=rating,
+            comment=comment
+        )
+
+        db.session.add(review)
+        db.session.commit()
+
+        # Recalculate reviewee's rating
+        recalculate_user_rating(reviewee_id)
+
+        return jsonify({
+            'message': 'Review submitted successfully',
+            'review': {
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at.isoformat()
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Create review error: {str(e)}")
+        return jsonify({'error': 'Failed to submit review. Please try again.'}), 500
+
+@app.route('/api/users/<int:user_id>/reviews', methods=['GET'])
+def get_user_reviews(user_id):
+    """Get all reviews for a specific user"""
+    try:
+        user = User.query.get_or_404(user_id)
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
+        # Limit per_page to prevent abuse
+        per_page = min(per_page, 50)
+
+        # Get reviews where user is the reviewee
+        reviews_query = Review.query.filter_by(reviewee_id=user_id).order_by(Review.created_at.desc())
+        paginated_reviews = reviews_query.paginate(page=page, per_page=per_page, error_out=False)
+
+        reviews_data = []
+        for review in paginated_reviews.items:
+            reviewer = User.query.get(review.reviewer_id)
+            gig = Gig.query.get(review.gig_id)
+            reviews_data.append({
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at.isoformat(),
+                'updated_at': review.updated_at.isoformat(),
+                'reviewer': {
+                    'id': reviewer.id,
+                    'username': reviewer.username,
+                    'full_name': reviewer.full_name
+                },
+                'gig': {
+                    'id': gig.id,
+                    'title': gig.title
+                }
+            })
+
+        return jsonify({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'rating': user.rating,
+                'review_count': user.review_count
+            },
+            'reviews': reviews_data,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': paginated_reviews.total,
+                'pages': paginated_reviews.pages
+            }
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get user reviews error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch reviews'}), 500
+
+@app.route('/api/reviews/<int:review_id>', methods=['GET'])
+def get_review(review_id):
+    """Get a specific review"""
+    try:
+        review = Review.query.get_or_404(review_id)
+        reviewer = User.query.get(review.reviewer_id)
+        reviewee = User.query.get(review.reviewee_id)
+        gig = Gig.query.get(review.gig_id)
+
+        return jsonify({
+            'id': review.id,
+            'rating': review.rating,
+            'comment': review.comment,
+            'created_at': review.created_at.isoformat(),
+            'updated_at': review.updated_at.isoformat(),
+            'reviewer': {
+                'id': reviewer.id,
+                'username': reviewer.username,
+                'full_name': reviewer.full_name
+            },
+            'reviewee': {
+                'id': reviewee.id,
+                'username': reviewee.username,
+                'full_name': reviewee.full_name
+            },
+            'gig': {
+                'id': gig.id,
+                'title': gig.title
+            }
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get review error: {str(e)}")
+        return jsonify({'error': 'Review not found'}), 404
+
+@app.route('/api/reviews/<int:review_id>', methods=['PUT'])
+@login_required
+def update_review(review_id):
+    """Update a review (only by the reviewer)"""
+    try:
+        review = Review.query.get_or_404(review_id)
+
+        # Check if user is the reviewer
+        if review.reviewer_id != session['user_id']:
+            return jsonify({'error': 'You can only update your own reviews'}), 403
+
+        data = request.json
+
+        # Update rating if provided
+        if 'rating' in data:
+            rating = data['rating']
+            if not isinstance(rating, int) or rating < 1 or rating > 5:
+                return jsonify({'error': 'Rating must be an integer between 1 and 5'}), 400
+            review.rating = rating
+
+        # Update comment if provided
+        if 'comment' in data:
+            review.comment = sanitize_input(data['comment'], max_length=1000)
+
+        db.session.commit()
+
+        # Recalculate reviewee's rating if rating changed
+        if 'rating' in data:
+            recalculate_user_rating(review.reviewee_id)
+
+        return jsonify({
+            'message': 'Review updated successfully',
+            'review': {
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'updated_at': review.updated_at.isoformat()
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Update review error: {str(e)}")
+        return jsonify({'error': 'Failed to update review'}), 500
+
+@app.route('/api/reviews/<int:review_id>', methods=['DELETE'])
+@login_required
+def delete_review(review_id):
+    """Delete a review (only by the reviewer or admin)"""
+    try:
+        review = Review.query.get_or_404(review_id)
+        user = User.query.get(session['user_id'])
+
+        # Check if user is the reviewer or admin
+        if review.reviewer_id != session['user_id'] and not user.is_admin:
+            return jsonify({'error': 'You can only delete your own reviews'}), 403
+
+        reviewee_id = review.reviewee_id
+
+        db.session.delete(review)
+        db.session.commit()
+
+        # Recalculate reviewee's rating
+        recalculate_user_rating(reviewee_id)
+
+        return jsonify({'message': 'Review deleted successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete review error: {str(e)}")
+        return jsonify({'error': 'Failed to delete review'}), 500
+
 @app.route('/api/profile', methods=['GET'])
 def get_profile():
     if 'user_id' not in session:
@@ -822,6 +1100,7 @@ def get_profile():
         'bio': user.bio,
         'skills': json.loads(user.skills) if user.skills else [],
         'rating': user.rating,
+        'review_count': user.review_count,
         'total_earnings': user.total_earnings,
         'completed_gigs': user.completed_gigs,
         'is_verified': user.is_verified,

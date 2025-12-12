@@ -185,6 +185,75 @@
             grid-template-columns: 1fr;
         }
     }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--bg-white);
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        margin-bottom: 24px;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 8px;
+        margin: 16px 0;
+    }
+
+    .star {
+        font-size: 32px;
+        cursor: pointer;
+        color: #ddd;
+        transition: color 0.2s;
+    }
+
+    .star.active, .star:hover {
+        color: #fbbf24;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .modal-buttons .btn {
+        flex: 1;
+    }
 </style>
 {% endblock %}
 
@@ -227,6 +296,24 @@
         <div class="stat-label">Total Earned</div>
         <div class="stat-value">MYR {{ "%.2f"|format(wallet.total_earned) }}</div>
         <div class="stat-description">All-time earnings</div>
+    </div>
+
+    <div class="stat-card orange">
+        <div class="stat-label">Your Rating</div>
+        <div class="stat-value">
+            {% if user.review_count > 0 %}
+            {{ "%.1f"|format(user.rating) }} ⭐
+            {% else %}
+            No ratings yet
+            {% endif %}
+        </div>
+        <div class="stat-description">
+            {% if user.review_count > 0 %}
+            Based on {{ user.review_count }} review{{ 's' if user.review_count != 1 else '' }}
+            {% else %}
+            Complete gigs to get rated
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -341,6 +428,56 @@
             </div>
         {% endif %}
     </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Gigs to Review</h2>
+        </div>
+
+        {% if gigs_to_review %}
+            {% for gig in gigs_to_review %}
+            <div class="gig-item">
+                <div class="gig-title">{{ gig.title }}</div>
+                <div class="gig-meta">
+                    <span>Completed on {{ gig.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top: 8px;" onclick="openReviewModal({{ gig.id }}, '{{ gig.title }}')">Leave Review</button>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">⭐</div>
+                <p>No completed gigs to review</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">Recent Reviews Received</h2>
+        </div>
+
+        {% if recent_reviews %}
+            {% for review in recent_reviews %}
+            <div class="gig-item">
+                <div class="gig-meta" style="margin-bottom: 8px;">
+                    <span style="font-weight: 600;">
+                        {% for i in range(review.rating) %}⭐{% endfor %}
+                    </span>
+                    <span>{{ review.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+                {% if review.comment %}
+                <p style="color: var(--text-gray); font-size: 14px; margin: 0;">{{ review.comment }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <p>No reviews yet</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 
 <div class="section" style="margin-top: 24px;">
@@ -356,10 +493,129 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Leave a Review</h3>
+            <p style="color: var(--text-gray); font-size: 14px; margin: 0;" id="reviewGigTitle"></p>
+        </div>
+
+        <div>
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Rating</label>
+            <div class="star-rating" id="starRating">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+        </div>
+
+        <div>
+            <label for="reviewComment" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Comment (Optional)</label>
+            <textarea id="reviewComment" rows="4" placeholder="Share your experience..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-family: inherit; resize: vertical;"></textarea>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="btn btn-outline" onclick="closeReviewModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+    let currentGigId = null;
+    let selectedRating = 0;
+
+    function openReviewModal(gigId, gigTitle) {
+        currentGigId = gigId;
+        selectedRating = 0;
+        document.getElementById('reviewGigTitle').textContent = gigTitle;
+        document.getElementById('reviewComment').value = '';
+        updateStars(0);
+        document.getElementById('reviewModal').classList.add('active');
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.remove('active');
+        currentGigId = null;
+        selectedRating = 0;
+    }
+
+    function updateStars(rating) {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    // Star rating interaction
+    document.querySelectorAll('.star').forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.getAttribute('data-rating'));
+            updateStars(selectedRating);
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            updateStars(rating);
+        });
+    });
+
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        updateStars(selectedRating);
+    });
+
+    async function submitReview() {
+        if (!selectedRating) {
+            alert('Please select a rating');
+            return;
+        }
+
+        const comment = document.getElementById('reviewComment').value.trim();
+
+        try {
+            const response = await fetch(`/api/gigs/${currentGigId}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rating: selectedRating,
+                    comment: comment
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Review submitted successfully!');
+                closeReviewModal();
+                location.reload(); // Reload to update the dashboard
+            } else {
+                alert(data.error || 'Failed to submit review');
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('reviewModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeReviewModal();
+        }
+    });
+
     function logout() {
         if (confirm('Are you sure you want to logout?')) {
             fetch('/logout', {
