@@ -369,7 +369,8 @@ const app = {
                 this.currentUser = result.user;
                 this.updateUIForLoggedInUser();
                 this.closeModal('loginModal');
-                alert('Login berjaya! Selamat datang, ' + result.user.username);
+                // Redirect to personalized dashboard
+                window.location.href = '/dashboard';
             } else {
                 alert('Login gagal: ' + result.error);
             }

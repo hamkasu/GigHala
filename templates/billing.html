@@ -15,12 +15,54 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+
+        .navbar .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #667eea;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 0 20px 20px;
         }
 
         .header {
@@ -510,11 +552,22 @@
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">GigHala</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/billing" class="active">Billing</a>
+                <a href="/admin">Admin Dashboard</a>
+                <button onclick="logout()" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="header">
             <h1>💰 Billing & Wallet</h1>
             <div class="header-actions">
-                <a href="/" class="btn btn-secondary">← Back to Home</a>
                 <button class="btn btn-primary" onclick="openPayoutModal()">Request Payout</button>
             </div>
         </div>
@@ -1241,6 +1294,20 @@
                 alertDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Request';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(() => {
+                    window.location.href = '/';
+                });
             }
         }
     </script>
