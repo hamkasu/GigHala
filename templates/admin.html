@@ -787,7 +787,7 @@
                         <td>${user.username}</td>
                         <td>${user.email}</td>
                         <td><span class="badge ${user.user_type}">${user.user_type}</span></td>
-                        <td>${user.rating.toFixed(1)} ⭐</td>
+                        <td>${user.rating ? user.rating.toFixed(1) : '0.0'} ⭐</td>
                         <td>
                             ${user.is_verified ? '<span class="badge verified">Verified</span>' : '<span class="badge unverified">Unverified</span>'}
                             ${user.is_admin ? '<span class="badge admin">Admin</span>' : ''}
