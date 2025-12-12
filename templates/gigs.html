@@ -370,83 +370,87 @@
 <div class="page-wrapper">
     <aside class="filters-sidebar">
         <div class="filter-section">
-            <h4 class="filter-title">Cari</h4>
-            <input type="text" class="filter-input" placeholder="Kata kunci..." id="searchInput">
+            <h4 class="filter-title">{{ t('search') }}</h4>
+            <input type="text" class="filter-input" placeholder="{{ t('keywords_placeholder') }}" id="searchInput">
         </div>
 
         <div class="filter-section">
-            <h4 class="filter-title">Kategori</h4>
+            <h4 class="filter-title">{{ t('categories') }}</h4>
             <div class="filter-options">
                 <label class="filter-option">
                     <input type="radio" name="category" value="" checked>
-                    Semua Kategori
+                    {{ t('all_categories_filter') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="design">
-                    Design
+                    {{ t('design_cat') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="writing">
-                    Writing & Translation
+                    {{ t('cat_writing') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="video">
-                    Video & Animation
+                    {{ t('cat_video') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="tutoring">
-                    Tutoring & Education
+                    {{ t('tutoring_education') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="content">
-                    Content Creation
+                    {{ t('cat_content') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="web">
-                    Web Development
+                    {{ t('cat_web') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="marketing">
-                    Digital Marketing
+                    {{ t('cat_marketing') }}
                 </label>
                 <label class="filter-option">
                     <input type="radio" name="category" value="admin">
-                    Admin & Virtual Assistant
+                    {{ t('admin_virtual_assistant') }}
+                </label>
+                <label class="filter-option">
+                    <input type="radio" name="category" value="general">
+                    {{ t('cat_general') }}
                 </label>
             </div>
         </div>
 
         <div class="filter-section">
-            <h4 class="filter-title">Budget (RM)</h4>
+            <h4 class="filter-title">{{ t('budget_rm') }}</h4>
             <div class="price-range">
-                <input type="number" placeholder="Min" id="priceMin">
+                <input type="number" placeholder="{{ t('min_placeholder') }}" id="priceMin">
                 <span>-</span>
-                <input type="number" placeholder="Max" id="priceMax">
+                <input type="number" placeholder="{{ t('max_placeholder') }}" id="priceMax">
             </div>
         </div>
 
         <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="filterGigs()">
-            Cari Gig
+            {{ t('search_gig_btn') }}
         </button>
     </aside>
 
     <div class="gigs-main">
         <div class="gigs-header">
             <div class="results-count">
-                <strong id="resultCount">0</strong> gig ditemui
+                <strong id="resultCount">0</strong> {{ t('gigs_found') }}
             </div>
             <div class="sort-dropdown">
-                <label>Susun:</label>
+                <label>{{ t('sort_by') }}</label>
                 <select id="sortSelect" onchange="filterGigs()">
-                    <option value="newest">Terbaru</option>
-                    <option value="budget_high">Budget Tertinggi</option>
-                    <option value="budget_low">Budget Terendah</option>
+                    <option value="newest">{{ t('newest') }}</option>
+                    <option value="budget_high">{{ t('budget_highest') }}</option>
+                    <option value="budget_low">{{ t('budget_lowest') }}</option>
                 </select>
             </div>
         </div>
 
         <div class="gigs-grid" id="gigsGrid">
-            <div class="loading-spinner">Memuatkan gig...</div>
+            <div class="loading-spinner">{{ t('loading_gigs') }}</div>
         </div>
     </div>
 </div>
@@ -463,7 +467,18 @@
         'content': '📱',
         'web': '💻',
         'marketing': '📈',
-        'admin': '📋'
+        'admin': '📋',
+        'general': '💼'
+    };
+
+    // Translations for JavaScript
+    const translations = {
+        no_gigs_found: "{{ t('no_gigs_found') }}",
+        no_gigs_desc: "{{ t('no_gigs_desc') }}",
+        error_loading_gigs: "{{ t('error_loading_gigs') }}",
+        reload_page: "{{ t('reload_page') }}",
+        flexible: "{{ t('flexible') }}",
+        budget: "{{ t('budget') }}"
     };
 
     async function loadGigs() {
@@ -488,13 +503,13 @@
     function renderGigs(gigs) {
         const grid = document.getElementById('gigsGrid');
         document.getElementById('resultCount').textContent = gigs.length;
-        
+
         if (gigs.length === 0) {
             grid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">🔍</div>
-                    <h2 class="empty-title">Tiada gig ditemui</h2>
-                    <p class="empty-text">Cuba ubah filter atau semak semula nanti untuk peluang baru</p>
+                    <h2 class="empty-title">${translations.no_gigs_found}</h2>
+                    <p class="empty-text">${translations.no_gigs_desc}</p>
                 </div>
             `;
             return;
@@ -522,7 +537,7 @@
                     <div class="gig-meta">
                         <span class="gig-meta-item">
                             <i data-feather="clock" width="12"></i>
-                            ${gig.duration || 'Flexible'}
+                            ${gig.duration || translations.flexible}
                         </span>
                         <span class="gig-meta-item">
                             <i data-feather="eye" width="12"></i>
@@ -540,7 +555,7 @@
                             <span class="count">(12)</span>
                         </div>
                         <div class="gig-price">
-                            <div class="price-label">Budget</div>
+                            <div class="price-label">${translations.budget}</div>
                             <div class="price-value">RM ${gig.budget_min}-${gig.budget_max}</div>
                         </div>
                     </div>
@@ -569,8 +584,8 @@
         document.getElementById('gigsGrid').innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
-                <h2 class="empty-title">Ralat memuatkan gig</h2>
-                <p class="empty-text">Sila muat semula halaman</p>
+                <h2 class="empty-title">${translations.error_loading_gigs}</h2>
+                <p class="empty-text">${translations.reload_page}</p>
             </div>
         `;
     }

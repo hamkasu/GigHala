@@ -226,6 +226,31 @@ TRANSLATIONS = {
         'cat_tutoring': 'Tunjuk Ajar',
         'cat_content': 'Penciptaan Kandungan',
         'cat_admin': 'Sokongan Admin',
+        'cat_general': 'Kerja Am',
+
+        # Gigs Page
+        'search': 'Cari',
+        'keywords_placeholder': 'Kata kunci...',
+        'all_categories_filter': 'Semua Kategori',
+        'design_cat': 'Design',
+        'tutoring_education': 'Tunjuk Ajar & Pendidikan',
+        'admin_virtual_assistant': 'Admin & Pembantu Maya',
+        'budget_rm': 'Budget (RM)',
+        'min_placeholder': 'Min',
+        'max_placeholder': 'Max',
+        'search_gig_btn': 'Cari Gig',
+        'gigs_found': 'gig ditemui',
+        'sort_by': 'Susun:',
+        'newest': 'Terbaru',
+        'budget_highest': 'Budget Tertinggi',
+        'budget_lowest': 'Budget Terendah',
+        'loading_gigs': 'Memuatkan gig...',
+        'no_gigs_found': 'Tiada gig ditemui',
+        'no_gigs_desc': 'Cuba ubah filter atau semak semula nanti untuk peluang baru',
+        'error_loading_gigs': 'Ralat memuatkan gig',
+        'reload_page': 'Sila muat semula halaman',
+        'flexible': 'Fleksibel',
+        'budget': 'Budget',
     },
     'en': {
         # Dashboard
@@ -408,6 +433,31 @@ TRANSLATIONS = {
         'cat_tutoring': 'Tutoring',
         'cat_content': 'Content Creation',
         'cat_admin': 'Admin Support',
+        'cat_general': 'General Works',
+
+        # Gigs Page
+        'search': 'Search',
+        'keywords_placeholder': 'Keywords...',
+        'all_categories_filter': 'All Categories',
+        'design_cat': 'Design',
+        'tutoring_education': 'Tutoring & Education',
+        'admin_virtual_assistant': 'Admin & Virtual Assistant',
+        'budget_rm': 'Budget (RM)',
+        'min_placeholder': 'Min',
+        'max_placeholder': 'Max',
+        'search_gig_btn': 'Search Gigs',
+        'gigs_found': 'gigs found',
+        'sort_by': 'Sort by:',
+        'newest': 'Newest',
+        'budget_highest': 'Highest Budget',
+        'budget_lowest': 'Lowest Budget',
+        'loading_gigs': 'Loading gigs...',
+        'no_gigs_found': 'No gigs found',
+        'no_gigs_desc': 'Try changing filters or check back later for new opportunities',
+        'error_loading_gigs': 'Error loading gigs',
+        'reload_page': 'Please reload the page',
+        'flexible': 'Flexible',
+        'budget': 'Budget',
     }
 }
 
@@ -3011,12 +3061,25 @@ with app.app_context():
             Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
             Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
             Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
+            Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
         ]
         for cat in default_categories:
             db.session.add(cat)
         db.session.commit()
         print("Default categories added successfully!")
-    
+
+    # Add General Works category if it doesn't exist (for existing databases)
+    if not Category.query.filter_by(slug='general').first():
+        general_cat = Category(
+            name='General Works',
+            slug='general',
+            description='General tasks, miscellaneous work, other services',
+            icon='briefcase'
+        )
+        db.session.add(general_cat)
+        db.session.commit()
+        print("General Works category added!")
+
     # Add sample data if database is empty
     if User.query.count() == 0:
         # Sample users
