@@ -1684,13 +1684,13 @@ def get_categories():
 def admin_page():
     """Serve admin dashboard page"""
     if 'user_id' not in session:
-        return render_template('index.html')
+        return render_template('index.html', lang=get_user_language(), t=t)
 
     user = User.query.get(session['user_id'])
     if not user or not user.is_admin:
-        return render_template('index.html')
+        return render_template('index.html', lang=get_user_language(), t=t)
 
-    return render_template('admin.html')
+    return render_template('admin.html', lang=get_user_language(), t=t)
 
 @app.route('/api/admin/check', methods=['GET'])
 def check_admin():
@@ -2003,7 +2003,7 @@ def admin_delete_gig(gig_id):
 @page_login_required
 def billing_page():
     """Billing dashboard page"""
-    return render_template('billing.html')
+    return render_template('billing.html', lang=get_user_language(), t=t)
 
 @app.route('/api/billing/wallet', methods=['GET'])
 @login_required
@@ -2778,7 +2778,7 @@ def payments_page():
     """Payment approval page for clients"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    return render_template('payments.html', user=user)
+    return render_template('payments.html', user=user, lang=get_user_language(), t=t)
 
 @app.route('/api/payments/pending', methods=['GET'])
 @login_required
