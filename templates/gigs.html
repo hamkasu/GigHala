@@ -381,10 +381,11 @@
         'video': '🎬',
         'tutoring': '📚',
         'content': '📱',
-        'web': '💻',
+        'tech': '💻',
         'marketing': '📈',
         'admin': '📋',
-        'general': '💼'
+        'data': '📊',
+        'voice': '🎤'
     };
 
     const categoryGradients = {
@@ -393,10 +394,11 @@
         'video': '#fc4a1a, #f7b733',
         'tutoring': '#4facfe, #00f2fe',
         'content': '#f857a6, #ff5858',
-        'web': '#00d2ff, #3a7bd5',
+        'tech': '#00d2ff, #3a7bd5',
         'marketing': '#f2994a, #f2c94c',
         'admin': '#667eea, #764ba2',
-        'general': '#8e44ad, #3498db'
+        'data': '#8e44ad, #3498db',
+        'voice': '#e91e63, #9c27b0'
     };
 
     const translations = {
@@ -422,7 +424,8 @@
 
                 // Default sort by highest budget
                 allGigs.sort((a, b) => b.budget_max - a.budget_max);
-                renderGigs(allGigs);
+                // Apply category filter if present in URL
+                filterGigs();
             } else {
                 showError();
             }
