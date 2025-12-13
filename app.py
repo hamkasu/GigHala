@@ -16,7 +16,15 @@ PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
-app.secret_key = os.environ.get("SESSION_SECRET")
+
+# Set secret key with fallback
+app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("SECRET_KEY")
+if not app.secret_key:
+    # Generate a random secret key for development if none is set
+    # In production, always set SESSION_SECRET or SECRET_KEY environment variable
+    app.secret_key = secrets.token_hex(32)
+    print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET or SECRET_KEY environment variable in production!")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///gighalal.db')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql+psycopg://', 1)
