@@ -58,6 +58,7 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 13, 2025: Added 7 new categories (Pentadbiran Maya, Penghantaran & Logistik, Micro-Tasks, Pengurusan Acara, Penjagaan & Perkhidmatan, Fotografi & Videografi, Lain-lain Kreatif), fixed Kerja Am category visibility, added sample gigs for all new categories
 - December 13, 2025: Fixed post gig form hanging issue - converted from JavaScript fetch to traditional server-side form submission with PRG pattern, form data preservation on errors, and deadline validation
 - December 12, 2025: Updated dashboard.html, billing.html, and admin.html to extend base.html template for consistent styling
 - December 12, 2025: Applied new dark navbar design (#1F2937) with "GigHalal" green branding (#1DBF73) across all pages
