@@ -375,52 +375,6 @@
         </div>
 
         <div class="filter-section">
-            <h4 class="filter-title">{{ t('categories') }}</h4>
-            <div class="filter-options">
-                <label class="filter-option">
-                    <input type="radio" name="category" value="" checked>
-                    {{ t('all_categories_filter') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="design">
-                    {{ t('design_cat') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="writing">
-                    {{ t('cat_writing') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="video">
-                    {{ t('cat_video') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="tutoring">
-                    {{ t('tutoring_education') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="content">
-                    {{ t('cat_content') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="web">
-                    {{ t('cat_web') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="marketing">
-                    {{ t('cat_marketing') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="admin">
-                    {{ t('admin_virtual_assistant') }}
-                </label>
-                <label class="filter-option">
-                    <input type="radio" name="category" value="general">
-                    {{ t('cat_general') }}
-                </label>
-            </div>
-        </div>
-
-        <div class="filter-section">
             <h4 class="filter-title">{{ t('budget_rm') }}</h4>
             <div class="price-range">
                 <input type="number" placeholder="{{ t('min_placeholder') }}" id="priceMin">
@@ -655,7 +609,6 @@
         currentPage = 1;
 
         const search = document.getElementById('searchInput').value.toLowerCase();
-        const category = document.querySelector('input[name="category"]:checked')?.value || '';
         const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
         const priceMax = parseInt(document.getElementById('priceMax').value) || 999999;
         const sortBy = document.getElementById('sortSelect').value;
@@ -664,10 +617,9 @@
             const matchesSearch = !search ||
                 gig.title.toLowerCase().includes(search) ||
                 gig.description.toLowerCase().includes(search);
-            const matchesCategory = !category || gig.category?.toLowerCase() === category;
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
 
-            return matchesSearch && matchesCategory && matchesPrice;
+            return matchesSearch && matchesPrice;
         });
 
         if (sortBy === 'budget_high') {
@@ -686,9 +638,6 @@
     }
 
     document.getElementById('searchInput').addEventListener('input', filterGigs);
-    document.querySelectorAll('input[name="category"]').forEach(el => {
-        el.addEventListener('change', filterGigs);
-    });
 
     loadGigs();
 </script>
