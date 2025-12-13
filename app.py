@@ -1080,24 +1080,33 @@ def get_gigs():
 
         gigs = query.order_by(Gig.created_at.desc()).limit(50).all()
 
-        return jsonify([{
-            'id': g.id,
-            'title': g.title,
-            'description': g.description,
-            'category': g.category,
-            'budget_min': g.budget_min,
-            'budget_max': g.budget_max,
-            'location': g.location,
-            'is_remote': g.is_remote,
-            'halal_compliant': g.halal_compliant,
-            'halal_verified': g.halal_verified,
-            'is_instant_payout': g.is_instant_payout,
-            'is_brand_partnership': g.is_brand_partnership,
-            'duration': g.duration,
-            'views': g.views,
-            'applications': g.applications,
-            'created_at': g.created_at.isoformat()
-        } for g in gigs])
+        result = []
+        for g in gigs:
+            # Get client information
+            client = User.query.get(g.client_id)
+            client_name = client.name if client else 'Client'
+
+            result.append({
+                'id': g.id,
+                'title': g.title,
+                'description': g.description,
+                'category': g.category,
+                'budget_min': g.budget_min,
+                'budget_max': g.budget_max,
+                'location': g.location,
+                'is_remote': g.is_remote,
+                'halal_compliant': g.halal_compliant,
+                'halal_verified': g.halal_verified,
+                'is_instant_payout': g.is_instant_payout,
+                'is_brand_partnership': g.is_brand_partnership,
+                'duration': g.duration,
+                'views': g.views,
+                'applications': g.applications,
+                'client_name': client_name,
+                'created_at': g.created_at.isoformat()
+            })
+
+        return jsonify(result)
     except Exception as e:
         app.logger.error(f"Get gigs error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve gigs'}), 500
