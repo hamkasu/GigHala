@@ -371,6 +371,10 @@
     let currentPage = 1;
     const pageSize = 12;
 
+    // Get category from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const selectedCategory = urlParams.get('category') || '';
+
     const categoryIcons = {
         'design': '🎨',
         'writing': '✍️',
@@ -520,7 +524,8 @@
                 gig.title.toLowerCase().includes(search) ||
                 gig.description.toLowerCase().includes(search);
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
-            return matchesSearch && matchesPrice;
+            const matchesCategory = !selectedCategory || gig.category === selectedCategory;
+            return matchesSearch && matchesPrice && matchesCategory;
         });
 
         if (sortBy === 'budget_high') {
@@ -555,6 +560,23 @@
 
     document.getElementById('searchInput').addEventListener('input', filterGigs);
 
+    // Highlight active category in navigation
+    function highlightActiveCategory() {
+        if (selectedCategory) {
+            const categoryLinks = document.querySelectorAll('.category-link');
+            categoryLinks.forEach(link => {
+                const linkCategory = new URL(link.href).searchParams.get('category');
+                if (linkCategory === selectedCategory) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+    }
+
+    // Call on page load
+    highlightActiveCategory();
     loadGigs();
 </script>
 {% endblock %}
