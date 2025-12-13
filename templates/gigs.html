@@ -4,50 +4,46 @@
 
 {% block extra_styles %}
 <style>
-    .page-wrapper {
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 32px;
+    .gigs-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
     }
 
-    .filters-sidebar {
+    .filters-bar {
         background: var(--bg-white);
         border-radius: var(--radius-lg);
-        padding: 24px;
-        height: fit-content;
-        position: sticky;
-        top: 140px;
+        padding: 20px;
+        margin-bottom: 24px;
         border: 1px solid var(--border);
-        z-index: 10;
     }
 
-    .filter-section {
-        margin-bottom: 28px;
+    .filters-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: flex-end;
     }
 
-    .filter-section:last-child {
-        margin-bottom: 0;
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
     }
 
-    .filter-title {
-        font-weight: 700;
-        font-size: 15px;
+    .filter-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
         color: var(--text-dark);
-        margin-bottom: 16px;
+        margin-bottom: 8px;
     }
 
     .filter-input {
         width: 100%;
-        padding: 12px 14px;
+        padding: 10px 14px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
         font-size: 14px;
-        background: var(--bg-white);
-        color: var(--text-dark);
-    }
-
-    .filter-input::placeholder {
-        color: var(--text-light);
     }
 
     .filter-input:focus {
@@ -55,60 +51,32 @@
         border-color: var(--primary);
     }
 
-    .filter-options {
+    .budget-inputs {
         display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .filter-option {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-        font-size: 14px;
-        color: var(--text-dark);
-        transition: color 0.2s;
-    }
-
-    .filter-option:hover {
-        color: var(--primary);
-    }
-
-    .filter-option input[type="checkbox"],
-    .filter-option input[type="radio"] {
-        width: 18px;
-        height: 18px;
-        accent-color: var(--primary);
-        cursor: pointer;
-    }
-
-    .price-range {
-        display: flex;
-        gap: 12px;
+        gap: 8px;
         align-items: center;
     }
 
-    .price-range input {
+    .budget-inputs input {
         flex: 1;
-        padding: 12px 14px;
-        border: 1px solid var(--border);
+    }
+
+    .search-btn {
+        padding: 10px 24px;
+        background: var(--primary);
+        color: white;
+        border: none;
         border-radius: var(--radius-md);
-        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
     }
 
-    .price-range input:focus {
-        outline: none;
-        border-color: var(--primary);
+    .search-btn:hover {
+        opacity: 0.9;
     }
 
-    .gigs-main {
-        flex: 1;
-        position: relative;
-        z-index: 1;
-    }
-
-    .gigs-header {
+    .results-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -116,94 +84,60 @@
     }
 
     .results-count {
-        font-size: 15px;
+        font-size: 16px;
         color: var(--text-gray);
     }
 
-    .results-count strong {
-        color: var(--text-dark);
-    }
-
-    .sort-dropdown {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .sort-dropdown label {
-        font-size: 14px;
-        color: var(--text-gray);
-    }
-
-    .sort-dropdown select {
-        padding: 10px 16px;
+    .sort-select {
+        padding: 8px 12px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
         font-size: 14px;
-        cursor: pointer;
-        background: var(--bg-white);
-    }
-
-    .sort-dropdown select:focus {
-        outline: none;
-        border-color: var(--primary);
     }
 
     .gigs-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-        max-width: 100%;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
     }
 
     .gig-card {
         background: var(--bg-white);
+        border: 1px solid var(--border);
         border-radius: var(--radius-lg);
         overflow: hidden;
-        box-shadow: var(--shadow-sm);
         transition: all 0.2s;
         cursor: pointer;
-        border: 1px solid var(--border);
-        max-width: 380px;
-        width: 100%;
-        justify-self: start;
-        position: relative;
-        z-index: 1;
     }
 
     .gig-card:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-4px);
-        border-color: var(--primary);
-        z-index: 2;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
     }
 
-    .gig-image {
-        height: 160px;
+    .gig-header {
+        height: 140px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 48px;
         position: relative;
     }
 
-    .gig-image-icon {
-        font-size: 48px;
-        opacity: 0.8;
-    }
-
-    .gig-badges-overlay {
+    .gig-badges {
         position: absolute;
-        top: 12px;
-        left: 12px;
+        top: 10px;
+        left: 10px;
         display: flex;
         gap: 6px;
     }
 
     .badge {
-        font-size: 10px;
         padding: 4px 8px;
         border-radius: 4px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
     }
@@ -214,16 +148,16 @@
     }
 
     .badge-instant {
-        background: var(--warning);
-        color: var(--text-dark);
-    }
-
-    .badge-brand {
-        background: #6366F1;
+        background: #f59e0b;
         color: white;
     }
 
-    .gig-content {
+    .badge-brand {
+        background: #6366f1;
+        color: white;
+    }
+
+    .gig-body {
         padding: 16px;
     }
 
@@ -235,20 +169,16 @@
     }
 
     .seller-avatar {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: var(--primary);
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
-    }
-
-    .seller-info {
-        flex: 1;
     }
 
     .seller-name {
@@ -257,40 +187,26 @@
         color: var(--text-dark);
     }
 
-    .seller-level {
+    .seller-location {
         font-size: 11px;
         color: var(--text-light);
     }
 
     .gig-title {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--text-dark);
+        margin-bottom: 12px;
         line-height: 1.4;
-        margin-bottom: 10px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .gig-title:hover {
-        color: var(--primary);
+        min-height: 44px;
     }
 
     .gig-meta {
         display: flex;
-        align-items: center;
-        gap: 12px;
+        gap: 16px;
         font-size: 12px;
         color: var(--text-light);
         margin-bottom: 12px;
-    }
-
-    .gig-meta-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
     }
 
     .gig-footer {
@@ -302,18 +218,12 @@
     }
 
     .gig-rating {
-        display: flex;
-        align-items: center;
-        gap: 4px;
         font-size: 13px;
+        color: var(--text-gray);
     }
 
     .gig-rating .star {
-        color: var(--warning);
-    }
-
-    .gig-rating .count {
-        color: var(--text-light);
+        color: #f59e0b;
     }
 
     .gig-price {
@@ -326,13 +236,38 @@
     }
 
     .price-value {
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 700;
         color: var(--text-dark);
     }
 
+    .load-more-section {
+        text-align: center;
+        margin: 32px 0;
+    }
+
+    .load-more-btn {
+        padding: 12px 32px;
+        background: var(--bg-white);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .load-more-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .load-more-info {
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--text-light);
+    }
+
     .empty-state {
-        grid-column: 1 / -1;
         text-align: center;
         padding: 60px 20px;
         background: var(--bg-white);
@@ -354,98 +289,76 @@
 
     .empty-text {
         color: var(--text-gray);
-        font-size: 15px;
     }
 
-    .loading-spinner {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 40px;
-        color: var(--text-gray);
-    }
+    @media (max-width: 768px) {
+        .filters-row {
+            flex-direction: column;
+        }
 
-    @media (max-width: 1200px) {
-        .gigs-grid {
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        .filter-group {
+            width: 100%;
         }
-        .gig-card {
-            max-width: 100%;
-            justify-self: stretch;
-        }
-    }
 
-    @media (max-width: 1024px) {
-        .page-wrapper {
-            grid-template-columns: 1fr;
-        }
-        .filters-sidebar {
-            position: static;
-            display: none;
-        }
-        .gigs-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        }
-    }
-
-    @media (max-width: 640px) {
         .gigs-grid {
             grid-template-columns: 1fr;
-        }
-        .gig-card {
-            max-width: 100%;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-wrapper">
-    <aside class="filters-sidebar">
-        <div class="filter-section">
-            <h4 class="filter-title">{{ t('search') }}</h4>
-            <input type="text" class="filter-input" placeholder="{{ t('keywords_placeholder') }}" id="searchInput">
-        </div>
+<div class="gigs-container">
+    <!-- Filters Bar -->
+    <div class="filters-bar">
+        <div class="filters-row">
+            <div class="filter-group">
+                <label class="filter-label">{{ t('search') }}</label>
+                <input type="text" class="filter-input" placeholder="{{ t('keywords_placeholder') }}" id="searchInput">
+            </div>
 
-        <div class="filter-section">
-            <h4 class="filter-title">{{ t('budget_rm') }}</h4>
-            <div class="price-range">
-                <input type="number" placeholder="{{ t('min_placeholder') }}" id="priceMin">
-                <span>-</span>
-                <input type="number" placeholder="{{ t('max_placeholder') }}" id="priceMax">
+            <div class="filter-group">
+                <label class="filter-label">{{ t('budget_rm') }}</label>
+                <div class="budget-inputs">
+                    <input type="number" class="filter-input" placeholder="{{ t('min_placeholder') }}" id="priceMin">
+                    <span>-</span>
+                    <input type="number" class="filter-input" placeholder="{{ t('max_placeholder') }}" id="priceMax">
+                </div>
+            </div>
+
+            <div class="filter-group" style="flex: 0;">
+                <button class="search-btn" onclick="filterGigs()">{{ t('search_gig_btn') }}</button>
             </div>
         </div>
+    </div>
 
-        <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="filterGigs()">
-            {{ t('search_gig_btn') }}
-        </button>
-    </aside>
-
-    <div class="gigs-main">
-        <div class="gigs-header">
-            <div class="results-count">
-                <strong id="resultCount">0</strong> {{ t('gigs_found') }}
-            </div>
-            <div class="sort-dropdown">
-                <label>{{ t('sort_by') }}</label>
-                <select id="sortSelect" onchange="filterGigs()">
-                    <option value="budget_high">{{ t('budget_highest') }}</option>
-                    <option value="budget_low">{{ t('budget_lowest') }}</option>
-                    <option value="newest">{{ t('newest') }}</option>
-                </select>
-            </div>
+    <!-- Results Header -->
+    <div class="results-header">
+        <div class="results-count">
+            <strong id="resultCount">0</strong> {{ t('gigs_found') }}
         </div>
-
-        <div class="gigs-grid" id="gigsGrid">
-            <div class="loading-spinner">{{ t('loading_gigs') }}</div>
+        <div>
+            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">{{ t('sort_by') }}</label>
+            <select class="sort-select" id="sortSelect" onchange="filterGigs()">
+                <option value="budget_high">{{ t('budget_highest') }}</option>
+                <option value="budget_low">{{ t('budget_lowest') }}</option>
+                <option value="newest">{{ t('newest') }}</option>
+            </select>
         </div>
+    </div>
 
-        <div class="load-more-container" id="loadMoreContainer" style="text-align: center; margin-top: 32px; display: none;">
-            <button class="btn btn-secondary" onclick="loadMore()" id="loadMoreBtn">
-                Load More Gigs
-            </button>
-            <p style="color: var(--text-light); font-size: 14px; margin-top: 12px;">
-                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> gigs
-            </p>
+    <!-- Gigs Grid -->
+    <div class="gigs-grid" id="gigsGrid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-gray);">
+            {{ t('loading_gigs') }}
+        </div>
+    </div>
+
+    <!-- Load More -->
+    <div class="load-more-section" id="loadMoreSection" style="display: none;">
+        <button class="load-more-btn" onclick="loadMore()">Load More</button>
+        <div class="load-more-info">
+            Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> gigs
         </div>
     </div>
 </div>
@@ -456,7 +369,7 @@
     let allGigs = [];
     let filteredGigs = [];
     let currentPage = 1;
-    const pageSize = 12; // Show 12 gigs per page
+    const pageSize = 12;
 
     const categoryIcons = {
         'design': '🎨',
@@ -470,7 +383,18 @@
         'general': '💼'
     };
 
-    // Translations for JavaScript
+    const categoryGradients = {
+        'design': '#667eea, #764ba2',
+        'writing': '#11998e, #38ef7d',
+        'video': '#fc4a1a, #f7b733',
+        'tutoring': '#4facfe, #00f2fe',
+        'content': '#f857a6, #ff5858',
+        'web': '#00d2ff, #3a7bd5',
+        'marketing': '#f2994a, #f2c94c',
+        'admin': '#667eea, #764ba2',
+        'general': '#8e44ad, #3498db'
+    };
+
     const translations = {
         no_gigs_found: "{{ t('no_gigs_found') }}",
         no_gigs_desc: "{{ t('no_gigs_desc') }}",
@@ -486,159 +410,104 @@
             if (response.ok) {
                 allGigs = await response.json();
 
-                // Filter out invalid gigs (missing required fields)
+                // Filter valid gigs
                 allGigs = allGigs.filter(gig => {
-                    return gig.title &&
-                           gig.category &&
-                           gig.budget_min !== null &&
-                           gig.budget_min !== undefined &&
-                           gig.budget_max !== null &&
-                           gig.budget_max !== undefined;
+                    return gig.title && gig.category &&
+                           gig.budget_min != null && gig.budget_max != null;
                 });
 
-                // Sort by highest budget by default
+                // Default sort by highest budget
                 allGigs.sort((a, b) => b.budget_max - a.budget_max);
                 renderGigs(allGigs);
             } else {
                 showError();
             }
         } catch (error) {
-            console.error('Error loading gigs:', error);
+            console.error('Error:', error);
             showError();
         }
-    }
-
-    function getCategoryIcon(category) {
-        return categoryIcons[category?.toLowerCase()] || '📋';
     }
 
     function renderGigs(gigs, append = false) {
         const grid = document.getElementById('gigsGrid');
         filteredGigs = gigs;
 
-        // Update total count
         document.getElementById('resultCount').textContent = gigs.length;
         document.getElementById('totalCount').textContent = gigs.length;
 
         if (gigs.length === 0) {
             grid.innerHTML = `
-                <div class="empty-state">
+                <div class="empty-state" style="grid-column: 1/-1;">
                     <div class="empty-icon">🔍</div>
                     <h2 class="empty-title">${translations.no_gigs_found}</h2>
                     <p class="empty-text">${translations.no_gigs_desc}</p>
                 </div>
             `;
-            document.getElementById('loadMoreContainer').style.display = 'none';
+            document.getElementById('loadMoreSection').style.display = 'none';
             return;
         }
 
-        // Calculate which gigs to show
         const startIndex = append ? (currentPage - 1) * pageSize : 0;
         const endIndex = currentPage * pageSize;
         const gigsToShow = gigs.slice(startIndex, endIndex);
         const showingCount = Math.min(endIndex, gigs.length);
 
-        // Update showing count
         document.getElementById('showingCount').textContent = showingCount;
 
-        const gigsHTML = gigsToShow.map(gig => `
-            <div class="gig-card" onclick="viewGig(${gig.id})">
-                <div class="gig-image" style="background: linear-gradient(135deg, ${getGradient(gig.category)})">
-                    <span class="gig-image-icon">${getCategoryIcon(gig.category)}</span>
-                    <div class="gig-badges-overlay">
-                        ${gig.halal_verified ? '<span class="badge badge-halal">☪ Halal</span>' : ''}
-                        ${gig.is_instant_payout ? '<span class="badge badge-instant">⚡ Instant</span>' : ''}
-                        ${gig.is_brand_partnership ? '<span class="badge badge-brand">🌟 Brand</span>' : ''}
-                    </div>
-                </div>
-                <div class="gig-content">
-                    <div class="gig-seller">
-                        <div class="seller-avatar">${gig.client_name ? gig.client_name.substring(0,2).toUpperCase() : 'CL'}</div>
-                        <div class="seller-info">
-                            <div class="seller-name">${gig.client_name || 'Client'}</div>
-                            <div class="seller-level">${gig.location || 'Malaysia'}</div>
-                        </div>
-                    </div>
-                    <h3 class="gig-title">${gig.title}</h3>
-                    <div class="gig-meta">
-                        <span class="gig-meta-item">
-                            <i data-feather="clock" width="12"></i>
-                            ${gig.duration || translations.flexible}
-                        </span>
-                        <span class="gig-meta-item">
-                            <i data-feather="eye" width="12"></i>
-                            ${gig.views || 0}
-                        </span>
-                        <span class="gig-meta-item">
-                            <i data-feather="users" width="12"></i>
-                            ${gig.applications || 0}
-                        </span>
-                    </div>
-                    <div class="gig-footer">
-                        <div class="gig-rating">
-                            <span class="star">★</span>
-                            <span>4.8</span>
-                            <span class="count">(12)</span>
-                        </div>
-                        <div class="gig-price">
-                            <div class="price-label">${translations.budget}</div>
-                            <div class="price-value">RM ${gig.budget_min}-${gig.budget_max}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        const gigsHTML = gigsToShow.map(gig => {
+            const icon = categoryIcons[gig.category?.toLowerCase()] || '📋';
+            const gradient = categoryGradients[gig.category?.toLowerCase()] || '#667eea, #764ba2';
+            const clientInitials = gig.client_name ? gig.client_name.substring(0, 2).toUpperCase() : 'CL';
 
-        // Append or replace grid content
+            return `
+                <div class="gig-card" onclick="viewGig(${gig.id})">
+                    <div class="gig-header" style="background: linear-gradient(135deg, ${gradient})">
+                        <span>${icon}</span>
+                        <div class="gig-badges">
+                            ${gig.halal_verified ? '<span class="badge badge-halal">☪ HALAL</span>' : ''}
+                            ${gig.is_instant_payout ? '<span class="badge badge-instant">⚡ INSTANT</span>' : ''}
+                            ${gig.is_brand_partnership ? '<span class="badge badge-brand">🌟 BRAND</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="gig-body">
+                        <div class="gig-seller">
+                            <div class="seller-avatar">${clientInitials}</div>
+                            <div>
+                                <div class="seller-name">${gig.client_name || 'Client'}</div>
+                                <div class="seller-location">${gig.location || 'Malaysia'}</div>
+                            </div>
+                        </div>
+                        <div class="gig-title">${gig.title}</div>
+                        <div class="gig-meta">
+                            <span>⏱ ${gig.duration || translations.flexible}</span>
+                            <span>👁 ${gig.views || 0}</span>
+                            <span>👥 ${gig.applications || 0}</span>
+                        </div>
+                        <div class="gig-footer">
+                            <div class="gig-rating">
+                                <span class="star">★</span> 4.8 <span style="color: var(--text-light);">(12)</span>
+                            </div>
+                            <div class="gig-price">
+                                <div class="price-label">${translations.budget}</div>
+                                <div class="price-value">RM ${gig.budget_min}-${gig.budget_max}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
         if (append) {
             grid.innerHTML += gigsHTML;
         } else {
             grid.innerHTML = gigsHTML;
         }
 
-        feather.replace();
-
-        // Show/hide Load More button
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-        if (showingCount < gigs.length) {
-            loadMoreContainer.style.display = 'block';
-        } else {
-            loadMoreContainer.style.display = 'none';
-        }
-    }
-
-    function getGradient(category) {
-        const gradients = {
-            'design': '#667eea, #764ba2',
-            'writing': '#11998e, #38ef7d',
-            'video': '#fc4a1a, #f7b733',
-            'tutoring': '#4facfe, #00f2fe',
-            'content': '#f857a6, #ff5858',
-            'web': '#00d2ff, #3a7bd5',
-            'marketing': '#f2994a, #f2c94c',
-            'admin': '#667eea, #764ba2',
-            'general': '#8e44ad, #3498db'
-        };
-        return gradients[category?.toLowerCase()] || '#667eea, #764ba2';
-    }
-
-    function showError() {
-        document.getElementById('gigsGrid').innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">⚠️</div>
-                <h2 class="empty-title">${translations.error_loading_gigs}</h2>
-                <p class="empty-text">${translations.reload_page}</p>
-            </div>
-        `;
-    }
-
-    function loadMore() {
-        currentPage++;
-        renderGigs(filteredGigs, true);
+        const loadMoreSection = document.getElementById('loadMoreSection');
+        loadMoreSection.style.display = showingCount < gigs.length ? 'block' : 'none';
     }
 
     function filterGigs() {
-        // Reset pagination when filters change
         currentPage = 1;
 
         const search = document.getElementById('searchInput').value.toLowerCase();
@@ -651,7 +520,6 @@
                 gig.title.toLowerCase().includes(search) ||
                 gig.description.toLowerCase().includes(search);
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
-
             return matchesSearch && matchesPrice;
         });
 
@@ -663,11 +531,26 @@
             filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
 
-        renderGigs(filtered, false);
+        renderGigs(filtered);
+    }
+
+    function loadMore() {
+        currentPage++;
+        renderGigs(filteredGigs, true);
     }
 
     function viewGig(gigId) {
-        alert('Paparan gig akan datang! Gig ID: ' + gigId);
+        alert('Viewing gig ' + gigId);
+    }
+
+    function showError() {
+        document.getElementById('gigsGrid').innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+                <div class="empty-icon">⚠️</div>
+                <h2 class="empty-title">${translations.error_loading_gigs}</h2>
+                <p class="empty-text">${translations.reload_page}</p>
+            </div>
+        `;
     }
 
     document.getElementById('searchInput').addEventListener('input', filterGigs);
