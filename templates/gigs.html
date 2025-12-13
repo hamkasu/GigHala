@@ -18,6 +18,7 @@
         position: sticky;
         top: 140px;
         border: 1px solid var(--border);
+        z-index: 10;
     }
 
     .filter-section {
@@ -103,6 +104,8 @@
 
     .gigs-main {
         flex: 1;
+        position: relative;
+        z-index: 1;
     }
 
     .gigs-header {
@@ -164,12 +167,15 @@
         max-width: 380px;
         width: 100%;
         justify-self: start;
+        position: relative;
+        z-index: 1;
     }
 
     .gig-card:hover {
         box-shadow: var(--shadow-md);
         transform: translateY(-4px);
         border-color: var(--primary);
+        z-index: 2;
     }
 
     .gig-image {
