@@ -235,6 +235,13 @@ TRANSLATIONS = {
         'cat_content': 'Penciptaan Kandungan',
         'cat_admin': 'Sokongan Admin',
         'cat_general': 'Kerja Am',
+        'cat_virtual_assistant': 'Pentadbiran Maya',
+        'cat_delivery': 'Penghantaran & Logistik',
+        'cat_micro_tasks': 'Micro-Tasks & Tugasan',
+        'cat_events': 'Pengurusan Acara',
+        'cat_caregiving': 'Penjagaan & Perkhidmatan',
+        'cat_photography': 'Fotografi & Videografi',
+        'cat_creative_other': 'Lain-lain Kreatif',
 
         # Gigs Page
         'search': 'Cari',
@@ -442,6 +449,13 @@ TRANSLATIONS = {
         'cat_content': 'Content Creation',
         'cat_admin': 'Admin Support',
         'cat_general': 'General Works',
+        'cat_virtual_assistant': 'Virtual Assistant',
+        'cat_delivery': 'Delivery & Logistics',
+        'cat_micro_tasks': 'Micro-Tasks & Daily',
+        'cat_events': 'Event Management',
+        'cat_caregiving': 'Caregiving & Services',
+        'cat_photography': 'Photography & Videography',
+        'cat_creative_other': 'Other Creative',
 
         # Gigs Page
         'search': 'Search',
