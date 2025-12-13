@@ -841,13 +841,13 @@ def post_gig():
     """Post a new gig page"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    
+
     # Only clients or 'both' user types can post gigs
     if user.user_type not in ['client', 'both']:
         return redirect('/dashboard')
-    
+
     categories = Category.query.all()
-    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig')
+    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t)
 
 @app.route('/dashboard')
 @page_login_required
@@ -918,7 +918,9 @@ def dashboard():
                          total_applications=total_applications,
                          recent_transactions=recent_transactions,
                          gigs_to_review=gigs_to_review,
-                         recent_reviews=recent_reviews)
+                         recent_reviews=recent_reviews,
+                         lang=get_user_language(),
+                         t=t)
 
 @app.route('/api/register', methods=['POST'])
 @rate_limit(max_attempts=10, window_minutes=60, lockout_minutes=15)
@@ -1682,13 +1684,13 @@ def get_categories():
 def admin_page():
     """Serve admin dashboard page"""
     if 'user_id' not in session:
-        return render_template('index.html')
+        return render_template('index.html', lang=get_user_language(), t=t)
 
     user = User.query.get(session['user_id'])
     if not user or not user.is_admin:
-        return render_template('index.html')
+        return render_template('index.html', lang=get_user_language(), t=t)
 
-    return render_template('admin.html')
+    return render_template('admin.html', lang=get_user_language(), t=t)
 
 @app.route('/api/admin/check', methods=['GET'])
 def check_admin():
@@ -2001,7 +2003,7 @@ def admin_delete_gig(gig_id):
 @page_login_required
 def billing_page():
     """Billing dashboard page"""
-    return render_template('billing.html')
+    return render_template('billing.html', lang=get_user_language(), t=t)
 
 @app.route('/api/billing/wallet', methods=['GET'])
 @login_required
@@ -2776,7 +2778,7 @@ def payments_page():
     """Payment approval page for clients"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    return render_template('payments.html', user=user)
+    return render_template('payments.html', user=user, lang=get_user_language(), t=t)
 
 @app.route('/api/payments/pending', methods=['GET'])
 @login_required
