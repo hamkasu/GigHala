@@ -841,13 +841,13 @@ def post_gig():
     """Post a new gig page"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    
+
     # Only clients or 'both' user types can post gigs
     if user.user_type not in ['client', 'both']:
         return redirect('/dashboard')
-    
+
     categories = Category.query.all()
-    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig')
+    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t)
 
 @app.route('/dashboard')
 @page_login_required
@@ -918,7 +918,9 @@ def dashboard():
                          total_applications=total_applications,
                          recent_transactions=recent_transactions,
                          gigs_to_review=gigs_to_review,
-                         recent_reviews=recent_reviews)
+                         recent_reviews=recent_reviews,
+                         lang=get_user_language(),
+                         t=t)
 
 @app.route('/api/register', methods=['POST'])
 @rate_limit(max_attempts=10, window_minutes=60, lockout_minutes=15)
