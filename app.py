@@ -833,7 +833,7 @@ def browse_gigs():
     user_id = session['user_id']
     user = User.query.get(user_id)
     categories = Category.query.all()
-    return render_template('gigs.html', user=user, categories=categories, active_page='gigs')
+    return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
 @app.route('/post-gig')
 @page_login_required
