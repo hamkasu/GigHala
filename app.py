@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect
+from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -835,7 +835,7 @@ def browse_gigs():
     categories = Category.query.all()
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
-@app.route('/post-gig')
+@app.route('/post-gig', methods=['GET', 'POST'])
 @page_login_required
 def post_gig():
     """Post a new gig page"""
@@ -847,7 +847,98 @@ def post_gig():
         return redirect('/dashboard')
 
     categories = Category.query.all()
-    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t)
+    
+    form_data = {}
+    
+    if request.method == 'POST':
+        form_data = {
+            'title': request.form.get('title', ''),
+            'description': request.form.get('description', ''),
+            'category': request.form.get('category', ''),
+            'duration': request.form.get('duration', ''),
+            'location': request.form.get('location', ''),
+            'budget_min': request.form.get('budget_min', ''),
+            'budget_max': request.form.get('budget_max', ''),
+            'deadline': request.form.get('deadline', ''),
+            'is_remote': request.form.get('is_remote') == 'on',
+            'halal_compliant': request.form.get('halal_compliant') == 'on',
+            'is_instant_payout': request.form.get('is_instant_payout') == 'on',
+            'is_brand_partnership': request.form.get('is_brand_partnership') == 'on',
+            'skills_required': request.form.get('skills_required', '[]')
+        }
+        
+        try:
+            title = sanitize_input(form_data['title'], max_length=200)
+            description = sanitize_input(form_data['description'], max_length=5000)
+            category = sanitize_input(form_data['category'], max_length=50)
+            duration = sanitize_input(form_data['duration'], max_length=50)
+            location = sanitize_input(form_data['location'], max_length=100)
+            
+            if not title or not description or not category:
+                flash('Sila isi semua maklumat yang diperlukan.', 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+            
+            try:
+                budget_min = float(form_data['budget_min']) if form_data['budget_min'] else 0
+                budget_max = float(form_data['budget_max']) if form_data['budget_max'] else 0
+                if budget_min < 0 or budget_max < 0 or budget_min > budget_max:
+                    flash('Nilai budget tidak sah.', 'error')
+                    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+            except (ValueError, TypeError):
+                flash('Format budget tidak sah.', 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+            
+            skills_json = form_data['skills_required']
+            try:
+                skills_required = json.loads(skills_json) if skills_json else []
+                if not isinstance(skills_required, list):
+                    skills_required = []
+                skills_required = [sanitize_input(str(skill), max_length=50) for skill in skills_required[:20]]
+            except json.JSONDecodeError:
+                skills_required = []
+            
+            deadline = None
+            deadline_str = form_data['deadline']
+            if deadline_str:
+                try:
+                    deadline = datetime.fromisoformat(deadline_str)
+                    if deadline < datetime.utcnow():
+                        flash('Tarikh akhir mesti pada masa hadapan.', 'error')
+                        return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+                except (ValueError, TypeError):
+                    flash('Format tarikh tidak sah.', 'error')
+                    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+            
+            new_gig = Gig(
+                title=title,
+                description=description,
+                category=category,
+                budget_min=budget_min,
+                budget_max=budget_max,
+                duration=duration,
+                location=location,
+                is_remote=form_data['is_remote'],
+                client_id=user_id,
+                halal_compliant=form_data['halal_compliant'],
+                is_instant_payout=form_data['is_instant_payout'],
+                is_brand_partnership=form_data['is_brand_partnership'],
+                skills_required=json.dumps(skills_required),
+                deadline=deadline
+            )
+            
+            db.session.add(new_gig)
+            db.session.commit()
+            
+            flash('Gig berjaya dipost!', 'success')
+            return redirect('/dashboard')
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Create gig error: {str(e)}")
+            flash('Ralat berlaku. Sila cuba lagi.', 'error')
+            return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+    
+    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
 
 @app.route('/dashboard')
 @page_login_required
