@@ -1084,7 +1084,7 @@ def get_gigs():
         for g in gigs:
             # Get client information
             client = User.query.get(g.client_id)
-            client_name = client.name if client else 'Client'
+            client_name = client.full_name if (client and client.full_name) else 'Client'
 
             result.append({
                 'id': g.id,
