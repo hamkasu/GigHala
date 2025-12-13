@@ -16,7 +16,7 @@ PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+app.secret_key = os.environ.get("SESSION_SECRET")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///gighalal.db')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql+psycopg://', 1)
