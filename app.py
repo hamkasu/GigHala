@@ -934,6 +934,52 @@ def browse_gigs():
     categories = Category.query.all()
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
+@app.route('/gig/<int:gig_id>')
+def view_gig(gig_id):
+    """View individual gig details"""
+    gig = Gig.query.get_or_404(gig_id)
+    
+    # Only increment view count for authenticated users to prevent abuse
+    if 'user_id' in session:
+        gig.views = (gig.views or 0) + 1
+        db.session.commit()
+    
+    # Get client info
+    client = User.query.get(gig.client_id)
+    client_gigs_posted = Gig.query.filter_by(client_id=gig.client_id).count()
+    
+    # Parse skills if available
+    skills = []
+    if gig.skills_required:
+        try:
+            skills = json.loads(gig.skills_required)
+        except:
+            skills = []
+    
+    # Check if current user is logged in
+    current_user = None
+    is_own_gig = False
+    existing_application = None
+    
+    if 'user_id' in session:
+        current_user = User.query.get(session['user_id'])
+        is_own_gig = gig.client_id == session['user_id']
+        existing_application = Application.query.filter_by(
+            gig_id=gig_id, 
+            freelancer_id=session['user_id']
+        ).first()
+    
+    return render_template('gig_detail.html',
+                          gig=gig,
+                          client=client,
+                          client_gigs_posted=client_gigs_posted,
+                          skills=skills,
+                          current_user=current_user,
+                          is_own_gig=is_own_gig,
+                          existing_application=existing_application,
+                          lang=get_user_language(),
+                          t=t)
+
 @app.route('/post-gig', methods=['GET', 'POST'])
 @page_login_required
 def post_gig():

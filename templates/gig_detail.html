@@ -1,0 +1,759 @@
+{% extends "base.html" %}
+
+{% block title %}{{ gig.title }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .gig-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    .breadcrumb a {
+        color: var(--primary);
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .gig-layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 32px;
+    }
+
+    @media (max-width: 900px) {
+        .gig-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .gig-main {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        border: 1px solid var(--border);
+    }
+
+    .gig-header {
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .gig-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-halal {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .badge-verified {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+
+    .badge-category {
+        background: #F3E5F5;
+        color: #7B1FA2;
+    }
+
+    .badge-remote {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    .badge-instant {
+        background: #FFF8E1;
+        color: #F57C00;
+    }
+
+    .gig-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+        line-height: 1.3;
+    }
+
+    .gig-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .gig-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .gig-meta-item svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .gig-section {
+        margin-bottom: 32px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+    }
+
+    .gig-description {
+        font-size: 15px;
+        line-height: 1.7;
+        color: var(--text-dark);
+        white-space: pre-wrap;
+    }
+
+    .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .skill-tag {
+        background: var(--bg-light);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .gig-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .sidebar-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        border: 1px solid var(--border);
+    }
+
+    .budget-card {
+        text-align: center;
+    }
+
+    .budget-label {
+        font-size: 14px;
+        color: var(--text-gray);
+        margin-bottom: 8px;
+    }
+
+    .budget-amount {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .budget-range {
+        font-size: 14px;
+        color: var(--text-gray);
+        margin-top: 4px;
+    }
+
+    .apply-btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: all 0.2s;
+    }
+
+    .apply-btn:hover {
+        background: var(--primary-dark);
+    }
+
+    .apply-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .login-prompt {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    .login-prompt a {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .client-card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .client-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .client-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .client-info h4 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .client-info p {
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    .client-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .client-stat {
+        text-align: center;
+        padding: 12px;
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+    }
+
+    .client-stat-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .client-stat-label {
+        font-size: 12px;
+        color: var(--text-gray);
+    }
+
+    .verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: #1565C0;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .verified-badge svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .application-form {
+        margin-top: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .form-input,
+    .form-textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .gig-stats {
+        display: flex;
+        gap: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .gig-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    .gig-stat svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-open {
+        background: #E8F5E9;
+        color: #2E7D32;
+    }
+
+    .status-in_progress {
+        background: #FFF3E0;
+        color: #E65100;
+    }
+
+    .status-completed {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+
+    .status-cancelled {
+        background: #FFEBEE;
+        color: #C62828;
+    }
+
+    .already-applied {
+        background: var(--bg-light);
+        padding: 16px;
+        border-radius: var(--radius-md);
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .already-applied p {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .already-applied .status {
+        font-weight: 600;
+        color: var(--primary);
+        margin-top: 4px;
+    }
+
+    .own-gig-notice {
+        background: #FFF8E1;
+        padding: 16px;
+        border-radius: var(--radius-md);
+        text-align: center;
+        margin-top: 20px;
+        color: #F57C00;
+        font-size: 14px;
+    }
+
+    .deadline-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #FFF8E1;
+        border-radius: var(--radius-md);
+        color: #F57C00;
+        font-size: 14px;
+        margin-top: 16px;
+    }
+
+    .deadline-info svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .application-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .application-modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .modal-header h3 {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--text-gray);
+    }
+
+    .modal-close:hover {
+        color: var(--text-dark);
+    }
+
+    .form-hint {
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-top: 4px;
+    }
+
+    .btn-secondary {
+        padding: 12px 24px;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background: var(--border);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .modal-actions .apply-btn {
+        margin-top: 0;
+        flex: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gig-detail-container">
+    <div class="breadcrumb">
+        <a href="/gigs">{{ t('browse_gigs') }}</a>
+        <span>/</span>
+        <span>{{ gig.category }}</span>
+        <span>/</span>
+        <span>{{ gig.title[:50] }}{% if gig.title|length > 50 %}...{% endif %}</span>
+    </div>
+
+    <div class="gig-layout">
+        <div class="gig-main">
+            <div class="gig-header">
+                <div class="gig-badges">
+                    {% if gig.halal_compliant %}
+                    <span class="badge badge-halal">Halal</span>
+                    {% endif %}
+                    {% if gig.halal_verified %}
+                    <span class="badge badge-verified">Verified</span>
+                    {% endif %}
+                    <span class="badge badge-category">{{ gig.category }}</span>
+                    {% if gig.is_remote %}
+                    <span class="badge badge-remote">Remote</span>
+                    {% endif %}
+                    {% if gig.is_instant_payout %}
+                    <span class="badge badge-instant">Instant Payout</span>
+                    {% endif %}
+                    <span class="status-badge status-{{ gig.status }}">{{ gig.status|replace('_', ' ')|title }}</span>
+                </div>
+
+                <h1 class="gig-title">{{ gig.title }}</h1>
+
+                <div class="gig-meta">
+                    <div class="gig-meta-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span>{{ gig.duration or 'Flexible' }}</span>
+                    </div>
+                    <div class="gig-meta-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span>{{ gig.location or 'Remote' }}</span>
+                    </div>
+                    <div class="gig-meta-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>{{ gig.created_at.strftime('%d %b %Y') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gig-section">
+                <h3 class="section-title">{{ t('cat_general') if lang == 'ms' else 'Description' }}</h3>
+                <div class="gig-description">{{ gig.description }}</div>
+            </div>
+
+            {% if skills %}
+            <div class="gig-section">
+                <h3 class="section-title">{{ 'Kemahiran Diperlukan' if lang == 'ms' else 'Skills Required' }}</h3>
+                <div class="skills-list">
+                    {% for skill in skills %}
+                    <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if gig.deadline %}
+            <div class="deadline-info">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span>{{ 'Tarikh Akhir' if lang == 'ms' else 'Deadline' }}: {{ gig.deadline.strftime('%d %b %Y') }}</span>
+            </div>
+            {% endif %}
+
+            <div class="gig-stats">
+                <div class="gig-stat">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>{{ gig.views }} {{ 'tontonan' if lang == 'ms' else 'views' }}</span>
+                </div>
+                <div class="gig-stat">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>{{ gig.applications }} {{ 'permohonan' if lang == 'ms' else 'applications' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gig-sidebar">
+            <div class="sidebar-card budget-card">
+                <div class="budget-label">{{ t('budget') }}</div>
+                <div class="budget-amount">RM {{ "%.0f"|format(gig.budget_min) }}{% if gig.budget_min != gig.budget_max %} - {{ "%.0f"|format(gig.budget_max) }}{% endif %}</div>
+                {% if gig.budget_min != gig.budget_max %}
+                <div class="budget-range">{{ 'Bergantung kepada skop' if lang == 'ms' else 'Depending on scope' }}</div>
+                {% endif %}
+
+                {% if current_user %}
+                    {% if is_own_gig %}
+                    <div class="own-gig-notice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        {{ 'Ini adalah gig anda' if lang == 'ms' else 'This is your gig' }}
+                    </div>
+                    {% elif existing_application %}
+                    <div class="already-applied">
+                        <p>{{ 'Anda sudah memohon untuk gig ini' if lang == 'ms' else 'You have already applied for this gig' }}</p>
+                        <p class="status">{{ 'Status' if lang == 'ms' else 'Status' }}: {{ existing_application.status|title }}</p>
+                    </div>
+                    {% elif gig.status == 'open' %}
+                    <button class="apply-btn" onclick="openApplicationModal()">
+                        {{ 'Mohon Sekarang' if lang == 'ms' else 'Apply Now' }}
+                    </button>
+                    {% else %}
+                    <button class="apply-btn" disabled>
+                        {{ 'Gig Tidak Tersedia' if lang == 'ms' else 'Gig Not Available' }}
+                    </button>
+                    {% endif %}
+                {% else %}
+                <a href="/?login=1" class="apply-btn" style="display: block; text-align: center;">
+                    {{ 'Mohon Sekarang' if lang == 'ms' else 'Apply Now' }}
+                </a>
+                <div class="login-prompt">
+                    {{ 'Sila' if lang == 'ms' else 'Please' }} <a href="/?login=1">{{ t('login') }}</a> {{ 'untuk memohon' if lang == 'ms' else 'to apply' }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-card client-card">
+                <h4 class="section-title">{{ 'Tentang Klien' if lang == 'ms' else 'About the Client' }}</h4>
+                <div class="client-header">
+                    <div class="client-avatar">{{ client.username[0]|upper }}</div>
+                    <div class="client-info">
+                        <h4>{{ client.full_name or client.username }}</h4>
+                        <p>{{ client.location or 'Malaysia' }}</p>
+                        {% if client.is_verified %}
+                        <span class="verified-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            Verified
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="client-stats">
+                    <div class="client-stat">
+                        <div class="client-stat-value">{{ client_gigs_posted }}</div>
+                        <div class="client-stat-label">{{ 'Gig Disiarkan' if lang == 'ms' else 'Gigs Posted' }}</div>
+                    </div>
+                    <div class="client-stat">
+                        <div class="client-stat-value">{% if client.rating %}{{ "%.1f"|format(client.rating) }}{% else %}-{% endif %}</div>
+                        <div class="client-stat-label">{{ 'Penarafan' if lang == 'ms' else 'Rating' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if current_user and not is_own_gig and not existing_application and gig.status == 'open' %}
+<div class="application-modal" id="applicationModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>{{ 'Mohon Gig' if lang == 'ms' else 'Apply for Gig' }}</h3>
+            <button class="modal-close" onclick="closeApplicationModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <form id="applicationForm" onsubmit="submitApplication(event)">
+            <div class="form-group">
+                <label class="form-label">{{ 'Harga Cadangan (RM)' if lang == 'ms' else 'Proposed Price (RM)' }}</label>
+                <input type="number" class="form-input" name="proposed_price" id="proposedPrice" 
+                       min="{{ gig.budget_min }}" max="{{ gig.budget_max * 1.5 }}" step="1"
+                       placeholder="{{ gig.budget_min }} - {{ gig.budget_max }}" required>
+                <p class="form-hint">{{ 'Budget klien: RM' if lang == 'ms' else 'Client budget: RM' }}{{ "%.0f"|format(gig.budget_min) }} - RM{{ "%.0f"|format(gig.budget_max) }}</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ 'Surat Lamaran' if lang == 'ms' else 'Cover Letter' }}</label>
+                <textarea class="form-textarea" name="cover_letter" id="coverLetter" 
+                          placeholder="{{ 'Terangkan mengapa anda sesuai untuk gig ini...' if lang == 'ms' else 'Explain why you are suitable for this gig...' }}" required></textarea>
+                <p class="form-hint">{{ 'Minimum 50 aksara' if lang == 'ms' else 'Minimum 50 characters' }}</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeApplicationModal()">{{ t('cancel') }}</button>
+                <button type="submit" class="apply-btn">{{ 'Hantar Permohonan' if lang == 'ms' else 'Submit Application' }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openApplicationModal() {
+        document.getElementById('applicationModal').classList.add('active');
+    }
+
+    function closeApplicationModal() {
+        document.getElementById('applicationModal').classList.remove('active');
+    }
+
+    function submitApplication(event) {
+        event.preventDefault();
+        
+        const form = document.getElementById('applicationForm');
+        const proposedPrice = document.getElementById('proposedPrice').value;
+        const coverLetter = document.getElementById('coverLetter').value;
+
+        if (coverLetter.length < 50) {
+            alert('{{ "Surat lamaran mesti sekurang-kurangnya 50 aksara" if lang == "ms" else "Cover letter must be at least 50 characters" }}');
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '{{ "Menghantar..." if lang == "ms" else "Submitting..." }}';
+
+        fetch('/api/gigs/{{ gig.id }}/apply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                proposed_price: parseFloat(proposedPrice),
+                cover_letter: coverLetter
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '{{ "Hantar Permohonan" if lang == "ms" else "Submit Application" }}';
+            } else {
+                alert('{{ "Permohonan berjaya dihantar!" if lang == "ms" else "Application submitted successfully!" }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '{{ "Hantar Permohonan" if lang == "ms" else "Submit Application" }}';
+        });
+    }
+
+    document.getElementById('applicationModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeApplicationModal();
+        }
+    });
+</script>
+{% endblock %}
