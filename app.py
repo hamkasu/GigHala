@@ -228,19 +228,17 @@ TRANSLATIONS = {
         # Category Names
         'cat_design': 'Design & Kreatif',
         'cat_writing': 'Penulisan & Terjemahan',
-        'cat_video': 'Video & Animasi',
+        'cat_content': 'Penciptaan Kandungan',
+        'cat_photography': 'Fotografi, Videografi & Animasi',
         'cat_web': 'Pembangunan Web',
         'cat_marketing': 'Pemasaran Digital',
         'cat_tutoring': 'Tunjuk Ajar',
-        'cat_content': 'Penciptaan Kandungan',
-        'cat_admin': 'Sokongan Admin',
+        'cat_admin': 'Sokongan Admin & Pentadbiran Maya',
         'cat_general': 'Kerja Am',
-        'cat_virtual_assistant': 'Pentadbiran Maya',
         'cat_delivery': 'Penghantaran & Logistik',
         'cat_micro_tasks': 'Micro-Tasks & Tugasan',
         'cat_events': 'Pengurusan Acara',
         'cat_caregiving': 'Penjagaan & Perkhidmatan',
-        'cat_photography': 'Fotografi & Videografi',
         'cat_creative_other': 'Lain-lain Kreatif',
 
         # Gigs Page
@@ -1778,18 +1776,22 @@ def get_stats():
 @app.route('/api/categories', methods=['GET'])
 def get_categories():
     categories = [
-        {'id': 'design', 'name': 'Graphic Design', 'icon': '🎨'},
-        {'id': 'writing', 'name': 'Writing & Translation', 'icon': '✍️'},
-        {'id': 'video', 'name': 'Video Editing', 'icon': '🎬'},
-        {'id': 'tutoring', 'name': 'Tutoring & Education', 'icon': '📚'},
-        {'id': 'tech', 'name': 'Tech & Programming', 'icon': '💻'},
-        {'id': 'marketing', 'name': 'Digital Marketing', 'icon': '📱'},
-        {'id': 'admin', 'name': 'Virtual Assistant', 'icon': '📋'},
-        {'id': 'content', 'name': 'Content Creation', 'icon': '📸'},
-        {'id': 'voice', 'name': 'Voice Over', 'icon': '🎤'},
-        {'id': 'data', 'name': 'Data Entry', 'icon': '📊'}
+        {'id': 'design', 'name': 'Design & Kreatif', 'icon': '🎨'},
+        {'id': 'writing', 'name': 'Penulisan & Terjemahan', 'icon': '✍️'},
+        {'id': 'content', 'name': 'Penciptaan Kandungan', 'icon': '📸'},
+        {'id': 'photography', 'name': 'Fotografi, Videografi & Animasi', 'icon': '📷'},
+        {'id': 'web', 'name': 'Pembangunan Web', 'icon': '💻'},
+        {'id': 'marketing', 'name': 'Pemasaran Digital', 'icon': '📱'},
+        {'id': 'tutoring', 'name': 'Tunjuk Ajar', 'icon': '📚'},
+        {'id': 'admin', 'name': 'Sokongan Admin & Pentadbiran Maya', 'icon': '📋'},
+        {'id': 'general', 'name': 'Kerja Am', 'icon': '🔧'},
+        {'id': 'delivery', 'name': 'Penghantaran & Logistik', 'icon': '🚚'},
+        {'id': 'micro_tasks', 'name': 'Micro-Tasks & Tugasan', 'icon': '✅'},
+        {'id': 'events', 'name': 'Pengurusan Acara', 'icon': '🎉'},
+        {'id': 'caregiving', 'name': 'Penjagaan & Perkhidmatan', 'icon': '🏥'},
+        {'id': 'creative_other', 'name': 'Lain-lain Kreatif', 'icon': '🎭'}
     ]
-    
+
     return jsonify(categories)
 
 # Admin Routes

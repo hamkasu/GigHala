@@ -381,18 +381,22 @@ def get_stats():
 @app.route('/api/categories', methods=['GET'])
 def get_categories():
     categories = [
-        {'id': 'design', 'name': 'Graphic Design', 'icon': '🎨'},
-        {'id': 'writing', 'name': 'Writing & Translation', 'icon': '✍️'},
-        {'id': 'video', 'name': 'Video Editing', 'icon': '🎬'},
-        {'id': 'tutoring', 'name': 'Tutoring & Education', 'icon': '📚'},
-        {'id': 'tech', 'name': 'Tech & Programming', 'icon': '💻'},
-        {'id': 'marketing', 'name': 'Digital Marketing', 'icon': '📱'},
-        {'id': 'admin', 'name': 'Virtual Assistant', 'icon': '📋'},
-        {'id': 'content', 'name': 'Content Creation', 'icon': '📸'},
-        {'id': 'voice', 'name': 'Voice Over', 'icon': '🎤'},
-        {'id': 'data', 'name': 'Data Entry', 'icon': '📊'}
+        {'id': 'design', 'name': 'Design & Kreatif', 'icon': '🎨'},
+        {'id': 'writing', 'name': 'Penulisan & Terjemahan', 'icon': '✍️'},
+        {'id': 'content', 'name': 'Penciptaan Kandungan', 'icon': '📸'},
+        {'id': 'photography', 'name': 'Fotografi, Videografi & Animasi', 'icon': '📷'},
+        {'id': 'web', 'name': 'Pembangunan Web', 'icon': '💻'},
+        {'id': 'marketing', 'name': 'Pemasaran Digital', 'icon': '📱'},
+        {'id': 'tutoring', 'name': 'Tunjuk Ajar', 'icon': '📚'},
+        {'id': 'admin', 'name': 'Sokongan Admin & Pentadbiran Maya', 'icon': '📋'},
+        {'id': 'general', 'name': 'Kerja Am', 'icon': '🔧'},
+        {'id': 'delivery', 'name': 'Penghantaran & Logistik', 'icon': '🚚'},
+        {'id': 'micro_tasks', 'name': 'Micro-Tasks & Tugasan', 'icon': '✅'},
+        {'id': 'events', 'name': 'Pengurusan Acara', 'icon': '🎉'},
+        {'id': 'caregiving', 'name': 'Penjagaan & Perkhidmatan', 'icon': '🏥'},
+        {'id': 'creative_other', 'name': 'Lain-lain Kreatif', 'icon': '🎭'}
     ]
-    
+
     return jsonify(categories)
 
 # Initialize database
