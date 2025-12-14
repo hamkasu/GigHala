@@ -58,6 +58,10 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 14, 2025: Added User Settings page (/settings) with profile editing, password/email change, IC number, and bank account management
+- December 14, 2025: Added EmailHistory model to track email changes with timestamps and IP address
+- December 14, 2025: Added user dropdown menu in navigation for quick access to Dashboard, Settings, and Logout
+- December 14, 2025: Added new User fields: ic_number, bank_name, bank_account_number, bank_account_holder
 - December 14, 2025: Added Payment Gateway Settings in Admin page - clickable cards to select PayHalal or Stripe, with SiteSettings model and API endpoints
 - December 14, 2025: Created PayHalal integration module (payhalal.py) - Malaysian Shariah-compliant payment gateway client
 - December 14, 2025: Fixed admin page navigation to show logged-in user menu instead of login/register buttons
