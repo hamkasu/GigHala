@@ -331,12 +331,34 @@
         border-radius: var(--radius-lg);
         max-width: 450px;
         width: 90%;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     .modal-content h3 {
         margin: 0 0 20px 0;
         color: var(--text-dark);
         font-size: 18px;
+        padding-right: 30px;
+    }
+
+    .modal-close-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: var(--text-gray);
+        cursor: pointer;
+        padding: 4px 8px;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .modal-close-btn:hover {
+        color: var(--text-dark);
     }
 
     .form-group {
@@ -680,8 +702,9 @@
     </div>
 </div>
 
-<div id="payout-detail-modal" class="modal">
-    <div class="modal-content">
+<div id="payout-detail-modal" class="modal" onclick="if(event.target===this) closePayoutModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="closePayoutModal()">&times;</button>
         <h3>Payout Details</h3>
         <div id="payout-detail-content"></div>
         <div class="modal-actions">
@@ -693,8 +716,9 @@
     </div>
 </div>
 
-<div id="edit-user-modal" class="modal">
-    <div class="modal-content">
+<div id="edit-user-modal" class="modal" onclick="closeModalOnBackdrop(event, 'edit-user-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="closeModal('edit-user-modal')">&times;</button>
         <h3>Edit User</h3>
         <div class="form-group">
             <label>Username:</label>
@@ -731,8 +755,9 @@
     </div>
 </div>
 
-<div id="view-user-modal" class="modal">
-    <div class="modal-content modal-lg">
+<div id="view-user-modal" class="modal" onclick="closeModalOnBackdrop(event, 'view-user-modal')">
+    <div class="modal-content modal-lg" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="closeModal('view-user-modal')">&times;</button>
         <h3>User Details</h3>
         <div id="view-user-content">
             <p>Loading...</p>
@@ -743,8 +768,9 @@
     </div>
 </div>
 
-<div id="edit-gig-modal" class="modal">
-    <div class="modal-content">
+<div id="edit-gig-modal" class="modal" onclick="closeModalOnBackdrop(event, 'edit-gig-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close-btn" onclick="closeModal('edit-gig-modal')">&times;</button>
         <h3>Edit Gig</h3>
         <div class="form-group">
             <label>Title:</label>
@@ -1114,6 +1140,29 @@
     function closeModal(modalId) {
         document.getElementById(modalId).classList.remove('active');
     }
+
+    function closeModalOnBackdrop(event, modalId) {
+        if (event.target.classList.contains('modal')) {
+            closeModal(modalId);
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('payout-detail-modal').classList.contains('active')) {
+                closePayoutModal();
+            }
+            if (document.getElementById('edit-user-modal').classList.contains('active')) {
+                closeModal('edit-user-modal');
+            }
+            if (document.getElementById('view-user-modal').classList.contains('active')) {
+                closeModal('view-user-modal');
+            }
+            if (document.getElementById('edit-gig-modal').classList.contains('active')) {
+                closeModal('edit-gig-modal');
+            }
+        }
+    });
 
     async function saveUserChanges() {
         if (!currentEditUserId) return;
