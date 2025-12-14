@@ -2917,6 +2917,42 @@ def admin_get_users():
         app.logger.error(f"Admin get users error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve users'}), 500
 
+@app.route('/api/admin/users/<int:user_id>', methods=['GET'])
+@admin_required
+def admin_get_user(user_id):
+    """Get a single user's complete details for admin view"""
+    try:
+        user = User.query.get_or_404(user_id)
+        return jsonify({
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'full_name': user.full_name,
+                'phone': user.phone,
+                'ic_number': user.ic_number,
+                'user_type': user.user_type,
+                'location': user.location,
+                'skills': user.skills,
+                'bio': user.bio,
+                'rating': user.rating,
+                'review_count': user.review_count,
+                'total_earnings': user.total_earnings,
+                'completed_gigs': user.completed_gigs,
+                'language': user.language,
+                'is_verified': user.is_verified,
+                'halal_verified': user.halal_verified,
+                'is_admin': user.is_admin,
+                'bank_name': user.bank_name,
+                'bank_account_number': user.bank_account_number,
+                'bank_account_holder': user.bank_account_holder,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get user error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve user'}), 500
+
 @app.route('/api/admin/users/<int:user_id>', methods=['PUT'])
 @admin_required
 def admin_update_user(user_id):

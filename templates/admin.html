@@ -187,6 +187,15 @@
         transition: all 0.2s;
     }
 
+    .btn-view {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #2563eb;
+    }
+
     .btn-edit {
         background: var(--primary);
         color: white;
@@ -203,6 +212,65 @@
 
     .btn-danger:hover {
         background: #dc2626;
+    }
+
+    .modal-lg {
+        max-width: 800px;
+    }
+
+    .user-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .detail-section {
+        background: var(--bg-light);
+        padding: 16px;
+        border-radius: var(--radius-md);
+    }
+
+    .detail-section.full-width {
+        grid-column: span 2;
+    }
+
+    .detail-section h4 {
+        margin: 0 0 12px 0;
+        color: var(--primary);
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-row .label {
+        color: var(--text-gray);
+        font-size: 13px;
+    }
+
+    .detail-row .value {
+        font-weight: 500;
+        color: var(--text-dark);
+        font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+        .user-detail-grid {
+            grid-template-columns: 1fr;
+        }
+        .detail-section.full-width {
+            grid-column: span 1;
+        }
     }
 
     .pagination {
@@ -663,6 +731,18 @@
     </div>
 </div>
 
+<div id="view-user-modal" class="modal">
+    <div class="modal-content modal-lg">
+        <h3>User Details</h3>
+        <div id="view-user-content">
+            <p>Loading...</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeModal('view-user-modal')">Close</button>
+        </div>
+    </div>
+</div>
+
 <div id="edit-gig-modal" class="modal">
     <div class="modal-content">
         <h3>Edit Gig</h3>
@@ -886,6 +966,7 @@
                     <td><span class="badge ${user.is_verified ? 'verified' : 'unverified'}">${user.is_verified ? 'Verified' : 'Unverified'}</span></td>
                     <td>
                         <div class="action-btns">
+                            <button class="btn-sm btn-view" onclick="viewUserDetails(${user.id})">View</button>
                             <button class="btn-sm btn-edit" onclick="editUser(${user.id})">Edit</button>
                         </div>
                     </td>
@@ -936,9 +1017,80 @@
         }
     }
 
-    function editUser(userId) {
+    async function editUser(userId) {
         currentEditUserId = userId;
-        document.getElementById('edit-user-modal').classList.add('active');
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`);
+            if (!response.ok) throw new Error('Failed to load user');
+            const data = await response.json();
+            const user = data.user;
+            
+            document.getElementById('edit-username').value = user.username || '';
+            document.getElementById('edit-email').value = user.email || '';
+            document.getElementById('edit-user-type').value = user.user_type || 'freelancer';
+            document.getElementById('edit-verified').checked = user.is_verified || false;
+            document.getElementById('edit-is-admin').checked = user.is_admin || false;
+            
+            document.getElementById('edit-user-modal').classList.add('active');
+        } catch (error) {
+            console.error('Error loading user:', error);
+            alert('Failed to load user details');
+        }
+    }
+
+    async function viewUserDetails(userId) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`);
+            if (!response.ok) throw new Error('Failed to load user');
+            const data = await response.json();
+            const user = data.user;
+            
+            document.getElementById('view-user-content').innerHTML = `
+                <div class="user-detail-grid">
+                    <div class="detail-section">
+                        <h4>Basic Information</h4>
+                        <div class="detail-row"><span class="label">ID:</span><span class="value">${user.id}</span></div>
+                        <div class="detail-row"><span class="label">Username:</span><span class="value">${user.username || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Full Name:</span><span class="value">${user.full_name || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Email:</span><span class="value">${user.email || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Phone:</span><span class="value">${user.phone || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">IC Number:</span><span class="value">${user.ic_number || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Location:</span><span class="value">${user.location || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">User Type:</span><span class="value badge ${user.user_type}">${user.user_type || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Created:</span><span class="value">${user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A'}</span></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Status & Verification</h4>
+                        <div class="detail-row"><span class="label">Verified:</span><span class="value badge ${user.is_verified ? 'verified' : 'unverified'}">${user.is_verified ? 'Yes' : 'No'}</span></div>
+                        <div class="detail-row"><span class="label">Halal Verified:</span><span class="value badge ${user.halal_verified ? 'verified' : 'unverified'}">${user.halal_verified ? 'Yes' : 'No'}</span></div>
+                        <div class="detail-row"><span class="label">Admin:</span><span class="value badge ${user.is_admin ? 'admin' : ''}">${user.is_admin ? 'Yes' : 'No'}</span></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Performance</h4>
+                        <div class="detail-row"><span class="label">Rating:</span><span class="value">${user.rating ? user.rating.toFixed(1) : '0.0'} / 5.0</span></div>
+                        <div class="detail-row"><span class="label">Reviews:</span><span class="value">${user.review_count || 0}</span></div>
+                        <div class="detail-row"><span class="label">Completed Gigs:</span><span class="value">${user.completed_gigs || 0}</span></div>
+                        <div class="detail-row"><span class="label">Total Earnings:</span><span class="value">RM ${(user.total_earnings || 0).toFixed(2)}</span></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>Bank Details</h4>
+                        <div class="detail-row"><span class="label">Bank Name:</span><span class="value">${user.bank_name || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Account Number:</span><span class="value">${user.bank_account_number || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Account Holder:</span><span class="value">${user.bank_account_holder || 'N/A'}</span></div>
+                    </div>
+                    <div class="detail-section full-width">
+                        <h4>Bio & Skills</h4>
+                        <div class="detail-row"><span class="label">Bio:</span><span class="value">${user.bio || 'N/A'}</span></div>
+                        <div class="detail-row"><span class="label">Skills:</span><span class="value">${user.skills || 'N/A'}</span></div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('view-user-modal').classList.add('active');
+        } catch (error) {
+            console.error('Error loading user details:', error);
+            alert('Failed to load user details');
+        }
     }
 
     function editGig(gigId) {
@@ -951,8 +1103,35 @@
     }
 
     async function saveUserChanges() {
-        closeModal('edit-user-modal');
-        loadUsers(usersCurrentPage);
+        if (!currentEditUserId) return;
+        
+        const userData = {
+            user_type: document.getElementById('edit-user-type').value,
+            is_verified: document.getElementById('edit-verified').checked,
+            is_admin: document.getElementById('edit-is-admin').checked
+        };
+        
+        try {
+            const response = await fetch(`/api/admin/users/${currentEditUserId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update user');
+            }
+            
+            closeModal('edit-user-modal');
+            loadUsers(usersCurrentPage);
+            alert('User updated successfully!');
+        } catch (error) {
+            console.error('Error saving user:', error);
+            alert('Failed to save user: ' + error.message);
+        }
     }
 
     async function saveGigChanges() {
