@@ -1020,27 +1020,40 @@
     async function editUser(userId) {
         currentEditUserId = userId;
         try {
-            const response = await fetch(`/api/admin/users/${userId}`);
-            if (!response.ok) throw new Error('Failed to load user');
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Failed to load user');
+            }
             const data = await response.json();
             const user = data.user;
             
-            document.getElementById('edit-username').value = user.username || '';
-            document.getElementById('edit-email').value = user.email || '';
-            document.getElementById('edit-user-type').value = user.user_type || 'freelancer';
-            document.getElementById('edit-verified').checked = user.is_verified || false;
-            document.getElementById('edit-is-admin').checked = user.is_admin || false;
+            const usernameField = document.getElementById('edit-username');
+            const emailField = document.getElementById('edit-email');
+            const userTypeField = document.getElementById('edit-user-type');
+            const verifiedField = document.getElementById('edit-verified');
+            const isAdminField = document.getElementById('edit-is-admin');
+            
+            if (usernameField) usernameField.value = user.username || '';
+            if (emailField) emailField.value = user.email || '';
+            if (userTypeField) userTypeField.value = user.user_type || 'freelancer';
+            if (verifiedField) verifiedField.checked = user.is_verified || false;
+            if (isAdminField) isAdminField.checked = user.is_admin || false;
             
             document.getElementById('edit-user-modal').classList.add('active');
         } catch (error) {
             console.error('Error loading user:', error);
-            alert('Failed to load user details');
+            alert('Failed to load user details: ' + error.message);
         }
     }
 
     async function viewUserDetails(userId) {
         try {
-            const response = await fetch(`/api/admin/users/${userId}`);
+            const response = await fetch(`/api/admin/users/${userId}`, {
+                credentials: 'include'
+            });
             if (!response.ok) throw new Error('Failed to load user');
             const data = await response.json();
             const user = data.user;
@@ -1117,6 +1130,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(userData)
             });
             
