@@ -694,6 +694,20 @@ class User(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     halal_verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
+    # IC Number (Malaysian Identity Card - 12 digits)
+    ic_number = db.Column(db.String(12))
+    # Bank account details for payment transfers
+    bank_name = db.Column(db.String(100))
+    bank_account_number = db.Column(db.String(30))
+    bank_account_holder = db.Column(db.String(120))
+
+class EmailHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    old_email = db.Column(db.String(120), nullable=False)
+    new_email = db.Column(db.String(120), nullable=False)
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1191,6 +1205,167 @@ def dashboard():
                          recent_reviews=recent_reviews,
                          lang=get_user_language(),
                          t=t)
+
+@app.route('/settings')
+@page_login_required
+def settings():
+    """User account settings page"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    return render_template('settings.html', user=user, lang=get_user_language(), t=t)
+
+@app.route('/settings/profile', methods=['POST'])
+@page_login_required
+def update_profile_settings():
+    """Update user profile information"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    try:
+        user.full_name = request.form.get('full_name', '').strip()
+        user.phone = request.form.get('phone', '').strip()
+        user.location = request.form.get('location', '')
+        user.user_type = request.form.get('user_type', 'freelancer')
+        user.language = request.form.get('language', 'ms')
+        user.bio = request.form.get('bio', '').strip()
+        
+        ic_number = request.form.get('ic_number', '').strip()
+        if ic_number:
+            if not re.match(r'^\d{12}$', ic_number):
+                flash('No. IC mestilah 12 digit nombor sahaja.', 'error')
+                return redirect('/settings')
+            user.ic_number = ic_number
+        
+        db.session.commit()
+        flash('Maklumat profil berjaya dikemaskini!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Profile update error: {str(e)}")
+        flash('Ralat berlaku. Sila cuba lagi.', 'error')
+    
+    return redirect('/settings')
+
+@app.route('/settings/password', methods=['POST'])
+@page_login_required
+def change_password():
+    """Change user password"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('new_password', '')
+    confirm_password = request.form.get('confirm_password', '')
+    
+    if not user.password_hash:
+        flash('Sila hubungi sokongan untuk set kata laluan.', 'error')
+        return redirect('/settings')
+    
+    if not check_password_hash(user.password_hash, current_password):
+        flash('Kata laluan semasa tidak tepat.', 'error')
+        return redirect('/settings')
+    
+    if len(new_password) < 8:
+        flash('Kata laluan baru mestilah sekurang-kurangnya 8 aksara.', 'error')
+        return redirect('/settings')
+    
+    if new_password != confirm_password:
+        flash('Kata laluan baru tidak sepadan.', 'error')
+        return redirect('/settings')
+    
+    try:
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        flash('Kata laluan berjaya ditukar!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Password change error: {str(e)}")
+        flash('Ralat berlaku. Sila cuba lagi.', 'error')
+    
+    return redirect('/settings')
+
+@app.route('/settings/email', methods=['POST'])
+@page_login_required
+def change_email():
+    """Change user email with history tracking"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    new_email = request.form.get('new_email', '').strip().lower()
+    current_password = request.form.get('current_password', '')
+    
+    if not user.password_hash:
+        flash('Sila hubungi sokongan untuk set kata laluan.', 'error')
+        return redirect('/settings')
+    
+    if not check_password_hash(user.password_hash, current_password):
+        flash('Kata laluan tidak tepat.', 'error')
+        return redirect('/settings')
+    
+    try:
+        email_info = validate_email(new_email, check_deliverability=False)
+        new_email = email_info.normalized
+    except EmailNotValidError as e:
+        flash(f'Emel tidak sah: {str(e)}', 'error')
+        return redirect('/settings')
+    
+    if new_email == user.email:
+        flash('Emel baru sama dengan emel semasa.', 'error')
+        return redirect('/settings')
+    
+    existing_user = User.query.filter_by(email=new_email).first()
+    if existing_user:
+        flash('Emel ini sudah digunakan.', 'error')
+        return redirect('/settings')
+    
+    try:
+        email_history = EmailHistory(
+            user_id=user_id,
+            old_email=user.email,
+            new_email=new_email,
+            ip_address=request.remote_addr
+        )
+        db.session.add(email_history)
+        
+        user.email = new_email
+        db.session.commit()
+        flash('Emel berjaya ditukar!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Email change error: {str(e)}")
+        flash('Ralat berlaku. Sila cuba lagi.', 'error')
+    
+    return redirect('/settings')
+
+@app.route('/settings/bank', methods=['POST'])
+@page_login_required
+def update_bank_details():
+    """Update user bank account details"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    bank_name = request.form.get('bank_name', '').strip()
+    bank_account_number = request.form.get('bank_account_number', '').strip()
+    bank_account_holder = request.form.get('bank_account_holder', '').strip()
+    
+    # Remove any non-digit characters and validate
+    if bank_account_number:
+        bank_account_number = re.sub(r'\D', '', bank_account_number)
+        if not re.match(r'^\d{8,20}$', bank_account_number):
+            flash('Nombor akaun mestilah 8-20 digit nombor sahaja.', 'error')
+            return redirect('/settings')
+    
+    try:
+        user.bank_name = bank_name if bank_name else None
+        user.bank_account_number = bank_account_number if bank_account_number else None
+        user.bank_account_holder = bank_account_holder if bank_account_holder else None
+        db.session.commit()
+        flash('Maklumat bank berjaya dikemaskini!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Bank update error: {str(e)}")
+        flash('Ralat berlaku. Sila cuba lagi.', 'error')
+    
+    return redirect('/settings')
 
 @app.route('/api/register', methods=['POST'])
 @rate_limit(max_attempts=10, window_minutes=60, lockout_minutes=15)

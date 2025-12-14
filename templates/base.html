@@ -159,6 +159,10 @@
             gap: 16px;
         }
 
+        .user-menu {
+            position: relative;
+        }
+
         .user-avatar {
             width: 36px;
             height: 36px;
@@ -170,6 +174,43 @@
             justify-content: center;
             font-weight: 600;
             font-size: 13px;
+            cursor: pointer;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            min-width: 180px;
+            z-index: 1000;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 12px 16px;
+            color: var(--text-dark);
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-light);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
         }
 
         .lang-switcher {
@@ -507,7 +548,13 @@
                         <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
                     <div class="user-menu">
-                        <a href="/dashboard" class="user-avatar">{{ user.username[:2]|upper }}</a>
+                        <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="/dashboard" class="dropdown-item">Dashboard</a>
+                            <a href="/settings" class="dropdown-item">Tetapan Akaun</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="/api/logout" class="dropdown-item">Log Keluar</a>
+                        </div>
                     </div>
                 {% else %}
                     <a href="#" class="nav-link" onclick="app.showLogin()">Log Masuk</a>
@@ -589,6 +636,21 @@
         document.getElementById('globalSearch')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 window.location.href = '/gigs?search=' + encodeURIComponent(this.value);
+            }
+        });
+
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const userMenu = document.querySelector('.user-menu');
+            if (dropdown && userMenu && !userMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
             }
         });
 
