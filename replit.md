@@ -58,6 +58,9 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 14, 2025: Fixed admin Edit User functionality - saveUserChanges() now properly calls PUT API to save changes
+- December 14, 2025: Added View Details button in admin Users table - shows complete user data (IC, phone, bank info, ratings, earnings)
+- December 14, 2025: Added GET /api/admin/users/<user_id> endpoint for fetching complete user details
 - December 14, 2025: Added User Settings page (/settings) with profile editing, password/email change, IC number, and bank account management
 - December 14, 2025: Added EmailHistory model to track email changes with timestamps and IP address
 - December 14, 2025: Added user dropdown menu in navigation for quick access to Dashboard, Settings, and Logout
