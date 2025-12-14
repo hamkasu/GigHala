@@ -30,6 +30,7 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 # Create uploads directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'work_photos'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'gig_photos'), exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
@@ -158,6 +159,34 @@ class WorkPhoto(db.Model):
             'file_size': self.file_size,
             'caption': self.caption,
             'upload_stage': self.upload_stage,
+            'created_at': self.created_at.isoformat()
+        }
+
+class GigPhoto(db.Model):
+    """Model for storing reference photos uploaded by clients when posting gigs"""
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    uploader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    file_size = db.Column(db.Integer)  # in bytes
+    caption = db.Column(db.Text)
+    photo_type = db.Column(db.String(50), default='reference')  # reference, example, inspiration
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        """Convert gig photo to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'gig_id': self.gig_id,
+            'uploader_id': self.uploader_id,
+            'filename': self.filename,
+            'original_filename': self.original_filename,
+            'file_url': f'/uploads/gig_photos/{self.filename}',
+            'file_size': self.file_size,
+            'caption': self.caption,
+            'photo_type': self.photo_type,
             'created_at': self.created_at.isoformat()
         }
 
@@ -358,6 +387,153 @@ def apply_to_gig(gig_id):
     db.session.commit()
 
     return jsonify({'message': 'Application submitted successfully'}), 201
+
+# ============================================================================
+# GIG REFERENCE PHOTOS (Client uploads when posting gig)
+# ============================================================================
+
+@app.route('/api/gigs/<int:gig_id>/gig-photos', methods=['POST'])
+def upload_gig_photo(gig_id):
+    """Upload reference photos for a gig (client only, when posting/editing gig)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        # Verify gig exists
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client (gig owner) can upload reference photos
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the gig owner can upload reference photos'}), 403
+
+        # Check if file is present
+        if 'photo' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+
+        file = request.files['photo']
+
+        # Check if file is selected
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Validate file type
+        if not allowed_file(file.filename):
+            return jsonify({'error': f'Invalid file type. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}'}), 400
+
+        # Generate unique filename
+        original_filename = secure_filename(file.filename)
+        file_extension = original_filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+
+        # Save file
+        file_path = os.path.join(UPLOAD_FOLDER, 'gig_photos', unique_filename)
+        file.save(file_path)
+
+        # Get file size
+        file_size = os.path.getsize(file_path)
+
+        # Get optional caption and photo type from form data
+        caption = request.form.get('caption', '')
+        photo_type = request.form.get('photo_type', 'reference')
+
+        # Validate photo_type
+        valid_types = ['reference', 'example', 'inspiration']
+        if photo_type not in valid_types:
+            photo_type = 'reference'
+
+        # Create GigPhoto record
+        gig_photo = GigPhoto(
+            gig_id=gig_id,
+            uploader_id=user_id,
+            filename=unique_filename,
+            original_filename=original_filename,
+            file_path=file_path,
+            file_size=file_size,
+            caption=caption[:500] if caption else None,
+            photo_type=photo_type
+        )
+
+        db.session.add(gig_photo)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Reference photo uploaded successfully',
+            'photo': gig_photo.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Upload gig photo error: {str(e)}")
+        if 'file_path' in locals() and os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({'error': 'Failed to upload photo. Please try again.'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/gig-photos', methods=['GET'])
+def get_gig_photos(gig_id):
+    """Get all reference photos for a gig"""
+    try:
+        # Verify gig exists
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Get all gig photos
+        gig_photos = GigPhoto.query.filter_by(gig_id=gig_id).order_by(GigPhoto.created_at.asc()).all()
+
+        return jsonify({
+            'gig_id': gig_id,
+            'photos': [photo.to_dict() for photo in gig_photos],
+            'total_photos': len(gig_photos)
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get gig photos error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve photos. Please try again.'}), 500
+
+@app.route('/api/gig-photos/<int:photo_id>', methods=['DELETE'])
+def delete_gig_photo(photo_id):
+    """Delete a gig reference photo (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig_photo = GigPhoto.query.get_or_404(photo_id)
+        user_id = session['user_id']
+
+        # Get the gig to check ownership
+        gig = Gig.query.get(gig_photo.gig_id)
+
+        # Only gig owner (client) can delete
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the gig owner can delete reference photos'}), 403
+
+        # Delete file from filesystem
+        if os.path.exists(gig_photo.file_path):
+            os.remove(gig_photo.file_path)
+
+        # Delete database record
+        db.session.delete(gig_photo)
+        db.session.commit()
+
+        return jsonify({'message': 'Reference photo deleted successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete gig photo error: {str(e)}")
+        return jsonify({'error': 'Failed to delete photo. Please try again.'}), 500
+
+@app.route('/uploads/gig_photos/<filename>')
+def serve_gig_photo(filename):
+    """Serve gig reference photos (public access)"""
+    try:
+        # Gig photos are public, anyone can view them
+        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'gig_photos'), filename)
+    except Exception as e:
+        app.logger.error(f"Serve gig photo error: {str(e)}")
+        return jsonify({'error': 'Failed to load photo'}), 500
+
+# ============================================================================
+# WORK PHOTOS (Freelancer uploads during work execution)
+# ============================================================================
 
 @app.route('/api/gigs/<int:gig_id>/work-photos', methods=['POST'])
 def upload_work_photo(gig_id):
