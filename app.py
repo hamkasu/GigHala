@@ -909,6 +909,39 @@ class GigPhoto(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
+class SiteSettings(db.Model):
+    """Model for storing site-wide settings including payment gateway preferences"""
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text)
+    description = db.Column(db.Text)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+def get_site_setting(key, default=None):
+    """Get a site setting value"""
+    setting = SiteSettings.query.filter_by(key=key).first()
+    return setting.value if setting else default
+
+def set_site_setting(key, value, description=None, user_id=None):
+    """Set a site setting value"""
+    setting = SiteSettings.query.filter_by(key=key).first()
+    if setting:
+        setting.value = value
+        if description:
+            setting.description = description
+        if user_id:
+            setting.updated_by = user_id
+    else:
+        setting = SiteSettings(key=key, value=value, description=description, updated_by=user_id)
+        db.session.add(setting)
+    db.session.commit()
+    return setting
+
+def get_active_payment_gateway():
+    """Get the currently active payment gateway"""
+    return get_site_setting('payment_gateway', 'stripe')
+
 # Routes
 @app.route('/')
 def index():
@@ -3656,6 +3689,54 @@ def admin_billing_stats():
     except Exception as e:
         app.logger.error(f"Admin billing stats error: {str(e)}")
         return jsonify({'error': 'Failed to get billing statistics'}), 500
+
+# ==================== ADMIN SETTINGS ROUTES ====================
+
+@app.route('/api/admin/settings/payment-gateway', methods=['GET'])
+@admin_required
+def get_payment_gateway_setting():
+    """Get current payment gateway setting"""
+    try:
+        gateway = get_site_setting('payment_gateway', 'stripe')
+        payhalal_configured = bool(os.environ.get('PAYHALAL_MERCHANT_ID') and os.environ.get('PAYHALAL_API_KEY'))
+        stripe_configured = bool(os.environ.get('STRIPE_SECRET_KEY'))
+        
+        return jsonify({
+            'gateway': gateway,
+            'payhalal_configured': payhalal_configured,
+            'stripe_configured': stripe_configured
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get payment gateway error: {str(e)}")
+        return jsonify({'error': 'Failed to get payment gateway setting'}), 500
+
+@app.route('/api/admin/settings/payment-gateway', methods=['POST'])
+@admin_required
+def set_payment_gateway_setting():
+    """Set payment gateway preference"""
+    try:
+        data = request.get_json()
+        gateway = data.get('gateway')
+        
+        if gateway not in ['stripe', 'payhalal']:
+            return jsonify({'error': 'Invalid gateway. Must be stripe or payhalal'}), 400
+        
+        user_id = session.get('user_id')
+        set_site_setting(
+            'payment_gateway', 
+            gateway, 
+            description=f'Payment gateway set to {gateway}',
+            user_id=user_id
+        )
+        
+        return jsonify({
+            'message': f'Payment gateway set to {gateway}',
+            'gateway': gateway
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Set payment gateway error: {str(e)}")
+        return jsonify({'error': 'Failed to set payment gateway'}), 500
 
 # ==================== PAYMENT APPROVAL ROUTES ====================
 
