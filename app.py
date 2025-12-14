@@ -974,6 +974,7 @@ def view_gig(gig_id):
                           client=client,
                           client_gigs_posted=client_gigs_posted,
                           skills=skills,
+                          user=current_user,
                           current_user=current_user,
                           is_own_gig=is_own_gig,
                           existing_application=existing_application,
