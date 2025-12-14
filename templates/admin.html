@@ -364,6 +364,7 @@
     <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
     <button class="tab-btn" onclick="switchTab('users')">Users</button>
     <button class="tab-btn" onclick="switchTab('gigs')">Gigs</button>
+    <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
 </div>
 
 <div id="dashboard-tab" class="tab-content active">
@@ -488,6 +489,62 @@
     </div>
 </div>
 
+<div id="payouts-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Payout Requests</h2>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <select id="payout-status-filter" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border);" onchange="loadPayouts()">
+                    <option value="">All Status</option>
+                    <option value="pending" selected>Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <div class="stat-card" style="padding: 10px 16px; margin: 0; min-width: 200px;">
+                    <h3 style="margin: 0; font-size: 11px;">Pending Amount</h3>
+                    <div class="value" style="font-size: 18px; margin: 0;" id="pending-payout-amount">MYR 0.00</div>
+                </div>
+            </div>
+        </div>
+        <div id="payouts-loading" class="loading">Loading payouts...</div>
+        <div id="payouts-content" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payout #</th>
+                        <th>Freelancer</th>
+                        <th>Amount</th>
+                        <th>Fee</th>
+                        <th>Net Amount</th>
+                        <th>Method</th>
+                        <th>Account Info</th>
+                        <th>Status</th>
+                        <th>Requested</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="payouts-tbody"></tbody>
+            </table>
+            <div class="pagination" id="payouts-pagination"></div>
+        </div>
+    </div>
+</div>
+
+<div id="payout-detail-modal" class="modal">
+    <div class="modal-content">
+        <h3>Payout Details</h3>
+        <div id="payout-detail-content"></div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closePayoutModal()">Close</button>
+            <button class="btn btn-danger" id="payout-reject-btn" onclick="updatePayoutStatus('failed')">Reject</button>
+            <button class="btn btn-warning" id="payout-processing-btn" onclick="updatePayoutStatus('processing')">Mark Processing</button>
+            <button class="btn btn-success" id="payout-approve-btn" onclick="updatePayoutStatus('completed')">Mark Completed</button>
+        </div>
+    </div>
+</div>
+
 <div id="edit-user-modal" class="modal">
     <div class="modal-content">
         <h3>Edit User</h3>
@@ -593,6 +650,7 @@
         if (tabName === 'dashboard') loadDashboard();
         else if (tabName === 'users') loadUsers(1);
         else if (tabName === 'gigs') loadGigs(1);
+        else if (tabName === 'payouts') loadPayouts();
     }
 
     async function loadDashboard() {
@@ -738,6 +796,218 @@
 
     document.getElementById('user-search').addEventListener('input', () => loadUsers(1));
     document.getElementById('gig-status-filter').addEventListener('change', () => loadGigs(1));
+
+    let currentPayoutId = null;
+
+    async function loadPayouts() {
+        const loading = document.getElementById('payouts-loading');
+        const content = document.getElementById('payouts-content');
+        const tbody = document.getElementById('payouts-tbody');
+        const statusFilter = document.getElementById('payout-status-filter').value;
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/admin/billing/payouts?status=${statusFilter}`);
+            if (!response.ok) throw new Error('Failed to load payouts');
+
+            const data = await response.json();
+            const payouts = data.payouts || [];
+
+            loading.style.display = 'none';
+            content.style.display = 'block';
+
+            // Update pending amount
+            const pendingAmount = payouts
+                .filter(p => p.status === 'pending')
+                .reduce((sum, p) => sum + p.amount, 0);
+            document.getElementById('pending-payout-amount').textContent = `MYR ${pendingAmount.toFixed(2)}`;
+
+            if (payouts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No payouts found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = payouts.map(payout => `
+                <tr>
+                    <td><strong>${payout.payout_number}</strong></td>
+                    <td>${payout.freelancer_name}</td>
+                    <td>MYR ${payout.amount.toFixed(2)}</td>
+                    <td>MYR ${payout.fee.toFixed(2)}</td>
+                    <td>MYR ${payout.net_amount.toFixed(2)}</td>
+                    <td>${payout.payment_method.replace(/_/g, ' ').toUpperCase()}</td>
+                    <td>
+                        ${payout.bank_name || 'N/A'}<br>
+                        ${payout.account_number ? `****${payout.account_number.slice(-4)}` : 'N/A'}
+                    </td>
+                    <td><span class="badge ${payout.status}">${payout.status.toUpperCase()}</span></td>
+                    <td>${new Date(payout.requested_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewPayoutDetails(${payout.id})">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading payouts:', error);
+            loading.style.display = 'none';
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: red;">Error: ${error.message}</td></tr>`;
+        }
+    }
+
+    async function viewPayoutDetails(payoutId) {
+        currentPayoutId = payoutId;
+        try {
+            const response = await fetch('/api/admin/billing/payouts');
+            if (!response.ok) throw new Error('Failed to load payout details');
+
+            const data = await response.json();
+            const payout = data.payouts.find(p => p.id === payoutId);
+
+            if (!payout) throw new Error('Payout not found');
+
+            const detailContent = document.getElementById('payout-detail-content');
+            detailContent.innerHTML = `
+                <div class="form-group">
+                    <label>Payout Number:</label>
+                    <div><strong>${payout.payout_number}</strong></div>
+                </div>
+                <div class="form-group">
+                    <label>Freelancer:</label>
+                    <div>${payout.freelancer_name} (${payout.freelancer_email})</div>
+                </div>
+                <div class="form-group">
+                    <label>Amount Details:</label>
+                    <div>
+                        Requested Amount: <strong>MYR ${payout.amount.toFixed(2)}</strong><br>
+                        Processing Fee (2%): MYR ${payout.fee.toFixed(2)}<br>
+                        Net Amount: <strong>MYR ${payout.net_amount.toFixed(2)}</strong>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Payment Method:</label>
+                    <div>${payout.payment_method.replace(/_/g, ' ').toUpperCase()}</div>
+                </div>
+                <div class="form-group">
+                    <label>Account Details:</label>
+                    <div>
+                        Bank: ${payout.bank_name || 'N/A'}<br>
+                        Account Number: ${payout.account_number || 'N/A'}<br>
+                        Account Name: ${payout.account_name || 'N/A'}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <div><span class="badge ${payout.status}">${payout.status.toUpperCase()}</span></div>
+                </div>
+                <div class="form-group">
+                    <label>Requested At:</label>
+                    <div>${new Date(payout.requested_at).toLocaleString()}</div>
+                </div>
+                ${payout.processed_at ? `
+                <div class="form-group">
+                    <label>Processed At:</label>
+                    <div>${new Date(payout.processed_at).toLocaleString()}</div>
+                </div>
+                ` : ''}
+                ${payout.completed_at ? `
+                <div class="form-group">
+                    <label>Completed At:</label>
+                    <div>${new Date(payout.completed_at).toLocaleString()}</div>
+                </div>
+                ` : ''}
+                ${payout.admin_notes ? `
+                <div class="form-group">
+                    <label>Admin Notes:</label>
+                    <div>${payout.admin_notes}</div>
+                </div>
+                ` : ''}
+                ${payout.failure_reason ? `
+                <div class="form-group">
+                    <label>Failure Reason:</label>
+                    <div style="color: red;">${payout.failure_reason}</div>
+                </div>
+                ` : ''}
+                <div class="form-group">
+                    <label>Admin Notes (optional):</label>
+                    <textarea id="payout-admin-notes" rows="3" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">${payout.admin_notes || ''}</textarea>
+                </div>
+                ${payout.status === 'failed' || payout.status === 'cancelled' ? '' : `
+                <div class="form-group">
+                    <label>Failure Reason (for rejection):</label>
+                    <textarea id="payout-failure-reason" rows="2" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border);"></textarea>
+                </div>
+                `}
+            `;
+
+            // Show/hide action buttons based on status
+            const rejectBtn = document.getElementById('payout-reject-btn');
+            const processingBtn = document.getElementById('payout-processing-btn');
+            const approveBtn = document.getElementById('payout-approve-btn');
+
+            if (payout.status === 'completed' || payout.status === 'failed' || payout.status === 'cancelled') {
+                rejectBtn.style.display = 'none';
+                processingBtn.style.display = 'none';
+                approveBtn.style.display = 'none';
+            } else {
+                rejectBtn.style.display = payout.status !== 'failed' ? 'inline-block' : 'none';
+                processingBtn.style.display = payout.status === 'pending' ? 'inline-block' : 'none';
+                approveBtn.style.display = 'inline-block';
+            }
+
+            document.getElementById('payout-detail-modal').classList.add('active');
+        } catch (error) {
+            console.error('Error loading payout details:', error);
+            alert('Failed to load payout details: ' + error.message);
+        }
+    }
+
+    async function updatePayoutStatus(newStatus) {
+        if (!currentPayoutId) return;
+
+        const adminNotes = document.getElementById('payout-admin-notes').value;
+        const failureReasonEl = document.getElementById('payout-failure-reason');
+        const failureReason = failureReasonEl ? failureReasonEl.value : '';
+
+        if (newStatus === 'failed' && !failureReason) {
+            alert('Please provide a failure reason');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to mark this payout as ${newStatus}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/billing/payouts/${currentPayoutId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: newStatus,
+                    admin_notes: adminNotes,
+                    failure_reason: failureReason
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to update payout status');
+
+            const data = await response.json();
+            alert(data.message || 'Payout status updated successfully');
+
+            closePayoutModal();
+            loadPayouts();
+        } catch (error) {
+            console.error('Error updating payout:', error);
+            alert('Failed to update payout: ' + error.message);
+        }
+    }
+
+    function closePayoutModal() {
+        document.getElementById('payout-detail-modal').classList.remove('active');
+        currentPayoutId = null;
+    }
 
     checkAdminAccess();
 </script>

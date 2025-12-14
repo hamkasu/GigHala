@@ -600,7 +600,7 @@
 
     async function loadWalletData() {
         try {
-            const response = await fetch('/api/wallet');
+            const response = await fetch('/api/billing/wallet');
             if (response.ok) {
                 walletData = await response.json();
                 document.getElementById('availableBalance').textContent = `MYR ${walletData.balance.toFixed(2)}`;
@@ -635,7 +635,7 @@
 
         try {
             const type = document.getElementById('transactionType').value;
-            const response = await fetch(`/api/transactions?type=${type}`);
+            const response = await fetch(`/api/billing/transactions?type=${type}`);
             if (response.ok) {
                 const data = await response.json();
                 loading.style.display = 'none';
@@ -674,7 +674,7 @@
 
         try {
             const status = document.getElementById('invoiceStatus').value;
-            const response = await fetch(`/api/invoices?status=${status}`);
+            const response = await fetch(`/api/billing/invoices?status=${status}`);
             if (response.ok) {
                 const data = await response.json();
                 loading.style.display = 'none';
@@ -712,7 +712,7 @@
         empty.style.display = 'none';
 
         try {
-            const response = await fetch('/api/payouts');
+            const response = await fetch('/api/billing/payouts');
             if (response.ok) {
                 const data = await response.json();
                 loading.style.display = 'none';
@@ -769,7 +769,7 @@
         };
 
         try {
-            const response = await fetch('/api/payouts', {
+            const response = await fetch('/api/billing/payouts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
