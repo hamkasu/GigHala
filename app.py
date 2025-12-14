@@ -1169,6 +1169,10 @@ def register():
         if not data or not data.get('email') or not data.get('username') or not data.get('password'):
             return jsonify({'error': 'Missing required fields'}), 400
 
+        # Validate privacy consent (PDPA 2010 requirement)
+        if not data.get('privacy_consent'):
+            return jsonify({'error': 'You must agree to the Privacy Policy to register'}), 400
+
         # Validate email format
         try:
             email_info = validate_email(data['email'], check_deliverability=False)
@@ -2910,6 +2914,7 @@ def get_wallet():
             db.session.commit()
 
         return jsonify({
+            'user_id': user_id,
             'balance': wallet.balance,
             'held_balance': wallet.held_balance,
             'total_earned': wallet.total_earned,
@@ -2953,6 +2958,9 @@ def get_transactions():
 
             transactions.append({
                 'id': t.id,
+                'gig_id': t.gig_id,
+                'client_id': t.client_id,
+                'freelancer_id': t.freelancer_id,
                 'gig_title': gig.title if gig else 'N/A',
                 'client_name': client.username if client else 'N/A',
                 'freelancer_name': freelancer.username if freelancer else 'N/A',
@@ -2961,16 +2969,12 @@ def get_transactions():
                 'net_amount': t.net_amount,
                 'payment_method': t.payment_method,
                 'status': t.status,
+                'transaction_date': t.transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
                 'date': t.transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
                 'type': 'sent' if t.client_id == user_id else 'received'
             })
 
-        return jsonify({
-            'transactions': transactions,
-            'total': pagination.total,
-            'pages': pagination.pages,
-            'current_page': pagination.page
-        }), 200
+        return jsonify(transactions), 200
     except Exception as e:
         app.logger.error(f"Get transactions error: {str(e)}")
         return jsonify({'error': 'Failed to get transactions'}), 500
@@ -3006,6 +3010,7 @@ def get_invoices():
             invoices.append({
                 'id': inv.id,
                 'invoice_number': inv.invoice_number,
+                'gig_id': inv.gig_id,
                 'gig_title': gig.title if gig else 'N/A',
                 'client_name': client.username if client else 'N/A',
                 'freelancer_name': freelancer.username if freelancer else 'N/A',
@@ -3016,17 +3021,13 @@ def get_invoices():
                 'status': inv.status,
                 'payment_method': inv.payment_method,
                 'created_at': inv.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'issue_date': inv.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'paid_at': inv.paid_at.strftime('%Y-%m-%d %H:%M:%S') if inv.paid_at else None,
                 'due_date': inv.due_date.strftime('%Y-%m-%d') if inv.due_date else None,
                 'role': 'client' if inv.client_id == user_id else 'freelancer'
             })
 
-        return jsonify({
-            'invoices': invoices,
-            'total': pagination.total,
-            'pages': pagination.pages,
-            'current_page': pagination.page
-        }), 200
+        return jsonify(invoices), 200
     except Exception as e:
         app.logger.error(f"Get invoices error: {str(e)}")
         return jsonify({'error': 'Failed to get invoices'}), 500
@@ -3053,6 +3054,7 @@ def get_payouts():
                 'fee': p.fee,
                 'net_amount': p.net_amount,
                 'payment_method': p.payment_method,
+                'payout_method': p.payment_method,  # Alias for frontend compatibility
                 'bank_name': p.bank_name,
                 'account_number': p.account_number[-4:] if p.account_number else None,  # Last 4 digits
                 'status': p.status,
@@ -3061,12 +3063,7 @@ def get_payouts():
                 'failure_reason': p.failure_reason
             })
 
-        return jsonify({
-            'payouts': payouts,
-            'total': pagination.total,
-            'pages': pagination.pages,
-            'current_page': pagination.page
-        }), 200
+        return jsonify(payouts), 200
     except Exception as e:
         app.logger.error(f"Get payouts error: {str(e)}")
         return jsonify({'error': 'Failed to get payouts'}), 500
