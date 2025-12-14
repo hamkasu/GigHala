@@ -2582,7 +2582,7 @@ def admin_page():
     if not user or not user.is_admin:
         return render_template('index.html', lang=get_user_language(), t=t)
 
-    return render_template('admin.html', lang=get_user_language(), t=t)
+    return render_template('admin.html', user=user, lang=get_user_language(), t=t)
 
 @app.route('/api/admin/check', methods=['GET'])
 def check_admin():
