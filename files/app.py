@@ -2,10 +2,12 @@ from flask import Flask, render_template, request, jsonify, session, send_from_d
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
 import secrets
 import json
+import uuid
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
@@ -19,6 +21,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 CORS(app)
+
+# File upload configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+# Create uploads directory if it doesn't exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'work_photos'), exist_ok=True)
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Database Models
 class User(db.Model):
@@ -71,6 +89,8 @@ class Application(db.Model):
     proposed_price = db.Column(db.Float)
     video_pitch = db.Column(db.String(255))
     status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected
+    work_submitted = db.Column(db.Boolean, default=False)  # Track if work has been submitted
+    work_submission_date = db.Column(db.DateTime)  # When work was submitted
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Transaction(db.Model):
@@ -110,6 +130,36 @@ class Referral(db.Model):
     reward_amount = db.Column(db.Float, default=10.0)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class WorkPhoto(db.Model):
+    """Model for storing work photos uploaded by freelancers and clients"""
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    uploader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    uploader_type = db.Column(db.String(20), nullable=False)  # 'freelancer' or 'client'
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    file_size = db.Column(db.Integer)  # in bytes
+    caption = db.Column(db.Text)
+    upload_stage = db.Column(db.String(50), default='work_in_progress')  # work_in_progress, completed, revision
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        """Convert work photo to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'gig_id': self.gig_id,
+            'uploader_id': self.uploader_id,
+            'uploader_type': self.uploader_type,
+            'filename': self.filename,
+            'original_filename': self.original_filename,
+            'file_url': f'/uploads/work_photos/{self.filename}',
+            'file_size': self.file_size,
+            'caption': self.caption,
+            'upload_stage': self.upload_stage,
+            'created_at': self.created_at.isoformat()
+        }
 
 # Routes
 @app.route('/')
@@ -306,8 +356,173 @@ def apply_to_gig(gig_id):
     
     db.session.add(application)
     db.session.commit()
-    
+
     return jsonify({'message': 'Application submitted successfully'}), 201
+
+@app.route('/api/gigs/<int:gig_id>/work-photos', methods=['POST'])
+def upload_work_photo(gig_id):
+    """Upload work photos for a gig (freelancer or client)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        # Verify gig exists
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Determine uploader type (freelancer or client)
+        uploader_type = None
+        if gig.freelancer_id == user_id:
+            uploader_type = 'freelancer'
+        elif gig.client_id == user_id:
+            uploader_type = 'client'
+        else:
+            return jsonify({'error': 'You are not authorized to upload photos for this gig'}), 403
+
+        # Check if file is present
+        if 'photo' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+
+        file = request.files['photo']
+
+        # Check if file is selected
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Validate file type
+        if not allowed_file(file.filename):
+            return jsonify({'error': f'Invalid file type. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}'}), 400
+
+        # Generate unique filename
+        original_filename = secure_filename(file.filename)
+        file_extension = original_filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
+
+        # Save file
+        file_path = os.path.join(UPLOAD_FOLDER, 'work_photos', unique_filename)
+        file.save(file_path)
+
+        # Get file size
+        file_size = os.path.getsize(file_path)
+
+        # Get optional caption and upload stage from form data
+        caption = request.form.get('caption', '')
+        upload_stage = request.form.get('upload_stage', 'work_in_progress')
+
+        # Validate upload_stage
+        valid_stages = ['work_in_progress', 'completed', 'revision']
+        if upload_stage not in valid_stages:
+            upload_stage = 'work_in_progress'
+
+        # Create WorkPhoto record
+        work_photo = WorkPhoto(
+            gig_id=gig_id,
+            uploader_id=user_id,
+            uploader_type=uploader_type,
+            filename=unique_filename,
+            original_filename=original_filename,
+            file_path=file_path,
+            file_size=file_size,
+            caption=caption[:500] if caption else None,
+            upload_stage=upload_stage
+        )
+
+        db.session.add(work_photo)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Photo uploaded successfully',
+            'photo': work_photo.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Upload work photo error: {str(e)}")
+        if 'file_path' in locals() and os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({'error': 'Failed to upload photo. Please try again.'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/work-photos', methods=['GET'])
+def get_work_photos(gig_id):
+    """Get all work photos for a gig"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        # Verify gig exists
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Check if user is authorized to view photos
+        if not (gig.freelancer_id == user_id or gig.client_id == user_id):
+            return jsonify({'error': 'You are not authorized to view photos for this gig'}), 403
+
+        # Get all work photos for this gig
+        work_photos = WorkPhoto.query.filter_by(gig_id=gig_id).order_by(WorkPhoto.created_at.desc()).all()
+
+        return jsonify({
+            'gig_id': gig_id,
+            'photos': [photo.to_dict() for photo in work_photos],
+            'total_photos': len(work_photos)
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get work photos error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve photos. Please try again.'}), 500
+
+@app.route('/api/work-photos/<int:photo_id>', methods=['DELETE'])
+def delete_work_photo(photo_id):
+    """Delete a work photo"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        work_photo = WorkPhoto.query.get_or_404(photo_id)
+        user_id = session['user_id']
+
+        # Check if user is authorized to delete
+        if work_photo.uploader_id != user_id:
+            return jsonify({'error': 'You are not authorized to delete this photo'}), 403
+
+        # Delete file from filesystem
+        if os.path.exists(work_photo.file_path):
+            os.remove(work_photo.file_path)
+
+        # Delete database record
+        db.session.delete(work_photo)
+        db.session.commit()
+
+        return jsonify({'message': 'Photo deleted successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete work photo error: {str(e)}")
+        return jsonify({'error': 'Failed to delete photo. Please try again.'}), 500
+
+@app.route('/uploads/work_photos/<filename>')
+def serve_work_photo(filename):
+    """Serve uploaded work photos"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        # Get the work photo record to verify access
+        work_photo = WorkPhoto.query.filter_by(filename=filename).first_or_404()
+        user_id = session['user_id']
+
+        # Get the gig to check authorization
+        gig = Gig.query.get(work_photo.gig_id)
+
+        # Check if user is authorized to view
+        if not (gig.freelancer_id == user_id or gig.client_id == user_id):
+            return jsonify({'error': 'You are not authorized to view this photo'}), 403
+
+        # Serve the file
+        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'work_photos'), filename)
+
+    except Exception as e:
+        app.logger.error(f"Serve work photo error: {str(e)}")
+        return jsonify({'error': 'Failed to load photo'}), 500
 
 @app.route('/api/profile', methods=['GET'])
 def get_profile():
