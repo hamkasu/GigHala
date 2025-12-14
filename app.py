@@ -2891,7 +2891,9 @@ def admin_delete_gig(gig_id):
 @page_login_required
 def billing_page():
     """Billing dashboard page"""
-    return render_template('billing.html', lang=get_user_language(), t=t)
+    user_id = session.get('user_id')
+    user = User.query.get(user_id)
+    return render_template('billing.html', user=user, active_page='billing', lang=get_user_language(), t=t)
 
 @app.route('/api/billing/wallet', methods=['GET'])
 @login_required
