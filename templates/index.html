@@ -422,9 +422,90 @@
                             <option value="both">{{ t('both') }}</option>
                         </select>
                     </div>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label style="display: flex; align-items: start; gap: 10px; cursor: pointer; font-size: 14px; line-height: 1.5;">
+                            <input type="checkbox" id="privacyConsent" name="privacy_consent" required style="margin-top: 4px; cursor: pointer;">
+                            <span>
+                                I agree to the <a href="#" onclick="app.showPrivacyPolicy(event)" style="color: var(--primary); text-decoration: underline;">Privacy Policy</a> and consent to GigHalal Tech processing my personal data as described, including identity verification, payment processing, and compliance with PDPA 2010.
+                            </span>
+                        </label>
+                    </div>
                     <button type="submit" class="btn-modal-primary">{{ t('register_free') }}</button>
                     <p class="modal-footer-text">{{ t('have_account') }} <a href="#" onclick="app.switchToLogin()">{{ t('login_now') }}</a></p>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal: Privacy Policy -->
+        <div id="privacyPolicyModal" class="modal">
+            <div class="modal-content modal-large" style="max-width: 800px; max-height: 85vh; overflow-y: auto;">
+                <button class="modal-close" onclick="app.closeModal('privacyPolicyModal')">&times;</button>
+                <h2 class="modal-title">Privacy Policy - GigHalal Tech Sdn Bhd</h2>
+                <div style="padding: 20px; line-height: 1.6; font-size: 14px;">
+                    <h3>1. Introduction</h3>
+                    <p>GigHalal Tech Sdn Bhd ("we", "us", "our") is committed to protecting your personal data in accordance with the Personal Data Protection Act 2010 (PDPA) and its amendments. This Privacy Policy explains how we collect, use, disclose, and protect your personal data when you use the GigHalal mobile app ("App") as a freelancer, client, or visitor.</p>
+                    <p>We process personal data only for lawful purposes related to providing gig matching, payment facilitation, and app services.</p>
+                    <p><strong>Data Protection Officer (DPO):</strong><br>
+                    Email: dpo@gighalal.my<br>
+                    Contact: privacy@gighalal.my</p>
+
+                    <h3>2. Personal Data We Collect</h3>
+                    <p>We collect the following types of personal data:</p>
+                    <ul>
+                        <li><strong>Basic Information:</strong> Full name, phone number, email, profile photo, date of birth.</li>
+                        <li><strong>Identity Verification:</strong> NRIC/Passport details (staged: last 4 digits initially; full for payouts > RM500), selfie for verification.</li>
+                        <li><strong>Financial Data:</strong> Bank account/e-wallet details (e.g., Touch 'n Go), transaction history.</li>
+                        <li><strong>Gig-Related Data:</strong> Skills, video pitches, location (for matching), earnings records, ratings/reviews.</li>
+                        <li><strong>Device/Usage Data:</strong> IP address, device ID, app usage logs.</li>
+                    </ul>
+                    <p>Sensitive personal data (e.g., religious preferences for halal matching) is collected only with your explicit consent.</p>
+
+                    <h3>3. Purposes of Processing</h3>
+                    <p>We process your personal data to:</p>
+                    <ul>
+                        <li>Facilitate gig matching, applications, and communications.</li>
+                        <li>Process payments and payouts (via licensed gateways like iPay88/SenangPay).</li>
+                        <li>Verify identity and prevent fraud (KYC/AML compliance).</li>
+                        <li>Provide earnings summaries and tax reports (aligned with LHDN and Gig Workers Bill 2025).</li>
+                        <li>Improve app features and send notifications (with consent).</li>
+                        <li>Comply with legal obligations (e.g., SOCSO contributions, dispute resolution).</li>
+                    </ul>
+
+                    <h3>4. Consent and Withdrawal</h3>
+                    <p>By registering or using the App, you consent to this processing. You may withdraw consent at any time via app settings or by emailing us—this may limit app functionality (e.g., no payouts without financial data).</p>
+
+                    <h3>5. Disclosure to Third Parties</h3>
+                    <p>We may share data with:</p>
+                    <ul>
+                        <li>Payment gateways and banks for transactions.</li>
+                        <li>Service providers (e.g., cloud storage, analytics—bound by PDPA).</li>
+                        <li>Authorities (e.g., LHDN, PDPC, Gig Workers Tribunal) as required by law.</li>
+                    </ul>
+                    <p>No sale of data to marketers without explicit opt-in.</p>
+
+                    <h3>6. Data Security and Breach Notification</h3>
+                    <p>We use encryption (256-bit for NRIC/financial data) and secure servers. In case of a breach likely to cause significant harm, we will notify you and the Personal Data Protection Commissioner (PDPC) as per 2025 guidelines.</p>
+
+                    <h3>7. Your Rights</h3>
+                    <p>Under PDPA, you have the right to:</p>
+                    <ul>
+                        <li>Access and correct your data.</li>
+                        <li>Request data portability (export in structured format).</li>
+                        <li>Limit processing (e.g., opt-out of marketing).</li>
+                        <li>Delete your account and data (subject to legal retention).</li>
+                    </ul>
+                    <p>Submit requests to privacy@gighalal.my—we respond within 30 days.</p>
+
+                    <h3>8. Data Retention</h3>
+                    <p>We retain data only as needed (e.g., 7 years for financial records per tax laws) or until account deletion.</p>
+
+                    <h3>9. Changes to This Policy</h3>
+                    <p>We may update this Policy—significant changes notified via app/email.</p>
+                    <p><strong>Last Updated:</strong> December 2025</p>
+                </div>
+                <div style="padding: 20px; text-align: center; border-top: 1px solid #ddd;">
+                    <button class="btn-modal-primary" onclick="app.closeModal('privacyPolicyModal')" style="min-width: 150px;">Close</button>
+                </div>
             </div>
         </div>
 

@@ -342,7 +342,14 @@ const app = {
         this.closeModal('registerModal');
         this.showLogin();
     },
-    
+
+    // Show privacy policy modal
+    showPrivacyPolicy(event) {
+        if (event) event.preventDefault();
+        const modal = document.getElementById('privacyPolicyModal');
+        modal.classList.add('active');
+    },
+
     // Handle login form submission
     async handleLogin(event) {
         event.preventDefault();
@@ -385,7 +392,17 @@ const app = {
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
-        
+
+        // Check privacy consent
+        const privacyConsent = document.getElementById('privacyConsent');
+        if (!privacyConsent || !privacyConsent.checked) {
+            alert('You must agree to the Privacy Policy to register. If you do not agree, you will be redirected to the home page.');
+            // Close modal and redirect to home
+            this.closeModal('registerModal');
+            window.location.href = '/';
+            return;
+        }
+
         const data = {
             username: formData.get('username'),
             email: formData.get('email'),
@@ -393,9 +410,10 @@ const app = {
             full_name: formData.get('full_name'),
             phone: formData.get('phone'),
             location: formData.get('location'),
-            user_type: formData.get('user_type')
+            user_type: formData.get('user_type'),
+            privacy_consent: true
         };
-        
+
         try {
             const response = await fetch('/api/register', {
                 method: 'POST',
