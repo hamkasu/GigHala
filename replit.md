@@ -58,6 +58,9 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 14, 2025: Added Payment Gateway Settings in Admin page - clickable cards to select PayHalal or Stripe, with SiteSettings model and API endpoints
+- December 14, 2025: Created PayHalal integration module (payhalal.py) - Malaysian Shariah-compliant payment gateway client
+- December 14, 2025: Fixed admin page navigation to show logged-in user menu instead of login/register buttons
 - December 14, 2025: Added gig detail page template (gig_detail.html) with full gig information display, client details, skills required, application modal form, and proper navigation for authenticated/unauthenticated users
 - December 14, 2025: Added Flask route /gig/<gig_id> for viewing individual gig details with view counting (authenticated users only)
 - December 13, 2025: Added 7 new categories (Pentadbiran Maya, Penghantaran & Logistik, Micro-Tasks, Pengurusan Acara, Penjagaan & Perkhidmatan, Fotografi & Videografi, Lain-lain Kreatif), fixed Kerja Am category visibility, added sample gigs for all new categories
