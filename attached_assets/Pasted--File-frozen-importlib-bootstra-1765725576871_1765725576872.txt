@@ -1,0 +1,113 @@
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 1023, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/app/app.py", line 4238, in <module>
+    if User.query.count() == 0:
+       ~~~~~~~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2835, in scalar
+    ret = self.one()
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+           ~~~~~~~~~~^^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+        params,
+        ^^^^^^^
+        execution_options={"_sa_orm_load_options": self.load_options},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        conn,
+        ^^^^^
+    )
+    ^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    )
+    )
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+    return connection._execute_clauseelement(
+    ^
+    )
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+        self, distilled_params, execution_options
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    result = conn.execute(
+    return meth(
+        statement, params or {}, execution_options=execution_options
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+    self.dialect.do_execute(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        dialect, context, statement, parameters
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    )
+    ^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/app/.venv/lib/python3.13/site-packages/psycopg/cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+sqlalchemy.exc.ProgrammingError: (psycopg.errors.UndefinedColumn) column user.ic_number does not exist
+FROM (SELECT "user".id AS user_id, "user".username AS user_username, "user".email AS user_email, "user".password_hash AS user_password_hash, "user".phone AS user_phone, "user".full_name AS user_full_name, "user".user_type AS user_user_type, "user".location AS user_location, "user".skills AS user_skills, "user".bio AS user_bio, "user".rating AS user_rating, "user".review_count AS user_review_count, "user".total_earnings AS user_total_earnings, "user".completed_gigs AS user_completed_gigs, "user".profile_video AS user_profile_video, "user".language AS user_language, "user".created_at AS user_created_at, "user".is_verified AS user_is_verified, "user".halal_verified AS user_halal_verified, "user".is_admin AS user_is_admin, "user".ic_number AS user_ic_number, "user".bank_name AS user_bank_name, "user".bank_account_number AS user_bank_account_number, "user".bank_account_holder AS user_bank_account_holder 
+LINE 2: ...halal_verified, "user".is_admin AS user_is_admin, "user".ic_...
+                                                             ^
+FROM "user") AS anon_1]
+[SQL: SELECT count(*) AS count_1 
+    ^
+  File "/app/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2025-12-14 15:02:24 +0000] [2] [INFO] Worker exiting (pid: 2)
+[2025-12-14 15:02:24 +0000] [1] [ERROR] Worker (pid:2) exited with code 3
+[2025-12-14 15:02:24 +0000] [1] [ERROR] Shutting down: Master
+[2025-12-14 15:02:24 +0000] [1] [ERROR] Reason: Worker failed to boot.
+
+Load more
