@@ -68,7 +68,7 @@ class Gig(db.Model):
     duration = db.Column(db.String(50))  # e.g., "1-3 days", "1 week"
     location = db.Column(db.String(100))
     is_remote = db.Column(db.Boolean, default=True)
-    status = db.Column(db.String(20), default='open')  # open, in_progress, completed, cancelled
+    status = db.Column(db.String(20), default='open')  # open, in_progress, pending_review, completed, cancelled
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     halal_compliant = db.Column(db.Boolean, default=True)
@@ -523,6 +523,335 @@ def serve_work_photo(filename):
     except Exception as e:
         app.logger.error(f"Serve work photo error: {str(e)}")
         return jsonify({'error': 'Failed to load photo'}), 500
+
+# ============================================================================
+# GIG WORKFLOW: CLIENT TO WORKER COMPLETE PROCESS
+# ============================================================================
+
+@app.route('/api/gigs/<int:gig_id>/applications', methods=['GET'])
+def get_gig_applications(gig_id):
+    """Get all applications for a gig (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client can view applications for their gig
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the gig owner can view applications'}), 403
+
+        # Get all applications with freelancer details
+        applications = Application.query.filter_by(gig_id=gig_id).all()
+
+        result = []
+        for app in applications:
+            freelancer = User.query.get(app.freelancer_id)
+            result.append({
+                'id': app.id,
+                'gig_id': app.gig_id,
+                'freelancer': {
+                    'id': freelancer.id,
+                    'username': freelancer.username,
+                    'full_name': freelancer.full_name,
+                    'rating': freelancer.rating,
+                    'completed_gigs': freelancer.completed_gigs,
+                    'bio': freelancer.bio,
+                    'location': freelancer.location,
+                    'skills': json.loads(freelancer.skills) if freelancer.skills else [],
+                    'is_verified': freelancer.is_verified,
+                    'halal_verified': freelancer.halal_verified
+                },
+                'cover_letter': app.cover_letter,
+                'proposed_price': app.proposed_price,
+                'video_pitch': app.video_pitch,
+                'status': app.status,
+                'created_at': app.created_at.isoformat()
+            })
+
+        return jsonify({
+            'gig_id': gig_id,
+            'applications': result,
+            'total_applications': len(result)
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get applications error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve applications'}), 500
+
+@app.route('/api/applications/<int:application_id>/accept', methods=['POST'])
+def accept_application(application_id):
+    """Client accepts a freelancer's application"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        application = Application.query.get_or_404(application_id)
+        gig = Gig.query.get(application.gig_id)
+        user_id = session['user_id']
+
+        # Only client can accept applications
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the gig owner can accept applications'}), 403
+
+        # Check if gig is still open
+        if gig.status != 'open':
+            return jsonify({'error': 'This gig is no longer accepting applications'}), 400
+
+        # Accept this application
+        application.status = 'accepted'
+
+        # Assign freelancer to gig
+        gig.freelancer_id = application.freelancer_id
+        gig.status = 'in_progress'
+
+        # Reject all other pending applications for this gig
+        other_applications = Application.query.filter(
+            Application.gig_id == gig.id,
+            Application.id != application_id,
+            Application.status == 'pending'
+        ).all()
+
+        for other_app in other_applications:
+            other_app.status = 'rejected'
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Application accepted successfully',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status,
+                'freelancer_id': gig.freelancer_id
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Accept application error: {str(e)}")
+        return jsonify({'error': 'Failed to accept application'}), 500
+
+@app.route('/api/applications/<int:application_id>/reject', methods=['POST'])
+def reject_application(application_id):
+    """Client rejects a freelancer's application"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        application = Application.query.get_or_404(application_id)
+        gig = Gig.query.get(application.gig_id)
+        user_id = session['user_id']
+
+        # Only client can reject applications
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the gig owner can reject applications'}), 403
+
+        # Can only reject pending applications
+        if application.status != 'pending':
+            return jsonify({'error': 'Can only reject pending applications'}), 400
+
+        application.status = 'rejected'
+        db.session.commit()
+
+        return jsonify({'message': 'Application rejected successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Reject application error: {str(e)}")
+        return jsonify({'error': 'Failed to reject application'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/submit-work', methods=['POST'])
+def submit_work(gig_id):
+    """Freelancer submits work for client review"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only assigned freelancer can submit work
+        if gig.freelancer_id != user_id:
+            return jsonify({'error': 'Only the assigned freelancer can submit work'}), 403
+
+        # Gig must be in progress
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'Gig must be in progress to submit work'}), 400
+
+        # Check if work photos were uploaded
+        work_photos = WorkPhoto.query.filter_by(
+            gig_id=gig_id,
+            uploader_id=user_id,
+            uploader_type='freelancer'
+        ).count()
+
+        if work_photos == 0:
+            return jsonify({'error': 'Please upload at least one work photo before submitting'}), 400
+
+        # Update application status
+        application = Application.query.filter_by(
+            gig_id=gig_id,
+            freelancer_id=user_id,
+            status='accepted'
+        ).first()
+
+        if application:
+            application.work_submitted = True
+            application.work_submission_date = datetime.utcnow()
+
+        # Update gig status to pending review
+        gig.status = 'pending_review'
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Work submitted successfully. Waiting for client review.',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status,
+                'work_photos_count': work_photos
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Submit work error: {str(e)}")
+        return jsonify({'error': 'Failed to submit work'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/approve-work', methods=['POST'])
+def approve_work(gig_id):
+    """Client approves completed work"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client can approve work
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can approve work'}), 403
+
+        # Gig must be pending review
+        if gig.status != 'pending_review':
+            return jsonify({'error': 'No work submitted for review'}), 400
+
+        # Mark gig as completed
+        gig.status = 'completed'
+
+        # Update freelancer stats
+        freelancer = User.query.get(gig.freelancer_id)
+        freelancer.completed_gigs += 1
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Work approved! Gig marked as completed.',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Approve work error: {str(e)}")
+        return jsonify({'error': 'Failed to approve work'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/request-revision', methods=['POST'])
+def request_revision(gig_id):
+    """Client requests revisions to submitted work"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client can request revisions
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can request revisions'}), 403
+
+        # Gig must be pending review
+        if gig.status != 'pending_review':
+            return jsonify({'error': 'No work submitted for review'}), 400
+
+        # Get revision notes
+        revision_notes = data.get('notes', '')
+
+        # Change status back to in_progress
+        gig.status = 'in_progress'
+
+        # Update application
+        application = Application.query.filter_by(
+            gig_id=gig_id,
+            freelancer_id=gig.freelancer_id,
+            status='accepted'
+        ).first()
+
+        if application:
+            application.work_submitted = False
+            application.work_submission_date = None
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Revision requested. Freelancer has been notified.',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status
+            },
+            'revision_notes': revision_notes
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Request revision error: {str(e)}")
+        return jsonify({'error': 'Failed to request revision'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/cancel', methods=['POST'])
+def cancel_gig(gig_id):
+    """Cancel a gig (client only, before work is completed)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client can cancel
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can cancel the gig'}), 403
+
+        # Cannot cancel completed gigs
+        if gig.status == 'completed':
+            return jsonify({'error': 'Cannot cancel completed gigs'}), 400
+
+        cancellation_reason = data.get('reason', '')
+
+        gig.status = 'cancelled'
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig cancelled successfully',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Cancel gig error: {str(e)}")
+        return jsonify({'error': 'Failed to cancel gig'}), 500
+
+# ============================================================================
+# END GIG WORKFLOW
+# ============================================================================
 
 @app.route('/api/profile', methods=['GET'])
 def get_profile():
