@@ -956,6 +956,68 @@ def get_active_payment_gateway():
     """Get the currently active payment gateway"""
     return get_site_setting('payment_gateway', 'stripe')
 
+class Escrow(db.Model):
+    """Model for tracking escrow payments between clients and freelancers"""
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    platform_fee = db.Column(db.Float, default=0.0)
+    net_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(30), default='pending')
+    payment_reference = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    funded_at = db.Column(db.DateTime)
+    released_at = db.Column(db.DateTime)
+    refunded_at = db.Column(db.DateTime)
+    dispute_reason = db.Column(db.Text)
+    admin_notes = db.Column(db.Text)
+    
+    def to_dict(self):
+        """Convert escrow to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'gig_id': self.gig_id,
+            'client_id': self.client_id,
+            'freelancer_id': self.freelancer_id,
+            'amount': self.amount,
+            'platform_fee': self.platform_fee,
+            'net_amount': self.net_amount,
+            'status': self.status,
+            'status_label': self.get_status_label(),
+            'status_color': self.get_status_color(),
+            'payment_reference': self.payment_reference,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'funded_at': self.funded_at.isoformat() if self.funded_at else None,
+            'released_at': self.released_at.isoformat() if self.released_at else None,
+            'refunded_at': self.refunded_at.isoformat() if self.refunded_at else None
+        }
+    
+    def get_status_label(self):
+        """Get human-readable status label"""
+        labels = {
+            'pending': 'Pending Payment',
+            'funded': 'Funds Held in Escrow',
+            'released': 'Released to Freelancer',
+            'refunded': 'Refunded to Client',
+            'disputed': 'Under Dispute',
+            'cancelled': 'Cancelled'
+        }
+        return labels.get(self.status, self.status.title())
+    
+    def get_status_color(self):
+        """Get Bootstrap color class for status"""
+        colors = {
+            'pending': 'warning',
+            'funded': 'info',
+            'released': 'success',
+            'refunded': 'secondary',
+            'disputed': 'danger',
+            'cancelled': 'dark'
+        }
+        return colors.get(self.status, 'secondary')
+
 # Routes
 @app.route('/')
 def index():
@@ -1008,13 +1070,20 @@ def view_gig(gig_id):
     is_own_gig = False
     existing_application = None
     
+    escrow = None
+    is_freelancer = False
+    
     if 'user_id' in session:
         current_user = User.query.get(session['user_id'])
         is_own_gig = gig.client_id == session['user_id']
+        is_freelancer = gig.freelancer_id == session['user_id']
         existing_application = Application.query.filter_by(
             gig_id=gig_id, 
             freelancer_id=session['user_id']
         ).first()
+        # Get escrow if user is client or freelancer
+        if is_own_gig or is_freelancer:
+            escrow = Escrow.query.filter_by(gig_id=gig_id).first()
     
     return render_template('gig_detail.html',
                           gig=gig,
@@ -1024,7 +1093,9 @@ def view_gig(gig_id):
                           user=current_user,
                           current_user=current_user,
                           is_own_gig=is_own_gig,
+                          is_freelancer=is_freelancer,
                           existing_application=existing_application,
+                          escrow=escrow,
                           lang=get_user_language(),
                           t=t)
 
@@ -2377,6 +2448,283 @@ def cancel_gig(gig_id):
 
 # ============================================================================
 # END GIG WORKFLOW
+# ============================================================================
+
+# ============================================================================
+# ESCROW ENDPOINTS
+# ============================================================================
+
+@app.route('/api/escrow/create', methods=['POST'])
+def create_escrow():
+    """Create an escrow when client funds a gig"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.json
+        gig_id = data.get('gig_id')
+        amount = float(data.get('amount', 0))
+        
+        if not gig_id or amount <= 0:
+            return jsonify({'error': 'Invalid gig_id or amount'}), 400
+        
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        
+        # Only client can create escrow
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can fund the escrow'}), 403
+        
+        # Gig must have an assigned freelancer
+        if not gig.freelancer_id:
+            return jsonify({'error': 'Gig must have an assigned freelancer'}), 400
+        
+        # Check if escrow already exists
+        existing = Escrow.query.filter_by(gig_id=gig_id).first()
+        if existing and existing.status in ['funded', 'released']:
+            return jsonify({'error': 'Escrow already exists for this gig'}), 400
+        
+        # Calculate platform fee (tiered commission)
+        platform_fee = calculate_commission(amount)
+        net_amount = amount - platform_fee
+        
+        # Create or update escrow
+        if existing:
+            escrow = existing
+            escrow.amount = amount
+            escrow.platform_fee = platform_fee
+            escrow.net_amount = net_amount
+            escrow.status = 'funded'
+            escrow.funded_at = datetime.utcnow()
+        else:
+            escrow = Escrow(
+                gig_id=gig_id,
+                client_id=user_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=platform_fee,
+                net_amount=net_amount,
+                status='funded',
+                funded_at=datetime.utcnow(),
+                payment_reference=f"ESC-{uuid.uuid4().hex[:8].upper()}"
+            )
+            db.session.add(escrow)
+        
+        # Update client wallet (deduct held_balance)
+        client_wallet = Wallet.query.filter_by(user_id=user_id).first()
+        if client_wallet:
+            client_wallet.held_balance += amount
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Escrow funded successfully',
+            'escrow': escrow.to_dict()
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Create escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to create escrow'}), 500
+
+@app.route('/api/escrow/<int:gig_id>', methods=['GET'])
+def get_escrow(gig_id):
+    """Get escrow status for a gig"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        
+        # Only client or freelancer can view escrow
+        if gig.client_id != user_id and gig.freelancer_id != user_id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        
+        if not escrow:
+            return jsonify({
+                'escrow': None,
+                'message': 'No escrow found for this gig'
+            }), 200
+        
+        return jsonify({
+            'escrow': escrow.to_dict()
+        }), 200
+        
+    except Exception as e:
+        app.logger.error(f"Get escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to get escrow'}), 500
+
+@app.route('/api/escrow/<int:gig_id>/release', methods=['POST'])
+def release_escrow(gig_id):
+    """Release escrow funds to freelancer (client action after work approval)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        
+        # Only client can release escrow
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can release escrow'}), 403
+        
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        
+        if not escrow:
+            return jsonify({'error': 'No escrow found'}), 404
+        
+        if escrow.status != 'funded':
+            return jsonify({'error': f'Escrow cannot be released (status: {escrow.status})'}), 400
+        
+        # Release escrow
+        escrow.status = 'released'
+        escrow.released_at = datetime.utcnow()
+        
+        # Update wallets
+        client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        
+        if client_wallet:
+            client_wallet.held_balance -= escrow.amount
+            client_wallet.total_spent += escrow.amount
+        
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            db.session.add(freelancer_wallet)
+        
+        freelancer_wallet.balance += escrow.net_amount
+        freelancer_wallet.total_earned += escrow.net_amount
+        
+        # Record payment history
+        payment_history = PaymentHistory(
+            user_id=gig.freelancer_id,
+            type='release',
+            amount=escrow.net_amount,
+            balance_before=freelancer_wallet.balance - escrow.net_amount,
+            balance_after=freelancer_wallet.balance,
+            description=f"Escrow released for gig: {gig.title}",
+            reference_number=escrow.payment_reference
+        )
+        db.session.add(payment_history)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Escrow released successfully! Funds transferred to freelancer.',
+            'escrow': escrow.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Release escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to release escrow'}), 500
+
+@app.route('/api/escrow/<int:gig_id>/refund', methods=['POST'])
+def refund_escrow(gig_id):
+    """Refund escrow funds to client"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.json or {}
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        
+        # Only client or admin can refund
+        if gig.client_id != user_id and not user.is_admin:
+            return jsonify({'error': 'Only the client or admin can refund escrow'}), 403
+        
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        
+        if not escrow:
+            return jsonify({'error': 'No escrow found'}), 404
+        
+        if escrow.status not in ['funded', 'disputed']:
+            return jsonify({'error': f'Escrow cannot be refunded (status: {escrow.status})'}), 400
+        
+        # Refund escrow
+        escrow.status = 'refunded'
+        escrow.refunded_at = datetime.utcnow()
+        escrow.admin_notes = data.get('reason', '')
+        
+        # Update client wallet
+        client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+        if client_wallet:
+            client_wallet.held_balance -= escrow.amount
+            client_wallet.balance += escrow.amount
+        
+        # Record payment history
+        payment_history = PaymentHistory(
+            user_id=gig.client_id,
+            type='refund',
+            amount=escrow.amount,
+            balance_before=client_wallet.balance - escrow.amount if client_wallet else 0,
+            balance_after=client_wallet.balance if client_wallet else escrow.amount,
+            description=f"Escrow refunded for gig: {gig.title}",
+            reference_number=escrow.payment_reference
+        )
+        db.session.add(payment_history)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Escrow refunded successfully',
+            'escrow': escrow.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Refund escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to refund escrow'}), 500
+
+@app.route('/api/escrow/<int:gig_id>/dispute', methods=['POST'])
+def dispute_escrow(gig_id):
+    """Raise a dispute on escrow"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.json or {}
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        
+        # Only client or freelancer can dispute
+        if gig.client_id != user_id and gig.freelancer_id != user_id:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        
+        if not escrow:
+            return jsonify({'error': 'No escrow found'}), 404
+        
+        if escrow.status != 'funded':
+            return jsonify({'error': f'Cannot dispute escrow (status: {escrow.status})'}), 400
+        
+        reason = data.get('reason', '')
+        if not reason:
+            return jsonify({'error': 'Dispute reason is required'}), 400
+        
+        escrow.status = 'disputed'
+        escrow.dispute_reason = reason
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Dispute raised successfully. Admin will review.',
+            'escrow': escrow.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Dispute escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to raise dispute'}), 500
+
+# ============================================================================
+# END ESCROW ENDPOINTS
 # ============================================================================
 
 # Helper function to recalculate user rating

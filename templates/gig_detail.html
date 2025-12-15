@@ -508,6 +508,213 @@
         margin-top: 0;
         flex: 1;
     }
+
+    /* Escrow Status Card Styles */
+    .escrow-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 2px solid #0ea5e9;
+    }
+
+    .escrow-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .escrow-icon {
+        width: 48px;
+        height: 48px;
+        background: #0ea5e9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .escrow-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .escrow-subtitle {
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    .escrow-amount {
+        text-align: center;
+        padding: 16px;
+        background: white;
+        border-radius: var(--radius-md);
+        margin-bottom: 16px;
+    }
+
+    .escrow-amount-label {
+        font-size: 13px;
+        color: var(--text-gray);
+        margin-bottom: 4px;
+    }
+
+    .escrow-amount-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #0ea5e9;
+    }
+
+    .escrow-progress {
+        margin-bottom: 16px;
+    }
+
+    .escrow-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .escrow-steps::before {
+        content: '';
+        position: absolute;
+        top: 16px;
+        left: 24px;
+        right: 24px;
+        height: 3px;
+        background: #e5e7eb;
+        z-index: 0;
+    }
+
+    .escrow-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .escrow-step-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: #9ca3af;
+    }
+
+    .escrow-step.completed .escrow-step-dot {
+        background: #10b981;
+        color: white;
+    }
+
+    .escrow-step.active .escrow-step-dot {
+        background: #0ea5e9;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+
+    .escrow-step.disputed .escrow-step-dot {
+        background: #ef4444;
+        color: white;
+    }
+
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(14, 165, 233, 0); }
+    }
+
+    .escrow-step-label {
+        font-size: 11px;
+        color: var(--text-gray);
+        text-align: center;
+        max-width: 60px;
+    }
+
+    .escrow-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+
+    .escrow-status-pending { background: #fef3c7; color: #d97706; }
+    .escrow-status-funded { background: #dbeafe; color: #2563eb; }
+    .escrow-status-released { background: #d1fae5; color: #059669; }
+    .escrow-status-refunded { background: #e5e7eb; color: #6b7280; }
+    .escrow-status-disputed { background: #fee2e2; color: #dc2626; }
+
+    .escrow-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .escrow-btn {
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .escrow-btn-primary {
+        background: #10b981;
+        color: white;
+    }
+
+    .escrow-btn-primary:hover {
+        background: #059669;
+    }
+
+    .escrow-btn-secondary {
+        background: white;
+        color: var(--text-dark);
+        border: 1px solid var(--border);
+    }
+
+    .escrow-btn-secondary:hover {
+        background: var(--bg-light);
+    }
+
+    .escrow-btn-danger {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .escrow-btn-danger:hover {
+        background: #fecaca;
+    }
+
+    .escrow-info {
+        font-size: 12px;
+        color: var(--text-gray);
+        text-align: center;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .escrow-fund-form {
+        margin-top: 16px;
+    }
+
+    .escrow-fund-form .form-group {
+        margin-bottom: 12px;
+    }
 </style>
 {% endblock %}
 
@@ -632,6 +839,103 @@
                 {% endif %}
             </div>
 
+            {% if (is_own_gig or is_freelancer) and gig.freelancer_id %}
+            <div class="sidebar-card escrow-card" id="escrowCard">
+                <div class="escrow-header">
+                    <div class="escrow-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <div>
+                        <div class="escrow-title">{{ 'Escrow Selamat' if lang == 'ms' else 'Secure Escrow' }}</div>
+                        <div class="escrow-subtitle">{{ 'Pembayaran dilindungi' if lang == 'ms' else 'Payment protected' }}</div>
+                    </div>
+                </div>
+
+                {% if escrow %}
+                <div class="escrow-amount">
+                    <div class="escrow-amount-label">{{ 'Jumlah Escrow' if lang == 'ms' else 'Escrow Amount' }}</div>
+                    <div class="escrow-amount-value">RM {{ "%.2f"|format(escrow.amount) }}</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <span class="escrow-status-badge escrow-status-{{ escrow.status }}">
+                        {% if escrow.status == 'pending' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        {% elif escrow.status == 'funded' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        {% elif escrow.status == 'released' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        {% elif escrow.status == 'disputed' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        {% endif %}
+                        {{ escrow.get_status_label() }}
+                    </span>
+                </div>
+
+                <div class="escrow-progress">
+                    <div class="escrow-steps">
+                        <div class="escrow-step {% if escrow.status in ['funded', 'released', 'refunded'] %}completed{% endif %}">
+                            <div class="escrow-step-dot">1</div>
+                            <div class="escrow-step-label">{{ 'Dibayar' if lang == 'ms' else 'Funded' }}</div>
+                        </div>
+                        <div class="escrow-step {% if escrow.status == 'funded' %}active{% elif escrow.status in ['released'] %}completed{% elif escrow.status == 'disputed' %}disputed{% endif %}">
+                            <div class="escrow-step-dot">2</div>
+                            <div class="escrow-step-label">{{ 'Dalam Escrow' if lang == 'ms' else 'In Escrow' }}</div>
+                        </div>
+                        <div class="escrow-step {% if escrow.status == 'released' %}completed{% endif %}">
+                            <div class="escrow-step-dot">3</div>
+                            <div class="escrow-step-label">{{ 'Dilepaskan' if lang == 'ms' else 'Released' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="escrow-actions">
+                    {% if is_own_gig and escrow.status == 'funded' and gig.status == 'completed' %}
+                    <button class="escrow-btn escrow-btn-primary" onclick="releaseEscrow()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        {{ 'Lepaskan Dana' if lang == 'ms' else 'Release Funds' }}
+                    </button>
+                    {% endif %}
+
+                    {% if escrow.status == 'funded' %}
+                    <button class="escrow-btn escrow-btn-danger" onclick="openDisputeModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        {{ 'Buka Pertikaian' if lang == 'ms' else 'Raise Dispute' }}
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="escrow-info">
+                    {% if escrow.payment_reference %}
+                    <strong>Ref:</strong> {{ escrow.payment_reference }}
+                    {% endif %}
+                </div>
+
+                {% else %}
+                {% if is_own_gig and gig.status == 'in_progress' %}
+                <div class="escrow-fund-form">
+                    <p style="text-align: center; margin-bottom: 16px; color: var(--text-gray); font-size: 14px;">
+                        {{ 'Dana escrow untuk melindungi freelancer' if lang == 'ms' else 'Fund escrow to protect the freelancer' }}
+                    </p>
+                    <div class="form-group">
+                        <label class="form-label">{{ 'Jumlah (RM)' if lang == 'ms' else 'Amount (RM)' }}</label>
+                        <input type="number" class="form-input" id="escrowAmount" 
+                               value="{{ gig.budget_min }}" min="{{ gig.budget_min }}" step="1">
+                    </div>
+                    <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        {{ 'Dana Escrow' if lang == 'ms' else 'Fund Escrow' }}
+                    </button>
+                </div>
+                {% elif is_freelancer %}
+                <p style="text-align: center; color: var(--text-gray); font-size: 14px;">
+                    {{ 'Menunggu klien untuk mendana escrow' if lang == 'ms' else 'Waiting for client to fund escrow' }}
+                </p>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div class="sidebar-card client-card">
                 <h4 class="section-title">{{ 'Tentang Klien' if lang == 'ms' else 'About the Client' }}</h4>
                 <div class="client-header">
@@ -755,5 +1059,89 @@
             closeApplicationModal();
         }
     });
+
+    function fundEscrow() {
+        const amount = document.getElementById('escrowAmount')?.value;
+        if (!amount || parseFloat(amount) <= 0) {
+            alert('{{ "Sila masukkan jumlah yang sah" if lang == "ms" else "Please enter a valid amount" }}');
+            return;
+        }
+
+        if (!confirm('{{ "Adakah anda pasti mahu mendana escrow RM" if lang == "ms" else "Are you sure you want to fund escrow RM" }}' + amount + '?')) {
+            return;
+        }
+
+        fetch('/api/escrow/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gig_id: {{ gig.id }},
+                amount: parseFloat(amount)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('{{ "Escrow berjaya didanai!" if lang == "ms" else "Escrow funded successfully!" }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function releaseEscrow() {
+        if (!confirm('{{ "Adakah anda pasti mahu melepaskan dana kepada freelancer? Tindakan ini tidak boleh dibatalkan." if lang == "ms" else "Are you sure you want to release funds to the freelancer? This action cannot be undone." }}')) {
+            return;
+        }
+
+        fetch('/api/escrow/{{ gig.id }}/release', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('{{ "Dana berjaya dilepaskan!" if lang == "ms" else "Funds released successfully!" }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function openDisputeModal() {
+        const reason = prompt('{{ "Sila berikan sebab untuk pertikaian:" if lang == "ms" else "Please provide a reason for the dispute:" }}');
+        if (!reason || reason.trim() === '') {
+            return;
+        }
+
+        fetch('/api/escrow/{{ gig.id }}/dispute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('{{ "Pertikaian berjaya dibuka. Admin akan menyemak." if lang == "ms" else "Dispute raised successfully. Admin will review." }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
 </script>
 {% endblock %}
