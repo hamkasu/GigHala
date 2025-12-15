@@ -58,6 +58,9 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 15, 2025: Added all footer static pages - Platform (Cari Gig, Kategori, Cara Kerja, Pricing), Resources (Blog, Panduan Freelancer, FAQ, Support), and Legal (Syarat & Terma, Privasi Policy, Halal Compliance, Gig Workers Bill) with full content in Bahasa Malaysia
+- December 15, 2025: Created static_page.html template for consistent styling across all informational pages
+- December 15, 2025: Updated footer links in base.html to connect to all new pages
 - December 15, 2025: Added PWA (Progressive Web App) support - app can now be installed on iOS/Android devices from the browser, includes service worker for offline caching, mobile bottom navigation bar, install prompt banner, and app icons
 - December 15, 2025: Categories navigation bar now only shows on Browse Gigs page (hidden on homepage and other pages)
 - December 15, 2025: Fixed logout route to accept GET requests (redirects to homepage) in addition to POST requests

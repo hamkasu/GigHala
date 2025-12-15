@@ -4805,7 +4805,7 @@ with app.app_context():
 
 @app.route('/cara-kerja')
 def cara_kerja():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">🚀</span> Bagaimana GigHalal Berfungsi</h2>
@@ -4895,7 +4895,7 @@ def cara_kerja():
 
 @app.route('/pricing')
 def pricing():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">💰</span> Harga Telus & Berpatutan</h2>
@@ -4978,7 +4978,7 @@ def pricing():
 
 @app.route('/kategori')
 def kategori():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     categories_list = Category.query.all()
     
     categories_html = '<div class="blog-grid">'
@@ -5012,7 +5012,7 @@ def kategori():
 
 @app.route('/blog')
 def blog():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="blog-grid">
         <div class="blog-card">
@@ -5079,7 +5079,7 @@ def blog():
 
 @app.route('/panduan-freelancer')
 def panduan_freelancer():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">📖</span> Panduan Lengkap Freelancer</h2>
@@ -5171,7 +5171,7 @@ def panduan_freelancer():
 
 @app.route('/faq')
 def faq():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">❓</span> Soalan Lazim (FAQ)</h2>
@@ -5236,7 +5236,7 @@ def faq():
 
 @app.route('/support')
 def support():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">🤝</span> Hubungi Kami</h2>
@@ -5294,7 +5294,7 @@ def support():
 
 @app.route('/syarat-terma')
 def syarat_terma():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">📜</span> Syarat & Terma Perkhidmatan</h2>
@@ -5362,7 +5362,7 @@ def syarat_terma():
 
 @app.route('/privasi')
 def privasi():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">🔒</span> Polisi Privasi</h2>
@@ -5437,7 +5437,7 @@ def privasi():
 
 @app.route('/halal-compliance')
 def halal_compliance():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">☪️</span> Pematuhan Halal</h2>
@@ -5525,7 +5525,7 @@ def halal_compliance():
 
 @app.route('/gig-workers-bill')
 def gig_workers_bill():
-    user = get_current_user()
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
         <h2><span class="icon">📜</span> Rang Undang-undang Pekerja Gig</h2>
