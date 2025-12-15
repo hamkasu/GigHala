@@ -58,6 +58,10 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 15, 2025: Fixed logout route to accept GET requests (redirects to homepage) in addition to POST requests
+- December 15, 2025: Fixed gig detail page error handling - added null safety checks for client/escrow and proper HTTPException handling for 404s
+- December 15, 2025: Enhanced dashboard applications section to show gig title, status (Menunggu/Diterima/Ditolak), and link to gig detail page
+- December 15, 2025: Added error.html template for graceful error handling
 - December 15, 2025: Added Escrow system for secure payments - Escrow model with status tracking (pending, funded, released, refunded, disputed), API endpoints for create/release/refund/dispute, and frontend UI with progress visualization on gig detail page
 - December 14, 2025: Fixed admin Edit User functionality - saveUserChanges() now properly calls PUT API to save changes
 - December 14, 2025: Added View Details button in admin Users table - shows complete user data (IC, phone, bank info, ratings, earnings)
