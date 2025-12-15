@@ -4801,6 +4801,818 @@ with app.app_context():
         db.session.commit()
         print("Sample data added successfully!")
 
+# ============ STATIC PAGES ============
+
+@app.route('/cara-kerja')
+def cara_kerja():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">🚀</span> Bagaimana GigHalal Berfungsi</h2>
+        <p>GigHalal menghubungkan freelancers dengan klien yang mencari perkhidmatan berkualiti. Platform kami memastikan semua transaksi adalah telus, selamat dan mematuhi prinsip halal.</p>
+        
+        <div class="step-list">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Daftar Akaun Percuma</h4>
+                    <p>Buat akaun dalam masa 2 minit sahaja. Tiada bayaran pendaftaran dan tiada syarat rumit. Isi maklumat asas dan mula meneroka peluang gig.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Lengkapkan Profil Anda</h4>
+                    <p>Tambah kemahiran, pengalaman kerja dan portfolio anda. Profil yang lengkap meningkatkan peluang anda untuk mendapat gig.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Cari & Apply Gig</h4>
+                    <p>Terokai beratus gig dalam pelbagai kategori. Gunakan filter untuk mencari gig yang sesuai dengan kemahiran dan jadual anda. Hantar proposal yang menarik untuk menonjol.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Siapkan Kerja</h4>
+                    <p>Selepas diterima, siapkan kerja mengikut keperluan klien. Komunikasi yang baik adalah kunci kejayaan.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h4>Terima Bayaran</h4>
+                    <p>Bayaran diproses dengan selamat melalui platform. Instant payout dalam 24 jam ke Touch 'n Go atau akaun bank anda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">💼</span> Untuk Klien</h2>
+        <p>Sebagai klien, anda boleh menyiarkan gig dan mencari freelancers berkualiti untuk projek anda.</p>
+        
+        <div class="step-list">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Siarkan Gig</h4>
+                    <p>Terangkan projek anda dengan jelas termasuk keperluan, bajet dan deadline.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Terima Proposal</h4>
+                    <p>Freelancers akan menghantar proposal. Semak profil, rating dan portfolio mereka.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Pilih Freelancer Terbaik</h4>
+                    <p>Pilih freelancer yang paling sesuai berdasarkan kemahiran, pengalaman dan harga.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Bayar Dengan Selamat</h4>
+                    <p>Bayaran dilindungi melalui escrow system. Wang hanya dikeluarkan selepas kerja disiapkan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='cara-kerja',
+                         page_title='Cara Kerja',
+                         page_subtitle='Ketahui bagaimana platform GigHalal berfungsi untuk freelancers dan klien',
+                         content=content)
+
+@app.route('/pricing')
+def pricing():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">💰</span> Harga Telus & Berpatutan</h2>
+        <p>GigHalal menawarkan struktur harga yang telus tanpa bayaran tersembunyi. Kami hanya mengambil sedikit komisyen untuk mengekalkan platform.</p>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="pricing-title">Freelancer</div>
+                <div class="pricing-price">PERCUMA<span></span></div>
+                <p style="color: var(--text-gray);">Untuk freelancers yang mencari gig</p>
+                <ul class="pricing-features">
+                    <li>Pendaftaran percuma</li>
+                    <li>Browse unlimited gigs</li>
+                    <li>Hantar unlimited proposals</li>
+                    <li>10% komisyen pada pembayaran</li>
+                    <li>Instant payout dalam 24 jam</li>
+                    <li>Sokongan pelanggan</li>
+                </ul>
+            </div>
+            
+            <div class="pricing-card featured">
+                <div class="pricing-title">Pro Freelancer</div>
+                <div class="pricing-price">RM49<span>/bulan</span></div>
+                <p style="color: var(--text-gray);">Untuk freelancers serius</p>
+                <ul class="pricing-features">
+                    <li>Semua ciri Freelancer</li>
+                    <li>Hanya 5% komisyen</li>
+                    <li>Badge Pro pada profil</li>
+                    <li>Priority dalam carian</li>
+                    <li>Akses awal ke gig baru</li>
+                    <li>Sokongan priority 24/7</li>
+                    <li>Analitik terperinci</li>
+                </ul>
+            </div>
+            
+            <div class="pricing-card">
+                <div class="pricing-title">Client / Bisnes</div>
+                <div class="pricing-price">PERCUMA<span></span></div>
+                <p style="color: var(--text-gray);">Untuk klien yang menyiarkan gig</p>
+                <ul class="pricing-features">
+                    <li>Pendaftaran percuma</li>
+                    <li>Siarkan unlimited gigs</li>
+                    <li>Akses ke 50,000+ freelancers</li>
+                    <li>3% yuran pemprosesan</li>
+                    <li>Sistem escrow selamat</li>
+                    <li>Resolusi pertikaian</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">📋</span> Pecahan Yuran</h2>
+        
+        <h3>Yuran Freelancer</h3>
+        <ul>
+            <li><strong>Komisyen Standard:</strong> 10% daripada nilai gig</li>
+            <li><strong>Komisyen Pro:</strong> 5% daripada nilai gig (dengan langganan Pro)</li>
+            <li><strong>Yuran Pengeluaran:</strong> Percuma untuk bank tempatan, RM1 untuk e-wallet</li>
+        </ul>
+        
+        <h3>Yuran Client</h3>
+        <ul>
+            <li><strong>Yuran Pemprosesan:</strong> 3% daripada nilai gig</li>
+            <li><strong>Deposit Escrow:</strong> Percuma</li>
+            <li><strong>Refund:</strong> Tiada yuran untuk refund yang diluluskan</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <p><strong>💡 Nota:</strong> Semua yuran dikira secara automatik dan ditunjukkan dengan jelas sebelum pembayaran. Tiada bayaran tersembunyi!</p>
+        </div>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='pricing',
+                         page_title='Pricing',
+                         page_subtitle='Struktur harga telus untuk freelancers dan klien',
+                         content=content)
+
+@app.route('/kategori')
+def kategori():
+    user = get_current_user()
+    categories_list = Category.query.all()
+    
+    categories_html = '<div class="blog-grid">'
+    for cat in categories_list:
+        icon = cat.icon or '📁'
+        categories_html += f'''
+        <a href="/gigs?category={cat.slug}" class="blog-card" style="text-decoration: none;">
+            <div class="blog-card-image" style="font-size: 64px;">{icon}</div>
+            <div class="blog-card-content">
+                <div class="blog-card-title">{cat.name}</div>
+                <div class="blog-card-excerpt">{cat.description or 'Terokai peluang gig dalam kategori ini.'}</div>
+            </div>
+        </a>
+        '''
+    categories_html += '</div>'
+    
+    content = f'''
+    <div class="content-section">
+        <h2><span class="icon">📂</span> Semua Kategori</h2>
+        <p>Terokai pelbagai kategori gig yang tersedia di GigHalal. Sama ada anda mahir dalam design, penulisan, video editing atau tutoring - pasti ada peluang untuk anda!</p>
+        
+        {categories_html}
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='kategori',
+                         page_title='Kategori',
+                         page_subtitle='Pilih kategori mengikut kemahiran anda',
+                         content=content)
+
+@app.route('/blog')
+def blog():
+    user = get_current_user()
+    content = '''
+    <div class="blog-grid">
+        <div class="blog-card">
+            <div class="blog-card-image">📝</div>
+            <div class="blog-card-content">
+                <div class="blog-card-date">15 Disember 2025</div>
+                <div class="blog-card-title">10 Tips Untuk Freelancer Baru di Malaysia</div>
+                <div class="blog-card-excerpt">Baru bermula sebagai freelancer? Berikut adalah 10 tips penting untuk berjaya dalam dunia gig economy di Malaysia.</div>
+            </div>
+        </div>
+        
+        <div class="blog-card">
+            <div class="blog-card-image">💰</div>
+            <div class="blog-card-content">
+                <div class="blog-card-date">12 Disember 2025</div>
+                <div class="blog-card-title">Bagaimana Jana RM3,000 Pertama Anda</div>
+                <div class="blog-card-excerpt">Kisah inspirasi freelancers yang berjaya mencapai RM3,000 pertama mereka dalam masa kurang dari 30 hari.</div>
+            </div>
+        </div>
+        
+        <div class="blog-card">
+            <div class="blog-card-image">🎨</div>
+            <div class="blog-card-content">
+                <div class="blog-card-date">10 Disember 2025</div>
+                <div class="blog-card-title">Trend Design 2025 Yang Perlu Anda Tahu</div>
+                <div class="blog-card-excerpt">Ketahui trend design terkini yang dicari oleh klien pada tahun 2025 ini.</div>
+            </div>
+        </div>
+        
+        <div class="blog-card">
+            <div class="blog-card-image">📱</div>
+            <div class="blog-card-content">
+                <div class="blog-card-date">8 Disember 2025</div>
+                <div class="blog-card-title">Peluang Content Creation di TikTok</div>
+                <div class="blog-card-excerpt">TikTok terus berkembang di Malaysia. Ketahui bagaimana anda boleh menjana pendapatan melalui content creation.</div>
+            </div>
+        </div>
+        
+        <div class="blog-card">
+            <div class="blog-card-image">📚</div>
+            <div class="blog-card-content">
+                <div class="blog-card-date">5 Disember 2025</div>
+                <div class="blog-card-title">Menjadi Tutor Online Yang Berjaya</div>
+                <div class="blog-card-excerpt">Panduan lengkap untuk menjadi tutor online yang dicari - dari SPM hingga kemahiran profesional.</div>
+            </div>
+        </div>
+        
+        <div class="blog-card">
+            <div class="blog-card-image">☪️</div>
+            <div class="blog-card-content">
+                <div class="blog-card-date">1 Disember 2025</div>
+                <div class="blog-card-title">Mengapa Penting Memilih Gig Halal</div>
+                <div class="blog-card-excerpt">Fahami kepentingan memilih kerja yang halal dan berkah dalam membina kerjaya freelance anda.</div>
+            </div>
+        </div>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='blog',
+                         page_title='Blog',
+                         page_subtitle='Tips, panduan dan kisah inspirasi untuk freelancers',
+                         content=content)
+
+@app.route('/panduan-freelancer')
+def panduan_freelancer():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">📖</span> Panduan Lengkap Freelancer</h2>
+        <p>Selamat datang ke dunia freelancing! Panduan ini akan membantu anda memulakan perjalanan sebagai freelancer di GigHalal.</p>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">🚀</span> Bermula Sebagai Freelancer</h2>
+        
+        <h3>1. Lengkapkan Profil Anda</h3>
+        <p>Profil yang lengkap adalah kunci pertama untuk menarik klien. Pastikan anda:</p>
+        <ul>
+            <li>Tambah foto profil profesional</li>
+            <li>Tulis bio yang menarik dan jelas</li>
+            <li>Senaraikan semua kemahiran anda</li>
+            <li>Tambah portfolio kerja terdahulu</li>
+            <li>Nyatakan pengalaman dan kelayakan</li>
+        </ul>
+        
+        <h3>2. Tetapkan Harga Yang Kompetitif</h3>
+        <p>Sebagai freelancer baru, pertimbangkan untuk:</p>
+        <ul>
+            <li>Mulakan dengan harga yang berpatutan untuk membina portfolio</li>
+            <li>Kaji harga pasaran untuk kemahiran anda</li>
+            <li>Tingkatkan harga secara beransur apabila rating meningkat</li>
+        </ul>
+        
+        <h3>3. Tulis Proposal Yang Menarik</h3>
+        <p>Proposal yang baik adalah kunci untuk mendapat gig. Tips untuk proposal menarik:</p>
+        <ul>
+            <li>Baca keperluan gig dengan teliti</li>
+            <li>Tunjukkan pemahaman anda tentang projek</li>
+            <li>Berikan contoh kerja yang relevan</li>
+            <li>Nyatakan timeline yang realistik</li>
+            <li>Jangan copy-paste - personalize setiap proposal</li>
+        </ul>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">⭐</span> Tips Untuk Berjaya</h2>
+        
+        <h3>Komunikasi Yang Baik</h3>
+        <p>Komunikasi adalah kunci kejayaan dalam freelancing. Pastikan anda:</p>
+        <ul>
+            <li>Balas mesej dengan cepat (dalam 24 jam)</li>
+            <li>Tanya soalan jika tidak jelas</li>
+            <li>Beri update berkala tentang kemajuan kerja</li>
+            <li>Bersikap profesional dalam semua interaksi</li>
+        </ul>
+        
+        <h3>Siapkan Kerja Berkualiti</h3>
+        <ul>
+            <li>Fahami keperluan klien dengan jelas</li>
+            <li>Siapkan kerja sebelum deadline</li>
+            <li>Semak kerja sebelum hantar</li>
+            <li>Bersedia untuk revisi jika diperlukan</li>
+        </ul>
+        
+        <h3>Bina Reputasi</h3>
+        <ul>
+            <li>Minta review selepas setiap projek selesai</li>
+            <li>Jaga rating dengan memberikan servis terbaik</li>
+            <li>Kumpul portfolio yang kukuh</li>
+            <li>Bina hubungan jangka panjang dengan klien</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <p><strong>💡 Pro Tip:</strong> Freelancers dengan rating 4.5+ dan profil lengkap mendapat 3x lebih banyak tawaran gig!</p>
+        </div>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">💵</span> Pengurusan Kewangan</h2>
+        <p>Sebagai freelancer, penting untuk menguruskan kewangan dengan baik:</p>
+        <ul>
+            <li><strong>Simpan rekod:</strong> Catat semua pendapatan dan perbelanjaan</li>
+            <li><strong>Cukai:</strong> Fahami kewajipan cukai sebagai pekerja bebas</li>
+            <li><strong>Simpanan kecemasan:</strong> Sisihkan 20% daripada pendapatan</li>
+            <li><strong>Invoice:</strong> Gunakan sistem invoice yang sistematik</li>
+        </ul>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='panduan-freelancer',
+                         page_title='Panduan Freelancer',
+                         page_subtitle='Panduan lengkap untuk berjaya sebagai freelancer di GigHalal',
+                         content=content)
+
+@app.route('/faq')
+def faq():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">❓</span> Soalan Lazim (FAQ)</h2>
+        
+        <div class="faq-item">
+            <div class="faq-question">Apakah GigHalal?</div>
+            <div class="faq-answer">GigHalal adalah platform gig economy #1 di Malaysia yang menghubungkan freelancers dengan klien. Kami fokus kepada peluang kerja yang halal dan berkah.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Adakah pendaftaran percuma?</div>
+            <div class="faq-answer">Ya! Pendaftaran adalah 100% percuma untuk freelancers dan klien. Tiada bayaran tersembunyi untuk mendaftar.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Berapa komisyen yang dikenakan?</div>
+            <div class="faq-answer">Untuk freelancers, komisyen standard adalah 10% daripada nilai gig. Freelancers dengan langganan Pro hanya dikenakan 5%. Klien dikenakan 3% yuran pemprosesan.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Bagaimana saya menerima bayaran?</div>
+            <div class="faq-answer">Bayaran boleh dikeluarkan ke akaun bank Malaysia atau e-wallet seperti Touch 'n Go. Proses pengeluaran mengambil masa 24 jam bekerja.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Apakah maksud "Halal Verified"?</div>
+            <div class="faq-answer">Gig dengan label "Halal Verified" telah disahkan mematuhi prinsip halal - tidak melibatkan aktiviti haram seperti judi, arak, atau kandungan tidak senonoh.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Adakah wang saya selamat?</div>
+            <div class="faq-answer">Ya! Kami menggunakan sistem escrow di mana wang klien disimpan dengan selamat sehingga kerja disiapkan. Ini melindungi kedua-dua pihak.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Bagaimana jika ada pertikaian?</div>
+            <div class="faq-answer">Kami mempunyai pasukan resolusi pertikaian yang akan membantu menyelesaikan sebarang masalah antara freelancer dan klien dengan adil.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Bolehkah saya menjadi freelancer dan klien serentak?</div>
+            <div class="faq-answer">Ya! Anda boleh memilih "Kedua-duanya" semasa pendaftaran untuk mengakses ciri-ciri freelancer dan klien dalam satu akaun.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Apakah keperluan minimum untuk menjadi freelancer?</div>
+            <div class="faq-answer">Anda perlu berumur 18 tahun ke atas, mempunyai akaun bank Malaysia yang sah, dan kemahiran dalam sekurang-kurangnya satu kategori yang kami tawarkan.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Bagaimana cara menghubungi sokongan pelanggan?</div>
+            <div class="faq-answer">Anda boleh menghubungi kami melalui email di support@gighalal.com atau WhatsApp di +60 12-345 6789. Waktu operasi: Isnin-Jumaat, 9am-6pm.</div>
+        </div>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='faq',
+                         page_title='FAQ',
+                         page_subtitle='Jawapan kepada soalan-soalan lazim tentang GigHalal',
+                         content=content)
+
+@app.route('/support')
+def support():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">🤝</span> Hubungi Kami</h2>
+        <p>Pasukan sokongan kami sedia membantu anda. Pilih cara yang paling sesuai untuk menghubungi kami.</p>
+        
+        <div class="contact-grid">
+            <div class="contact-card">
+                <div class="icon">📧</div>
+                <h4>Email</h4>
+                <p>support@gighalal.com</p>
+                <p style="font-size: 12px; margin-top: 8px;">Balas dalam 24 jam</p>
+            </div>
+            
+            <div class="contact-card">
+                <div class="icon">📱</div>
+                <h4>WhatsApp</h4>
+                <p>+60 12-345 6789</p>
+                <p style="font-size: 12px; margin-top: 8px;">Isnin-Jumaat, 9am-6pm</p>
+            </div>
+            
+            <div class="contact-card">
+                <div class="icon">💬</div>
+                <h4>Live Chat</h4>
+                <p>Chat dengan kami</p>
+                <p style="font-size: 12px; margin-top: 8px;">Tersedia 24/7</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">📋</span> Topik Bantuan Popular</h2>
+        <ul>
+            <li><a href="/faq" style="color: var(--primary);">Soalan Lazim (FAQ)</a></li>
+            <li><a href="/panduan-freelancer" style="color: var(--primary);">Panduan Freelancer</a></li>
+            <li><a href="/cara-kerja" style="color: var(--primary);">Cara GigHalal Berfungsi</a></li>
+            <li><a href="/pricing" style="color: var(--primary);">Struktur Harga</a></li>
+        </ul>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">🏢</span> Alamat Pejabat</h2>
+        <p><strong>Calmic Sdn Bhd</strong></p>
+        <p>Level 15, Menara KL<br>
+        Jalan Sultan Ismail<br>
+        50250 Kuala Lumpur, Malaysia</p>
+        <p style="margin-top: 16px;"><strong>Waktu Operasi:</strong> Isnin - Jumaat, 9:00 AM - 6:00 PM</p>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='support',
+                         page_title='Support',
+                         page_subtitle='Kami sedia membantu anda',
+                         content=content)
+
+@app.route('/syarat-terma')
+def syarat_terma():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">📜</span> Syarat & Terma Perkhidmatan</h2>
+        <p><em>Kemas kini terakhir: 15 Disember 2025</em></p>
+        
+        <h3>1. Penerimaan Terma</h3>
+        <p>Dengan mengakses atau menggunakan platform GigHalal, anda bersetuju untuk mematuhi Syarat & Terma ini. Jika anda tidak bersetuju dengan mana-mana bahagian terma ini, anda tidak boleh menggunakan perkhidmatan kami.</p>
+        
+        <h3>2. Kelayakan</h3>
+        <p>Untuk menggunakan GigHalal, anda mestilah:</p>
+        <ul>
+            <li>Berumur 18 tahun atau lebih</li>
+            <li>Mempunyai kapasiti undang-undang untuk memasuki kontrak yang mengikat</li>
+            <li>Bukan orang yang dilarang menggunakan perkhidmatan di bawah undang-undang Malaysia</li>
+        </ul>
+        
+        <h3>3. Akaun Pengguna</h3>
+        <p>Anda bertanggungjawab untuk:</p>
+        <ul>
+            <li>Mengekalkan kerahsiaan kata laluan akaun anda</li>
+            <li>Semua aktiviti yang berlaku di bawah akaun anda</li>
+            <li>Memberikan maklumat yang tepat dan terkini</li>
+        </ul>
+        
+        <h3>4. Yuran & Pembayaran</h3>
+        <p>GigHalal mengenakan yuran berikut:</p>
+        <ul>
+            <li>Komisyen freelancer: 10% (standard) atau 5% (Pro)</li>
+            <li>Yuran pemprosesan klien: 3%</li>
+        </ul>
+        <p>Semua yuran ditunjukkan dengan jelas sebelum transaksi.</p>
+        
+        <h3>5. Kelakuan Pengguna</h3>
+        <p>Anda bersetuju untuk TIDAK:</p>
+        <ul>
+            <li>Melanggar undang-undang Malaysia atau antarabangsa</li>
+            <li>Menyiarkan kandungan palsu, mengelirukan atau menipu</li>
+            <li>Mengganggu pengguna lain</li>
+            <li>Menggunakan platform untuk aktiviti haram atau tidak bermoral</li>
+            <li>Cuba memintas sistem pembayaran platform</li>
+        </ul>
+        
+        <h3>6. Hak Harta Intelek</h3>
+        <p>Selepas pembayaran penuh, hak harta intelek untuk kerja yang disiapkan dipindahkan kepada klien kecuali dinyatakan sebaliknya dalam perjanjian gig.</p>
+        
+        <h3>7. Penyelesaian Pertikaian</h3>
+        <p>Sebarang pertikaian antara pengguna akan diselesaikan melalui proses mediasi GigHalal terlebih dahulu. Keputusan kami adalah muktamad.</p>
+        
+        <h3>8. Penamatan</h3>
+        <p>GigHalal berhak untuk menggantung atau menamatkan akaun anda atas sebarang pelanggaran Syarat & Terma ini.</p>
+        
+        <h3>9. Penafian</h3>
+        <p>Platform disediakan "sebagaimana adanya". GigHalal tidak menjamin ketersediaan berterusan atau bebas ralat.</p>
+        
+        <h3>10. Undang-undang Yang Mentadbir</h3>
+        <p>Terma ini ditadbir oleh undang-undang Malaysia. Sebarang pertikaian akan diselesaikan di mahkamah Malaysia.</p>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='syarat-terma',
+                         page_title='Syarat & Terma',
+                         page_subtitle='Terma perkhidmatan GigHalal',
+                         content=content)
+
+@app.route('/privasi')
+def privasi():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">🔒</span> Polisi Privasi</h2>
+        <p><em>Kemas kini terakhir: 15 Disember 2025</em></p>
+        
+        <h3>1. Maklumat Yang Kami Kumpul</h3>
+        <p>Kami mengumpul maklumat berikut:</p>
+        <ul>
+            <li><strong>Maklumat Peribadi:</strong> Nama, email, nombor telefon, alamat</li>
+            <li><strong>Maklumat Akaun:</strong> Username, kata laluan (encrypted), foto profil</li>
+            <li><strong>Maklumat Kewangan:</strong> Butiran bank untuk pembayaran</li>
+            <li><strong>Data Penggunaan:</strong> Log aktiviti, alamat IP, jenis peranti</li>
+        </ul>
+        
+        <h3>2. Bagaimana Kami Menggunakan Maklumat</h3>
+        <p>Maklumat anda digunakan untuk:</p>
+        <ul>
+            <li>Menyediakan dan mengekalkan perkhidmatan kami</li>
+            <li>Memproses transaksi dan pembayaran</li>
+            <li>Berkomunikasi dengan anda tentang akaun anda</li>
+            <li>Meningkatkan perkhidmatan kami</li>
+            <li>Mematuhi keperluan undang-undang</li>
+        </ul>
+        
+        <h3>3. Perkongsian Maklumat</h3>
+        <p>Kami TIDAK menjual maklumat peribadi anda. Kami mungkin berkongsi maklumat dengan:</p>
+        <ul>
+            <li>Penyedia perkhidmatan pembayaran (untuk memproses transaksi)</li>
+            <li>Pihak berkuasa undang-undang (jika dikehendaki oleh undang-undang)</li>
+            <li>Pengguna lain (maklumat profil awam sahaja)</li>
+        </ul>
+        
+        <h3>4. Keselamatan Data</h3>
+        <p>Kami mengambil langkah keselamatan yang serius:</p>
+        <ul>
+            <li>Enkripsi SSL untuk semua data dalam transit</li>
+            <li>Kata laluan di-hash menggunakan algoritma selamat</li>
+            <li>Akses terhad kepada data peribadi</li>
+            <li>Pemantauan keselamatan berterusan</li>
+        </ul>
+        
+        <h3>5. Hak Anda</h3>
+        <p>Anda mempunyai hak untuk:</p>
+        <ul>
+            <li>Mengakses maklumat peribadi anda</li>
+            <li>Membetulkan maklumat yang tidak tepat</li>
+            <li>Meminta pemadaman akaun</li>
+            <li>Menarik balik persetujuan untuk komunikasi pemasaran</li>
+        </ul>
+        
+        <h3>6. Cookies</h3>
+        <p>Kami menggunakan cookies untuk:</p>
+        <ul>
+            <li>Mengekalkan sesi log masuk anda</li>
+            <li>Mengingat pilihan bahasa anda</li>
+            <li>Menganalisis penggunaan laman web</li>
+        </ul>
+        
+        <h3>7. Penyimpanan Data</h3>
+        <p>Data anda disimpan selagi akaun anda aktif. Selepas pemadaman akaun, data dikekalkan selama 30 hari sebelum dipadam sepenuhnya.</p>
+        
+        <h3>8. Hubungi Kami</h3>
+        <p>Untuk soalan tentang privasi, hubungi: privacy@gighalal.com</p>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='privasi',
+                         page_title='Polisi Privasi',
+                         page_subtitle='Bagaimana kami melindungi maklumat anda',
+                         content=content)
+
+@app.route('/halal-compliance')
+def halal_compliance():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">☪️</span> Pematuhan Halal</h2>
+        <p>GigHalal komited untuk menyediakan platform yang mematuhi prinsip-prinsip Islam. Berikut adalah garis panduan pematuhan halal kami.</p>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">✅</span> Prinsip Halal Kami</h2>
+        
+        <h3>1. Tiada Aktiviti Haram</h3>
+        <p>Kami TIDAK membenarkan gig yang melibatkan:</p>
+        <ul>
+            <li>Perjudian atau pertaruhan</li>
+            <li>Arak, rokok atau dadah</li>
+            <li>Kandungan lucah atau tidak senonoh</li>
+            <li>Riba atau skim cepat kaya</li>
+            <li>Penipuan atau aktiviti menipu</li>
+            <li>Kandungan yang menghina agama</li>
+        </ul>
+        
+        <h3>2. Sistem Halal Verified</h3>
+        <p>Gig dengan label "Halal Verified" telah melalui proses semakan untuk memastikan:</p>
+        <ul>
+            <li>Tidak melanggar prinsip syariah</li>
+            <li>Kandungan dan tujuan adalah halal</li>
+            <li>Klien dan produk/perkhidmatan adalah halal</li>
+        </ul>
+        
+        <h3>3. Proses Pengesahan</h3>
+        <p>Untuk mendapat status Halal Verified:</p>
+        <ul>
+            <li>Gig disemak oleh pasukan pematuhan kami</li>
+            <li>Kategori dan deskripsi dinilai</li>
+            <li>Klien dan tujuan projek disahkan</li>
+            <li>Status boleh ditarik balik jika melanggar garis panduan</li>
+        </ul>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">📋</span> Garis Panduan Kategori</h2>
+        
+        <h3>Kategori Yang Dibenarkan</h3>
+        <ul>
+            <li>✓ Design & Kreatif (dengan kandungan yang sopan)</li>
+            <li>✓ Penulisan & Terjemahan (bukan untuk kandungan haram)</li>
+            <li>✓ Video & Animasi (kandungan yang sesuai)</li>
+            <li>✓ Pembangunan Web (bukan untuk laman web haram)</li>
+            <li>✓ Pemasaran Digital (produk/perkhidmatan halal)</li>
+            <li>✓ Tunjuk Ajar & Pendidikan</li>
+            <li>✓ Admin & Sokongan</li>
+        </ul>
+        
+        <h3>Kategori Yang TIDAK Dibenarkan</h3>
+        <ul>
+            <li>✗ Kandungan dewasa atau lucah</li>
+            <li>✗ Promosi alkohol, rokok atau dadah</li>
+            <li>✗ Platform perjudian</li>
+            <li>✗ Perkhidmatan kewangan berasaskan riba</li>
+            <li>✗ Kandungan yang menghina mana-mana agama</li>
+        </ul>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">🤝</span> Komitmen Kami</h2>
+        
+        <div class="highlight-box">
+            <p><strong>Misi Kami:</strong> Menyediakan platform gig economy yang membolehkan umat Islam menjana pendapatan yang halal dan berkah, sambil memastikan semua aktiviti mematuhi prinsip syariah.</p>
+        </div>
+        
+        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus mematuhi garis panduan Islam. Jika anda mempunyai sebarang soalan atau kebimbangan tentang pematuhan halal, sila hubungi kami di halal@gighalal.com.</p>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">📣</span> Laporkan Pelanggaran</h2>
+        <p>Jika anda menjumpai gig yang tidak mematuhi prinsip halal, sila laporkan kepada kami. Kami akan menyiasat dan mengambil tindakan yang sewajarnya.</p>
+        <p>Email: halal@gighalal.com</p>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='halal-compliance',
+                         page_title='Halal Compliance',
+                         page_subtitle='Komitmen kami terhadap pematuhan prinsip halal',
+                         content=content)
+
+@app.route('/gig-workers-bill')
+def gig_workers_bill():
+    user = get_current_user()
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">📜</span> Rang Undang-undang Pekerja Gig</h2>
+        <p>GigHalal menyokong hak-hak pekerja gig dan mematuhi peraturan yang ditetapkan oleh kerajaan Malaysia.</p>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">⚖️</span> Hak-hak Pekerja Gig</h2>
+        
+        <h3>Perlindungan Sosial</h3>
+        <p>Selaras dengan inisiatif kerajaan, kami menyokong:</p>
+        <ul>
+            <li>Caruman PERKESO untuk pekerja gig</li>
+            <li>Skim perlindungan kemalangan pekerjaan</li>
+            <li>Akses kepada faedah kesihatan</li>
+        </ul>
+        
+        <h3>Bayaran Adil</h3>
+        <p>Kami memastikan:</p>
+        <ul>
+            <li>Struktur bayaran yang telus</li>
+            <li>Tiada pemotongan tersembunyi</li>
+            <li>Pembayaran tepat pada masanya</li>
+            <li>Sistem escrow untuk perlindungan</li>
+        </ul>
+        
+        <h3>Kebebasan & Fleksibiliti</h3>
+        <p>Sebagai pekerja gig di GigHalal, anda menikmati:</p>
+        <ul>
+            <li>Kebebasan memilih gig</li>
+            <li>Fleksibiliti waktu kerja</li>
+            <li>Tiada komitmen jangka panjang</li>
+            <li>Kawalan penuh ke atas jadual anda</li>
+        </ul>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">📋</span> Pematuhan Peraturan</h2>
+        
+        <h3>Akta Pekerjaan 1955</h3>
+        <p>Walaupun pekerja gig mempunyai status yang berbeza daripada pekerja tetap, kami memastikan platform kami beroperasi dalam rangka kerja undang-undang Malaysia.</p>
+        
+        <h3>Perlindungan Data Peribadi</h3>
+        <p>Kami mematuhi Akta Perlindungan Data Peribadi 2010 (PDPA) dalam mengendalikan maklumat pengguna.</p>
+        
+        <h3>Cukai</h3>
+        <p>Freelancers bertanggungjawab untuk:</p>
+        <ul>
+            <li>Mengisytiharkan pendapatan kepada LHDN</li>
+            <li>Membayar cukai yang berkenaan</li>
+            <li>Menyimpan rekod pendapatan</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <p><strong>💡 Nota:</strong> GigHalal menyediakan penyata pendapatan tahunan untuk membantu anda dengan pengisytiharan cukai.</p>
+        </div>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">🔮</span> Perkembangan Masa Hadapan</h2>
+        <p>Kami sentiasa mengikuti perkembangan peraturan berkaitan ekonomi gig di Malaysia. Kami komited untuk:</p>
+        <ul>
+            <li>Mematuhi peraturan baru yang diperkenalkan</li>
+            <li>Bekerjasama dengan pihak berkuasa</li>
+            <li>Melindungi hak-hak pengguna platform kami</li>
+            <li>Menyediakan sumber dan panduan terkini</li>
+        </ul>
+    </div>
+    
+    <div class="content-section">
+        <h2><span class="icon">📞</span> Maklumat Lanjut</h2>
+        <p>Untuk maklumat lanjut tentang hak-hak anda sebagai pekerja gig, sila rujuk:</p>
+        <ul>
+            <li>Kementerian Sumber Manusia Malaysia</li>
+            <li>PERKESO (Pertubuhan Keselamatan Sosial)</li>
+            <li>LHDN (Lembaga Hasil Dalam Negeri)</li>
+        </ul>
+        <p style="margin-top: 16px;">Atau hubungi kami di: legal@gighalal.com</p>
+    </div>
+    '''
+    return render_template('static_page.html', 
+                         user=user, 
+                         active_page='gig-workers-bill',
+                         page_title='Gig Workers Bill',
+                         page_subtitle='Hak-hak dan perlindungan untuk pekerja gig',
+                         content=content)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
