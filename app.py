@@ -1046,58 +1046,71 @@ def browse_gigs():
 @app.route('/gig/<int:gig_id>')
 def view_gig(gig_id):
     """View individual gig details"""
-    gig = Gig.query.get_or_404(gig_id)
+    from werkzeug.exceptions import HTTPException
     
-    # Only increment view count for authenticated users to prevent abuse
-    if 'user_id' in session:
-        gig.views = (gig.views or 0) + 1
-        db.session.commit()
-    
-    # Get client info
-    client = User.query.get(gig.client_id)
-    client_gigs_posted = Gig.query.filter_by(client_id=gig.client_id).count()
-    
-    # Parse skills if available
-    skills = []
-    if gig.skills_required:
-        try:
-            skills = json.loads(gig.skills_required)
-        except:
-            skills = []
-    
-    # Check if current user is logged in
-    current_user = None
-    is_own_gig = False
-    existing_application = None
-    
-    escrow = None
-    is_freelancer = False
-    
-    if 'user_id' in session:
-        current_user = User.query.get(session['user_id'])
-        is_own_gig = gig.client_id == session['user_id']
-        is_freelancer = gig.freelancer_id == session['user_id']
-        existing_application = Application.query.filter_by(
-            gig_id=gig_id, 
-            freelancer_id=session['user_id']
-        ).first()
-        # Get escrow if user is client or freelancer
-        if is_own_gig or is_freelancer:
-            escrow = Escrow.query.filter_by(gig_id=gig_id).first()
-    
-    return render_template('gig_detail.html',
-                          gig=gig,
-                          client=client,
-                          client_gigs_posted=client_gigs_posted,
-                          skills=skills,
-                          user=current_user,
-                          current_user=current_user,
-                          is_own_gig=is_own_gig,
-                          is_freelancer=is_freelancer,
-                          existing_application=existing_application,
-                          escrow=escrow,
-                          lang=get_user_language(),
-                          t=t)
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        
+        # Only increment view count for authenticated users to prevent abuse
+        if 'user_id' in session:
+            gig.views = (gig.views or 0) + 1
+            db.session.commit()
+        
+        # Get client info with null safety
+        client = User.query.get(gig.client_id) if gig.client_id else None
+        client_gigs_posted = Gig.query.filter_by(client_id=gig.client_id).count() if gig.client_id else 0
+        
+        # Parse skills if available
+        skills = []
+        if gig.skills_required:
+            try:
+                skills = json.loads(gig.skills_required)
+            except:
+                skills = []
+        
+        # Check if current user is logged in
+        current_user = None
+        is_own_gig = False
+        existing_application = None
+        
+        escrow = None
+        is_freelancer = False
+        
+        if 'user_id' in session:
+            current_user = User.query.get(session['user_id'])
+            is_own_gig = gig.client_id == session['user_id'] if gig.client_id else False
+            is_freelancer = gig.freelancer_id == session['user_id'] if gig.freelancer_id else False
+            existing_application = Application.query.filter_by(
+                gig_id=gig_id, 
+                freelancer_id=session['user_id']
+            ).first()
+            # Get escrow if user is client or freelancer
+            if is_own_gig or is_freelancer:
+                try:
+                    escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+                except Exception as escrow_err:
+                    app.logger.warning(f"Escrow lookup error for gig {gig_id}: {str(escrow_err)}")
+                    escrow = None
+        
+        return render_template('gig_detail.html',
+                              gig=gig,
+                              client=client,
+                              client_gigs_posted=client_gigs_posted,
+                              skills=skills,
+                              user=current_user,
+                              current_user=current_user,
+                              is_own_gig=is_own_gig,
+                              is_freelancer=is_freelancer,
+                              existing_application=existing_application,
+                              escrow=escrow,
+                              lang=get_user_language(),
+                              t=t)
+    except HTTPException:
+        # Let 404 and other HTTP exceptions propagate normally
+        raise
+    except Exception as e:
+        app.logger.error(f"Error viewing gig {gig_id}: {str(e)}")
+        return render_template('error.html', error="Terdapat masalah teknikal. Sila cuba lagi.", lang=get_user_language(), t=t), 500
 
 @app.route('/post-gig', methods=['GET', 'POST'])
 @page_login_required
@@ -1226,7 +1239,16 @@ def dashboard():
 
     if user.user_type in ['freelancer', 'both']:
         active_gigs = Gig.query.filter_by(freelancer_id=user_id, status='in_progress').limit(5).all()
-        applications = Application.query.filter_by(freelancer_id=user_id).order_by(Application.created_at.desc()).limit(5).all()
+        applications_raw = Application.query.filter_by(freelancer_id=user_id).order_by(Application.created_at.desc()).limit(10).all()
+        # Enrich applications with gig info
+        applications = []
+        for app in applications_raw:
+            gig = Gig.query.get(app.gig_id)
+            if gig:
+                app.gig_title = gig.title
+                app.gig_budget_min = gig.budget_min
+                app.gig_budget_max = gig.budget_max
+                applications.append(app)
     else:
         active_gigs = []
         applications = []
@@ -1572,9 +1594,13 @@ def login():
         app.logger.error(f"Login error: {str(e)}")
         return jsonify({'error': 'Login failed. Please try again.'}), 500
 
-@app.route('/api/logout', methods=['POST'])
+@app.route('/api/logout', methods=['GET', 'POST'])
 def logout():
     session.pop('user_id', None)
+    # For GET requests (direct link clicks), redirect to homepage
+    if request.method == 'GET':
+        return redirect('/')
+    # For POST requests (JavaScript calls), return JSON
     return jsonify({'message': 'Logged out successfully'}), 200
 
 @app.route('/api/gigs', methods=['GET'])

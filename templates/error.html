@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 100px auto; text-align: center; padding: 20px;">
+    <div style="background: var(--bg-white); border-radius: var(--radius-lg); padding: 48px; border: 1px solid var(--border);">
+        <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+        <h1 style="color: var(--text-dark); margin-bottom: 16px; font-size: 24px;">Oops! Terdapat Masalah</h1>
+        <p style="color: var(--text-gray); margin-bottom: 32px;">{{ error or 'Maaf, terdapat masalah teknikal. Sila cuba lagi.' }}</p>
+        <a href="/" class="btn btn-primary" style="display: inline-block; padding: 12px 24px; background: var(--primary); color: white; border-radius: 8px; text-decoration: none;">
+            Kembali ke Halaman Utama
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -521,18 +521,28 @@
 
         {% if applications %}
             {% for app in applications %}
-            <div class="gig-item">
-                <div class="gig-title">Application #{{ app.id }}</div>
+            <a href="/gig/{{ app.gig_id }}" class="gig-item" style="display: block; text-decoration: none; color: inherit;">
+                <div class="gig-title">{{ app.gig_title or 'Gig #' ~ app.gig_id }}</div>
                 <div class="gig-meta">
-                    <span><span class="badge {{ app.status }}">{{ app.status }}</span></span>
-                    <span>MYR {{ app.proposed_price }}</span>
+                    <span>
+                        <span class="badge {{ app.status }}">
+                            {% if app.status == 'pending' %}Menunggu
+                            {% elif app.status == 'accepted' %}Diterima
+                            {% elif app.status == 'rejected' %}Ditolak
+                            {% else %}{{ app.status }}
+                            {% endif %}
+                        </span>
+                    </span>
+                    <span>MYR {{ app.proposed_price or '-' }}</span>
+                    <span>{{ app.created_at.strftime('%d %b %Y') if app.created_at else '' }}</span>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">✉️</div>
                 <p>No applications yet</p>
+                <a href="/gigs" class="btn btn-primary" style="margin-top: 12px;">Browse Gigs</a>
             </div>
         {% endif %}
     </div>
