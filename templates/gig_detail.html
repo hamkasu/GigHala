@@ -731,24 +731,8 @@
     <div class="gig-layout">
         <div class="gig-main">
             <div class="gig-header">
-                <div class="gig-badges">
-                    {% if gig.halal_compliant %}
-                    <span class="badge badge-halal">Halal</span>
-                    {% endif %}
-                    {% if gig.halal_verified %}
-                    <span class="badge badge-verified">Verified</span>
-                    {% endif %}
-                    <span class="badge badge-category">{{ gig.category }}</span>
-                    {% if gig.is_remote %}
-                    <span class="badge badge-remote">Remote</span>
-                    {% endif %}
-                    {% if gig.is_instant_payout %}
-                    <span class="badge badge-instant">Instant Payout</span>
-                    {% endif %}
-                    <span class="status-badge status-{{ gig.status }}">{{ gig.status|replace('_', ' ')|title }}</span>
-                </div>
-
                 <h1 class="gig-title">{{ gig.title }}</h1>
+                <span class="status-badge status-{{ gig.status }}">{{ gig.status|replace('_', ' ')|title }}</span>
 
                 <div class="gig-meta">
                     <div class="gig-meta-item">
