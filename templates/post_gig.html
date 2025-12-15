@@ -278,8 +278,8 @@
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <h1 class="page-title">Post a New Gig</h1>
-        <p class="page-subtitle">Cari freelancer yang sesuai untuk projek anda</p>
+        <h1 class="page-title">{% if edit_mode %}Edit Gig{% else %}Post a New Gig{% endif %}</h1>
+        <p class="page-subtitle">{% if edit_mode %}Kemaskini maklumat gig anda{% else %}Cari freelancer yang sesuai untuk projek anda{% endif %}</p>
     </div>
 
     <div class="form-card">
@@ -292,7 +292,7 @@
         {% endwith %}
         <div id="alertContainer"></div>
 
-        <form id="postGigForm" method="POST" action="/post-gig">
+        <form id="postGigForm" method="POST" action="{% if edit_mode %}/edit-gig/{{ gig.id }}{% else %}/post-gig{% endif %}">
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="file-text" width="18"></i>
@@ -467,11 +467,15 @@
 
             <div class="submit-section">
                 <div class="submit-info">
+                    {% if edit_mode %}
+                    <a href="/gig/{{ gig.id }}" style="color: var(--primary);">← Kembali ke gig</a>
+                    {% else %}
                     ✓ Tiada bayaran untuk post gig
+                    {% endif %}
                 </div>
                 <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <i data-feather="send" width="16"></i>
-                    Post Gig
+                    <i data-feather="{% if edit_mode %}check{% else %}send{% endif %}" width="16"></i>
+                    {% if edit_mode %}Simpan Perubahan{% else %}Post Gig{% endif %}
                 </button>
             </div>
         </form>

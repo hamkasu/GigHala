@@ -1217,6 +1217,137 @@ def post_gig():
     
     return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
 
+@app.route('/edit-gig/<int:gig_id>', methods=['GET', 'POST'])
+@page_login_required
+def edit_gig(gig_id):
+    """Edit an existing gig"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    gig = Gig.query.get_or_404(gig_id)
+    
+    if gig.client_id != user_id:
+        flash('Anda tidak mempunyai kebenaran untuk mengedit gig ini.', 'error')
+        return redirect('/dashboard')
+    
+    if gig.status not in ['open', 'in_progress']:
+        flash('Gig yang sudah selesai atau dibatalkan tidak boleh diedit.', 'error')
+        return redirect(f'/gig/{gig_id}')
+    
+    categories = Category.query.all()
+    
+    try:
+        existing_skills = json.loads(gig.skills_required) if gig.skills_required else []
+    except (json.JSONDecodeError, TypeError):
+        existing_skills = []
+    
+    form_data = {
+        'title': gig.title,
+        'description': gig.description,
+        'category': gig.category,
+        'duration': gig.duration or '',
+        'location': gig.location or '',
+        'budget_min': gig.budget_min,
+        'budget_max': gig.budget_max,
+        'deadline': gig.deadline.strftime('%Y-%m-%d') if gig.deadline else '',
+        'is_remote': gig.is_remote,
+        'halal_compliant': gig.halal_compliant,
+        'is_instant_payout': gig.is_instant_payout,
+        'is_brand_partnership': gig.is_brand_partnership,
+        'skills_required': json.dumps(existing_skills)
+    }
+    
+    if request.method == 'POST':
+        form_data = {
+            'title': request.form.get('title', ''),
+            'description': request.form.get('description', ''),
+            'category': request.form.get('category', ''),
+            'duration': request.form.get('duration', ''),
+            'location': request.form.get('location', ''),
+            'budget_min': request.form.get('budget_min', ''),
+            'budget_max': request.form.get('budget_max', ''),
+            'deadline': request.form.get('deadline', ''),
+            'is_remote': request.form.get('is_remote') == 'on',
+            'halal_compliant': request.form.get('halal_compliant') == 'on',
+            'is_instant_payout': request.form.get('is_instant_payout') == 'on',
+            'is_brand_partnership': request.form.get('is_brand_partnership') == 'on',
+            'skills_required': request.form.get('skills_required', '[]')
+        }
+        
+        try:
+            title = sanitize_input(form_data['title'], max_length=200)
+            description = sanitize_input(form_data['description'], max_length=5000)
+            category = sanitize_input(form_data['category'], max_length=50)
+            duration = sanitize_input(form_data['duration'], max_length=50)
+            location = sanitize_input(form_data['location'], max_length=100)
+            
+            if not title or not description or not category:
+                flash('Sila isi semua maklumat yang diperlukan.', 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+            
+            try:
+                budget_min = float(form_data['budget_min']) if form_data['budget_min'] else 0
+                budget_max = float(form_data['budget_max']) if form_data['budget_max'] else 0
+                if budget_min < 0 or budget_max < 0 or budget_min > budget_max:
+                    flash('Nilai budget tidak sah.', 'error')
+                    return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+            except (ValueError, TypeError):
+                flash('Format budget tidak sah.', 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+            
+            skills_json = form_data['skills_required']
+            try:
+                skills_required = json.loads(skills_json) if skills_json else []
+                if not isinstance(skills_required, list):
+                    skills_required = []
+                skills_required = [sanitize_input(str(skill), max_length=50) for skill in skills_required[:20]]
+            except json.JSONDecodeError:
+                skills_required = []
+            
+            deadline = None
+            deadline_str = form_data['deadline']
+            if deadline_str:
+                try:
+                    deadline = datetime.fromisoformat(deadline_str)
+                except (ValueError, TypeError):
+                    flash('Format tarikh tidak sah.', 'error')
+                    return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+            
+            db.session.refresh(gig)
+            if gig.client_id != user_id:
+                flash('Anda tidak mempunyai kebenaran untuk mengedit gig ini.', 'error')
+                return redirect('/dashboard')
+            if gig.status not in ['open', 'in_progress']:
+                flash('Gig ini tidak lagi boleh diedit.', 'error')
+                return redirect(f'/gig/{gig_id}')
+            
+            gig.title = title
+            gig.description = description
+            gig.category = category
+            gig.budget_min = budget_min
+            gig.budget_max = budget_max
+            gig.duration = duration
+            gig.location = location
+            gig.is_remote = form_data['is_remote']
+            gig.halal_compliant = form_data['halal_compliant']
+            gig.is_instant_payout = form_data['is_instant_payout']
+            gig.is_brand_partnership = form_data['is_brand_partnership']
+            gig.skills_required = json.dumps(skills_required)
+            gig.deadline = deadline
+            
+            db.session.commit()
+            
+            flash('Gig berjaya dikemaskini!', 'success')
+            return redirect(f'/gig/{gig_id}')
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Edit gig error: {str(e)}")
+            flash('Ralat berlaku. Sila cuba lagi.', 'error')
+            return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+    
+    return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+
 @app.route('/dashboard')
 @page_login_required
 def dashboard():
