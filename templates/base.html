@@ -563,6 +563,7 @@
             </nav>
         </div>
         
+        {% if active_page == 'gigs' %}
         <div class="header-categories">
             <nav class="categories-nav">
                 <a href="/gigs?category=design" class="category-link">{{ t('cat_design') }}</a>
@@ -583,6 +584,7 @@
                 <a href="/gigs?category=creative-other" class="category-link">{{ t('cat_creative_other') }}</a>
             </nav>
         </div>
+        {% endif %}
     </header>
 
     <main class="main-content">
