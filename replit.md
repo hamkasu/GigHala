@@ -58,6 +58,7 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 15, 2025: Added PWA (Progressive Web App) support - app can now be installed on iOS/Android devices from the browser, includes service worker for offline caching, mobile bottom navigation bar, install prompt banner, and app icons
 - December 15, 2025: Categories navigation bar now only shows on Browse Gigs page (hidden on homepage and other pages)
 - December 15, 2025: Fixed logout route to accept GET requests (redirects to homepage) in addition to POST requests
 - December 15, 2025: Fixed gig detail page error handling - added null safety checks for client/escrow and proper HTTPException handling for 404s
