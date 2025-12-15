@@ -1,0 +1,50 @@
+{
+  "name": "GigHalal - Platform Gig Halal #1 Malaysia",
+  "short_name": "GigHalal",
+  "description": "Platform gig economy halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#00C853",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ms",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Browse Gigs",
+      "short_name": "Gigs",
+      "description": "Lihat semua gig tersedia",
+      "url": "/gigs",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Post Gig",
+      "short_name": "Post",
+      "description": "Siarkan gig baru",
+      "url": "/post-gig",
+      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

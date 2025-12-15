@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GigHalal{% endblock %} - Platform Gig Halal #1 Malaysia</title>
     <meta name="description" content="Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan.">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#00C853">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GigHalal">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="GigHalal">
+    <meta name="msapplication-TileColor" content="#00C853">
+    <meta name="msapplication-config" content="/static/browserconfig.xml">
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
     <style>
@@ -517,10 +533,201 @@
             }
         }
 
+        /* PWA Install Banner */
+        .pwa-install-banner {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 16px 20px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .pwa-install-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .pwa-install-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .pwa-install-text h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .pwa-install-text p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            margin: 0;
+        }
+
+        .pwa-install-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .pwa-install-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .pwa-install-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .pwa-dismiss-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pwa-dismiss-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .pwa-install-banner {
+                flex-direction: column;
+                padding: 16px;
+                bottom: 60px;
+            }
+
+            .pwa-install-actions {
+                width: 100%;
+            }
+
+            .pwa-install-btn, .pwa-dismiss-btn {
+                flex: 1;
+            }
+        }
+
+        /* Mobile Bottom Navigation */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 8px 0;
+            padding-bottom: env(safe-area-inset-bottom, 8px);
+            z-index: 999;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .mobile-nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-gray);
+            font-size: 10px;
+            padding: 4px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+
+        .mobile-nav-item:active {
+            background: var(--bg-light);
+        }
+
+        .mobile-nav-item.active {
+            color: var(--primary);
+        }
+
+        .mobile-nav-item svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 2px;
+        }
+
+        .mobile-nav-item span {
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-bottom-nav {
+                display: block;
+            }
+
+            .footer {
+                padding-bottom: 80px;
+            }
+
+            .main-content {
+                padding-bottom: 70px;
+            }
+        }
+
         {% block extra_styles %}{% endblock %}
     </style>
 </head>
 <body>
+    <!-- PWA Install Banner -->
+    <div id="pwaInstallBanner" class="pwa-install-banner">
+        <div class="pwa-install-content">
+            <div class="pwa-install-icon">☪</div>
+            <div class="pwa-install-text">
+                <h4>Pasang GigHalal</h4>
+                <p>Akses pantas dari skrin utama telefon anda</p>
+            </div>
+        </div>
+        <div class="pwa-install-actions">
+            <button id="pwaInstallBtn" class="pwa-install-btn">Pasang</button>
+            <button id="pwaInstallDismiss" class="pwa-dismiss-btn">Tidak</button>
+        </div>
+    </div>
+
     <header class="header">
         <div class="header-top">
             <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
@@ -631,6 +838,36 @@
         </div>
     </footer>
 
+    <!-- Mobile Bottom Navigation -->
+    {% if user %}
+    <nav class="mobile-bottom-nav">
+        <div class="mobile-nav-items">
+            <a href="/dashboard" class="mobile-nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Home</span>
+            </a>
+            <a href="/gigs" class="mobile-nav-item {% if active_page == 'gigs' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <span>Cari</span>
+            </a>
+            {% if user.user_type in ['client', 'both'] %}
+            <a href="/post-gig" class="mobile-nav-item {% if active_page == 'post-gig' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                <span>Post</span>
+            </a>
+            {% endif %}
+            <a href="/billing" class="mobile-nav-item {% if active_page == 'billing' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+                <span>Wallet</span>
+            </a>
+            <a href="/settings" class="mobile-nav-item {% if active_page == 'settings' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Tetapan</span>
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script>
         feather.replace();
@@ -679,6 +916,57 @@
                 console.error('Error changing language:', error);
             }
         }
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/static/sw.js');
+                    console.log('ServiceWorker registered:', registration.scope);
+                } catch (error) {
+                    console.log('ServiceWorker registration failed:', error);
+                }
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwaInstallBanner');
+        const installBtn = document.getElementById('pwaInstallBtn');
+        const dismissBtn = document.getElementById('pwaInstallDismiss');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBanner && !localStorage.getItem('pwaInstallDismissed')) {
+                installBanner.style.display = 'flex';
+            }
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log('Install prompt outcome:', outcome);
+                    deferredPrompt = null;
+                    if (installBanner) installBanner.style.display = 'none';
+                }
+            });
+        }
+
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                if (installBanner) installBanner.style.display = 'none';
+                localStorage.setItem('pwaInstallDismissed', 'true');
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('GigHalal app installed');
+            if (installBanner) installBanner.style.display = 'none';
+            deferredPrompt = null;
+        });
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
