@@ -4899,7 +4899,7 @@ def pricing():
     content = '''
     <div class="content-section">
         <h2><span class="icon">💰</span> Harga Telus & Berpatutan</h2>
-        <p>GigHalal menawarkan struktur harga yang telus tanpa bayaran tersembunyi. Kami hanya mengambil sedikit komisyen untuk mengekalkan platform.</p>
+        <p>GigHalal menawarkan struktur harga yang telus tanpa bayaran tersembunyi. Kami menggunakan sistem komisyen berperingkat yang memberi ganjaran kepada freelancers dengan projek bernilai tinggi.</p>
         
         <div class="pricing-grid">
             <div class="pricing-card">
@@ -4910,24 +4910,22 @@ def pricing():
                     <li>Pendaftaran percuma</li>
                     <li>Browse unlimited gigs</li>
                     <li>Hantar unlimited proposals</li>
-                    <li>10% komisyen pada pembayaran</li>
+                    <li>Komisyen berperingkat (lihat bawah)</li>
                     <li>Instant payout dalam 24 jam</li>
                     <li>Sokongan pelanggan</li>
                 </ul>
             </div>
             
             <div class="pricing-card featured">
-                <div class="pricing-title">Pro Freelancer</div>
-                <div class="pricing-price">RM49<span>/bulan</span></div>
-                <p style="color: var(--text-gray);">Untuk freelancers serius</p>
+                <div class="pricing-title">Komisyen Berperingkat</div>
+                <div class="pricing-price">5-15%<span></span></div>
+                <p style="color: var(--text-gray);">Lebih besar projek, lebih rendah komisyen</p>
                 <ul class="pricing-features">
-                    <li>Semua ciri Freelancer</li>
-                    <li>Hanya 5% komisyen</li>
-                    <li>Badge Pro pada profil</li>
-                    <li>Priority dalam carian</li>
-                    <li>Akses awal ke gig baru</li>
-                    <li>Sokongan priority 24/7</li>
-                    <li>Analitik terperinci</li>
+                    <li><strong>RM0 - RM500:</strong> 15% komisyen</li>
+                    <li><strong>RM501 - RM2,000:</strong> 10% komisyen</li>
+                    <li><strong>RM2,001+:</strong> 5% komisyen</li>
+                    <li>Yuran pemprosesan: 2.9% + RM1</li>
+                    <li>Yuran pengeluaran: 2%</li>
                 </ul>
             </div>
             
@@ -4948,13 +4946,20 @@ def pricing():
     </div>
     
     <div class="content-section">
-        <h2><span class="icon">📋</span> Pecahan Yuran</h2>
+        <h2><span class="icon">📋</span> Pecahan Yuran Terperinci</h2>
         
-        <h3>Yuran Freelancer</h3>
+        <h3>Komisyen Freelancer (Berperingkat)</h3>
         <ul>
-            <li><strong>Komisyen Standard:</strong> 10% daripada nilai gig</li>
-            <li><strong>Komisyen Pro:</strong> 5% daripada nilai gig (dengan langganan Pro)</li>
-            <li><strong>Yuran Pengeluaran:</strong> Percuma untuk bank tempatan, RM1 untuk e-wallet</li>
+            <li><strong>Tier 1 (RM0 - RM500):</strong> 15% komisyen</li>
+            <li><strong>Tier 2 (RM501 - RM2,000):</strong> 10% komisyen</li>
+            <li><strong>Tier 3 (RM2,001+):</strong> 5% komisyen</li>
+        </ul>
+        
+        <h3>Yuran Pemprosesan</h3>
+        <ul>
+            <li><strong>Yuran Transaksi:</strong> 2.9% + RM1.00 setiap transaksi</li>
+            <li><strong>Yuran Pengeluaran:</strong> 2% daripada jumlah pengeluaran</li>
+            <li><strong>E-wallet:</strong> RM1 tambahan untuk pengeluaran ke e-wallet</li>
         </ul>
         
         <h3>Yuran Client</h3>
@@ -4963,6 +4968,10 @@ def pricing():
             <li><strong>Deposit Escrow:</strong> Percuma</li>
             <li><strong>Refund:</strong> Tiada yuran untuk refund yang diluluskan</li>
         </ul>
+        
+        <div class="highlight-box">
+            <p><strong>💡 Contoh:</strong> Untuk gig bernilai RM1,000, komisyen adalah 10% = RM100. Freelancer menerima RM900 sebelum yuran pemprosesan.</p>
+        </div>
         
         <div class="highlight-box">
             <p><strong>💡 Nota:</strong> Semua yuran dikira secara automatik dan ditunjukkan dengan jelas sebelum pembayaran. Tiada bayaran tersembunyi!</p>
