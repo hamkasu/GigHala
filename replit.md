@@ -58,6 +58,7 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 16, 2025: Enhanced Privacy Policy (/privasi) with PDPA compliance - added 5 new sections: data collection sources, obligatory data provision, cross-border data transfers, sensitive personal data consent, and Data Protection Officer (DPO) appointment details
 - December 15, 2025: Added Edit Gig functionality - gig owners can now edit their posted gigs via /edit-gig/<id> route. Edit button appears on gig detail page for owners (only for open/in_progress gigs). Reuses post_gig.html template with edit_mode flag.
 - December 15, 2025: Updated Pricing page to show accurate tiered commission structure (15%/10%/5%) matching the billing system - includes processing fees (2.9% + RM1) and payout fees (2%)
 - December 15, 2025: Removed green HALAL badge and star/crescent icon from header navigation across all templates (base.html, index.html, gigs.html) - logo now shows just "GigHalal" text
