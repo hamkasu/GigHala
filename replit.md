@@ -58,6 +58,8 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 16, 2025: Made posted gigs on dashboard clickable - gig cards in "Your Posted Gigs" section now link to gig detail page
+- December 16, 2025: Added applications management UI for gig owners - on gig detail page, owners can see all applications with freelancer info, proposed price, and Accept/Reject buttons; uses existing API endpoints /api/applications/{id}/accept and /api/applications/{id}/reject
 - December 16, 2025: Added photo upload feature for gig postings - drag-and-drop UI in post_gig.html (max 5 photos, 5MB each, PNG/JPG/WEBP), secure file handling with werkzeug secure_filename, photo gallery display on gig_detail.html with fullscreen modal viewer
 - December 16, 2025: Removed all JAKIM Verified references from the application - removed from translation strings (Malay/English), hero trust section, and footer badges in both index.html and base.html templates
 - December 16, 2025: Enhanced Privacy Policy (/privasi) with PDPA compliance - added 5 new sections: data collection sources, obligatory data provision, cross-border data transfers, sensitive personal data consent, and Data Protection Officer (DPO) appointment details
