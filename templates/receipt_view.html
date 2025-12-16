@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt {{ receipt.receipt_number }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .receipt-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .receipt-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 40px;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px dashed var(--border);
+    }
+
+    .receipt-logo {
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .receipt-logo span {
+        color: var(--primary);
+    }
+
+    .receipt-title {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--text-gray);
+        margin-bottom: 16px;
+    }
+
+    .receipt-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+
+    .receipt-date {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .receipt-type-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-top: 16px;
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .receipt-details {
+        margin-bottom: 30px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: var(--text-dark);
+        text-align: right;
+    }
+
+    .receipt-amount-section {
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .amount-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-gray);
+        margin-bottom: 8px;
+    }
+
+    .amount-value {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .amount-breakdown {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .breakdown-item {
+        text-align: center;
+    }
+
+    .breakdown-item .label {
+        font-size: 11px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .breakdown-item .value {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .receipt-footer {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 2px dashed var(--border);
+        color: var(--text-gray);
+        font-size: 13px;
+    }
+
+    .receipt-footer .checkmark {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-light);
+    }
+
+    @media print {
+        .action-buttons, .header, .footer, .mobile-bottom-nav {
+            display: none !important;
+        }
+        
+        .receipt-container {
+            max-width: 100%;
+        }
+        
+        .receipt-card {
+            border: none;
+            box-shadow: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .receipt-card {
+            padding: 24px;
+        }
+
+        .amount-value {
+            font-size: 28px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="receipt-container">
+        <div class="receipt-card">
+            <div class="receipt-header">
+                <div class="receipt-logo">
+                    Gig<span>Halal</span>
+                </div>
+                <div class="receipt-title">{{ 'Resit Pembayaran' if lang == 'ms' else 'Payment Receipt' }}</div>
+                <div class="receipt-number">{{ receipt.receipt_number }}</div>
+                <div class="receipt-date">{{ receipt.created_at.strftime('%d %B %Y, %H:%M') }}</div>
+                <span class="receipt-type-badge">
+                    {% if receipt.receipt_type == 'escrow_funding' %}
+                        {{ 'Dana Escrow' if lang == 'ms' else 'Escrow Funding' }}
+                    {% elif receipt.receipt_type == 'payment' %}
+                        {{ 'Bayaran' if lang == 'ms' else 'Payment' }}
+                    {% elif receipt.receipt_type == 'refund' %}
+                        {{ 'Bayaran Balik' if lang == 'ms' else 'Refund' }}
+                    {% else %}
+                        {{ receipt.receipt_type|replace('_', ' ')|title }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="receipt-amount-section">
+                <div class="amount-label">{{ 'Jumlah Dibayar' if lang == 'ms' else 'Amount Paid' }}</div>
+                <div class="amount-value">MYR {{ "%.2f"|format(receipt.total_amount) }}</div>
+                {% if receipt.platform_fee > 0 %}
+                <div class="amount-breakdown">
+                    <div class="breakdown-item">
+                        <div class="label">{{ 'Jumlah' if lang == 'ms' else 'Amount' }}</div>
+                        <div class="value">MYR {{ "%.2f"|format(receipt.amount) }}</div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="label">{{ 'Yuran' if lang == 'ms' else 'Fee' }}</div>
+                        <div class="value">MYR {{ "%.2f"|format(receipt.platform_fee) }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="receipt-details">
+                {% if gig %}
+                <div class="detail-row">
+                    <span class="detail-label">{{ 'Gig' if lang == 'ms' else 'Gig' }}</span>
+                    <span class="detail-value">{{ gig.title }}</span>
+                </div>
+                {% endif %}
+                
+                {% if receipt.payment_method %}
+                <div class="detail-row">
+                    <span class="detail-label">{{ 'Kaedah Bayaran' if lang == 'ms' else 'Payment Method' }}</span>
+                    <span class="detail-value">
+                        {% if receipt.payment_method == 'fpx' %}
+                            FPX
+                        {% elif receipt.payment_method == 'payhalal' %}
+                            PayHalal
+                        {% elif receipt.payment_method == 'bank_transfer' %}
+                            {{ 'Pemindahan Bank' if lang == 'ms' else 'Bank Transfer' }}
+                        {% elif receipt.payment_method == 'direct' %}
+                            {{ 'Bayaran Terus' if lang == 'ms' else 'Direct Payment' }}
+                        {% else %}
+                            {{ receipt.payment_method|title }}
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+                
+                {% if receipt.payment_reference %}
+                <div class="detail-row">
+                    <span class="detail-label">{{ 'Rujukan' if lang == 'ms' else 'Reference' }}</span>
+                    <span class="detail-value">{{ receipt.payment_reference }}</span>
+                </div>
+                {% endif %}
+                
+                {% if escrow %}
+                <div class="detail-row">
+                    <span class="detail-label">{{ 'Status Escrow' if lang == 'ms' else 'Escrow Status' }}</span>
+                    <span class="detail-value">{{ escrow.get_status_label() }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="receipt-footer">
+                <div class="checkmark">✓</div>
+                <p>{{ 'Pembayaran Berjaya' if lang == 'ms' else 'Payment Successful' }}</p>
+                <p style="margin-top: 16px;">{{ 'Terima kasih kerana menggunakan GigHalal!' if lang == 'ms' else 'Thank you for using GigHalal!' }}</p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/documents" class="btn btn-outline">
+                    {{ 'Kembali' if lang == 'ms' else 'Back' }}
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    {{ 'Cetak' if lang == 'ms' else 'Print' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

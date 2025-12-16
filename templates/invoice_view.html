@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .invoice-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .invoice-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 40px;
+    }
+
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .invoice-logo {
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .invoice-logo span {
+        color: var(--primary);
+    }
+
+    .invoice-meta {
+        text-align: right;
+    }
+
+    .invoice-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .invoice-date {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .invoice-status {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    .invoice-status.paid { background: #d1fae5; color: #065f46; }
+    .invoice-status.draft { background: #e0e7ff; color: #3730a3; }
+    .invoice-status.issued { background: #fef3c7; color: #92400e; }
+
+    .parties-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .party-box h4 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-gray);
+        margin-bottom: 12px;
+    }
+
+    .party-box .party-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+    }
+
+    .party-box .party-email {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .gig-section {
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .gig-section h4 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-gray);
+        margin-bottom: 8px;
+    }
+
+    .gig-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .invoice-details {
+        margin-bottom: 30px;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .invoice-table th {
+        text-align: left;
+        padding: 12px 0;
+        border-bottom: 2px solid var(--border);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-gray);
+    }
+
+    .invoice-table td {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .invoice-table .amount {
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .invoice-totals {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid var(--border);
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 15px;
+    }
+
+    .total-row.grand-total {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+        padding-top: 16px;
+        margin-top: 8px;
+        border-top: 2px solid var(--text-dark);
+    }
+
+    .invoice-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        color: var(--text-gray);
+        font-size: 13px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-light);
+    }
+
+    @media print {
+        .action-buttons, .header, .footer, .mobile-bottom-nav {
+            display: none !important;
+        }
+        
+        .invoice-container {
+            max-width: 100%;
+        }
+        
+        .invoice-card {
+            border: none;
+            box-shadow: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .invoice-card {
+            padding: 24px;
+        }
+
+        .invoice-header {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .invoice-meta {
+            text-align: left;
+        }
+
+        .parties-section {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="invoice-container">
+        <div class="invoice-card">
+            <div class="invoice-header">
+                <div class="invoice-logo">
+                    Gig<span>Halal</span>
+                </div>
+                <div class="invoice-meta">
+                    <div class="invoice-number">{{ invoice.invoice_number }}</div>
+                    <div class="invoice-date">
+                        {{ 'Tarikh:' if lang == 'ms' else 'Date:' }} {{ invoice.created_at.strftime('%d %B %Y') }}
+                    </div>
+                    <span class="invoice-status {{ invoice.status }}">
+                        {% if invoice.status == 'paid' %}
+                            {{ 'DIBAYAR' if lang == 'ms' else 'PAID' }}
+                        {% elif invoice.status == 'issued' %}
+                            {{ 'DIKELUARKAN' if lang == 'ms' else 'ISSUED' }}
+                        {% else %}
+                            {{ invoice.status|upper }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="parties-section">
+                <div class="party-box">
+                    <h4>{{ 'Daripada (Klien)' if lang == 'ms' else 'From (Client)' }}</h4>
+                    <div class="party-name">{{ client.full_name or client.username }}</div>
+                    <div class="party-email">{{ client.email }}</div>
+                </div>
+                <div class="party-box">
+                    <h4>{{ 'Kepada (Freelancer)' if lang == 'ms' else 'To (Freelancer)' }}</h4>
+                    <div class="party-name">{{ freelancer.full_name or freelancer.username }}</div>
+                    <div class="party-email">{{ freelancer.email }}</div>
+                </div>
+            </div>
+
+            {% if gig %}
+            <div class="gig-section">
+                <h4>{{ 'Gig' if lang == 'ms' else 'Gig' }}</h4>
+                <div class="gig-title">{{ gig.title }}</div>
+            </div>
+            {% endif %}
+
+            <div class="invoice-details">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'Perihal' if lang == 'ms' else 'Description' }}</th>
+                            <th class="amount">{{ 'Jumlah (MYR)' if lang == 'ms' else 'Amount (MYR)' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ 'Bayaran perkhidmatan gig' if lang == 'ms' else 'Gig service payment' }}</td>
+                            <td class="amount">{{ "%.2f"|format(invoice.amount) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="invoice-totals">
+                    <div class="total-row">
+                        <span>{{ 'Jumlah' if lang == 'ms' else 'Subtotal' }}</span>
+                        <span>MYR {{ "%.2f"|format(invoice.amount) }}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>{{ 'Yuran Platform' if lang == 'ms' else 'Platform Fee' }}</span>
+                        <span>MYR {{ "%.2f"|format(invoice.platform_fee) }}</span>
+                    </div>
+                    {% if invoice.tax_amount > 0 %}
+                    <div class="total-row">
+                        <span>{{ 'Cukai' if lang == 'ms' else 'Tax' }}</span>
+                        <span>MYR {{ "%.2f"|format(invoice.tax_amount) }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="total-row grand-total">
+                        <span>{{ 'Jumlah Besar' if lang == 'ms' else 'Total' }}</span>
+                        <span>MYR {{ "%.2f"|format(invoice.total_amount) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if invoice.notes %}
+            <div class="gig-section">
+                <h4>{{ 'Nota' if lang == 'ms' else 'Notes' }}</h4>
+                <p>{{ invoice.notes }}</p>
+            </div>
+            {% endif %}
+
+            <div class="invoice-footer">
+                <p>{{ 'Terima kasih kerana menggunakan GigHalal!' if lang == 'ms' else 'Thank you for using GigHalal!' }}</p>
+                <p>GigHalal - Platform Gig Halal #1 Malaysia</p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/documents" class="btn btn-outline">
+                    {{ 'Kembali' if lang == 'ms' else 'Back' }}
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    {{ 'Cetak' if lang == 'ms' else 'Print' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -633,6 +633,57 @@ def calculate_commission(amount):
     else:
         return round(amount * 0.05, 2)  # 5%
 
+def generate_receipt_number(receipt_type='RCP'):
+    """Generate a unique receipt number with collision resistance"""
+    import uuid
+    prefix_map = {
+        'escrow_funding': 'ESC-RCP',
+        'payment': 'PAY-RCP',
+        'refund': 'REF-RCP',
+        'payout': 'OUT-RCP'
+    }
+    prefix = prefix_map.get(receipt_type, 'RCP')
+    date_part = datetime.utcnow().strftime('%Y%m%d')
+    unique_part = uuid.uuid4().hex[:8].upper()
+    receipt_number = f"{prefix}-{date_part}-{unique_part}"
+    
+    max_attempts = 5
+    for attempt in range(max_attempts):
+        existing = Receipt.query.filter_by(receipt_number=receipt_number).first()
+        if not existing:
+            return receipt_number
+        unique_part = uuid.uuid4().hex[:8].upper()
+        receipt_number = f"{prefix}-{date_part}-{unique_part}"
+    
+    return receipt_number
+
+def create_escrow_receipt(escrow, gig, payment_method='fpx'):
+    """Create a receipt for escrow funding (idempotent - only creates if none exists)"""
+    existing_receipt = Receipt.query.filter_by(
+        escrow_id=escrow.id,
+        receipt_type='escrow_funding'
+    ).first()
+    
+    if existing_receipt:
+        app.logger.info(f"Receipt already exists for escrow {escrow.id}: {existing_receipt.receipt_number}")
+        return existing_receipt
+    
+    receipt = Receipt(
+        receipt_number=generate_receipt_number('escrow_funding'),
+        receipt_type='escrow_funding',
+        user_id=escrow.client_id,
+        gig_id=gig.id,
+        escrow_id=escrow.id,
+        amount=escrow.amount,
+        platform_fee=escrow.platform_fee,
+        total_amount=escrow.amount,
+        payment_method=payment_method,
+        payment_reference=escrow.payment_reference,
+        description=f"Escrow funding for gig: {gig.title}"
+    )
+    db.session.add(receipt)
+    return receipt
+
 # Login required decorator for API routes
 def login_required(f):
     """Decorator to require user authentication for API routes"""
@@ -818,6 +869,43 @@ class Invoice(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     notes = db.Column(db.Text)
+
+class Receipt(db.Model):
+    """Model for storing payment receipts for escrow funding and other payments"""
+    id = db.Column(db.Integer, primary_key=True)
+    receipt_number = db.Column(db.String(50), unique=True, nullable=False)
+    receipt_type = db.Column(db.String(30), nullable=False)  # escrow_funding, payment, refund, payout
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'))
+    escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'))
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'))
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
+    amount = db.Column(db.Float, nullable=False)
+    platform_fee = db.Column(db.Float, default=0.0)
+    total_amount = db.Column(db.Float, nullable=False)
+    payment_method = db.Column(db.String(50))
+    payment_reference = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert receipt to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'receipt_number': self.receipt_number,
+            'receipt_type': self.receipt_type,
+            'user_id': self.user_id,
+            'gig_id': self.gig_id,
+            'escrow_id': self.escrow_id,
+            'invoice_id': self.invoice_id,
+            'amount': self.amount,
+            'platform_fee': self.platform_fee,
+            'total_amount': self.total_amount,
+            'payment_method': self.payment_method,
+            'payment_reference': self.payment_reference,
+            'description': self.description,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
 
 class Payout(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1546,6 +1634,102 @@ def accepted_gigs():
                          user=user,
                          accepted_gigs=accepted_gigs_list,
                          active_page='accepted-gigs',
+                         lang=get_user_language(),
+                         t=t)
+
+@app.route('/documents')
+@page_login_required
+def documents_page():
+    """Page showing all user's invoices and receipts"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    # Get user's invoices (as client or freelancer)
+    invoices = Invoice.query.filter(
+        (Invoice.client_id == user_id) | (Invoice.freelancer_id == user_id)
+    ).order_by(Invoice.created_at.desc()).all()
+    
+    # Enrich invoices with gig info
+    invoices_list = []
+    for inv in invoices:
+        gig = Gig.query.get(inv.gig_id)
+        invoices_list.append({
+            'invoice': inv,
+            'gig_title': gig.title if gig else 'Unknown Gig',
+            'is_client': inv.client_id == user_id
+        })
+    
+    # Get user's receipts
+    receipts = Receipt.query.filter_by(user_id=user_id).order_by(Receipt.created_at.desc()).all()
+    
+    # Enrich receipts with gig info
+    receipts_list = []
+    for rcp in receipts:
+        gig = Gig.query.get(rcp.gig_id) if rcp.gig_id else None
+        receipts_list.append({
+            'receipt': rcp,
+            'gig_title': gig.title if gig else 'N/A'
+        })
+    
+    return render_template('documents.html',
+                         user=user,
+                         invoices=invoices_list,
+                         receipts=receipts_list,
+                         active_page='documents',
+                         lang=get_user_language(),
+                         t=t)
+
+@app.route('/invoice/<int:invoice_id>')
+@page_login_required
+def view_invoice(invoice_id):
+    """View a specific invoice"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    invoice = Invoice.query.get_or_404(invoice_id)
+    
+    # Only client or freelancer can view
+    if invoice.client_id != user_id and invoice.freelancer_id != user_id:
+        flash('Anda tidak mempunyai akses untuk melihat invois ini.', 'error')
+        return redirect('/documents')
+    
+    gig = Gig.query.get(invoice.gig_id)
+    client = User.query.get(invoice.client_id)
+    freelancer = User.query.get(invoice.freelancer_id)
+    
+    return render_template('invoice_view.html',
+                         user=user,
+                         invoice=invoice,
+                         gig=gig,
+                         client=client,
+                         freelancer=freelancer,
+                         active_page='documents',
+                         lang=get_user_language(),
+                         t=t)
+
+@app.route('/receipt/<int:receipt_id>')
+@page_login_required
+def view_receipt(receipt_id):
+    """View a specific receipt"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    receipt = Receipt.query.get_or_404(receipt_id)
+    
+    # Only the receipt owner can view
+    if receipt.user_id != user_id:
+        flash('Anda tidak mempunyai akses untuk melihat resit ini.', 'error')
+        return redirect('/documents')
+    
+    gig = Gig.query.get(receipt.gig_id) if receipt.gig_id else None
+    escrow = Escrow.query.get(receipt.escrow_id) if receipt.escrow_id else None
+    
+    return render_template('receipt_view.html',
+                         user=user,
+                         receipt=receipt,
+                         gig=gig,
+                         escrow=escrow,
+                         active_page='documents',
                          lang=get_user_language(),
                          t=t)
 
@@ -2791,11 +2975,16 @@ def create_escrow():
         if client_wallet:
             client_wallet.held_balance += amount
         
+        # Create receipt for escrow funding
+        db.session.flush()  # Get escrow ID
+        receipt = create_escrow_receipt(escrow, gig, 'direct')
+        
         db.session.commit()
         
         return jsonify({
             'message': 'Escrow funded successfully',
-            'escrow': escrow.to_dict()
+            'escrow': escrow.to_dict(),
+            'receipt_number': receipt.receipt_number
         }), 201
         
     except Exception as e:
@@ -3182,6 +3371,14 @@ def payhalal_escrow_webhook():
             return jsonify({'error': 'Escrow not found'}), 404
         
         if payment_status == 'paid' or payment_status == 'success':
+            # Idempotency: Skip if already funded
+            if escrow.status == 'funded':
+                app.logger.info(f"Escrow {escrow.id} already funded, skipping duplicate webhook")
+                return jsonify({
+                    'success': True,
+                    'message': 'Escrow already funded (duplicate webhook)'
+                }), 200
+            
             # Mark escrow as funded
             escrow.status = 'funded'
             escrow.funded_at = datetime.utcnow()
@@ -3205,6 +3402,11 @@ def payhalal_escrow_webhook():
                 reference_number=order_id
             )
             db.session.add(payment_history)
+            
+            # Create receipt for escrow funding
+            gig = Gig.query.get(escrow.gig_id)
+            if gig:
+                receipt = create_escrow_receipt(escrow, gig, 'payhalal')
             
             db.session.commit()
             
@@ -3272,12 +3474,16 @@ def confirm_manual_escrow_payment(gig_id):
             
             client_wallet.held_balance += escrow.amount
             
+            # Create receipt for escrow funding
+            receipt = create_escrow_receipt(escrow, gig, 'bank_transfer')
+            
             db.session.commit()
             
             return jsonify({
                 'success': True,
                 'message': 'Escrow confirmed and funded',
-                'escrow': escrow.to_dict()
+                'escrow': escrow.to_dict(),
+                'receipt_number': receipt.receipt_number
             }), 200
         else:
             # Client submits transfer reference for admin review
