@@ -109,8 +109,11 @@ def api_rate_limit(requests_per_minute=60):
     return decorator
 
 # Cleanup old rate limit entries periodically
+_last_cleanup = datetime.utcnow()
+
 def cleanup_rate_limits():
     """Remove stale rate limit entries older than 1 hour"""
+    global _last_cleanup
     current_time = datetime.utcnow()
     cutoff = current_time - timedelta(hours=1)
     
@@ -126,6 +129,17 @@ def cleanup_rate_limits():
                  if not v['requests'] or max(v['requests']) < cutoff]
     for k in stale_api:
         del api_rate_limits[k]
+    
+    _last_cleanup = current_time
+
+@app.before_request
+def before_request_handler():
+    """Run periodic cleanup on rate limit storage"""
+    global _last_cleanup
+    current_time = datetime.utcnow()
+    # Run cleanup every 5 minutes
+    if (current_time - _last_cleanup).total_seconds() > 300:
+        cleanup_rate_limits()
 
 # Translation dictionaries for bilingual support (Malay/English)
 TRANSLATIONS = {
@@ -2374,6 +2388,7 @@ def logout():
     return jsonify({'message': 'Logged out successfully'}), 200
 
 @app.route('/api/gigs', methods=['GET'])
+@api_rate_limit(requests_per_minute=120)
 def get_gigs():
     try:
         category = sanitize_input(request.args.get('category', ''), max_length=50)
@@ -2430,6 +2445,7 @@ def get_gigs():
         return jsonify({'error': 'Failed to retrieve gigs'}), 500
 
 @app.route('/api/gigs', methods=['POST'])
+@api_rate_limit(requests_per_minute=30)
 def create_gig():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -2541,6 +2557,7 @@ def get_gig(gig_id):
     })
 
 @app.route('/api/gigs/<int:gig_id>/apply', methods=['POST'])
+@api_rate_limit(requests_per_minute=20)
 def apply_to_gig(gig_id):
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
