@@ -58,6 +58,8 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'work_photos'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'gig_photos'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'portfolio'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'verification'), exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
@@ -2808,6 +2810,59 @@ def serve_work_photo(filename):
 
     except Exception as e:
         app.logger.error(f"Serve work photo error: {str(e)}")
+        return jsonify({'error': 'Failed to load photo'}), 500
+
+@app.route('/uploads/portfolio/<filename>')
+def serve_portfolio_photo(filename):
+    """Serve uploaded portfolio photos (public)"""
+    try:
+        # Validate filename to prevent path traversal
+        safe_filename = secure_filename(filename)
+        if safe_filename != filename:
+            return jsonify({'error': 'Invalid filename'}), 400
+        
+        file_path = os.path.join(UPLOAD_FOLDER, 'portfolio', safe_filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File not found'}), 404
+        
+        # Portfolio images are public for profile viewing
+        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'portfolio'), safe_filename)
+    except Exception as e:
+        app.logger.error(f"Serve portfolio photo error: {str(e)}")
+        return jsonify({'error': 'Failed to load photo'}), 500
+
+@app.route('/uploads/verification/<filename>')
+def serve_verification_photo(filename):
+    """Serve verification photos (admin and owner only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        
+        # Validate filename to prevent path traversal
+        safe_filename = secure_filename(filename)
+        if safe_filename != filename:
+            return jsonify({'error': 'Invalid filename'}), 400
+        
+        # Extract user_id from filename (format: {user_id}_{field}_{uuid}_{original})
+        try:
+            file_user_id = int(filename.split('_')[0])
+        except (ValueError, IndexError):
+            return jsonify({'error': 'Invalid filename format'}), 400
+        
+        # Only allow admin or the owner to view verification files
+        if not user.is_admin and user_id != file_user_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        file_path = os.path.join(UPLOAD_FOLDER, 'verification', safe_filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File not found'}), 404
+        
+        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'verification'), safe_filename)
+    except Exception as e:
+        app.logger.error(f"Serve verification photo error: {str(e)}")
         return jsonify({'error': 'Failed to load photo'}), 500
 
 # ============================================================================

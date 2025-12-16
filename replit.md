@@ -49,6 +49,56 @@ The application runs on port 5000 via the "Start application" workflow.
 - **Receipt**: Payment receipts (escrow funding, payments, refunds)
 - **Payout**: Freelancer payouts
 - **PaymentHistory**: Transaction history
+- **PortfolioItem**: Freelancer portfolio showcase items
+- **Conversation**: Chat conversations between users
+- **Message**: Individual chat messages
+- **Notification**: User notifications (with types: message, payment, review, application, dispute, verification, milestone)
+- **NotificationPreference**: User notification settings
+- **IdentityVerification**: IC/MyKad verification submissions
+- **Dispute**: Dispute cases between users
+- **DisputeMessage**: Messages in dispute discussions
+- **Milestone**: Escrow payment milestones
+
+## New Features (December 16, 2025)
+
+### Portfolio Management
+- `/portfolio` - View and manage portfolio items
+- `/profile/<username>` - Public user profile with portfolio showcase
+- Supports image uploads with categories
+
+### Real-time Messaging
+- `/messages` - View all conversations
+- `/messages/<id>` - Individual conversation view with polling for new messages
+- `/api/messages/send` - Send messages
+- `/api/messages/start` - Start new conversations
+- `/api/messages/poll/<id>` - Long-polling for real-time updates
+
+### Notifications System
+- `/notifications` - View all notifications
+- `/api/notifications` - Get notifications (supports unread_only filter)
+- `/api/notifications/mark-read` - Mark notifications as read
+- `/api/notifications/preferences` - Get/update notification preferences
+- Types: message, payment, review, application, dispute, verification, milestone
+
+### Identity Verification (IC/MyKad)
+- `/verification` - Submit verification documents
+- `/admin/verifications` - Admin review page for verifications
+- Requires: IC front photo, IC back photo, selfie with IC
+- Secure file storage with access control
+
+### Dispute Resolution
+- `/disputes` - View all disputes
+- `/dispute/<id>` - View dispute details and discussion
+- `/dispute/new/<gig_id>` - File new dispute
+- `/admin/disputes` - Admin dispute management
+- Types: quality, non_delivery, payment, harassment, other
+
+### Escrow Milestones
+- `/api/milestones/<escrow_id>` - Get milestones for escrow
+- `/api/milestones/create` - Create milestones (client only)
+- `/api/milestone/<id>/submit` - Submit work (freelancer)
+- `/api/milestone/<id>/approve` - Approve and release payment (client)
+- Automatic wallet crediting with 5% platform fee
 
 ## Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
@@ -59,6 +109,10 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 16, 2025: Added 7 major new features: Portfolio Management (/portfolio, /profile/<username>), Real-time Messaging (/messages with polling), Notifications System (/notifications with preferences), Identity Verification (/verification with IC/MyKad upload), Dispute Resolution (/disputes, /dispute/new), Escrow Milestones (milestone-based payments), and Admin panels for verification/dispute review
+- December 16, 2025: Added database models for PortfolioItem, Conversation, Message, Notification, NotificationPreference, IdentityVerification, Dispute, DisputeMessage, and Milestone
+- December 16, 2025: Created SQL migration file (migrations/add_new_features.sql) for manual database schema updates
+- December 16, 2025: Added secure file serving for portfolio and verification uploads with proper access control
 - December 16, 2025: Added Documents page (/documents) - displays all invoices and receipts with tabs, links to view individual documents; Receipt model for escrow funding with collision-resistant receipt number generation (UUID-based), idempotent receipt creation to prevent duplicates on webhook retries; view routes /invoice/<id> and /receipt/<id> with printable templates
 - December 16, 2025: Added Accepted Gigs page (/accepted-gigs) - displays all gigs where the user has an accepted application (as freelancer) or has accepted a freelancer (as client); shows gig title, role, other party info, price, status, and date; navigation link added to user dropdown menu
 - December 16, 2025: Added PayHalal escrow integration - new /escrow page for clients to view and fund escrows via PayHalal (FPX/Card/E-Wallet) or manual bank transfer; includes /api/escrow/<gig_id>/pay endpoint for payment initiation, /api/payhalal/escrow-webhook for payment confirmation, /api/escrow/my-escrows for listing user escrows, and /api/escrow/<gig_id>/confirm-manual for manual transfer verification; navigation link added to user dropdown menu
