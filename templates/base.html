@@ -654,7 +654,7 @@
         .date-bar .date-content {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end;
             gap: 12px;
             max-width: 1400px;
             margin: 0 auto;
@@ -673,9 +673,6 @@
             color: rgba(255,255,255,0.8);
         }
 
-        .date-bar .crescent-icon {
-            font-size: 14px;
-        }
 
         @media (max-width: 480px) {
             .date-bar {
@@ -781,7 +778,6 @@
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar">
         <div class="date-content">
-            <span class="crescent-icon">☪</span>
             <span class="hijri-date">{{ today_hijri }}</span>
             <span class="date-separator">|</span>
             <span class="gregorian-date">{{ today_gregorian }}</span>
