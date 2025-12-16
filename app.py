@@ -5564,7 +5564,27 @@ def privasi():
         <h3>7. Penyimpanan Data</h3>
         <p>Data anda disimpan selagi akaun anda aktif. Selepas pemadaman akaun, data dikekalkan selama 30 hari sebelum dipadam sepenuhnya.</p>
         
-        <h3>8. Hubungi Kami</h3>
+        <h3>8. Sumber Pengumpulan Data</h3>
+        <p>Kami mengumpul data peribadi anda secara langsung daripada anda apabila anda mendaftar atau menggunakan perkhidmatan kami, dan secara automatik melalui peranti anda (contoh: alamat IP dan log penggunaan).</p>
+        
+        <h3>9. Data Wajib</h3>
+        <p>Pemberian data peribadi tertentu (contoh: butiran hubungan dan pembayaran) adalah wajib untuk kami memproses pendaftaran dan transaksi anda. Kegagalan memberikan data tersebut mungkin bermakna kami tidak dapat menyediakan perkhidmatan yang diminta.</p>
+        
+        <h3>10. Pemindahan Data Antarabangsa</h3>
+        <p>Data anda mungkin dipindahkan dan disimpan dalam server di luar Malaysia (contoh: di Amerika Syarikat). Kami memastikan pemindahan mematuhi keperluan PDPA melalui perlindungan yang mencukupi atau kontrak yang sesuai.</p>
+        
+        <h3>11. Data Peribadi Sensitif</h3>
+        <p>Jika kami mengumpul data peribadi sensitif (seperti data biometrik atau maklumat kesihatan), kami akan mendapatkan persetujuan eksplisit anda secara berasingan.</p>
+        
+        <h3>12. Pegawai Perlindungan Data (DPO)</h3>
+        <p>Kami telah melantik Pegawai Perlindungan Data (DPO) yang bertanggungjawab untuk mengawasi pematuhan dengan PDPA.</p>
+        <p><strong>Hubungi DPO:</strong></p>
+        <ul>
+            <li>Email: dpo@gighalal.com</li>
+            <li>Telefon: +60 3-XXXX XXXX</li>
+        </ul>
+        
+        <h3>13. Hubungi Kami</h3>
         <p>Untuk soalan tentang privasi, hubungi: privacy@gighalal.com</p>
     </div>
     '''
