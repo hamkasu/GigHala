@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .portfolio-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .page-header {
+        background: var(--bg-white);
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        border: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .page-header h1 {
+        color: var(--text-dark);
+        font-size: 28px;
+        margin: 0;
+    }
+    .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+    }
+    .portfolio-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .portfolio-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .portfolio-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: var(--bg-light);
+    }
+    .portfolio-image.placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-gray);
+        font-size: 48px;
+    }
+    .portfolio-content {
+        padding: 20px;
+    }
+    .portfolio-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+    .portfolio-description {
+        color: var(--text-gray);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+    .portfolio-category {
+        display: inline-block;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .portfolio-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+    .btn-delete {
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+    .add-portfolio-card {
+        background: var(--bg-light);
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .add-portfolio-card:hover {
+        border-color: var(--primary);
+        background: rgba(0, 200, 83, 0.05);
+    }
+    .add-icon {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 16px;
+    }
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-content {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-gray);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+    .form-input, .form-textarea, .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        color: var(--text-dark);
+    }
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+    }
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-gray);
+    }
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="portfolio-container">
+    <div class="page-header">
+        <div>
+            <h1>My Portfolio</h1>
+            <p style="color: var(--text-gray); margin-top: 4px;">Showcase your best work to attract clients</p>
+        </div>
+        <button class="btn-primary" onclick="openAddModal()" style="width: auto;">
+            + Add Portfolio Item
+        </button>
+    </div>
+
+    <div class="portfolio-grid">
+        {% for item in portfolio_items %}
+        <div class="portfolio-card" data-id="{{ item.id }}">
+            {% if item.image_filename %}
+            <img src="/uploads/portfolio/{{ item.image_filename }}" alt="{{ item.title }}" class="portfolio-image">
+            {% else %}
+            <div class="portfolio-image placeholder">
+                <span>📁</span>
+            </div>
+            {% endif %}
+            <div class="portfolio-content">
+                <h3 class="portfolio-title">{{ item.title }}</h3>
+                {% if item.description %}
+                <p class="portfolio-description">{{ item.description[:150] }}{% if item.description|length > 150 %}...{% endif %}</p>
+                {% endif %}
+                {% if item.category %}
+                <span class="portfolio-category">{{ item.category }}</span>
+                {% endif %}
+                <div class="portfolio-actions">
+                    {% if item.external_url %}
+                    <a href="{{ item.external_url }}" target="_blank" class="btn-primary" style="flex: 1; text-align: center; text-decoration: none;">View Project</a>
+                    {% endif %}
+                    <button class="btn-delete" onclick="deleteItem({{ item.id }})">Delete</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="add-portfolio-card" onclick="openAddModal()">
+            <div class="add-icon">+</div>
+            <p style="color: var(--text-gray);">Add New Portfolio Item</p>
+        </div>
+    </div>
+
+    {% if not portfolio_items %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📂</div>
+        <h3>No Portfolio Items Yet</h3>
+        <p>Start showcasing your work to attract more clients!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="modal-overlay" id="addModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add Portfolio Item</h2>
+            <button class="modal-close" onclick="closeAddModal()">&times;</button>
+        </div>
+        <form id="portfolioForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input type="text" name="title" class="form-input" required placeholder="Project name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-textarea" placeholder="Describe your work..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">Select category</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Project Image</label>
+                <input type="file" name="image" class="form-input" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label class="form-label">External URL</label>
+                <input type="url" name="external_url" class="form-input" placeholder="https://...">
+            </div>
+            <button type="submit" class="btn-primary">Add to Portfolio</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openAddModal() {
+    document.getElementById('addModal').classList.add('active');
+}
+
+function closeAddModal() {
+    document.getElementById('addModal').classList.remove('active');
+    document.getElementById('portfolioForm').reset();
+}
+
+document.getElementById('portfolioForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('/api/portfolio', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to add item');
+        }
+    } catch (error) {
+        alert('An error occurred');
+    }
+});
+
+async function deleteItem(id) {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    
+    try {
+        const response = await fetch(`/api/portfolio/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            document.querySelector(`[data-id="${id}"]`).remove();
+        } else {
+            alert('Failed to delete item');
+        }
+    } catch (error) {
+        alert('An error occurred');
+    }
+}
+
+document.getElementById('addModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddModal();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Disputes{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .disputes-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .page-header {
+        background: var(--bg-white);
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        border: 1px solid var(--border);
+    }
+    .page-header h1 {
+        color: var(--text-dark);
+        font-size: 28px;
+        margin: 0;
+    }
+    .disputes-list {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+    .dispute-item {
+        display: flex;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.2s;
+        gap: 16px;
+    }
+    .dispute-item:last-child {
+        border-bottom: none;
+    }
+    .dispute-item:hover {
+        background: var(--bg-light);
+    }
+    .dispute-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    .dispute-icon.open { background: #fef3c7; }
+    .dispute-icon.resolved { background: #d1fae5; }
+    .dispute-icon.closed { background: #e5e7eb; }
+    .dispute-content {
+        flex: 1;
+    }
+    .dispute-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 16px;
+        margin-bottom: 4px;
+    }
+    .dispute-meta {
+        color: var(--text-gray);
+        font-size: 13px;
+    }
+    .dispute-status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-open { background: #fef3c7; color: #92400e; }
+    .status-under_review { background: #dbeafe; color: #1e40af; }
+    .status-resolved { background: #d1fae5; color: #065f46; }
+    .status-closed { background: #e5e7eb; color: #374151; }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-gray);
+    }
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="disputes-container">
+    <div class="page-header">
+        <h1>Disputes</h1>
+        <p style="color: var(--text-gray); margin-top: 4px;">Manage and track your dispute cases</p>
+    </div>
+
+    <div class="disputes-list">
+        {% if disputes %}
+            {% for item in disputes %}
+            <a href="/dispute/{{ item.dispute.id }}" class="dispute-item">
+                <div class="dispute-icon {{ item.dispute.status }}">
+                    {% if item.dispute.status == 'open' %}⚠️
+                    {% elif item.dispute.status == 'resolved' %}✅
+                    {% else %}📋{% endif %}
+                </div>
+                <div class="dispute-content">
+                    <div class="dispute-title">{{ item.dispute.title }}</div>
+                    <div class="dispute-meta">
+                        {{ item.dispute.dispute_number }} &bull; 
+                        {% if item.is_filer %}Filed against{% else %}Filed by{% endif %} 
+                        {{ item.other_user.full_name or item.other_user.username if item.other_user else 'Unknown' }} &bull;
+                        {{ item.gig.title[:30] if item.gig else 'Unknown Gig' }}{% if item.gig and item.gig.title|length > 30 %}...{% endif %}
+                    </div>
+                </div>
+                <span class="dispute-status status-{{ item.dispute.status }}">{{ item.dispute.status.replace('_', ' ').title() }}</span>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <h3>No Disputes</h3>
+                <p>You don't have any dispute cases. That's great!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

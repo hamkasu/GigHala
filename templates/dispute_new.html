@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}File a Dispute{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .dispute-form-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-gray);
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    .back-link:hover { color: var(--primary); }
+    .page-header {
+        background: var(--bg-white);
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        border: 1px solid var(--border);
+    }
+    .page-header h1 {
+        color: var(--text-dark);
+        font-size: 28px;
+        margin: 0;
+    }
+    .gig-info {
+        background: var(--bg-light);
+        padding: 16px 20px;
+        border-radius: var(--radius-md);
+        margin-top: 16px;
+    }
+    .gig-info-label {
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-bottom: 4px;
+    }
+    .gig-info-title {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .dispute-form {
+        background: var(--bg-white);
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+    }
+    .form-group {
+        margin-bottom: 24px;
+    }
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        color: var(--text-dark);
+    }
+    .form-textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: var(--radius-md);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+    }
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .warning-box {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        color: #92400e;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dispute-form-container">
+    <a href="/gig/{{ gig.id }}" class="back-link">&larr; Back to Gig</a>
+
+    <div class="page-header">
+        <h1>File a Dispute</h1>
+        <p style="color: var(--text-gray); margin-top: 4px;">Report an issue with this gig</p>
+        <div class="gig-info">
+            <div class="gig-info-label">Regarding</div>
+            <div class="gig-info-title">{{ gig.title }}</div>
+        </div>
+    </div>
+
+    <div class="dispute-form">
+        <div class="warning-box">
+            <strong>Important:</strong> Filing a dispute will notify the other party and may place any escrow funds on hold until resolution. Please try to resolve issues directly before filing a dispute.
+        </div>
+
+        <form id="disputeForm">
+            <input type="hidden" name="gig_id" value="{{ gig.id }}">
+
+            <div class="form-group">
+                <label class="form-label">Dispute Against</label>
+                <input type="text" class="form-input" value="{{ other_user.full_name or other_user.username }}" disabled>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Dispute Type *</label>
+                <select name="dispute_type" class="form-select" required>
+                    <option value="">Select type...</option>
+                    <option value="quality">Quality Issues - Work doesn't meet requirements</option>
+                    <option value="non_delivery">Non-Delivery - Work was not delivered</option>
+                    <option value="payment">Payment Issues - Problems with payment</option>
+                    <option value="harassment">Harassment - Inappropriate behavior</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input type="text" name="title" class="form-input" required placeholder="Brief summary of the issue">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description *</label>
+                <textarea name="description" class="form-textarea" required placeholder="Provide detailed information about the issue. Include dates, specific problems, and what resolution you're seeking."></textarea>
+            </div>
+
+            {% if escrow %}
+            <div class="form-group">
+                <label class="form-label">Escrow Amount</label>
+                <input type="text" class="form-input" value="RM {{ '%.2f'|format(escrow.amount) }} ({{ escrow.status }})" disabled>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary" id="submitBtn">File Dispute</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('disputeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Filing...';
+
+    const formData = new FormData(this);
+    const data = {
+        gig_id: parseInt(formData.get('gig_id')),
+        dispute_type: formData.get('dispute_type'),
+        title: formData.get('title'),
+        description: formData.get('description')
+    };
+
+    try {
+        const response = await fetch('/api/dispute/file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('Dispute filed successfully');
+            window.location.href = `/dispute/${result.dispute_id}`;
+        } else {
+            alert(result.error || 'Failed to file dispute');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'File Dispute';
+        }
+    } catch (error) {
+        alert('An error occurred');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'File Dispute';
+    }
+});
+</script>
+{% endblock %}

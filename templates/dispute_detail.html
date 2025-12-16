@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Dispute #{{ dispute.dispute_number }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .dispute-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-gray);
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    .back-link:hover { color: var(--primary); }
+    .dispute-header {
+        background: var(--bg-white);
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+    }
+    .dispute-header h1 {
+        color: var(--text-dark);
+        font-size: 24px;
+        margin: 0 0 8px;
+    }
+    .dispute-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+    .dispute-status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    .status-open { background: #fef3c7; color: #92400e; }
+    .status-under_review { background: #dbeafe; color: #1e40af; }
+    .status-resolved { background: #d1fae5; color: #065f46; }
+    .dispute-parties {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+    .party-card {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+    }
+    .party-label {
+        font-size: 12px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+    .party-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 16px;
+    }
+    .dispute-description {
+        background: var(--bg-white);
+        padding: 24px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+    .description-text {
+        color: var(--text-gray);
+        font-size: 14px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+    .messages-section {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+    .messages-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+    }
+    .messages-list {
+        padding: 24px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .dispute-message {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    .dispute-message:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .message-sender {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .message-sender.admin {
+        color: var(--primary);
+    }
+    .message-time {
+        color: var(--text-gray);
+        font-size: 12px;
+    }
+    .message-text {
+        color: var(--text-gray);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .message-input-area {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+    }
+    .message-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+    .send-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .resolution-box {
+        background: #d1fae5;
+        border: 1px solid #6ee7b7;
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    .resolution-box h3 {
+        color: #065f46;
+        margin: 0 0 8px;
+        font-size: 16px;
+    }
+    .resolution-box p {
+        color: #047857;
+        font-size: 14px;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dispute-container">
+    <a href="/disputes" class="back-link">&larr; Back to Disputes</a>
+
+    <div class="dispute-header">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1>{{ dispute.title }}</h1>
+                <p style="color: var(--text-gray); margin: 0;">{{ dispute.dispute_number }}</p>
+            </div>
+            <span class="dispute-status status-{{ dispute.status }}">{{ dispute.status.replace('_', ' ').title() }}</span>
+        </div>
+        <div class="dispute-meta">
+            <span>Type: <strong>{{ dispute.dispute_type.replace('_', ' ').title() }}</strong></span>
+            <span>Filed: <strong>{{ dispute.created_at.strftime('%b %d, %Y') }}</strong></span>
+            {% if gig %}
+            <span>Gig: <a href="/gig/{{ gig.id }}" style="color: var(--primary);">{{ gig.title[:40] }}{% if gig.title|length > 40 %}...{% endif %}</a></span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if dispute.status == 'resolved' and dispute.resolution %}
+    <div class="resolution-box">
+        <h3>Resolution</h3>
+        <p>{{ dispute.resolution }}</p>
+    </div>
+    {% endif %}
+
+    <div class="dispute-parties">
+        <div class="party-card">
+            <div class="party-label">Filed By</div>
+            <div class="party-name">{{ filer.full_name or filer.username if filer else 'Unknown' }}</div>
+        </div>
+        <div class="party-card">
+            <div class="party-label">Filed Against</div>
+            <div class="party-name">{{ against.full_name or against.username if against else 'Unknown' }}</div>
+        </div>
+    </div>
+
+    <div class="dispute-description">
+        <h3 class="section-title">Description</h3>
+        <div class="description-text">{{ dispute.description }}</div>
+    </div>
+
+    <div class="messages-section">
+        <div class="messages-header">
+            <h3 class="section-title" style="margin: 0;">Discussion</h3>
+        </div>
+        <div class="messages-list" id="messagesList">
+            {% if messages %}
+                {% for item in messages %}
+                <div class="dispute-message">
+                    <div class="message-header">
+                        <span class="message-sender {% if item.message.is_admin %}admin{% endif %}">
+                            {{ item.sender.full_name or item.sender.username if item.sender else 'Unknown' }}
+                            {% if item.message.is_admin %} (Admin){% endif %}
+                        </span>
+                        <span class="message-time">{{ item.message.created_at.strftime('%b %d, %Y at %H:%M') }}</span>
+                    </div>
+                    <div class="message-text">{{ item.message.message }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: var(--text-gray); text-align: center;">No messages yet</p>
+            {% endif %}
+        </div>
+        {% if dispute.status not in ['resolved', 'closed'] %}
+        <form class="message-input-area" id="messageForm">
+            <input type="text" class="message-input" id="messageInput" placeholder="Type your message..." required>
+            <button type="submit" class="send-btn">Send</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.getElementById('messageForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    try {
+        const response = await fetch('/api/dispute/{{ dispute.id }}/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Failed to send message');
+        }
+    } catch (error) {
+        alert('An error occurred');
+    }
+});
+</script>
+{% endblock %}

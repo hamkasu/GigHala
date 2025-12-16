@@ -1102,6 +1102,236 @@ class Escrow(db.Model):
         }
         return colors.get(self.status, 'secondary')
 
+class PortfolioItem(db.Model):
+    """Model for freelancer portfolio items to showcase past work"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    category = db.Column(db.String(50))
+    image_filename = db.Column(db.String(255))
+    image_path = db.Column(db.String(500))
+    external_url = db.Column(db.String(500))
+    is_featured = db.Column(db.Boolean, default=False)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'description': self.description,
+            'category': self.category,
+            'image_url': f'/uploads/portfolio/{self.image_filename}' if self.image_filename else None,
+            'external_url': self.external_url,
+            'is_featured': self.is_featured,
+            'display_order': self.display_order,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Conversation(db.Model):
+    """Model for chat conversations between users"""
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'))
+    participant_1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    participant_2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    last_message_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_archived_by_1 = db.Column(db.Boolean, default=False)
+    is_archived_by_2 = db.Column(db.Boolean, default=False)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'gig_id': self.gig_id,
+            'participant_1_id': self.participant_1_id,
+            'participant_2_id': self.participant_2_id,
+            'last_message_at': self.last_message_at.isoformat() if self.last_message_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Message(db.Model):
+    """Model for individual chat messages"""
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    message_type = db.Column(db.String(20), default='text')  # text, image, file, system
+    attachment_url = db.Column(db.String(500))
+    is_read = db.Column(db.Boolean, default=False)
+    read_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'conversation_id': self.conversation_id,
+            'sender_id': self.sender_id,
+            'content': self.content,
+            'message_type': self.message_type,
+            'attachment_url': self.attachment_url,
+            'is_read': self.is_read,
+            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Notification(db.Model):
+    """Model for user notifications"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    notification_type = db.Column(db.String(50), nullable=False)  # new_gig, message, payment, review, application, dispute
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text)
+    link = db.Column(db.String(500))
+    related_id = db.Column(db.Integer)  # ID of related entity (gig_id, message_id, etc.)
+    is_read = db.Column(db.Boolean, default=False)
+    is_push_sent = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    read_at = db.Column(db.DateTime)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'notification_type': self.notification_type,
+            'title': self.title,
+            'message': self.message,
+            'link': self.link,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class NotificationPreference(db.Model):
+    """Model for user notification preferences"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    push_enabled = db.Column(db.Boolean, default=True)
+    push_subscription = db.Column(db.Text)  # JSON web push subscription
+    email_new_gig = db.Column(db.Boolean, default=True)
+    email_message = db.Column(db.Boolean, default=True)
+    email_payment = db.Column(db.Boolean, default=True)
+    email_review = db.Column(db.Boolean, default=True)
+    push_new_gig = db.Column(db.Boolean, default=True)
+    push_message = db.Column(db.Boolean, default=True)
+    push_payment = db.Column(db.Boolean, default=True)
+    push_review = db.Column(db.Boolean, default=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class IdentityVerification(db.Model):
+    """Model for IC/MyKad identity verification requests"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ic_number = db.Column(db.String(12), nullable=False)
+    full_name = db.Column(db.String(200), nullable=False)
+    ic_front_image = db.Column(db.String(500))
+    ic_back_image = db.Column(db.String(500))
+    selfie_image = db.Column(db.String(500))
+    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected, expired
+    rejection_reason = db.Column(db.Text)
+    verified_at = db.Column(db.DateTime)
+    verified_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    expires_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'ic_number': self.ic_number[:4] + '****' + self.ic_number[-4:] if self.ic_number else None,
+            'full_name': self.full_name,
+            'status': self.status,
+            'rejection_reason': self.rejection_reason,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Dispute(db.Model):
+    """Model for dispute resolution between clients and freelancers"""
+    id = db.Column(db.Integer, primary_key=True)
+    dispute_number = db.Column(db.String(50), unique=True, nullable=False)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'))
+    filed_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    against_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    dispute_type = db.Column(db.String(50), nullable=False)  # quality, non_delivery, payment, harassment, other
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    evidence_files = db.Column(db.Text)  # JSON array of file paths
+    status = db.Column(db.String(30), default='open')  # open, under_review, awaiting_response, resolved, escalated, closed
+    resolution = db.Column(db.Text)
+    resolution_type = db.Column(db.String(30))  # refund_full, refund_partial, release_payment, no_action, mutual_agreement
+    resolved_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    resolved_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'dispute_number': self.dispute_number,
+            'gig_id': self.gig_id,
+            'escrow_id': self.escrow_id,
+            'filed_by_id': self.filed_by_id,
+            'against_id': self.against_id,
+            'dispute_type': self.dispute_type,
+            'title': self.title,
+            'description': self.description,
+            'status': self.status,
+            'resolution': self.resolution,
+            'resolution_type': self.resolution_type,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'resolved_at': self.resolved_at.isoformat() if self.resolved_at else None
+        }
+
+class DisputeMessage(db.Model):
+    """Model for messages within a dispute"""
+    id = db.Column(db.Integer, primary_key=True)
+    dispute_id = db.Column(db.Integer, db.ForeignKey('dispute.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    attachments = db.Column(db.Text)  # JSON array of file paths
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Milestone(db.Model):
+    """Model for escrow milestone payments"""
+    id = db.Column(db.Integer, primary_key=True)
+    escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'), nullable=False)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    milestone_number = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    amount = db.Column(db.Float, nullable=False)
+    percentage = db.Column(db.Float)  # Percentage of total escrow
+    due_date = db.Column(db.DateTime)
+    status = db.Column(db.String(30), default='pending')  # pending, funded, in_progress, submitted, approved, released, disputed
+    work_submitted = db.Column(db.Boolean, default=False)
+    submitted_at = db.Column(db.DateTime)
+    approved_at = db.Column(db.DateTime)
+    released_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'escrow_id': self.escrow_id,
+            'gig_id': self.gig_id,
+            'milestone_number': self.milestone_number,
+            'title': self.title,
+            'description': self.description,
+            'amount': self.amount,
+            'percentage': self.percentage,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'status': self.status,
+            'work_submitted': self.work_submitted,
+            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+            'released_at': self.released_at.isoformat() if self.released_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 # Routes
 @app.route('/')
 def index():
@@ -6444,6 +6674,849 @@ def gig_workers_bill():
                          page_title='Gig Workers Bill',
                          page_subtitle='Hak-hak dan perlindungan untuk pekerja gig',
                          content=content)
+
+# ============================================
+# PORTFOLIO ROUTES
+# ============================================
+
+@app.route('/portfolio')
+@page_login_required
+def portfolio():
+    """View and manage user portfolio"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    portfolio_items = PortfolioItem.query.filter_by(user_id=user_id).order_by(PortfolioItem.display_order, PortfolioItem.created_at.desc()).all()
+    categories = Category.query.all()
+    return render_template('portfolio.html', user=user, portfolio_items=portfolio_items, categories=categories, active_page='portfolio', lang=get_user_language(), t=t)
+
+@app.route('/api/portfolio', methods=['POST'])
+@login_required
+def add_portfolio_item():
+    """Add a new portfolio item"""
+    try:
+        user_id = session['user_id']
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        category = request.form.get('category', '').strip()
+        external_url = request.form.get('external_url', '').strip()
+        
+        if not title:
+            return jsonify({'error': 'Title is required'}), 400
+        
+        image_filename = None
+        image_path = None
+        
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(f"{user_id}_{uuid.uuid4().hex}_{file.filename}")
+                portfolio_folder = os.path.join(UPLOAD_FOLDER, 'portfolio')
+                os.makedirs(portfolio_folder, exist_ok=True)
+                file_path = os.path.join(portfolio_folder, filename)
+                file.save(file_path)
+                image_filename = filename
+                image_path = file_path
+        
+        item = PortfolioItem(
+            user_id=user_id,
+            title=title,
+            description=description,
+            category=category,
+            external_url=external_url,
+            image_filename=image_filename,
+            image_path=image_path
+        )
+        db.session.add(item)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'item': item.to_dict()}), 201
+    except Exception as e:
+        app.logger.error(f"Portfolio add error: {str(e)}")
+        return jsonify({'error': 'Failed to add portfolio item'}), 500
+
+@app.route('/api/portfolio/<int:item_id>', methods=['DELETE'])
+@login_required
+def delete_portfolio_item(item_id):
+    """Delete a portfolio item"""
+    try:
+        user_id = session['user_id']
+        item = PortfolioItem.query.filter_by(id=item_id, user_id=user_id).first()
+        if not item:
+            return jsonify({'error': 'Item not found'}), 404
+        
+        if item.image_path and os.path.exists(item.image_path):
+            os.remove(item.image_path)
+        
+        db.session.delete(item)
+        db.session.commit()
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        app.logger.error(f"Portfolio delete error: {str(e)}")
+        return jsonify({'error': 'Failed to delete item'}), 500
+
+@app.route('/profile/<username>')
+def public_profile(username):
+    """View public user profile with portfolio"""
+    profile_user = User.query.filter_by(username=username).first_or_404()
+    portfolio_items = PortfolioItem.query.filter_by(user_id=profile_user.id).order_by(PortfolioItem.display_order, PortfolioItem.created_at.desc()).all()
+    reviews = Review.query.filter_by(reviewee_id=profile_user.id).order_by(Review.created_at.desc()).limit(10).all()
+    current_user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    
+    review_details = []
+    for review in reviews:
+        reviewer = User.query.get(review.reviewer_id)
+        gig = Gig.query.get(review.gig_id)
+        review_details.append({
+            'rating': review.rating,
+            'comment': review.comment,
+            'reviewer_name': reviewer.full_name or reviewer.username if reviewer else 'Unknown',
+            'gig_title': gig.title if gig else 'Unknown Gig',
+            'created_at': review.created_at
+        })
+    
+    return render_template('public_profile.html', profile_user=profile_user, portfolio_items=portfolio_items, reviews=review_details, user=current_user, active_page='profile', lang=get_user_language(), t=t)
+
+# ============================================
+# CHAT/MESSAGING ROUTES
+# ============================================
+
+@app.route('/messages')
+@page_login_required
+def messages():
+    """View all conversations"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    conversations = Conversation.query.filter(
+        ((Conversation.participant_1_id == user_id) & (Conversation.is_archived_by_1 == False)) |
+        ((Conversation.participant_2_id == user_id) & (Conversation.is_archived_by_2 == False))
+    ).order_by(Conversation.last_message_at.desc()).all()
+    
+    conversation_list = []
+    for conv in conversations:
+        other_user_id = conv.participant_2_id if conv.participant_1_id == user_id else conv.participant_1_id
+        other_user = User.query.get(other_user_id)
+        last_message = Message.query.filter_by(conversation_id=conv.id).order_by(Message.created_at.desc()).first()
+        unread_count = Message.query.filter_by(conversation_id=conv.id, is_read=False).filter(Message.sender_id != user_id).count()
+        gig = Gig.query.get(conv.gig_id) if conv.gig_id else None
+        
+        conversation_list.append({
+            'id': conv.id,
+            'other_user': other_user,
+            'last_message': last_message,
+            'unread_count': unread_count,
+            'gig': gig,
+            'last_message_at': conv.last_message_at
+        })
+    
+    return render_template('messages.html', user=user, conversations=conversation_list, active_page='messages', lang=get_user_language(), t=t)
+
+@app.route('/messages/<int:conversation_id>')
+@page_login_required
+def view_conversation(conversation_id):
+    """View a specific conversation"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    conv = Conversation.query.get_or_404(conversation_id)
+    if conv.participant_1_id != user_id and conv.participant_2_id != user_id:
+        return redirect('/messages')
+    
+    other_user_id = conv.participant_2_id if conv.participant_1_id == user_id else conv.participant_1_id
+    other_user = User.query.get(other_user_id)
+    
+    messages_list = Message.query.filter_by(conversation_id=conversation_id).order_by(Message.created_at.asc()).all()
+    
+    Message.query.filter_by(conversation_id=conversation_id, is_read=False).filter(Message.sender_id != user_id).update({'is_read': True, 'read_at': datetime.utcnow()})
+    db.session.commit()
+    
+    gig = Gig.query.get(conv.gig_id) if conv.gig_id else None
+    
+    return render_template('conversation.html', user=user, conversation=conv, other_user=other_user, messages=messages_list, gig=gig, active_page='messages', lang=get_user_language(), t=t)
+
+@app.route('/api/messages/send', methods=['POST'])
+@login_required
+def send_message():
+    """Send a new message"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        conversation_id = data.get('conversation_id')
+        content = data.get('content', '').strip()
+        
+        if not content:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        conv = Conversation.query.get(conversation_id)
+        if not conv or (conv.participant_1_id != user_id and conv.participant_2_id != user_id):
+            return jsonify({'error': 'Conversation not found'}), 404
+        
+        message = Message(
+            conversation_id=conversation_id,
+            sender_id=user_id,
+            content=content
+        )
+        conv.last_message_at = datetime.utcnow()
+        db.session.add(message)
+        db.session.commit()
+        
+        other_user_id = conv.participant_2_id if conv.participant_1_id == user_id else conv.participant_1_id
+        notification = Notification(
+            user_id=other_user_id,
+            notification_type='message',
+            title='New Message',
+            message=f'You have a new message',
+            link=f'/messages/{conversation_id}',
+            related_id=message.id
+        )
+        db.session.add(notification)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': message.to_dict()}), 201
+    except Exception as e:
+        app.logger.error(f"Send message error: {str(e)}")
+        return jsonify({'error': 'Failed to send message'}), 500
+
+@app.route('/api/messages/start', methods=['POST'])
+@login_required
+def start_conversation():
+    """Start a new conversation"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        other_user_id = data.get('user_id')
+        gig_id = data.get('gig_id')
+        initial_message = data.get('message', '').strip()
+        
+        if not other_user_id or other_user_id == user_id:
+            return jsonify({'error': 'Invalid recipient'}), 400
+        
+        existing = Conversation.query.filter(
+            ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == other_user_id)) |
+            ((Conversation.participant_1_id == other_user_id) & (Conversation.participant_2_id == user_id))
+        ).first()
+        
+        if existing:
+            if gig_id:
+                existing.gig_id = gig_id
+            if initial_message:
+                message = Message(conversation_id=existing.id, sender_id=user_id, content=initial_message)
+                existing.last_message_at = datetime.utcnow()
+                db.session.add(message)
+            db.session.commit()
+            return jsonify({'success': True, 'conversation_id': existing.id}), 200
+        
+        conv = Conversation(
+            participant_1_id=user_id,
+            participant_2_id=other_user_id,
+            gig_id=gig_id
+        )
+        db.session.add(conv)
+        db.session.commit()
+        
+        if initial_message:
+            message = Message(conversation_id=conv.id, sender_id=user_id, content=initial_message)
+            db.session.add(message)
+            db.session.commit()
+        
+        return jsonify({'success': True, 'conversation_id': conv.id}), 201
+    except Exception as e:
+        app.logger.error(f"Start conversation error: {str(e)}")
+        return jsonify({'error': 'Failed to start conversation'}), 500
+
+@app.route('/api/messages/poll/<int:conversation_id>')
+@login_required
+def poll_messages(conversation_id):
+    """Poll for new messages"""
+    user_id = session['user_id']
+    last_id = request.args.get('last_id', 0, type=int)
+    
+    conv = Conversation.query.get(conversation_id)
+    if not conv or (conv.participant_1_id != user_id and conv.participant_2_id != user_id):
+        return jsonify({'error': 'Conversation not found'}), 404
+    
+    new_messages = Message.query.filter(
+        Message.conversation_id == conversation_id,
+        Message.id > last_id
+    ).order_by(Message.created_at.asc()).all()
+    
+    Message.query.filter_by(conversation_id=conversation_id, is_read=False).filter(Message.sender_id != user_id).update({'is_read': True, 'read_at': datetime.utcnow()})
+    db.session.commit()
+    
+    return jsonify({'messages': [m.to_dict() for m in new_messages]})
+
+# ============================================
+# NOTIFICATION ROUTES
+# ============================================
+
+@app.route('/notifications')
+@page_login_required
+def notifications_page():
+    """View all notifications"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    notifications = Notification.query.filter_by(user_id=user_id).order_by(Notification.created_at.desc()).limit(50).all()
+    return render_template('notifications.html', user=user, notifications=notifications, active_page='notifications', lang=get_user_language(), t=t)
+
+@app.route('/api/notifications')
+@login_required
+def get_notifications():
+    """Get user notifications"""
+    user_id = session['user_id']
+    unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+    
+    query = Notification.query.filter_by(user_id=user_id)
+    if unread_only:
+        query = query.filter_by(is_read=False)
+    
+    notifications = query.order_by(Notification.created_at.desc()).limit(20).all()
+    unread_count = Notification.query.filter_by(user_id=user_id, is_read=False).count()
+    
+    return jsonify({
+        'notifications': [n.to_dict() for n in notifications],
+        'unread_count': unread_count
+    })
+
+@app.route('/api/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    """Mark notifications as read"""
+    user_id = session['user_id']
+    data = request.json
+    notification_ids = data.get('ids', [])
+    
+    if notification_ids:
+        Notification.query.filter(Notification.id.in_(notification_ids), Notification.user_id == user_id).update({'is_read': True, 'read_at': datetime.utcnow()}, synchronize_session=False)
+    else:
+        Notification.query.filter_by(user_id=user_id, is_read=False).update({'is_read': True, 'read_at': datetime.utcnow()})
+    
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/notifications/preferences', methods=['GET', 'POST'])
+@login_required
+def notification_preferences():
+    """Get or update notification preferences"""
+    user_id = session['user_id']
+    
+    prefs = NotificationPreference.query.filter_by(user_id=user_id).first()
+    if not prefs:
+        prefs = NotificationPreference(user_id=user_id)
+        db.session.add(prefs)
+        db.session.commit()
+    
+    if request.method == 'GET':
+        return jsonify({
+            'push_enabled': prefs.push_enabled,
+            'email_new_gig': prefs.email_new_gig,
+            'email_message': prefs.email_message,
+            'email_payment': prefs.email_payment,
+            'email_review': prefs.email_review,
+            'push_new_gig': prefs.push_new_gig,
+            'push_message': prefs.push_message,
+            'push_payment': prefs.push_payment,
+            'push_review': prefs.push_review
+        })
+    
+    data = request.json
+    for key in ['push_enabled', 'email_new_gig', 'email_message', 'email_payment', 'email_review', 'push_new_gig', 'push_message', 'push_payment', 'push_review']:
+        if key in data:
+            setattr(prefs, key, data[key])
+    
+    db.session.commit()
+    return jsonify({'success': True})
+
+# ============================================
+# IDENTITY VERIFICATION ROUTES
+# ============================================
+
+@app.route('/verification')
+@page_login_required
+def verification_page():
+    """Identity verification page"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    verification = IdentityVerification.query.filter_by(user_id=user_id).order_by(IdentityVerification.created_at.desc()).first()
+    return render_template('verification.html', user=user, verification=verification, active_page='verification', lang=get_user_language(), t=t)
+
+@app.route('/api/verification/submit', methods=['POST'])
+@login_required
+def submit_verification():
+    """Submit identity verification"""
+    try:
+        user_id = session['user_id']
+        
+        existing = IdentityVerification.query.filter_by(user_id=user_id, status='pending').first()
+        if existing:
+            return jsonify({'error': 'You already have a pending verification'}), 400
+        
+        ic_number = request.form.get('ic_number', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        
+        if not ic_number or not full_name:
+            return jsonify({'error': 'IC number and full name are required'}), 400
+        
+        if not re.match(r'^\d{12}$', ic_number):
+            return jsonify({'error': 'Invalid IC number format (12 digits required)'}), 400
+        
+        verification_folder = os.path.join(UPLOAD_FOLDER, 'verification')
+        os.makedirs(verification_folder, exist_ok=True)
+        
+        ic_front = ic_back = selfie = None
+        
+        for field, attr in [('ic_front', 'ic_front_image'), ('ic_back', 'ic_back_image'), ('selfie', 'selfie_image')]:
+            if field in request.files:
+                file = request.files[field]
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(f"{user_id}_{field}_{uuid.uuid4().hex}_{file.filename}")
+                    file_path = os.path.join(verification_folder, filename)
+                    file.save(file_path)
+                    if field == 'ic_front':
+                        ic_front = f'/uploads/verification/{filename}'
+                    elif field == 'ic_back':
+                        ic_back = f'/uploads/verification/{filename}'
+                    else:
+                        selfie = f'/uploads/verification/{filename}'
+        
+        verification = IdentityVerification(
+            user_id=user_id,
+            ic_number=ic_number,
+            full_name=full_name,
+            ic_front_image=ic_front,
+            ic_back_image=ic_back,
+            selfie_image=selfie
+        )
+        db.session.add(verification)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Verification submitted successfully'}), 201
+    except Exception as e:
+        app.logger.error(f"Verification submit error: {str(e)}")
+        return jsonify({'error': 'Failed to submit verification'}), 500
+
+@app.route('/admin/verifications')
+@page_login_required
+def admin_verifications():
+    """Admin page for reviewing verifications"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    if not user.is_admin:
+        return redirect('/dashboard')
+    
+    pending = IdentityVerification.query.filter_by(status='pending').order_by(IdentityVerification.created_at.asc()).all()
+    recent = IdentityVerification.query.filter(IdentityVerification.status != 'pending').order_by(IdentityVerification.updated_at.desc()).limit(20).all()
+    
+    return render_template('admin_verifications.html', user=user, pending=pending, recent=recent, active_page='admin', lang=get_user_language(), t=t)
+
+@app.route('/api/admin/verification/<int:verification_id>', methods=['POST'])
+@admin_required
+def review_verification(verification_id):
+    """Approve or reject verification"""
+    try:
+        admin_id = session['user_id']
+        data = request.json
+        action = data.get('action')
+        reason = data.get('reason', '')
+        
+        verification = IdentityVerification.query.get_or_404(verification_id)
+        
+        if action == 'approve':
+            verification.status = 'approved'
+            verification.verified_at = datetime.utcnow()
+            verification.verified_by = admin_id
+            
+            user = User.query.get(verification.user_id)
+            user.is_verified = True
+            user.ic_number = verification.ic_number
+            
+            notification = Notification(
+                user_id=verification.user_id,
+                notification_type='verification',
+                title='Identity Verified',
+                message='Your identity has been verified successfully!',
+                link='/settings'
+            )
+            db.session.add(notification)
+            
+        elif action == 'reject':
+            verification.status = 'rejected'
+            verification.rejection_reason = reason
+            
+            notification = Notification(
+                user_id=verification.user_id,
+                notification_type='verification',
+                title='Verification Rejected',
+                message=f'Your verification was rejected: {reason}',
+                link='/verification'
+            )
+            db.session.add(notification)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Verification review error: {str(e)}")
+        return jsonify({'error': 'Failed to process verification'}), 500
+
+# ============================================
+# DISPUTE RESOLUTION ROUTES
+# ============================================
+
+@app.route('/disputes')
+@page_login_required
+def disputes_page():
+    """View user's disputes"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    disputes = Dispute.query.filter(
+        (Dispute.filed_by_id == user_id) | (Dispute.against_id == user_id)
+    ).order_by(Dispute.created_at.desc()).all()
+    
+    dispute_list = []
+    for d in disputes:
+        gig = Gig.query.get(d.gig_id)
+        other_user = User.query.get(d.against_id if d.filed_by_id == user_id else d.filed_by_id)
+        dispute_list.append({
+            'dispute': d,
+            'gig': gig,
+            'other_user': other_user,
+            'is_filer': d.filed_by_id == user_id
+        })
+    
+    return render_template('disputes.html', user=user, disputes=dispute_list, active_page='disputes', lang=get_user_language(), t=t)
+
+@app.route('/dispute/<int:dispute_id>')
+@page_login_required
+def view_dispute(dispute_id):
+    """View a specific dispute"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    dispute = Dispute.query.get_or_404(dispute_id)
+    if dispute.filed_by_id != user_id and dispute.against_id != user_id and not user.is_admin:
+        return redirect('/disputes')
+    
+    gig = Gig.query.get(dispute.gig_id)
+    filer = User.query.get(dispute.filed_by_id)
+    against = User.query.get(dispute.against_id)
+    messages = DisputeMessage.query.filter_by(dispute_id=dispute_id).order_by(DisputeMessage.created_at.asc()).all()
+    
+    message_list = []
+    for m in messages:
+        sender = User.query.get(m.sender_id)
+        message_list.append({
+            'message': m,
+            'sender': sender
+        })
+    
+    return render_template('dispute_detail.html', user=user, dispute=dispute, gig=gig, filer=filer, against=against, messages=message_list, active_page='disputes', lang=get_user_language(), t=t)
+
+@app.route('/dispute/new/<int:gig_id>')
+@page_login_required
+def new_dispute(gig_id):
+    """File a new dispute"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    gig = Gig.query.get_or_404(gig_id)
+    
+    if gig.client_id != user_id and gig.freelancer_id != user_id:
+        return redirect('/dashboard')
+    
+    other_user_id = gig.freelancer_id if gig.client_id == user_id else gig.client_id
+    other_user = User.query.get(other_user_id)
+    escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+    
+    return render_template('dispute_new.html', user=user, gig=gig, other_user=other_user, escrow=escrow, active_page='disputes', lang=get_user_language(), t=t)
+
+@app.route('/api/dispute/file', methods=['POST'])
+@login_required
+def file_dispute():
+    """File a new dispute"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        
+        gig_id = data.get('gig_id')
+        dispute_type = data.get('dispute_type')
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        
+        if not all([gig_id, dispute_type, title, description]):
+            return jsonify({'error': 'All fields are required'}), 400
+        
+        gig = Gig.query.get(gig_id)
+        if not gig or (gig.client_id != user_id and gig.freelancer_id != user_id):
+            return jsonify({'error': 'Invalid gig'}), 400
+        
+        against_id = gig.freelancer_id if gig.client_id == user_id else gig.client_id
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        
+        dispute_number = f"DIS-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+        
+        dispute = Dispute(
+            dispute_number=dispute_number,
+            gig_id=gig_id,
+            escrow_id=escrow.id if escrow else None,
+            filed_by_id=user_id,
+            against_id=against_id,
+            dispute_type=dispute_type,
+            title=title,
+            description=description
+        )
+        db.session.add(dispute)
+        
+        if escrow:
+            escrow.status = 'disputed'
+        
+        notification = Notification(
+            user_id=against_id,
+            notification_type='dispute',
+            title='Dispute Filed Against You',
+            message=f'A dispute has been filed regarding: {gig.title}',
+            link=f'/dispute/{dispute.id}',
+            related_id=dispute.id
+        )
+        db.session.add(notification)
+        
+        db.session.commit()
+        return jsonify({'success': True, 'dispute_id': dispute.id}), 201
+    except Exception as e:
+        app.logger.error(f"File dispute error: {str(e)}")
+        return jsonify({'error': 'Failed to file dispute'}), 500
+
+@app.route('/api/dispute/<int:dispute_id>/message', methods=['POST'])
+@login_required
+def add_dispute_message(dispute_id):
+    """Add a message to a dispute"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        data = request.json
+        message_text = data.get('message', '').strip()
+        
+        if not message_text:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        dispute = Dispute.query.get_or_404(dispute_id)
+        if dispute.filed_by_id != user_id and dispute.against_id != user_id and not user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        message = DisputeMessage(
+            dispute_id=dispute_id,
+            sender_id=user_id,
+            message=message_text,
+            is_admin=user.is_admin
+        )
+        db.session.add(message)
+        db.session.commit()
+        
+        return jsonify({'success': True}), 201
+    except Exception as e:
+        app.logger.error(f"Dispute message error: {str(e)}")
+        return jsonify({'error': 'Failed to add message'}), 500
+
+@app.route('/admin/disputes')
+@page_login_required
+def admin_disputes():
+    """Admin page for managing disputes"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    if not user.is_admin:
+        return redirect('/dashboard')
+    
+    open_disputes = Dispute.query.filter(Dispute.status.in_(['open', 'under_review', 'awaiting_response'])).order_by(Dispute.created_at.asc()).all()
+    resolved_disputes = Dispute.query.filter(Dispute.status.in_(['resolved', 'closed'])).order_by(Dispute.resolved_at.desc()).limit(20).all()
+    
+    return render_template('admin_disputes.html', user=user, open_disputes=open_disputes, resolved_disputes=resolved_disputes, active_page='admin', lang=get_user_language(), t=t)
+
+@app.route('/api/admin/dispute/<int:dispute_id>/resolve', methods=['POST'])
+@admin_required
+def resolve_dispute(dispute_id):
+    """Resolve a dispute"""
+    try:
+        admin_id = session['user_id']
+        data = request.json
+        
+        resolution_type = data.get('resolution_type')
+        resolution = data.get('resolution', '').strip()
+        
+        dispute = Dispute.query.get_or_404(dispute_id)
+        
+        dispute.status = 'resolved'
+        dispute.resolution_type = resolution_type
+        dispute.resolution = resolution
+        dispute.resolved_by = admin_id
+        dispute.resolved_at = datetime.utcnow()
+        
+        escrow = Escrow.query.get(dispute.escrow_id) if dispute.escrow_id else None
+        
+        if escrow:
+            if resolution_type == 'refund_full':
+                escrow.status = 'refunded'
+                escrow.refunded_at = datetime.utcnow()
+            elif resolution_type == 'release_payment':
+                escrow.status = 'released'
+                escrow.released_at = datetime.utcnow()
+        
+        for user_id in [dispute.filed_by_id, dispute.against_id]:
+            notification = Notification(
+                user_id=user_id,
+                notification_type='dispute',
+                title='Dispute Resolved',
+                message=f'Your dispute has been resolved.',
+                link=f'/dispute/{dispute.id}'
+            )
+            db.session.add(notification)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Resolve dispute error: {str(e)}")
+        return jsonify({'error': 'Failed to resolve dispute'}), 500
+
+# ============================================
+# ESCROW MILESTONE ROUTES
+# ============================================
+
+@app.route('/api/milestones/<int:escrow_id>')
+@login_required
+def get_milestones(escrow_id):
+    """Get milestones for an escrow"""
+    user_id = session['user_id']
+    escrow = Escrow.query.get_or_404(escrow_id)
+    
+    if escrow.client_id != user_id and escrow.freelancer_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    milestones = Milestone.query.filter_by(escrow_id=escrow_id).order_by(Milestone.milestone_number).all()
+    return jsonify({'milestones': [m.to_dict() for m in milestones]})
+
+@app.route('/api/milestones/create', methods=['POST'])
+@login_required
+def create_milestones():
+    """Create milestones for an escrow"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+        
+        escrow_id = data.get('escrow_id')
+        milestones_data = data.get('milestones', [])
+        
+        escrow = Escrow.query.get_or_404(escrow_id)
+        if escrow.client_id != user_id:
+            return jsonify({'error': 'Only the client can create milestones'}), 403
+        
+        existing = Milestone.query.filter_by(escrow_id=escrow_id).count()
+        if existing > 0:
+            return jsonify({'error': 'Milestones already exist for this escrow'}), 400
+        
+        total_amount = sum(m.get('amount', 0) for m in milestones_data)
+        if abs(total_amount - escrow.amount) > 0.01:
+            return jsonify({'error': 'Milestone amounts must equal total escrow amount'}), 400
+        
+        for i, m_data in enumerate(milestones_data, 1):
+            milestone = Milestone(
+                escrow_id=escrow_id,
+                gig_id=escrow.gig_id,
+                milestone_number=i,
+                title=m_data.get('title', f'Milestone {i}'),
+                description=m_data.get('description', ''),
+                amount=m_data.get('amount', 0),
+                percentage=(m_data.get('amount', 0) / escrow.amount) * 100 if escrow.amount > 0 else 0,
+                due_date=datetime.fromisoformat(m_data['due_date']) if m_data.get('due_date') else None
+            )
+            db.session.add(milestone)
+        
+        db.session.commit()
+        return jsonify({'success': True}), 201
+    except Exception as e:
+        app.logger.error(f"Create milestones error: {str(e)}")
+        return jsonify({'error': 'Failed to create milestones'}), 500
+
+@app.route('/api/milestone/<int:milestone_id>/submit', methods=['POST'])
+@login_required
+def submit_milestone(milestone_id):
+    """Submit work for a milestone"""
+    try:
+        user_id = session['user_id']
+        milestone = Milestone.query.get_or_404(milestone_id)
+        escrow = Escrow.query.get(milestone.escrow_id)
+        
+        if escrow.freelancer_id != user_id:
+            return jsonify({'error': 'Only the freelancer can submit milestones'}), 403
+        
+        milestone.work_submitted = True
+        milestone.submitted_at = datetime.utcnow()
+        milestone.status = 'submitted'
+        
+        notification = Notification(
+            user_id=escrow.client_id,
+            notification_type='milestone',
+            title='Milestone Submitted',
+            message=f'Work has been submitted for: {milestone.title}',
+            link=f'/gig/{escrow.gig_id}',
+            related_id=milestone_id
+        )
+        db.session.add(notification)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Submit milestone error: {str(e)}")
+        return jsonify({'error': 'Failed to submit milestone'}), 500
+
+@app.route('/api/milestone/<int:milestone_id>/approve', methods=['POST'])
+@login_required
+def approve_milestone(milestone_id):
+    """Approve and release a milestone"""
+    try:
+        user_id = session['user_id']
+        milestone = Milestone.query.get_or_404(milestone_id)
+        escrow = Escrow.query.get(milestone.escrow_id)
+        
+        if escrow.client_id != user_id:
+            return jsonify({'error': 'Only the client can approve milestones'}), 403
+        
+        if not milestone.work_submitted:
+            return jsonify({'error': 'Work has not been submitted yet'}), 400
+        
+        milestone.approved_at = datetime.utcnow()
+        milestone.released_at = datetime.utcnow()
+        milestone.status = 'released'
+        
+        freelancer_wallet = Wallet.query.filter_by(user_id=escrow.freelancer_id).first()
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=escrow.freelancer_id)
+            db.session.add(freelancer_wallet)
+        
+        net_amount = milestone.amount * 0.95
+        freelancer_wallet.balance += net_amount
+        freelancer_wallet.total_earned += net_amount
+        
+        notification = Notification(
+            user_id=escrow.freelancer_id,
+            notification_type='payment',
+            title='Milestone Payment Released',
+            message=f'RM {net_amount:.2f} has been released for: {milestone.title}',
+            link=f'/payments',
+            related_id=milestone_id
+        )
+        db.session.add(notification)
+        
+        all_milestones = Milestone.query.filter_by(escrow_id=escrow.id).all()
+        if all(m.status == 'released' for m in all_milestones):
+            escrow.status = 'released'
+            escrow.released_at = datetime.utcnow()
+            
+            gig = Gig.query.get(escrow.gig_id)
+            if gig:
+                gig.status = 'completed'
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Approve milestone error: {str(e)}")
+        return jsonify({'error': 'Failed to approve milestone'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

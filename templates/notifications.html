@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .page-header {
+        background: var(--bg-white);
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        border: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .page-header h1 {
+        color: var(--text-dark);
+        font-size: 28px;
+        margin: 0;
+    }
+    .mark-all-btn {
+        background: var(--bg-light);
+        border: 1px solid var(--border);
+        padding: 10px 20px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        cursor: pointer;
+        color: var(--text-gray);
+    }
+    .mark-all-btn:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+    .notifications-list {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.2s;
+        gap: 16px;
+    }
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+    .notification-item:hover {
+        background: var(--bg-light);
+    }
+    .notification-item.unread {
+        background: rgba(0, 200, 83, 0.05);
+    }
+    .notification-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .notification-icon.message { background: #dbeafe; }
+    .notification-icon.payment { background: #d1fae5; }
+    .notification-icon.review { background: #fef3c7; }
+    .notification-icon.application { background: #e0e7ff; }
+    .notification-icon.dispute { background: #fee2e2; }
+    .notification-icon.verification { background: #f3e8ff; }
+    .notification-icon.milestone { background: #cffafe; }
+    .notification-content {
+        flex: 1;
+    }
+    .notification-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+    .notification-message {
+        color: var(--text-gray);
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    .notification-time {
+        color: var(--text-gray);
+        font-size: 12px;
+        margin-top: 6px;
+    }
+    .unread-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--primary);
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 8px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-gray);
+    }
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="page-header">
+        <div>
+            <h1>Notifications</h1>
+            <p style="color: var(--text-gray); margin-top: 4px;">Stay updated on your activity</p>
+        </div>
+        <button class="mark-all-btn" onclick="markAllRead()">Mark All as Read</button>
+    </div>
+
+    <div class="notifications-list">
+        {% if notifications %}
+            {% for notif in notifications %}
+            <a href="{{ notif.link or '#' }}" class="notification-item {% if not notif.is_read %}unread{% endif %}" data-id="{{ notif.id }}">
+                <div class="notification-icon {{ notif.notification_type }}">
+                    {% if notif.notification_type == 'message' %}💬
+                    {% elif notif.notification_type == 'payment' %}💰
+                    {% elif notif.notification_type == 'review' %}⭐
+                    {% elif notif.notification_type == 'application' %}📝
+                    {% elif notif.notification_type == 'dispute' %}⚠️
+                    {% elif notif.notification_type == 'verification' %}✅
+                    {% elif notif.notification_type == 'milestone' %}📋
+                    {% else %}🔔{% endif %}
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">{{ notif.title }}</div>
+                    {% if notif.message %}
+                    <div class="notification-message">{{ notif.message }}</div>
+                    {% endif %}
+                    <div class="notification-time">{{ notif.created_at.strftime('%b %d, %Y at %H:%M') }}</div>
+                </div>
+                {% if not notif.is_read %}
+                <div class="unread-dot"></div>
+                {% endif %}
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🔔</div>
+                <h3>No Notifications</h3>
+                <p>You're all caught up!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function markAllRead() {
+    try {
+        const response = await fetch('/api/notifications/mark-read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: [] })
+        });
+        
+        if (response.ok) {
+            document.querySelectorAll('.notification-item.unread').forEach(el => {
+                el.classList.remove('unread');
+                const dot = el.querySelector('.unread-dot');
+                if (dot) dot.remove();
+            });
+        }
+    } catch (error) {
+        console.error('Mark read error:', error);
+    }
+}
+</script>
+{% endblock %}

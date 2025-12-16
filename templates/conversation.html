@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ other_user.full_name or other_user.username }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .chat-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 24px;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 100px);
+    }
+    .chat-header {
+        background: var(--bg-white);
+        padding: 20px 24px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .back-btn {
+        color: var(--text-gray);
+        text-decoration: none;
+        font-size: 24px;
+    }
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 600;
+    }
+    .chat-user-info h2 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--text-dark);
+    }
+    .chat-user-info p {
+        margin: 2px 0 0;
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+    .chat-gig-badge {
+        margin-left: auto;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .chat-gig-badge:hover {
+        background: rgba(0, 200, 83, 0.2);
+    }
+    .messages-area {
+        flex: 1;
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .message {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+    }
+    .message.sent {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+    .message.received {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+    .message-bubble {
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .message.sent .message-bubble {
+        background: var(--primary);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    .message.received .message-bubble {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border-bottom-left-radius: 4px;
+    }
+    .message-time {
+        font-size: 11px;
+        color: var(--text-gray);
+        margin-top: 4px;
+    }
+    .chat-input-area {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-top: 16px;
+        padding: 16px;
+        display: flex;
+        gap: 12px;
+    }
+    .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        font-size: 14px;
+        outline: none;
+    }
+    .chat-input:focus {
+        border-color: var(--primary);
+    }
+    .send-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .send-btn:hover {
+        background: var(--primary-dark);
+    }
+    .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .empty-messages {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <a href="/messages" class="back-btn">&larr;</a>
+        <div class="avatar">{{ other_user.username[0].upper() }}</div>
+        <div class="chat-user-info">
+            <h2>{{ other_user.full_name or other_user.username }}</h2>
+            <p>@{{ other_user.username }}</p>
+        </div>
+        {% if gig %}
+        <a href="/gig/{{ gig.id }}" class="chat-gig-badge">{{ gig.title[:30] }}{% if gig.title|length > 30 %}...{% endif %}</a>
+        {% endif %}
+    </div>
+
+    <div class="messages-area" id="messagesArea">
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="message {% if msg.sender_id == user.id %}sent{% else %}received{% endif %}" data-id="{{ msg.id }}">
+                <div class="message-bubble">{{ msg.content }}</div>
+                <span class="message-time">{{ msg.created_at.strftime('%b %d, %H:%M') }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-messages">
+                <p>No messages yet. Start the conversation!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <form class="chat-input-area" id="messageForm">
+        <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
+        <button type="submit" class="send-btn" id="sendBtn">Send</button>
+    </form>
+</div>
+
+<script>
+const conversationId = {{ conversation.id }};
+const userId = {{ user.id }};
+let lastMessageId = {% if messages %}{{ messages[-1].id }}{% else %}0{% endif %};
+
+const messagesArea = document.getElementById('messagesArea');
+const messageForm = document.getElementById('messageForm');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+
+messagesArea.scrollTop = messagesArea.scrollHeight;
+
+messageForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const content = messageInput.value.trim();
+    if (!content) return;
+    
+    sendBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/messages/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                conversation_id: conversationId,
+                content: content
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            appendMessage(data.message, true);
+            messageInput.value = '';
+            lastMessageId = data.message.id;
+        }
+    } catch (error) {
+        console.error('Send error:', error);
+    }
+    
+    sendBtn.disabled = false;
+    messageInput.focus();
+});
+
+function appendMessage(msg, isSent) {
+    const emptyMsg = messagesArea.querySelector('.empty-messages');
+    if (emptyMsg) emptyMsg.remove();
+    
+    const msgEl = document.createElement('div');
+    msgEl.className = `message ${isSent ? 'sent' : 'received'}`;
+    msgEl.dataset.id = msg.id;
+    
+    const date = new Date(msg.created_at);
+    const timeStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + 
+                    date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    
+    msgEl.innerHTML = `
+        <div class="message-bubble">${escapeHtml(msg.content)}</div>
+        <span class="message-time">${timeStr}</span>
+    `;
+    
+    messagesArea.appendChild(msgEl);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function pollMessages() {
+    try {
+        const response = await fetch(`/api/messages/poll/${conversationId}?last_id=${lastMessageId}`);
+        if (response.ok) {
+            const data = await response.json();
+            for (const msg of data.messages) {
+                if (msg.sender_id !== userId && !document.querySelector(`[data-id="${msg.id}"]`)) {
+                    appendMessage(msg, false);
+                    lastMessageId = Math.max(lastMessageId, msg.id);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Poll error:', error);
+    }
+}
+
+setInterval(pollMessages, 3000);
+</script>
+{% endblock %}

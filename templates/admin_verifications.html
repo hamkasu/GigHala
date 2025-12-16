@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Verifications{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    .page-header {
+        background: var(--bg-white);
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        border: 1px solid var(--border);
+    }
+    .page-header h1 {
+        color: var(--text-dark);
+        font-size: 28px;
+        margin: 0;
+    }
+    .section {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+    }
+    .section-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .verification-item {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .verification-item:last-child {
+        border-bottom: none;
+    }
+    .user-info {
+        flex: 1;
+    }
+    .user-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+    }
+    .user-meta {
+        color: var(--text-gray);
+        font-size: 13px;
+    }
+    .ic-preview {
+        display: flex;
+        gap: 8px;
+    }
+    .ic-preview img {
+        width: 80px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+    }
+    .action-btns {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-approve {
+        background: #d1fae5;
+        color: #065f46;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-reject {
+        background: #fee2e2;
+        color: #dc2626;
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-rejected { background: #fee2e2; color: #dc2626; }
+    .empty-state {
+        padding: 40px;
+        text-align: center;
+        color: var(--text-gray);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="page-header">
+        <h1>Identity Verifications</h1>
+        <p style="color: var(--text-gray); margin-top: 4px;">Review and approve user identity verifications</p>
+    </div>
+
+    <div class="section">
+        <div class="section-header">Pending Verifications ({{ pending|length }})</div>
+        {% if pending %}
+            {% for v in pending %}
+            <div class="verification-item" id="verification-{{ v.id }}">
+                <div class="user-info">
+                    <div class="user-name">{{ v.full_name }}</div>
+                    <div class="user-meta">IC: {{ v.ic_number[:4] }}****{{ v.ic_number[-4:] }} &bull; Submitted {{ v.created_at.strftime('%b %d, %Y') }}</div>
+                </div>
+                <div class="ic-preview">
+                    {% if v.ic_front_image %}
+                    <a href="{{ v.ic_front_image }}" target="_blank"><img src="{{ v.ic_front_image }}" alt="IC Front"></a>
+                    {% endif %}
+                    {% if v.ic_back_image %}
+                    <a href="{{ v.ic_back_image }}" target="_blank"><img src="{{ v.ic_back_image }}" alt="IC Back"></a>
+                    {% endif %}
+                    {% if v.selfie_image %}
+                    <a href="{{ v.selfie_image }}" target="_blank"><img src="{{ v.selfie_image }}" alt="Selfie"></a>
+                    {% endif %}
+                </div>
+                <div class="action-btns">
+                    <button class="btn-approve" onclick="reviewVerification({{ v.id }}, 'approve')">Approve</button>
+                    <button class="btn-reject" onclick="reviewVerification({{ v.id }}, 'reject')">Reject</button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">No pending verifications</div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-header">Recent Reviews</div>
+        {% if recent %}
+            {% for v in recent %}
+            <div class="verification-item">
+                <div class="user-info">
+                    <div class="user-name">{{ v.full_name }}</div>
+                    <div class="user-meta">{{ v.updated_at.strftime('%b %d, %Y') if v.updated_at else v.created_at.strftime('%b %d, %Y') }}</div>
+                </div>
+                <span class="status-badge status-{{ v.status }}">{{ v.status.title() }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">No recent reviews</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function reviewVerification(id, action) {
+    let reason = '';
+    if (action === 'reject') {
+        reason = prompt('Rejection reason:');
+        if (reason === null) return;
+    }
+    
+    if (!confirm(`Are you sure you want to ${action} this verification?`)) return;
+
+    try {
+        const response = await fetch(`/api/admin/verification/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, reason })
+        });
+
+        if (response.ok) {
+            document.getElementById(`verification-${id}`).remove();
+            alert(`Verification ${action}d successfully`);
+        } else {
+            alert('Failed to process verification');
+        }
+    } catch (error) {
+        alert('An error occurred');
+    }
+}
+</script>
+{% endblock %}
