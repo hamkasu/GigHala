@@ -156,7 +156,6 @@ TRANSLATIONS = {
         'instant_payout': 'Instant Payout',
         'start_earning': 'Mula Jana Pendapatan',
         'watch_demo': 'Tonton Video Demo',
-        'verified_by_jakim': 'Verified oleh JAKIM',
         'registered_ssm': 'Berdaftar SSM',
 
         # Homepage - Categories
@@ -220,7 +219,6 @@ TRANSLATIONS = {
         'gig_workers_bill': 'Gig Workers Bill',
         'rights_reserved': 'Hak cipta terpelihara. Berdaftar dengan SSM (Calmic Sdn Bhd)',
         'visitor_count': 'Jumlah Pelawat:',
-        'jakim_verified': 'JAKIM Verified',
         'ssm_registered': 'SSM Registered',
         'secure_payment': 'Secure Payment',
 
@@ -368,7 +366,6 @@ TRANSLATIONS = {
         'instant_payout': 'Instant Payout',
         'start_earning': 'Start Earning Now',
         'watch_demo': 'Watch Demo Video',
-        'verified_by_jakim': 'Verified by JAKIM',
         'registered_ssm': 'SSM Registered',
 
         # Homepage - Categories
@@ -432,7 +429,6 @@ TRANSLATIONS = {
         'gig_workers_bill': 'Gig Workers Bill',
         'rights_reserved': 'All rights reserved. Registered with SSM (Calmic Sdn Bhd)',
         'visitor_count': 'Total Visitors:',
-        'jakim_verified': 'JAKIM Verified',
         'ssm_registered': 'SSM Registered',
         'secure_payment': 'Secure Payment',
 
