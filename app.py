@@ -2943,6 +2943,350 @@ def dispute_escrow(gig_id):
         return jsonify({'error': 'Failed to raise dispute'}), 500
 
 # ============================================================================
+# PAYHALAL ESCROW INTEGRATION
+# ============================================================================
+
+@app.route('/api/escrow/<int:gig_id>/pay', methods=['POST'])
+def initiate_escrow_payment(gig_id):
+    """Initiate PayHalal payment to fund an escrow"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        from payhalal import get_payhalal_client, calculate_payhalal_processing_fee
+        
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        
+        # Only client can initiate payment
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can fund the escrow'}), 403
+        
+        # Gig must have an assigned freelancer
+        if not gig.freelancer_id:
+            return jsonify({'error': 'Gig must have an assigned freelancer before funding'}), 400
+        
+        # Check if escrow already funded
+        existing = Escrow.query.filter_by(gig_id=gig_id).first()
+        if existing and existing.status in ['funded', 'released']:
+            return jsonify({'error': 'Escrow already funded for this gig'}), 400
+        
+        # Get amount from request or use gig budget
+        data = request.json or {}
+        amount = float(data.get('amount', gig.budget or 0))
+        
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+        
+        # Calculate fees
+        platform_fee = calculate_commission(amount)
+        processing_fee = calculate_payhalal_processing_fee(amount)
+        total_amount = amount + processing_fee
+        net_amount = amount - platform_fee
+        
+        # Generate unique order ID
+        order_id = f"ESC-{gig_id}-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Create or update escrow as pending
+        if existing:
+            escrow = existing
+            escrow.amount = amount
+            escrow.platform_fee = platform_fee
+            escrow.net_amount = net_amount
+            escrow.status = 'pending'
+            escrow.payment_reference = order_id
+        else:
+            escrow = Escrow(
+                gig_id=gig_id,
+                client_id=user_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=platform_fee,
+                net_amount=net_amount,
+                status='pending',
+                payment_reference=order_id
+            )
+            db.session.add(escrow)
+        
+        db.session.commit()
+        
+        # Get PayHalal client
+        client = get_payhalal_client()
+        
+        if not client.is_available():
+            # PayHalal not configured - return manual payment instructions
+            return jsonify({
+                'success': True,
+                'payment_method': 'manual',
+                'escrow': escrow.to_dict(),
+                'message': 'PayHalal is not configured. Please use manual bank transfer.',
+                'manual_instructions': {
+                    'bank_name': 'Maybank',
+                    'account_number': '512345678901',
+                    'account_name': 'GigHalal Sdn Bhd',
+                    'reference': order_id,
+                    'amount': total_amount
+                }
+            }), 200
+        
+        # Build callback URLs - use request.host_url for absolute URLs
+        base_url = request.host_url.rstrip('/')
+        if not base_url:
+            # Fallback to REPLIT_DEV_DOMAIN if request.host_url is not available
+            domain = os.environ.get('REPLIT_DEV_DOMAIN', '')
+            if domain:
+                base_url = f"https://{domain}" if not domain.startswith('http') else domain
+            else:
+                # Last resort: use REPLIT_DOMAINS
+                domains = os.environ.get('REPLIT_DOMAINS', '')
+                if domains:
+                    first_domain = domains.split(',')[0].strip()
+                    base_url = f"https://{first_domain}"
+        
+        if not base_url:
+            return jsonify({
+                'success': False,
+                'error': 'Unable to determine application URL for payment callback'
+            }), 500
+        
+        return_url = f"{base_url}/escrow?payment=success&gig_id={gig_id}"
+        callback_url = f"{base_url}/api/payhalal/escrow-webhook"
+        
+        # Create PayHalal payment
+        result = client.create_payment(
+            amount=total_amount,
+            order_id=order_id,
+            description=f"Escrow payment for gig: {gig.title[:50]}",
+            customer_email=user.email,
+            customer_name=user.full_name or user.username,
+            return_url=return_url,
+            callback_url=callback_url,
+            customer_phone=user.phone
+        )
+        
+        if result.get('success'):
+            return jsonify({
+                'success': True,
+                'payment_method': 'payhalal',
+                'payment_url': result.get('payment_url'),
+                'payment_id': result.get('payment_id'),
+                'order_id': order_id,
+                'escrow': escrow.to_dict(),
+                'fee_breakdown': {
+                    'gig_amount': amount,
+                    'platform_fee': platform_fee,
+                    'processing_fee': processing_fee,
+                    'total_charge': total_amount,
+                    'freelancer_receives': net_amount
+                }
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to create payment'),
+                'escrow': escrow.to_dict()
+            }), 400
+            
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Initiate escrow payment error: {str(e)}")
+        return jsonify({'error': 'Failed to initiate payment'}), 500
+
+
+@app.route('/api/payhalal/escrow-webhook', methods=['POST'])
+def payhalal_escrow_webhook():
+    """Handle PayHalal payment webhook for escrow funding"""
+    try:
+        from payhalal import get_payhalal_client
+        
+        data = request.json or {}
+        signature = request.headers.get('X-PayHalal-Signature', '')
+        
+        client = get_payhalal_client()
+        
+        # Verify webhook signature if available
+        if signature and not client.verify_webhook_signature(data, signature):
+            app.logger.warning("Invalid PayHalal webhook signature")
+            return jsonify({'error': 'Invalid signature'}), 401
+        
+        order_id = data.get('order_id')
+        payment_status = data.get('status')
+        payment_id = data.get('payment_id')
+        
+        if not order_id:
+            return jsonify({'error': 'Missing order_id'}), 400
+        
+        # Find escrow by payment reference
+        escrow = Escrow.query.filter_by(payment_reference=order_id).first()
+        
+        if not escrow:
+            app.logger.warning(f"Escrow not found for order_id: {order_id}")
+            return jsonify({'error': 'Escrow not found'}), 404
+        
+        if payment_status == 'paid' or payment_status == 'success':
+            # Mark escrow as funded
+            escrow.status = 'funded'
+            escrow.funded_at = datetime.utcnow()
+            
+            # Update client wallet (add to held_balance)
+            client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+            if not client_wallet:
+                client_wallet = Wallet(user_id=escrow.client_id)
+                db.session.add(client_wallet)
+            
+            client_wallet.held_balance += escrow.amount
+            
+            # Record payment history
+            payment_history = PaymentHistory(
+                user_id=escrow.client_id,
+                type='escrow_fund',
+                amount=escrow.amount,
+                balance_before=client_wallet.balance,
+                balance_after=client_wallet.balance,
+                description=f"Escrow funded via PayHalal for gig ID: {escrow.gig_id}",
+                reference_number=order_id
+            )
+            db.session.add(payment_history)
+            
+            db.session.commit()
+            
+            app.logger.info(f"Escrow {escrow.id} funded successfully via PayHalal")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Escrow funded successfully'
+            }), 200
+            
+        elif payment_status == 'failed' or payment_status == 'cancelled':
+            escrow.status = 'cancelled'
+            escrow.admin_notes = f"Payment {payment_status}: {data.get('error', 'Unknown error')}"
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Payment {payment_status}'
+            }), 200
+        
+        return jsonify({'success': True, 'message': 'Webhook received'}), 200
+        
+    except Exception as e:
+        app.logger.error(f"PayHalal escrow webhook error: {str(e)}")
+        return jsonify({'error': 'Webhook processing failed'}), 500
+
+
+@app.route('/api/escrow/<int:gig_id>/confirm-manual', methods=['POST'])
+def confirm_manual_escrow_payment(gig_id):
+    """Confirm manual bank transfer for escrow (admin only or with receipt upload)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        gig = Gig.query.get_or_404(gig_id)
+        
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        
+        if not escrow:
+            return jsonify({'error': 'No pending escrow found'}), 404
+        
+        if escrow.status != 'pending':
+            return jsonify({'error': f'Escrow is not pending (status: {escrow.status})'}), 400
+        
+        # Only client or admin can confirm
+        if gig.client_id != user_id and not user.is_admin:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        data = request.json or {}
+        transfer_reference = data.get('transfer_reference', '')
+        
+        if user.is_admin:
+            # Admin can directly confirm
+            escrow.status = 'funded'
+            escrow.funded_at = datetime.utcnow()
+            escrow.admin_notes = f"Confirmed by admin. Transfer ref: {transfer_reference}"
+            
+            # Update wallet
+            client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+            if not client_wallet:
+                client_wallet = Wallet(user_id=escrow.client_id)
+                db.session.add(client_wallet)
+            
+            client_wallet.held_balance += escrow.amount
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Escrow confirmed and funded',
+                'escrow': escrow.to_dict()
+            }), 200
+        else:
+            # Client submits transfer reference for admin review
+            escrow.admin_notes = f"Client submitted transfer ref: {transfer_reference}. Awaiting admin confirmation."
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Transfer reference submitted. Admin will verify and confirm your payment.',
+                'escrow': escrow.to_dict()
+            }), 200
+            
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Confirm manual escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to confirm payment'}), 500
+
+
+@app.route('/api/escrow/my-escrows', methods=['GET'])
+def get_my_escrows():
+    """Get all escrows for the current user (as client or freelancer)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        user_id = session['user_id']
+        
+        # Get escrows where user is client or freelancer
+        escrows = Escrow.query.filter(
+            (Escrow.client_id == user_id) | (Escrow.freelancer_id == user_id)
+        ).order_by(Escrow.created_at.desc()).all()
+        
+        result = []
+        for escrow in escrows:
+            gig = Gig.query.get(escrow.gig_id)
+            client = User.query.get(escrow.client_id)
+            freelancer = User.query.get(escrow.freelancer_id)
+            
+            result.append({
+                **escrow.to_dict(),
+                'gig_title': gig.title if gig else 'Unknown Gig',
+                'client_name': client.full_name or client.username if client else 'Unknown',
+                'freelancer_name': freelancer.full_name or freelancer.username if freelancer else 'Unknown',
+                'is_client': escrow.client_id == user_id,
+                'is_freelancer': escrow.freelancer_id == user_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'escrows': result
+        }), 200
+        
+    except Exception as e:
+        app.logger.error(f"Get my escrows error: {str(e)}")
+        return jsonify({'error': 'Failed to get escrows'}), 500
+
+
+@app.route('/escrow')
+@login_required
+def escrow_page():
+    """Escrow management page"""
+    user = User.query.get(session['user_id'])
+    return render_template('escrow.html', user=user, active_page='escrow')
+
+
+# ============================================================================
 # END ESCROW ENDPOINTS
 # ============================================================================
 
