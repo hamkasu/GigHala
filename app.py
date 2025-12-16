@@ -5745,196 +5745,215 @@ def get_client_payment_history():
         app.logger.error(f"Get client payment history error: {str(e)}")
         return jsonify({'error': 'Failed to get payment history'}), 500
 
-# Initialize database
-with app.app_context():
-    db.create_all()
+# Lazy initialization flag
+_db_initialized = False
+
+def init_database():
+    """Initialize database with tables, categories, and sample data (lazy loading)"""
+    global _db_initialized
+    if _db_initialized:
+        return
     
-    # Add default categories if they don't exist
-    if Category.query.count() == 0:
-        default_categories = [
-            Category(name='Design', slug='design', description='Logo design, graphic design, UI/UX', icon='palette'),
-            Category(name='Writing & Translation', slug='writing', description='Content writing, translation, copywriting', icon='edit'),
-            Category(name='Video & Animation', slug='video', description='Video editing, animation, motion graphics', icon='video'),
-            Category(name='Tutoring & Education', slug='tutoring', description='Online tutoring, teaching, coaching', icon='book'),
-            Category(name='Content Creation', slug='content', description='Social media content, TikTok, Instagram Reels', icon='camera'),
-            Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
-            Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
-            Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
-            Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
-        ]
-        for cat in default_categories:
-            db.session.add(cat)
-        db.session.commit()
-        print("Default categories added successfully!")
-
-    # Add General Works category if it doesn't exist (for existing databases)
-    if not Category.query.filter_by(slug='general').first():
-        general_cat = Category(
-            name='General Works',
-            slug='general',
-            description='General tasks, miscellaneous work, other services',
-            icon='briefcase'
-        )
-        db.session.add(general_cat)
-        db.session.commit()
-        print("General Works category added!")
-
-    # Add sample data if database is empty
-    if User.query.count() == 0:
-        # Sample users
-        sample_user = User(
-            username='demo_freelancer',
-            email='freelancer@gighalal.com',
-            password_hash=generate_password_hash('password123'),
-            full_name='Ahmad Zaki',
-            user_type='freelancer',
-            location='Kuala Lumpur',
-            skills=json.dumps(['Graphic Design', 'Video Editing', 'Canva']),
-            bio='Experienced graphic designer specializing in halal-compliant branding',
-            rating=4.8,
-            total_earnings=2500.0,
-            completed_gigs=15,
-            is_verified=True,
-            halal_verified=True
-        )
+    try:
+        # Create tables
+        db.create_all()
         
-        sample_client = User(
-            username='demo_client',
-            email='client@gighalal.com',
-            password_hash=generate_password_hash('password123'),
-            full_name='Siti Nurhaliza',
-            user_type='client',
-            location='Penang',
-            is_verified=True
-        )
+        # Add default categories if they don't exist
+        if Category.query.count() == 0:
+            default_categories = [
+                Category(name='Design', slug='design', description='Logo design, graphic design, UI/UX', icon='palette'),
+                Category(name='Writing & Translation', slug='writing', description='Content writing, translation, copywriting', icon='edit'),
+                Category(name='Video & Animation', slug='video', description='Video editing, animation, motion graphics', icon='video'),
+                Category(name='Tutoring & Education', slug='tutoring', description='Online tutoring, teaching, coaching', icon='book'),
+                Category(name='Content Creation', slug='content', description='Social media content, TikTok, Instagram Reels', icon='camera'),
+                Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
+                Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
+                Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
+                Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
+            ]
+            for cat in default_categories:
+                db.session.add(cat)
+            db.session.commit()
+            print("Default categories added successfully!")
 
-        # Admin user
-        admin_user = User(
-            username='admin',
-            email='admin@gighalal.com',
-            password_hash=generate_password_hash('Admin123!'),
-            full_name='GigHala Administrator',
-            user_type='both',
-            location='Kuala Lumpur',
-            is_verified=True,
-            halal_verified=True,
-            is_admin=True
-        )
+        # Add General Works category if it doesn't exist (for existing databases)
+        if not Category.query.filter_by(slug='general').first():
+            general_cat = Category(
+                name='General Works',
+                slug='general',
+                description='General tasks, miscellaneous work, other services',
+                icon='briefcase'
+            )
+            db.session.add(general_cat)
+            db.session.commit()
+            print("General Works category added!")
 
-        db.session.add(sample_user)
-        db.session.add(sample_client)
-        db.session.add(admin_user)
-        db.session.commit()
-        
-        # Sample gigs
-        sample_gigs = [
-            Gig(
-                title='Design Logo for Halal Restaurant',
-                description='Need a modern logo for my new halal restaurant in KL. Should incorporate Islamic geometric patterns.',
-                category='design',
-                budget_min=200,
-                budget_max=500,
-                duration='3-5 days',
+        # Add sample data if database is empty
+        if User.query.count() == 0:
+            # Sample users
+            sample_user = User(
+                username='demo_freelancer',
+                email='freelancer@gighalal.com',
+                password_hash=generate_password_hash('password123'),
+                full_name='Ahmad Zaki',
+                user_type='freelancer',
                 location='Kuala Lumpur',
-                is_remote=True,
-                client_id=sample_client.id,
-                halal_compliant=True,
+                skills=json.dumps(['Graphic Design', 'Video Editing', 'Canva']),
+                bio='Experienced graphic designer specializing in halal-compliant branding',
+                rating=4.8,
+                total_earnings=2500.0,
+                completed_gigs=15,
+                is_verified=True,
+                halal_verified=True
+            )
+            
+            sample_client = User(
+                username='demo_client',
+                email='client@gighalal.com',
+                password_hash=generate_password_hash('password123'),
+                full_name='Siti Nurhaliza',
+                user_type='client',
+                location='Penang',
+                is_verified=True
+            )
+
+            # Admin user
+            admin_user = User(
+                username='admin',
+                email='admin@gighalal.com',
+                password_hash=generate_password_hash('Admin123!'),
+                full_name='GigHala Administrator',
+                user_type='both',
+                location='Kuala Lumpur',
+                is_verified=True,
                 halal_verified=True,
-                is_instant_payout=True,
-                skills_required=json.dumps(['Adobe Illustrator', 'Logo Design', 'Branding']),
-                deadline=datetime.utcnow() + timedelta(days=7)
-            ),
-            Gig(
-                title='Translate Website from English to Bahasa Malaysia',
-                description='Need professional translation for e-commerce website (approximately 50 pages)',
-                category='writing',
-                budget_min=800,
-                budget_max=1200,
-                duration='1 week',
-                location='Remote',
-                is_remote=True,
-                client_id=sample_client.id,
-                halal_compliant=True,
-                skills_required=json.dumps(['Translation', 'Bahasa Malaysia', 'English']),
-                deadline=datetime.utcnow() + timedelta(days=10)
-            ),
-            Gig(
-                title='Edit 10 Instagram Reels for Modest Fashion Brand',
-                description='Looking for creative video editor to produce engaging Reels showcasing our modest wear collection',
-                category='video',
-                budget_min=300,
-                budget_max=600,
-                duration='5-7 days',
-                location='Remote',
-                is_remote=True,
-                client_id=sample_client.id,
-                halal_compliant=True,
-                is_brand_partnership=True,
-                skills_required=json.dumps(['Video Editing', 'CapCut', 'Social Media']),
-                deadline=datetime.utcnow() + timedelta(days=14)
-            ),
-            Gig(
-                title='SPM Mathematics Tutoring (Online)',
-                description='Need experienced tutor for SPM Add Maths. 2 hours per week, flexible schedule.',
-                category='tutoring',
-                budget_min=150,
-                budget_max=250,
-                duration='1 month',
-                location='Remote',
-                is_remote=True,
-                client_id=sample_client.id,
-                halal_compliant=True,
-                skills_required=json.dumps(['SPM', 'Mathematics', 'Teaching']),
-                deadline=datetime.utcnow() + timedelta(days=5)
-            ),
-            Gig(
-                title='Create TikTok Content for Halal Food Delivery App',
-                description='Need 5 creative TikTok videos promoting our halal food delivery service. RM100 per approved video.',
-                category='content',
-                budget_min=500,
-                budget_max=800,
-                duration='1 week',
-                location='Johor Bahru',
-                is_remote=False,
-                client_id=sample_client.id,
-                halal_compliant=True,
-                is_brand_partnership=True,
-                is_instant_payout=True,
-                skills_required=json.dumps(['TikTok', 'Content Creation', 'Video Production']),
-                deadline=datetime.utcnow() + timedelta(days=7)
+                is_admin=True
             )
-        ]
+
+            db.session.add(sample_user)
+            db.session.add(sample_client)
+            db.session.add(admin_user)
+            db.session.commit()
+            
+            # Sample gigs
+            sample_gigs = [
+                Gig(
+                    title='Design Logo for Halal Restaurant',
+                    description='Need a modern logo for my new halal restaurant in KL. Should incorporate Islamic geometric patterns.',
+                    category='design',
+                    budget_min=200,
+                    budget_max=500,
+                    duration='3-5 days',
+                    location='Kuala Lumpur',
+                    is_remote=True,
+                    client_id=sample_client.id,
+                    halal_compliant=True,
+                    halal_verified=True,
+                    is_instant_payout=True,
+                    skills_required=json.dumps(['Adobe Illustrator', 'Logo Design', 'Branding']),
+                    deadline=datetime.utcnow() + timedelta(days=7)
+                ),
+                Gig(
+                    title='Translate Website from English to Bahasa Malaysia',
+                    description='Need professional translation for e-commerce website (approximately 50 pages)',
+                    category='writing',
+                    budget_min=800,
+                    budget_max=1200,
+                    duration='1 week',
+                    location='Remote',
+                    is_remote=True,
+                    client_id=sample_client.id,
+                    halal_compliant=True,
+                    skills_required=json.dumps(['Translation', 'Bahasa Malaysia', 'English']),
+                    deadline=datetime.utcnow() + timedelta(days=10)
+                ),
+                Gig(
+                    title='Edit 10 Instagram Reels for Modest Fashion Brand',
+                    description='Looking for creative video editor to produce engaging Reels showcasing our modest wear collection',
+                    category='video',
+                    budget_min=300,
+                    budget_max=600,
+                    duration='5-7 days',
+                    location='Remote',
+                    is_remote=True,
+                    client_id=sample_client.id,
+                    halal_compliant=True,
+                    is_brand_partnership=True,
+                    skills_required=json.dumps(['Video Editing', 'CapCut', 'Social Media']),
+                    deadline=datetime.utcnow() + timedelta(days=14)
+                ),
+                Gig(
+                    title='SPM Mathematics Tutoring (Online)',
+                    description='Need experienced tutor for SPM Add Maths. 2 hours per week, flexible schedule.',
+                    category='tutoring',
+                    budget_min=150,
+                    budget_max=250,
+                    duration='1 month',
+                    location='Remote',
+                    is_remote=True,
+                    client_id=sample_client.id,
+                    halal_compliant=True,
+                    skills_required=json.dumps(['SPM', 'Mathematics', 'Teaching']),
+                    deadline=datetime.utcnow() + timedelta(days=5)
+                ),
+                Gig(
+                    title='Create TikTok Content for Halal Food Delivery App',
+                    description='Need 5 creative TikTok videos promoting our halal food delivery service. RM100 per approved video.',
+                    category='content',
+                    budget_min=500,
+                    budget_max=800,
+                    duration='1 week',
+                    location='Johor Bahru',
+                    is_remote=False,
+                    client_id=sample_client.id,
+                    halal_compliant=True,
+                    is_brand_partnership=True,
+                    is_instant_payout=True,
+                    skills_required=json.dumps(['TikTok', 'Content Creation', 'Video Production']),
+                    deadline=datetime.utcnow() + timedelta(days=7)
+                )
+            ]
+            
+            for gig in sample_gigs:
+                db.session.add(gig)
+            
+            # Sample microtasks
+            microtasks = [
+                MicroTask(
+                    title='Review Halal Restaurant on Google Maps',
+                    description='Visit and write honest review for halal restaurant',
+                    reward=15.0,
+                    task_type='review'
+                ),
+                MicroTask(
+                    title='Complete Survey on Gig Economy',
+                    description='10-minute survey about freelance work preferences',
+                    reward=10.0,
+                    task_type='survey'
+                ),
+                MicroTask(
+                    title='Share GigHalal Post on Social Media',
+                    description='Share our promotional post and tag 3 friends',
+                    reward=5.0,
+                    task_type='content_creation'
+                )
+            ]
+            
+            for task in microtasks:
+                db.session.add(task)
+            
+            db.session.commit()
+            print("Sample data added successfully!")
         
-        for gig in sample_gigs:
-            db.session.add(gig)
-        
-        # Sample microtasks
-        microtasks = [
-            MicroTask(
-                title='Review Halal Restaurant on Google Maps',
-                description='Visit and write honest review for halal restaurant',
-                reward=15.0,
-                task_type='review'
-            ),
-            MicroTask(
-                title='Complete Survey on Gig Economy',
-                description='10-minute survey about freelance work preferences',
-                reward=10.0,
-                task_type='survey'
-            ),
-            MicroTask(
-                title='Share GigHalal Post on Social Media',
-                description='Share our promotional post and tag 3 friends',
-                reward=5.0,
-                task_type='content_creation'
-            )
-        ]
-        
-        for task in microtasks:
-            db.session.add(task)
-        
-        db.session.commit()
-        print("Sample data added successfully!")
+        _db_initialized = True
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+        _db_initialized = True  # Mark as done to avoid retry loops
+
+@app.before_request
+def ensure_db_initialized():
+    """Ensure database is initialized before handling requests"""
+    init_database()
 
 # ============ STATIC PAGES ============
 
