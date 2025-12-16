@@ -58,6 +58,7 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 16, 2025: Added Accepted Gigs page (/accepted-gigs) - displays all gigs where the user has an accepted application (as freelancer) or has accepted a freelancer (as client); shows gig title, role, other party info, price, status, and date; navigation link added to user dropdown menu
 - December 16, 2025: Added PayHalal escrow integration - new /escrow page for clients to view and fund escrows via PayHalal (FPX/Card/E-Wallet) or manual bank transfer; includes /api/escrow/<gig_id>/pay endpoint for payment initiation, /api/payhalal/escrow-webhook for payment confirmation, /api/escrow/my-escrows for listing user escrows, and /api/escrow/<gig_id>/confirm-manual for manual transfer verification; navigation link added to user dropdown menu
 - December 16, 2025: Made posted gigs on dashboard clickable - gig cards in "Your Posted Gigs" section now link to gig detail page
 - December 16, 2025: Added applications management UI for gig owners - on gig detail page, owners can see all applications with freelancer info, proposed price, and Accept/Reject buttons; uses existing API endpoints /api/applications/{id}/accept and /api/applications/{id}/reject
