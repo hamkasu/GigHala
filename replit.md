@@ -109,6 +109,7 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 16, 2025: Added Islamic and Western dual date display - shows both Hijri (e.g., "25 Jamadil Akhir 1447H") and Gregorian (e.g., "16 Disember 2025") dates at the top of every page using hijri-converter library; supports Malay and English month names
 - December 16, 2025: Added 7 major new features: Portfolio Management (/portfolio, /profile/<username>), Real-time Messaging (/messages with polling), Notifications System (/notifications with preferences), Identity Verification (/verification with IC/MyKad upload), Dispute Resolution (/disputes, /dispute/new), Escrow Milestones (milestone-based payments), and Admin panels for verification/dispute review
 - December 16, 2025: Added database models for PortfolioItem, Conversation, Message, Notification, NotificationPreference, IdentityVerification, Dispute, DisputeMessage, and Milestone
 - December 16, 2025: Created SQL migration file (migrations/add_new_features.sql) for manual database schema updates
