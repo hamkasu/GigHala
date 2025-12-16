@@ -11,3 +11,13 @@ stripe>=7.0.0
 hijri-converter>=2.3.1
 requests>=2.31.0
 pillow>=10.0.0
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
