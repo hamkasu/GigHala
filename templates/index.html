@@ -9,6 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Islamic/Western Date Bar -->
+    <div class="date-bar" style="background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%); text-align: center; padding: 8px 16px; font-size: 13px; color: rgba(255,255,255,0.9); border-bottom: 1px solid rgba(0,200,83,0.2);">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <span style="font-size: 14px;">☪</span>
+            <span style="color: #00C853; font-weight: 600;">{{ today_hijri }}</span>
+            <span style="color: rgba(255,255,255,0.4);">|</span>
+            <span style="color: rgba(255,255,255,0.8);">{{ today_gregorian }}</span>
+        </div>
+    </div>
+
     <div id="app">
         <!-- Navigation -->
         <nav class="navbar">
