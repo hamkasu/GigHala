@@ -12,6 +12,7 @@ import json
 import re
 import stripe
 import uuid
+from hijri_converter import Hijri, Gregorian
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -514,10 +515,59 @@ def t(key, **kwargs):
         translation = translation.replace('{' + k + '}', str(v))
     return translation
 
-# Make translation function available in templates
+# Islamic (Hijri) month names in Malay and English
+HIJRI_MONTHS = {
+    'ms': ['Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir', 'Jamadil Awal', 'Jamadil Akhir',
+           'Rejab', 'Syaaban', 'Ramadan', 'Syawal', 'Zulkaedah', 'Zulhijah'],
+    'en': ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Awwal', 'Jumada al-Thani',
+           'Rajab', 'Shaban', 'Ramadan', 'Shawwal', 'Dhul Qadah', 'Dhul Hijjah']
+}
+
+GREGORIAN_MONTHS = {
+    'ms': ['Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 
+           'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'],
+    'en': ['January', 'February', 'March', 'April', 'May', 'June',
+           'July', 'August', 'September', 'October', 'November', 'December']
+}
+
+def get_dual_date(date_obj=None, lang=None):
+    """Get formatted dual date (Gregorian and Hijri)"""
+    if date_obj is None:
+        date_obj = datetime.now()
+    if lang is None:
+        lang = get_user_language()
+    
+    # Gregorian date
+    greg_month = GREGORIAN_MONTHS.get(lang, GREGORIAN_MONTHS['ms'])[date_obj.month - 1]
+    gregorian = f"{date_obj.day} {greg_month} {date_obj.year}"
+    
+    # Convert to Hijri
+    hijri = Gregorian(date_obj.year, date_obj.month, date_obj.day).to_hijri()
+    hijri_month = HIJRI_MONTHS.get(lang, HIJRI_MONTHS['ms'])[hijri.month - 1]
+    hijri_str = f"{hijri.day} {hijri_month} {hijri.year}H"
+    
+    return {'gregorian': gregorian, 'hijri': hijri_str, 'full': f"{gregorian} / {hijri_str}"}
+
+def format_date_dual(date_obj, lang=None):
+    """Format a specific date with both calendars"""
+    if date_obj is None:
+        return None
+    if lang is None:
+        lang = get_user_language()
+    return get_dual_date(date_obj, lang)
+
+# Make translation function and dates available in templates
 @app.context_processor
 def inject_translations():
-    return dict(t=t, lang=get_user_language())
+    today_dual = get_dual_date()
+    return dict(
+        t=t, 
+        lang=get_user_language(),
+        today_gregorian=today_dual['gregorian'],
+        today_hijri=today_dual['hijri'],
+        today_dual=today_dual['full'],
+        format_date_dual=format_date_dual
+    )
 
 # Security headers middleware
 @app.after_request

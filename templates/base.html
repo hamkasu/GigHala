@@ -641,6 +641,56 @@
             }
         }
 
+        /* Islamic/Western Date Bar */
+        .date-bar {
+            background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%);
+            text-align: center;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            border-bottom: 1px solid rgba(0,200,83,0.2);
+        }
+
+        .date-bar .date-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .date-bar .hijri-date {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .date-bar .date-separator {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .date-bar .gregorian-date {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .date-bar .crescent-icon {
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .date-bar {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            .date-bar .date-content {
+                flex-direction: column;
+                gap: 2px;
+            }
+            .date-bar .date-separator {
+                display: none;
+            }
+        }
+
         /* Mobile Bottom Navigation */
         .mobile-bottom-nav {
             display: none;
@@ -725,6 +775,16 @@
         <div class="pwa-install-actions">
             <button id="pwaInstallBtn" class="pwa-install-btn">Pasang</button>
             <button id="pwaInstallDismiss" class="pwa-dismiss-btn">Tidak</button>
+        </div>
+    </div>
+
+    <!-- Islamic/Western Date Bar -->
+    <div class="date-bar">
+        <div class="date-content">
+            <span class="crescent-icon">☪</span>
+            <span class="hijri-date">{{ today_hijri }}</span>
+            <span class="date-separator">|</span>
+            <span class="gregorian-date">{{ today_gregorian }}</span>
         </div>
     </div>
 
