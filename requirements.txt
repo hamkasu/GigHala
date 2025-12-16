@@ -311,3 +311,9 @@ flask-sqlalchemy
 gunicorn
 psycopg2-binary
 hijri-converter
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+hijri-converter
