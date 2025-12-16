@@ -38,13 +38,34 @@
                     <button class="btn-primary" onclick="app.showRegister()">{{ t('register_free') }}</button>
                 </div>
                 
-                <div class="mobile-menu-btn" onclick="app.toggleMobileMenu()">
+                <div class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
                     <span></span>
                     <span></span>
                     <span></span>
                 </div>
             </div>
         </nav>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="closeMobileMenu()"></div>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-menu-links">
+                <a href="#cari-gig" class="mobile-menu-link" onclick="closeMobileMenu()">{{ t('find_gigs') }}</a>
+                <a href="#kategori" class="mobile-menu-link" onclick="closeMobileMenu()">{{ t('categories') }}</a>
+                <a href="#cara-kerja" class="mobile-menu-link" onclick="closeMobileMenu()">{{ t('how_it_works') }}</a>
+            </div>
+            <div class="mobile-menu-divider"></div>
+            <div class="mobile-menu-buttons">
+                <button class="btn-nav" onclick="closeMobileMenu(); app.showLogin()">{{ t('login') }}</button>
+                <button class="btn-primary" onclick="closeMobileMenu(); app.showRegister()">{{ t('register_free') }}</button>
+            </div>
+            <div class="mobile-lang-switcher" onclick="toggleLanguage()">
+                <span>🌐</span>
+                <span>{{ 'Switch to English' if lang == 'ms' else 'Tukar ke Bahasa Melayu' }}</span>
+            </div>
+        </div>
 
         <!-- Hero Section -->
         <section class="hero">
@@ -525,6 +546,49 @@
 
     <script src="/static/js/app.js"></script>
     <script>
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const btn = document.getElementById('mobileMenuBtn');
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            
+            btn.classList.toggle('active');
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            // Prevent body scroll when menu is open
+            if (menu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+        
+        function closeMobileMenu() {
+            const btn = document.getElementById('mobileMenuBtn');
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            
+            btn.classList.remove('active');
+            menu.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Close mobile menu on window resize (if switching to desktop)
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Close mobile menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeMobileMenu();
+            }
+        });
+
         async function toggleLanguage() {
             const currentLang = '{{ lang }}';
             const newLang = currentLang === 'ms' ? 'en' : 'ms';

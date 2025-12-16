@@ -73,6 +73,60 @@ def allowed_file(filename):
 login_attempts = {}
 api_rate_limits = {}
 
+# General API rate limiting
+def api_rate_limit(requests_per_minute=60):
+    """Rate limit decorator for general API endpoints"""
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            identifier = f"{request.remote_addr}:{f.__name__}"
+            current_time = datetime.utcnow()
+            
+            if identifier not in api_rate_limits:
+                api_rate_limits[identifier] = {'requests': [], 'blocked_until': None}
+            
+            rate_data = api_rate_limits[identifier]
+            
+            # Check if blocked
+            if rate_data['blocked_until'] and current_time < rate_data['blocked_until']:
+                remaining = int((rate_data['blocked_until'] - current_time).total_seconds())
+                return jsonify({'error': f'Rate limit exceeded. Try again in {remaining} seconds'}), 429
+            
+            # Remove old requests (older than 1 minute)
+            one_minute_ago = current_time - timedelta(minutes=1)
+            rate_data['requests'] = [t for t in rate_data['requests'] if t > one_minute_ago]
+            
+            # Check if rate limit exceeded
+            if len(rate_data['requests']) >= requests_per_minute:
+                rate_data['blocked_until'] = current_time + timedelta(seconds=60)
+                return jsonify({'error': 'Rate limit exceeded. Please wait a moment.'}), 429
+            
+            # Record this request
+            rate_data['requests'].append(current_time)
+            
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
+
+# Cleanup old rate limit entries periodically
+def cleanup_rate_limits():
+    """Remove stale rate limit entries older than 1 hour"""
+    current_time = datetime.utcnow()
+    cutoff = current_time - timedelta(hours=1)
+    
+    # Cleanup login attempts
+    stale_logins = [k for k, v in login_attempts.items() 
+                    if v['first_attempt'] < cutoff and 
+                    (v['locked_until'] is None or v['locked_until'] < current_time)]
+    for k in stale_logins:
+        del login_attempts[k]
+    
+    # Cleanup API rate limits
+    stale_api = [k for k, v in api_rate_limits.items() 
+                 if not v['requests'] or max(v['requests']) < cutoff]
+    for k in stale_api:
+        del api_rate_limits[k]
+
 # Translation dictionaries for bilingual support (Malay/English)
 TRANSLATIONS = {
     'ms': {
