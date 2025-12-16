@@ -27,7 +27,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload --timeout 120 --preload main:app"
+args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
 waitForPort = 5000
 
 [[ports]]
@@ -36,4 +36,4 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "--preload", "main:app"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
