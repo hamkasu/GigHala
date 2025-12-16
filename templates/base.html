@@ -756,6 +756,7 @@
                         <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
                         <div class="user-dropdown" id="userDropdown">
                             <a href="/dashboard" class="dropdown-item">Dashboard</a>
+                            <a href="/accepted-gigs" class="dropdown-item">{{ 'Gig Diterima' if lang == 'ms' else 'Accepted Gigs' }}</a>
                             <a href="/escrow" class="dropdown-item">Escrow</a>
                             <a href="/settings" class="dropdown-item">Tetapan Akaun</a>
                             <div class="dropdown-divider"></div>

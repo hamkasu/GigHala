@@ -1492,6 +1492,63 @@ def dashboard():
                          lang=get_user_language(),
                          t=t)
 
+@app.route('/accepted-gigs')
+@page_login_required
+def accepted_gigs():
+    """Page showing all accepted gigs for the user"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    accepted_gigs_list = []
+    
+    # Get gigs where user is the freelancer with accepted applications
+    if user.user_type in ['freelancer', 'both']:
+        freelancer_apps = Application.query.filter_by(
+            freelancer_id=user_id, 
+            status='accepted'
+        ).order_by(Application.created_at.desc()).all()
+        
+        for app in freelancer_apps:
+            gig = Gig.query.get(app.gig_id)
+            if gig:
+                client = User.query.get(gig.client_id)
+                accepted_gigs_list.append({
+                    'gig': gig,
+                    'application': app,
+                    'role': 'freelancer',
+                    'other_party': client,
+                    'proposed_price': app.proposed_price
+                })
+    
+    # Get gigs where user is the client and has accepted a freelancer
+    if user.user_type in ['client', 'both']:
+        # Get all accepted applications for gigs owned by this client
+        client_accepted_apps = db.session.query(Application, Gig).join(
+            Gig, Application.gig_id == Gig.id
+        ).filter(
+            Gig.client_id == user_id,
+            Application.status == 'accepted'
+        ).order_by(Application.created_at.desc()).all()
+        
+        for accepted_app, gig in client_accepted_apps:
+            # Avoid duplicates if user is both client and freelancer on same gig
+            if not any(item['gig'].id == gig.id and item['role'] == 'client' for item in accepted_gigs_list):
+                freelancer = User.query.get(accepted_app.freelancer_id)
+                accepted_gigs_list.append({
+                    'gig': gig,
+                    'application': accepted_app,
+                    'role': 'client',
+                    'other_party': freelancer,
+                    'proposed_price': accepted_app.proposed_price
+                })
+    
+    return render_template('accepted_gigs.html',
+                         user=user,
+                         accepted_gigs=accepted_gigs_list,
+                         active_page='accepted-gigs',
+                         lang=get_user_language(),
+                         t=t)
+
 @app.route('/settings')
 @page_login_required
 def settings():
