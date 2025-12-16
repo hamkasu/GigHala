@@ -249,6 +249,82 @@
         border: 1px solid #A7F3D0;
     }
 
+    .photo-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-md);
+        padding: 32px;
+        text-align: center;
+        background: var(--bg-light);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .photo-upload-area:hover, .photo-upload-area.dragover {
+        border-color: var(--primary);
+        background: rgba(29, 191, 115, 0.05);
+    }
+
+    .photo-upload-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .photo-upload-text {
+        color: var(--text-gray);
+        margin-bottom: 8px;
+    }
+
+    .photo-upload-text strong {
+        color: var(--primary);
+    }
+
+    .photo-upload-hint {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .photo-previews {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .photo-preview {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .photo-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-preview .remove-btn {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 24px;
+        height: 24px;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .photo-preview .remove-btn:hover {
+        background: #DC2626;
+    }
+
     .submit-section {
         display: flex;
         justify-content: space-between;
@@ -292,7 +368,7 @@
         {% endwith %}
         <div id="alertContainer"></div>
 
-        <form id="postGigForm" method="POST" action="{% if edit_mode %}/edit-gig/{{ gig.id }}{% else %}/post-gig{% endif %}">
+        <form id="postGigForm" method="POST" action="{% if edit_mode %}/edit-gig/{{ gig.id }}{% else %}/post-gig{% endif %}" enctype="multipart/form-data">
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="file-text" width="18"></i>
@@ -421,6 +497,24 @@
                     </div>
                     <p class="form-hint">Tekan Enter untuk menambah setiap kemahiran</p>
                     <input type="hidden" id="skillsHidden" name="skills_required" value="{{ form_data.skills_required if form_data else '[]' }}">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-feather="image" width="18"></i>
+                    Gambar Rujukan
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label">Muat Naik Gambar (Pilihan)</label>
+                    <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photoInput').click()">
+                        <div class="photo-upload-icon">📷</div>
+                        <p class="photo-upload-text"><strong>Klik untuk muat naik</strong> atau seret gambar ke sini</p>
+                        <p class="photo-upload-hint">PNG, JPG atau WEBP (Maksimum 5MB setiap gambar, maksimum 5 gambar)</p>
+                    </div>
+                    <input type="file" id="photoInput" name="photos" multiple accept="image/png,image/jpeg,image/webp" style="display: none;">
+                    <div class="photo-previews" id="photoPreviews"></div>
                 </div>
             </div>
 
@@ -569,9 +663,113 @@
 
         document.getElementById('skillsHidden').value = JSON.stringify(skills);
         
+        // Sync photo files before submit
+        syncPhotoInput();
+        
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i data-feather="loader" width="16"></i> Memproses...';
         feather.replace();
     });
+
+    let selectedFiles = [];
+    const MAX_FILES = 5;
+    const MAX_SIZE = 5 * 1024 * 1024;
+
+    const photoUploadArea = document.getElementById('photoUploadArea');
+    const photoInput = document.getElementById('photoInput');
+    const photoPreviews = document.getElementById('photoPreviews');
+
+    photoUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    photoUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    photoUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    photoInput.addEventListener('change', function(e) {
+        const newFiles = Array.from(e.target.files);
+        for (let file of newFiles) {
+            if (selectedFiles.length >= MAX_FILES) {
+                showAlert('Maksimum 5 gambar sahaja dibenarkan', 'error');
+                break;
+            }
+            if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+                showAlert('Hanya fail PNG, JPG atau WEBP dibenarkan', 'error');
+                continue;
+            }
+            if (file.size > MAX_SIZE) {
+                showAlert('Saiz fail mesti kurang daripada 5MB', 'error');
+                continue;
+            }
+            selectedFiles.push(file);
+        }
+        syncPhotoInput();
+        updatePhotoPreviews();
+    });
+
+    function handleFiles(files) {
+        const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+        
+        for (let file of files) {
+            if (selectedFiles.length >= MAX_FILES) {
+                showAlert('Maksimum 5 gambar sahaja dibenarkan', 'error');
+                break;
+            }
+            
+            if (!validTypes.includes(file.type)) {
+                showAlert('Hanya fail PNG, JPG atau WEBP dibenarkan', 'error');
+                continue;
+            }
+            
+            if (file.size > MAX_SIZE) {
+                showAlert('Saiz fail mesti kurang daripada 5MB', 'error');
+                continue;
+            }
+            
+            selectedFiles.push(file);
+        }
+        
+        syncPhotoInput();
+        updatePhotoPreviews();
+    }
+
+    function syncPhotoInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        photoInput.files = dt.files;
+    }
+
+    function updatePhotoPreviews() {
+        photoPreviews.innerHTML = '';
+        
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.createElement('div');
+                preview.className = 'photo-preview';
+                preview.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button type="button" class="remove-btn" onclick="removePhoto(${index})">&times;</button>
+                `;
+                photoPreviews.appendChild(preview);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function removePhoto(index) {
+        selectedFiles.splice(index, 1);
+        syncPhotoInput();
+        updatePhotoPreviews();
+    }
 </script>
 {% endblock %}

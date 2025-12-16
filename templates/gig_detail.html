@@ -151,6 +151,70 @@
         color: var(--text-dark);
     }
 
+    .photo-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .photo-item {
+        aspect-ratio: 1;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .photo-item:hover {
+        transform: scale(1.02);
+        box-shadow: var(--shadow-md);
+    }
+
+    .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 1000;
+        padding: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .photo-modal.active {
+        display: flex;
+    }
+
+    .photo-modal img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: var(--radius-md);
+    }
+
+    .photo-modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
     .gig-sidebar {
         display: flex;
         flex-direction: column;
@@ -755,6 +819,19 @@
                 <div class="gig-description">{{ gig.description }}</div>
             </div>
 
+            {% if gig_photos and gig_photos|length > 0 %}
+            <div class="gig-section">
+                <h3 class="section-title">{{ 'Gambar Rujukan' if lang == 'ms' else 'Reference Photos' }}</h3>
+                <div class="photo-gallery">
+                    {% for photo in gig_photos %}
+                    <div class="photo-item" onclick="openPhotoModal('/uploads/gig_photos/{{ photo.filename }}')">
+                        <img src="/uploads/gig_photos/{{ photo.filename }}" alt="{{ photo.original_filename }}">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             {% if skills %}
             <div class="gig-section">
                 <h3 class="section-title">{{ 'Kemahiran Diperlukan' if lang == 'ms' else 'Skills Required' }}</h3>
@@ -956,6 +1033,11 @@
     </div>
 </div>
 
+<div class="photo-modal" id="photoModal" onclick="closePhotoModal()">
+    <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+    <img id="photoModalImage" src="" alt="Full size photo">
+</div>
+
 {% if current_user and not is_own_gig and not existing_application and gig.status == 'open' %}
 <div class="application-modal" id="applicationModal">
     <div class="modal-content">
@@ -991,6 +1073,17 @@
 
 {% block extra_scripts %}
 <script>
+    function openPhotoModal(src) {
+        const modal = document.getElementById('photoModal');
+        const img = document.getElementById('photoModalImage');
+        img.src = src;
+        modal.classList.add('active');
+    }
+
+    function closePhotoModal() {
+        document.getElementById('photoModal').classList.remove('active');
+    }
+
     function openApplicationModal() {
         document.getElementById('applicationModal').classList.add('active');
     }

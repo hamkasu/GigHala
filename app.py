@@ -1088,6 +1088,9 @@ def view_gig(gig_id):
                     app.logger.warning(f"Escrow lookup error for gig {gig_id}: {str(escrow_err)}")
                     escrow = None
         
+        # Get gig photos
+        gig_photos = GigPhoto.query.filter_by(gig_id=gig_id).order_by(GigPhoto.created_at.desc()).all()
+        
         return render_template('gig_detail.html',
                               gig=gig,
                               client=client,
@@ -1099,6 +1102,7 @@ def view_gig(gig_id):
                               is_freelancer=is_freelancer,
                               existing_application=existing_application,
                               escrow=escrow,
+                              gig_photos=gig_photos,
                               lang=get_user_language(),
                               t=t)
     except HTTPException:
@@ -1201,6 +1205,47 @@ def post_gig():
             
             db.session.add(new_gig)
             db.session.commit()
+            
+            # Handle photo uploads
+            photos = request.files.getlist('photos')
+            if photos:
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+                max_size = 5 * 1024 * 1024  # 5MB
+                
+                for photo in photos[:5]:  # Max 5 photos
+                    if photo and photo.filename:
+                        ext = photo.filename.rsplit('.', 1)[-1].lower() if '.' in photo.filename else ''
+                        if ext not in allowed_extensions:
+                            continue
+                        
+                        # Check file size
+                        photo.seek(0, 2)  # Seek to end
+                        file_size = photo.tell()
+                        photo.seek(0)  # Reset to beginning
+                        
+                        if file_size > max_size:
+                            continue
+                        
+                        # Generate unique filename with sanitized original name
+                        from werkzeug.utils import secure_filename
+                        safe_name = secure_filename(photo.filename) or 'photo'
+                        unique_filename = f"{uuid.uuid4().hex}_{safe_name}"
+                        file_path = os.path.join(UPLOAD_FOLDER, 'gig_photos', unique_filename)
+                        # Ensure the path stays within the upload folder
+                        if not os.path.abspath(file_path).startswith(os.path.abspath(UPLOAD_FOLDER)):
+                            continue
+                        photo.save(file_path)
+                        
+                        # Create GigPhoto record
+                        gig_photo = GigPhoto(
+                            gig_id=new_gig.id,
+                            filename=unique_filename,
+                            original_filename=photo.filename,
+                            photo_type='reference'
+                        )
+                        db.session.add(gig_photo)
+                
+                db.session.commit()
             
             flash('Gig berjaya dipost!', 'success')
             return redirect('/dashboard')
