@@ -1091,6 +1091,26 @@ def view_gig(gig_id):
         # Get gig photos
         gig_photos = GigPhoto.query.filter_by(gig_id=gig_id).order_by(GigPhoto.created_at.desc()).all()
         
+        # Get applications for gig owner to manage
+        gig_applications = []
+        if is_own_gig:
+            applications_raw = Application.query.filter_by(gig_id=gig_id).order_by(Application.created_at.desc()).all()
+            for app_item in applications_raw:
+                freelancer = User.query.get(app_item.freelancer_id)
+                if freelancer:
+                    gig_applications.append({
+                        'id': app_item.id,
+                        'freelancer_id': app_item.freelancer_id,
+                        'freelancer_name': freelancer.full_name or freelancer.username,
+                        'freelancer_username': freelancer.username,
+                        'freelancer_rating': freelancer.rating,
+                        'freelancer_is_verified': freelancer.is_verified,
+                        'proposed_price': app_item.proposed_price,
+                        'cover_letter': app_item.cover_letter,
+                        'status': app_item.status,
+                        'created_at': app_item.created_at
+                    })
+        
         return render_template('gig_detail.html',
                               gig=gig,
                               client=client,
@@ -1103,6 +1123,7 @@ def view_gig(gig_id):
                               existing_application=existing_application,
                               escrow=escrow,
                               gig_photos=gig_photos,
+                              gig_applications=gig_applications,
                               lang=get_user_language(),
                               t=t)
     except HTTPException:

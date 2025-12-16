@@ -779,6 +779,140 @@
     .escrow-fund-form .form-group {
         margin-bottom: 12px;
     }
+
+    .applications-card {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .applications-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .application-item {
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        border: 1px solid var(--border);
+    }
+
+    .applicant-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .applicant-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .applicant-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .applicant-name {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .applicant-rating {
+        color: #f59e0b;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .applicant-price {
+        font-weight: 700;
+        color: var(--primary);
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .applicant-message {
+        font-size: 13px;
+        color: var(--text-gray);
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+
+    .application-date {
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-bottom: 12px;
+    }
+
+    .application-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-accept, .btn-reject {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-accept {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-accept:hover {
+        background: #059669;
+    }
+
+    .btn-reject {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-reject:hover {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .application-status {
+        text-align: center;
+    }
+
+    .badge-accepted {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .badge-rejected {
+        background: #fee2e2;
+        color: #dc2626;
+    }
 </style>
 {% endblock %}
 
@@ -905,6 +1039,69 @@
                 </div>
                 {% endif %}
             </div>
+
+            {% if is_own_gig and gig.status == 'open' and gig_applications %}
+            <div class="sidebar-card applications-card">
+                <h4 class="section-title" style="margin-bottom: 16px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    {{ 'Permohonan' if lang == 'ms' else 'Applications' }} ({{ gig_applications|length }})
+                </h4>
+                <div class="applications-list">
+                    {% for app in gig_applications %}
+                    <div class="application-item" id="application-{{ app.id }}">
+                        <div class="applicant-header">
+                            <div class="applicant-avatar">{{ app.freelancer_username[0]|upper }}</div>
+                            <div class="applicant-info">
+                                <div class="applicant-name">
+                                    {{ app.freelancer_name }}
+                                    {% if app.freelancer_is_verified %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    {% endif %}
+                                </div>
+                                {% if app.freelancer_rating %}
+                                <div class="applicant-rating">{{ "%.1f"|format(app.freelancer_rating) }} ★</div>
+                                {% endif %}
+                            </div>
+                            <div class="applicant-price">RM {{ "%.0f"|format(app.proposed_price) }}</div>
+                        </div>
+                        {% if app.cover_letter %}
+                        <div class="applicant-message">{{ app.cover_letter[:150] }}{% if app.cover_letter|length > 150 %}...{% endif %}</div>
+                        {% endif %}
+                        <div class="application-date">{{ app.created_at.strftime('%d %b %Y') }}</div>
+                        {% if app.status == 'pending' %}
+                        <div class="application-actions">
+                            <button class="btn-accept" onclick="acceptApplication({{ app.id }})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                {{ 'Terima' if lang == 'ms' else 'Accept' }}
+                            </button>
+                            <button class="btn-reject" onclick="rejectApplication({{ app.id }})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                {{ 'Tolak' if lang == 'ms' else 'Reject' }}
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="application-status">
+                            <span class="badge badge-{{ app.status }}">
+                                {% if app.status == 'accepted' %}{{ 'Diterima' if lang == 'ms' else 'Accepted' }}
+                                {% elif app.status == 'rejected' %}{{ 'Ditolak' if lang == 'ms' else 'Rejected' }}
+                                {% else %}{{ app.status|title }}{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% elif is_own_gig and gig.status == 'open' %}
+            <div class="sidebar-card applications-card">
+                <h4 class="section-title" style="margin-bottom: 16px;">
+                    {{ 'Permohonan' if lang == 'ms' else 'Applications' }}
+                </h4>
+                <p style="color: var(--text-gray); text-align: center; font-size: 14px;">
+                    {{ 'Belum ada permohonan lagi' if lang == 'ms' else 'No applications yet' }}
+                </p>
+            </div>
+            {% endif %}
 
             {% if (is_own_gig or is_freelancer) and gig.freelancer_id %}
             <div class="sidebar-card escrow-card" id="escrowCard">
@@ -1142,6 +1339,54 @@
             closeApplicationModal();
         }
     });
+
+    function acceptApplication(applicationId) {
+        if (!confirm('{{ "Adakah anda pasti mahu menerima permohonan ini? Permohonan lain akan ditolak secara automatik." if lang == "ms" else "Are you sure you want to accept this application? Other applications will be automatically rejected." }}')) {
+            return;
+        }
+
+        fetch('/api/applications/' + applicationId + '/accept', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('{{ "Permohonan berjaya diterima!" if lang == "ms" else "Application accepted successfully!" }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function rejectApplication(applicationId) {
+        if (!confirm('{{ "Adakah anda pasti mahu menolak permohonan ini?" if lang == "ms" else "Are you sure you want to reject this application?" }}')) {
+            return;
+        }
+
+        fetch('/api/applications/' + applicationId + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert('{{ "Permohonan berjaya ditolak." if lang == "ms" else "Application rejected." }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
 
     function fundEscrow() {
         const amount = document.getElementById('escrowAmount')?.value;

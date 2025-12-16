@@ -557,7 +557,7 @@
 
         {% if posted_gigs %}
             {% for gig in posted_gigs %}
-            <div class="gig-item">
+            <a href="/gig/{{ gig.id }}" class="gig-item" style="display: block; text-decoration: none; color: inherit;">
                 <div class="gig-title">{{ gig.title }}</div>
                 <div class="gig-meta">
                     <span><span class="badge {{ gig.status }}">{{ gig.status }}</span></span>
@@ -565,7 +565,7 @@
                     <span>{{ gig.views }} views</span>
                     <span>{{ gig.applications }} applications</span>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         {% else %}
             <div class="empty-state">
