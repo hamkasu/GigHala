@@ -1,0 +1,114 @@
+[2025-12-16 09:52:19 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:56)
+[2025-12-16 09:52:19 +0000] [56] [INFO] Worker exiting (pid: 56)
+[2025-12-16 09:52:19 +0000] [1] [ERROR] Worker (pid:56) exited with code 1
+[2025-12-16 09:52:19 +0000] [1] [ERROR] Worker (pid:56) exited with code 1.
+[2025-12-16 09:52:19 +0000] [57] [INFO] Booting worker with pid: 57
+[2025-12-16 09:52:50 +0000] [1] [ERROR] Worker (pid:57) exited with code 1.
+[2025-12-16 09:52:50 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:57)
+[2025-12-16 09:52:50 +0000] [58] [INFO] Booting worker with pid: 58
+[2025-12-16 09:52:50 +0000] [57] [INFO] Worker exiting (pid: 57)
+[2025-12-16 09:52:50 +0000] [1] [ERROR] Worker (pid:57) exited with code 1
+[2025-12-16 09:53:20 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:58)
+[2025-12-16 09:53:20 +0000] [58] [INFO] Worker exiting (pid: 58)
+[2025-12-16 09:53:21 +0000] [1] [ERROR] Worker (pid:58) exited with code 1
+[2025-12-16 09:53:21 +0000] [1] [ERROR] Worker (pid:58) exited with code 1.
+[2025-12-16 09:53:21 +0000] [59] [INFO] Booting worker with pid: 59
+[2025-12-16 09:53:51 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:59)
+[2025-12-16 09:53:51 +0000] [59] [INFO] Worker exiting (pid: 59)
+[2025-12-16 09:53:51 +0000] [1] [ERROR] Worker (pid:59) exited with code 1
+[2025-12-16 09:53:51 +0000] [1] [ERROR] Worker (pid:59) exited with code 1.
+[2025-12-16 09:53:51 +0000] [60] [INFO] Booting worker with pid: 60
+[2025-12-16 09:54:21 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:60)
+[2025-12-16 09:54:21 +0000] [60] [INFO] Worker exiting (pid: 60)
+[2025-12-16 09:54:22 +0000] [1] [ERROR] Worker (pid:60) exited with code 1
+[2025-12-16 09:54:22 +0000] [1] [ERROR] Worker (pid:60) exited with code 1.
+[2025-12-16 09:54:22 +0000] [61] [INFO] Booting worker with pid: 61
+[2025-12-16 09:54:52 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:61)
+[2025-12-16 09:54:52 +0000] [61] [INFO] Worker exiting (pid: 61)
+[2025-12-16 09:54:53 +0000] [1] [ERROR] Worker (pid:61) exited with code 1
+[2025-12-16 09:54:53 +0000] [1] [ERROR] Worker (pid:61) exited with code 1.
+[2025-12-16 09:54:53 +0000] [62] [INFO] Booting worker with pid: 62
+[2025-12-16 09:55:24 +0000] [63] [INFO] Booting worker with pid: 63
+[2025-12-16 09:55:23 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:62)
+[2025-12-16 09:55:23 +0000] [62] [INFO] Worker exiting (pid: 62)
+[2025-12-16 09:55:24 +0000] [1] [ERROR] Worker (pid:62) exited with code 1
+[2025-12-16 09:55:24 +0000] [1] [ERROR] Worker (pid:62) exited with code 1.
+[2025-12-16 09:55:54 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:63)
+[2025-12-16 09:55:54 +0000] [63] [INFO] Worker exiting (pid: 63)
+[2025-12-16 09:55:54 +0000] [1] [ERROR] Worker (pid:63) exited with code 1
+[2025-12-16 09:55:54 +0000] [1] [ERROR] Worker (pid:63) exited with code 1.
+[2025-12-16 09:55:54 +0000] [64] [INFO] Booting worker with pid: 64
+[2025-12-16 09:56:24 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:64)
+[2025-12-16 09:56:24 +0000] [64] [INFO] Worker exiting (pid: 64)
+[2025-12-16 09:56:25 +0000] [1] [ERROR] Worker (pid:64) exited with code 1
+[2025-12-16 09:56:25 +0000] [1] [ERROR] Worker (pid:64) exited with code 1.
+[2025-12-16 09:56:25 +0000] [65] [INFO] Booting worker with pid: 65
+[2025-12-16 09:56:55 +0000] [65] [INFO] Worker exiting (pid: 65)
+[2025-12-16 09:56:56 +0000] [1] [ERROR] Worker (pid:65) exited with code 1
+[2025-12-16 09:56:55 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:65)
+[2025-12-16 09:56:56 +0000] [1] [ERROR] Worker (pid:65) exited with code 1.
+[2025-12-16 09:56:56 +0000] [66] [INFO] Booting worker with pid: 66
+[2025-12-16 09:57:26 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:66)
+[2025-12-16 09:57:26 +0000] [66] [INFO] Worker exiting (pid: 66)
+[2025-12-16 09:57:27 +0000] [1] [ERROR] Worker (pid:66) exited with code 1
+[2025-12-16 09:57:27 +0000] [1] [ERROR] Worker (pid:66) exited with code 1.
+[2025-12-16 09:57:27 +0000] [67] [INFO] Booting worker with pid: 67
+[2025-12-16 09:57:57 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:67)
+[2025-12-16 09:57:57 +0000] [67] [INFO] Worker exiting (pid: 67)
+[2025-12-16 09:57:58 +0000] [1] [ERROR] Worker (pid:67) exited with code 1
+[2025-12-16 09:57:58 +0000] [1] [ERROR] Worker (pid:67) exited with code 1.
+[2025-12-16 09:57:58 +0000] [68] [INFO] Booting worker with pid: 68
+[2025-12-16 09:58:28 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:68)
+[2025-12-16 09:58:28 +0000] [68] [INFO] Worker exiting (pid: 68)
+[2025-12-16 09:58:29 +0000] [1] [ERROR] Worker (pid:68) exited with code 1
+[2025-12-16 09:58:29 +0000] [1] [ERROR] Worker (pid:68) exited with code 1.
+[2025-12-16 09:58:29 +0000] [69] [INFO] Booting worker with pid: 69
+[2025-12-16 09:58:59 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:69)
+[2025-12-16 09:58:59 +0000] [69] [INFO] Worker exiting (pid: 69)
+[2025-12-16 09:59:00 +0000] [1] [ERROR] Worker (pid:69) exited with code 1
+[2025-12-16 09:59:00 +0000] [1] [ERROR] Worker (pid:69) exited with code 1.
+[2025-12-16 09:59:00 +0000] [70] [INFO] Booting worker with pid: 70
+[2025-12-16 09:59:30 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:70)
+[2025-12-16 09:59:30 +0000] [70] [INFO] Worker exiting (pid: 70)
+[2025-12-16 09:59:31 +0000] [1] [ERROR] Worker (pid:70) was sent SIGKILL! Perhaps out of memory?
+[2025-12-16 09:59:31 +0000] [71] [INFO] Booting worker with pid: 71
+[2025-12-16 10:00:01 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:71)
+[2025-12-16 10:00:01 +0000] [71] [INFO] Worker exiting (pid: 71)
+[2025-12-16 10:00:01 +0000] [1] [ERROR] Worker (pid:71) exited with code 1
+[2025-12-16 10:00:01 +0000] [1] [ERROR] Worker (pid:71) exited with code 1.
+[2025-12-16 10:00:01 +0000] [72] [INFO] Booting worker with pid: 72
+[2025-12-16 10:00:32 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:72)
+[2025-12-16 10:00:32 +0000] [72] [INFO] Worker exiting (pid: 72)
+[2025-12-16 10:00:32 +0000] [1] [ERROR] Worker (pid:72) exited with code 1
+[2025-12-16 10:00:32 +0000] [1] [ERROR] Worker (pid:72) exited with code 1.
+[2025-12-16 10:00:32 +0000] [73] [INFO] Booting worker with pid: 73
+[2025-12-16 10:01:02 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:73)
+[2025-12-16 10:01:02 +0000] [73] [INFO] Worker exiting (pid: 73)
+[2025-12-16 10:01:03 +0000] [1] [ERROR] Worker (pid:73) exited with code 1
+[2025-12-16 10:01:03 +0000] [1] [ERROR] Worker (pid:73) exited with code 1.
+[2025-12-16 10:01:03 +0000] [74] [INFO] Booting worker with pid: 74
+[2025-12-16 10:01:34 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:74)
+[2025-12-16 10:01:34 +0000] [74] [INFO] Worker exiting (pid: 74)
+[2025-12-16 10:01:34 +0000] [1] [ERROR] Worker (pid:74) exited with code 1
+[2025-12-16 10:01:34 +0000] [1] [ERROR] Worker (pid:74) exited with code 1.
+[2025-12-16 10:01:34 +0000] [75] [INFO] Booting worker with pid: 75
+[2025-12-16 10:02:05 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:75)
+[2025-12-16 10:02:05 +0000] [75] [INFO] Worker exiting (pid: 75)
+[2025-12-16 10:02:06 +0000] [1] [ERROR] Worker (pid:75) exited with code 1
+[2025-12-16 10:02:06 +0000] [1] [ERROR] Worker (pid:75) exited with code 1.
+[2025-12-16 10:02:06 +0000] [76] [INFO] Booting worker with pid: 76
+[2025-12-16 10:02:36 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:76)
+[2025-12-16 10:02:36 +0000] [76] [INFO] Worker exiting (pid: 76)
+[2025-12-16 10:02:36 +0000] [1] [ERROR] Worker (pid:76) exited with code 1
+[2025-12-16 10:02:36 +0000] [1] [ERROR] Worker (pid:76) exited with code 1.
+[2025-12-16 10:02:36 +0000] [77] [INFO] Booting worker with pid: 77
+[2025-12-16 10:03:06 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:77)
+[2025-12-16 10:03:06 +0000] [77] [INFO] Worker exiting (pid: 77)
+[2025-12-16 10:03:07 +0000] [1] [ERROR] Worker (pid:77) exited with code 1
+[2025-12-16 10:03:07 +0000] [1] [ERROR] Worker (pid:77) exited with code 1.
+[2025-12-16 10:03:07 +0000] [78] [INFO] Booting worker with pid: 78
+[2025-12-16 10:03:37 +0000] [1] [CRITICAL] WORKER TIMEOUT (pid:78)
+[2025-12-16 10:03:37 +0000] [78] [INFO] Worker exiting (pid: 78)
+[2025-12-16 10:03:38 +0000] [1] [ERROR] Worker (pid:78) exited with code 1
+[2025-12-16 10:03:38 +0000] [1] [ERROR] Worker (pid:78) exited with code 1.
+[2025-12-16 10:03:38 +0000] [79] [INFO] Booting worker with pid: 79
