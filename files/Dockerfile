@@ -17,4 +17,4 @@ COPY . .
 ENV PORT=5000
 EXPOSE ${PORT}
 
-CMD gunicorn app:app --bind 0.0.0.0:${PORT} --workers 4 --threads 2 --timeout 120 --access-logfile - --error-logfile -
+CMD gunicorn app:app --bind 0.0.0.0:${PORT} --workers 1 --timeout 180 --access-logfile - --error-logfile -
