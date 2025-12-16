@@ -5950,10 +5950,6 @@ def init_database():
         print(f"Database initialization error: {e}")
         _db_initialized = True  # Mark as done to avoid retry loops
 
-@app.before_request
-def ensure_db_initialized():
-    """Ensure database is initialized before handling requests"""
-    init_database()
 
 # ============ STATIC PAGES ============
 
@@ -7641,6 +7637,9 @@ def approve_milestone(milestone_id):
     except Exception as e:
         app.logger.error(f"Approve milestone error: {str(e)}")
         return jsonify({'error': 'Failed to approve milestone'}), 500
+
+with app.app_context():
+    init_database()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
