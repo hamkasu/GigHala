@@ -5576,7 +5576,10 @@ def privasi():
         <h3>11. Data Peribadi Sensitif</h3>
         <p>Jika kami mengumpul data peribadi sensitif (seperti data biometrik atau maklumat kesihatan), kami akan mendapatkan persetujuan eksplisit anda secara berasingan.</p>
         
-        <h3>12. Pegawai Perlindungan Data (DPO)</h3>
+        <h3>12. Pemberitahuan Pelanggaran Data</h3>
+        <p>Sekiranya berlaku pelanggaran data peribadi yang boleh menyebabkan kemudaratan yang ketara, kami dikehendaki untuk memberitahu Pesuruhjaya Perlindungan Data Peribadi (JPDP) dalam masa 72 jam dan memaklumkan anda jika perlu.</p>
+        
+        <h3>13. Pegawai Perlindungan Data (DPO)</h3>
         <p>Kami telah melantik Pegawai Perlindungan Data (DPO) yang bertanggungjawab untuk mengawasi pematuhan dengan PDPA.</p>
         <p><strong>Hubungi DPO:</strong></p>
         <ul>
@@ -5584,7 +5587,7 @@ def privasi():
             <li>Telefon: +60 3-XXXX XXXX</li>
         </ul>
         
-        <h3>13. Hubungi Kami</h3>
+        <h3>14. Hubungi Kami</h3>
         <p>Untuk soalan tentang privasi, hubungi: privacy@gighalal.com</p>
     </div>
     '''
