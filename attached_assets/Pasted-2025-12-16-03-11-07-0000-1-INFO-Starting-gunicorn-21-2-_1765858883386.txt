@@ -1,0 +1,35 @@
+2025-12-16 03:11:07 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-12-16 03:11:07 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+[2025-12-16 03:11:07 +0000] [1] [INFO] Using worker: sync
+[2025-12-16 03:11:07 +0000] [2] [INFO] Booting worker with pid: 2
+[parameters: {'gig_id_1': 9, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[SQL: SELECT escrow.id AS escrow_id, escrow.gig_id AS escrow_gig_id, escrow.client_id AS escrow_client_id, escrow.freelancer_id AS escrow_freelancer_id, escrow.amount AS escrow_amount, escrow.platform_fee AS escrow_platform_fee, escrow.net_amount AS escrow_net_amount, escrow.status AS escrow_status, escrow.payment_reference AS escrow_payment_reference, escrow.created_at AS escrow_created_at, escrow.funded_at AS escrow_funded_at, escrow.released_at AS escrow_released_at, escrow.refunded_at AS escrow_refunded_at, escrow.dispute_reason AS escrow_dispute_reason, escrow.admin_notes AS escrow_admin_notes 
+[2025-12-16 03:22:11,409] ERROR in app: Error viewing gig 9: (psycopg.errors.InFailedSqlTransaction) current transaction is aborted, commands ignored until end of transaction block
+[SQL: SELECT gig_photo.id AS gig_photo_id, gig_photo.gig_id AS gig_photo_gig_id, gig_photo.uploader_id AS gig_photo_uploader_id, gig_photo.filename AS gig_photo_filename, gig_photo.original_filename AS gig_photo_original_filename, gig_photo.file_path AS gig_photo_file_path, gig_photo.file_size AS gig_photo_file_size, gig_photo.caption AS gig_photo_caption, gig_photo.photo_type AS gig_photo_photo_type, gig_photo.created_at AS gig_photo_created_at 
+FROM escrow 
+WHERE escrow.gig_id = %(gig_id_1)s::INTEGER 
+ LIMIT %(param_1)s::INTEGER]
+LINE 1: ...ow_freelancer_id, escrow.amount AS escrow_amount, escrow.pla...
+[2025-12-16 03:22:11,406] WARNING in app: Escrow lookup error for gig 9: (psycopg.errors.UndefinedColumn) column escrow.platform_fee does not exist
+                                                             ^
+FROM gig_photo 
+WHERE gig_photo.gig_id = %(gig_id_1)s::INTEGER ORDER BY gig_photo.created_at DESC]
+[parameters: {'gig_id_1': 9}]
+(Background on this error at: https://sqlalche.me/e/20/2j85)
+[2025-12-16 04:20:44,239] WARNING in app: Escrow lookup error for gig 9: (psycopg.errors.UndefinedColumn) column escrow.funded_at does not exist
+LINE 1: ...eference, escrow.created_at AS escrow_created_at, escrow.fun...
+                                                             ^
+HINT:  Perhaps you meant to reference the column "escrow.refunded_at".
+[SQL: SELECT escrow.id AS escrow_id, escrow.gig_id AS escrow_gig_id, escrow.client_id AS escrow_client_id, escrow.freelancer_id AS escrow_freelancer_id, escrow.amount AS escrow_amount, escrow.platform_fee AS escrow_platform_fee, escrow.net_amount AS escrow_net_amount, escrow.status AS escrow_status, escrow.payment_reference AS escrow_payment_reference, escrow.created_at AS escrow_created_at, escrow.funded_at AS escrow_funded_at, escrow.released_at AS escrow_released_at, escrow.refunded_at AS escrow_refunded_at, escrow.dispute_reason AS escrow_dispute_reason, escrow.admin_notes AS escrow_admin_notes 
+FROM escrow 
+WHERE escrow.gig_id = %(gig_id_1)s::INTEGER 
+ LIMIT %(param_1)s::INTEGER]
+[parameters: {'gig_id_1': 9, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2025-12-16 04:20:44,241] ERROR in app: Error viewing gig 9: (psycopg.errors.InFailedSqlTransaction) current transaction is aborted, commands ignored until end of transaction block
+[SQL: SELECT gig_photo.id AS gig_photo_id, gig_photo.gig_id AS gig_photo_gig_id, gig_photo.uploader_id AS gig_photo_uploader_id, gig_photo.filename AS gig_photo_filename, gig_photo.original_filename AS gig_photo_original_filename, gig_photo.file_path AS gig_photo_file_path, gig_photo.file_size AS gig_photo_file_size, gig_photo.caption AS gig_photo_caption, gig_photo.photo_type AS gig_photo_photo_type, gig_photo.created_at AS gig_photo_created_at 
+FROM gig_photo 
+WHERE gig_photo.gig_id = %(gig_id_1)s::INTEGER ORDER BY gig_photo.created_at DESC]
+[parameters: {'gig_id_1': 9}]
+(Background on this error at: https://sqlalche.me/e/20/2j85)
