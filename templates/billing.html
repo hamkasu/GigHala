@@ -655,19 +655,24 @@
 
         try {
             const type = document.getElementById('transactionType').value;
-            const response = await fetch(`/api/billing/transactions?type=${type}`);
+            const url = `/api/billing/transactions?type=${type}`;
+            console.log('Fetching transactions from:', url);
+            const response = await fetch(url);
+            console.log('Transaction response status:', response.status);
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('Transaction API error:', error);
+                console.error('Transaction API error:', response.status, error);
                 loading.style.display = 'none';
                 empty.querySelector('h3').textContent = 'Error Loading Transactions';
-                empty.querySelector('p').textContent = error.error || 'Failed to load transactions';
+                empty.querySelector('p').textContent = `Error ${response.status}: ${error.error || 'Failed to load transactions'}`;
                 empty.style.display = 'block';
                 return;
             }
 
             const data = await response.json();
+            console.log('Transaction data received:', data);
+            console.log('Is array:', Array.isArray(data), 'Length:', data.length);
             loading.style.display = 'none';
 
             if (!Array.isArray(data) || data.length === 0) {
@@ -707,19 +712,24 @@
 
         try {
             const status = document.getElementById('invoiceStatus').value;
-            const response = await fetch(`/api/billing/invoices?status=${status}`);
+            const url = `/api/billing/invoices?status=${status}`;
+            console.log('Fetching invoices from:', url);
+            const response = await fetch(url);
+            console.log('Invoice response status:', response.status);
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('Invoice API error:', error);
+                console.error('Invoice API error:', response.status, error);
                 loading.style.display = 'none';
                 empty.querySelector('h3').textContent = 'Error Loading Invoices';
-                empty.querySelector('p').textContent = error.error || 'Failed to load invoices';
+                empty.querySelector('p').textContent = `Error ${response.status}: ${error.error || 'Failed to load invoices'}`;
                 empty.style.display = 'block';
                 return;
             }
 
             const data = await response.json();
+            console.log('Invoice data received:', data);
+            console.log('Is array:', Array.isArray(data), 'Length:', data.length);
             loading.style.display = 'none';
 
             if (!Array.isArray(data) || data.length === 0) {
@@ -758,19 +768,24 @@
         empty.style.display = 'none';
 
         try {
-            const response = await fetch('/api/billing/payouts');
+            const url = '/api/billing/payouts';
+            console.log('Fetching payouts from:', url);
+            const response = await fetch(url);
+            console.log('Payout response status:', response.status);
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-                console.error('Payout API error:', error);
+                console.error('Payout API error:', response.status, error);
                 loading.style.display = 'none';
                 empty.querySelector('h3').textContent = 'Error Loading Payouts';
-                empty.querySelector('p').textContent = error.error || 'Failed to load payouts';
+                empty.querySelector('p').textContent = `Error ${response.status}: ${error.error || 'Failed to load payouts'}`;
                 empty.style.display = 'block';
                 return;
             }
 
             const data = await response.json();
+            console.log('Payout data received:', data);
+            console.log('Is array:', Array.isArray(data), 'Length:', data.length);
             loading.style.display = 'none';
 
             if (!Array.isArray(data) || data.length === 0) {
