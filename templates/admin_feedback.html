@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Platform Feedback{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .admin-header h1 {
+        font-size: 28px;
+        color: var(--text-dark);
+    }
+
+    .admin-nav {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .admin-nav a {
+        padding: 8px 16px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-gray);
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .admin-nav a:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .admin-nav a.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--text-gray);
+        margin-top: 4px;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        color: var(--text-gray);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .feedback-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .feedback-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        border: 1px solid var(--border);
+    }
+
+    .feedback-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .feedback-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .user-avatar-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .user-info h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .user-info span {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .feedback-badges {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .badge.suggestion { background: #dbeafe; color: #1e40af; }
+    .badge.bug { background: #fee2e2; color: #991b1b; }
+    .badge.complaint { background: #fef3c7; color: #92400e; }
+    .badge.praise { background: #d1fae5; color: #065f46; }
+    .badge.other { background: #e5e7eb; color: #374151; }
+
+    .badge.new { background: #dbeafe; color: #1e40af; }
+    .badge.reviewed { background: #fef3c7; color: #92400e; }
+    .badge.resolved { background: #d1fae5; color: #065f46; }
+    .badge.closed { background: #e5e7eb; color: #374151; }
+
+    .feedback-subject {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .feedback-message {
+        color: var(--text-gray);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+
+    .feedback-date {
+        font-size: 12px;
+        color: var(--text-light);
+        margin-bottom: 16px;
+    }
+
+    .response-form {
+        background: #f8fafc;
+        padding: 16px;
+        border-radius: var(--radius-md);
+        margin-top: 16px;
+    }
+
+    .response-form label {
+        display: block;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+    }
+
+    .response-form textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: inherit;
+        font-size: 14px;
+        min-height: 100px;
+        resize: vertical;
+        margin-bottom: 12px;
+    }
+
+    .response-form textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .response-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-respond {
+        padding: 10px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-respond:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-status {
+        padding: 10px 16px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-status:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .existing-response {
+        background: #f0fdf4;
+        border-left: 3px solid var(--primary);
+        padding: 12px 16px;
+        margin-top: 16px;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .existing-response-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+
+    .existing-response-text {
+        color: var(--text-dark);
+        font-size: 14px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p {
+        color: var(--text-gray);
+    }
+
+    @media (max-width: 600px) {
+        .admin-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .feedback-card {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Platform Feedback</h1>
+    <nav class="admin-nav">
+        <a href="/admin">Dashboard</a>
+        <a href="/admin/verifications">Verifications</a>
+        <a href="/admin/disputes">Disputes</a>
+        <a href="/admin/feedback" class="active">Feedback</a>
+    </nav>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Feedback</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.new }}</div>
+        <div class="stat-label">New</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.reviewed }}</div>
+        <div class="stat-label">Reviewed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.resolved }}</div>
+        <div class="stat-label">Resolved</div>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <a href="/admin/feedback?status=all" class="filter-btn {% if current_filter == 'all' %}active{% endif %}">All</a>
+    <a href="/admin/feedback?status=new" class="filter-btn {% if current_filter == 'new' %}active{% endif %}">New</a>
+    <a href="/admin/feedback?status=reviewed" class="filter-btn {% if current_filter == 'reviewed' %}active{% endif %}">Reviewed</a>
+    <a href="/admin/feedback?status=resolved" class="filter-btn {% if current_filter == 'resolved' %}active{% endif %}">Resolved</a>
+    <a href="/admin/feedback?status=closed" class="filter-btn {% if current_filter == 'closed' %}active{% endif %}">Closed</a>
+</div>
+
+{% if feedbacks %}
+<div class="feedback-list">
+    {% for item in feedbacks %}
+    <div class="feedback-card" id="feedback-{{ item.feedback.id }}">
+        <div class="feedback-card-header">
+            <div class="feedback-user">
+                <div class="user-avatar-small">{{ item.user.username[:2]|upper if item.user else '??' }}</div>
+                <div class="user-info">
+                    <h4>{{ item.user.full_name or item.user.username if item.user else 'Unknown User' }}</h4>
+                    <span>{{ item.user.email if item.user else '' }}</span>
+                </div>
+            </div>
+            <div class="feedback-badges">
+                <span class="badge {{ item.feedback.feedback_type }}">{{ item.feedback.feedback_type }}</span>
+                <span class="badge {{ item.feedback.status }}">{{ item.feedback.status }}</span>
+            </div>
+        </div>
+        
+        <div class="feedback-subject">{{ item.feedback.subject }}</div>
+        <p class="feedback-message">{{ item.feedback.message }}</p>
+        <div class="feedback-date">Submitted: {{ item.feedback.created_at.strftime('%d %b %Y, %H:%M') if item.feedback.created_at else '' }}</div>
+        
+        {% if item.feedback.admin_response %}
+        <div class="existing-response">
+            <div class="existing-response-label">Admin Response</div>
+            <p class="existing-response-text">{{ item.feedback.admin_response }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="response-form">
+            <label for="response-{{ item.feedback.id }}">{{ 'Update Response' if item.feedback.admin_response else 'Add Response' }}</label>
+            <textarea id="response-{{ item.feedback.id }}" placeholder="Type your response to the user..."></textarea>
+            <div class="response-actions">
+                <button class="btn-respond" onclick="respondToFeedback({{ item.feedback.id }}, 'reviewed')">Mark Reviewed</button>
+                <button class="btn-respond" onclick="respondToFeedback({{ item.feedback.id }}, 'resolved')" style="background: #10b981;">Mark Resolved</button>
+                <button class="btn-status" onclick="respondToFeedback({{ item.feedback.id }}, 'closed')">Close</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">📭</div>
+    <h3>No Feedback Found</h3>
+    <p>There are no feedback submissions matching your filter.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function respondToFeedback(feedbackId, status) {
+    const responseText = document.getElementById('response-' + feedbackId).value.trim();
+    
+    try {
+        const response = await fetch('/api/admin/feedback/' + feedbackId + '/respond', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                response: responseText,
+                status: status
+            })
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Failed to update feedback. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    }
+}
+</script>
+{% endblock %}

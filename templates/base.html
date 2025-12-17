@@ -800,6 +800,7 @@
                     {% if user.user_type in ['client', 'both'] %}
                     <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post Gig</a>
                     {% endif %}
+                    <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">Messages</a>
                     <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Wallet</a>
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">Admin</a>
@@ -811,6 +812,7 @@
                         <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
                         <div class="user-dropdown" id="userDropdown">
                             <a href="/dashboard" class="dropdown-item">Dashboard</a>
+                            <a href="/messages" class="dropdown-item">{{ 'Mesej' if lang == 'ms' else 'Messages' }}</a>
                             <a href="/accepted-gigs" class="dropdown-item">{{ 'Gig Diterima' if lang == 'ms' else 'Accepted Gigs' }}</a>
                             <a href="/escrow" class="dropdown-item">Escrow</a>
                             <a href="/documents" class="dropdown-item">{{ 'Dokumen' if lang == 'ms' else 'Documents' }}</a>
@@ -877,6 +879,7 @@
                         <li><a href="/panduan-freelancer">Panduan Freelancer</a></li>
                         <li><a href="/faq">FAQ</a></li>
                         <li><a href="/support">Support</a></li>
+                        <li><a href="/feedback">Platform Feedback</a></li>
                     </ul>
                 </div>
                 <div>
@@ -914,9 +917,9 @@
                 <span>Post</span>
             </a>
             {% endif %}
-            <a href="/billing" class="mobile-nav-item {% if active_page == 'billing' %}active{% endif %}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-                <span>Wallet</span>
+            <a href="/messages" class="mobile-nav-item {% if active_page == 'messages' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Mesej</span>
             </a>
             <a href="/settings" class="mobile-nav-item {% if active_page == 'settings' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>

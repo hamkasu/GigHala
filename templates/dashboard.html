@@ -663,6 +663,7 @@
     <h2 class="section-title" style="margin-bottom: 16px;">{{ t('quick_actions') }}</h2>
     <div class="quick-actions">
         <a href="/gigs" class="btn btn-primary">{{ t('browse_gigs') }}</a>
+        <a href="/messages" class="btn btn-outline">{{ 'Mesej' if lang == 'ms' else 'Messages' }}</a>
         <a href="/billing" class="btn btn-outline">{{ t('view_wallet') }}</a>
         {% if user.user_type in ['client', 'both'] %}
         <a href="/post-gig" class="btn btn-outline">{{ t('post_gig') }}</a>

@@ -1471,6 +1471,32 @@ class Milestone(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
+class PlatformFeedback(db.Model):
+    """Model for user feedback about the GigHalal platform"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    feedback_type = db.Column(db.String(50), nullable=False)  # suggestion, bug, complaint, praise, other
+    subject = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='new')  # new, reviewed, resolved, closed
+    admin_response = db.Column(db.Text)
+    responded_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    responded_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'feedback_type': self.feedback_type,
+            'subject': self.subject,
+            'message': self.message,
+            'status': self.status,
+            'admin_response': self.admin_response,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 # Routes
 @app.route('/')
 def index():
@@ -6906,6 +6932,47 @@ def support():
                          page_subtitle='Kami sedia membantu anda',
                          content=content)
 
+@app.route('/feedback', methods=['GET', 'POST'])
+def platform_feedback():
+    """Platform feedback submission page"""
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    
+    if request.method == 'POST':
+        if not user:
+            flash('Sila log masuk untuk menghantar maklum balas.', 'error')
+            return redirect('/feedback')
+        
+        feedback_type = request.form.get('feedback_type', 'other')
+        subject = sanitize_input(request.form.get('subject', ''), max_length=200)
+        message = sanitize_input(request.form.get('message', ''), max_length=2000)
+        
+        if not subject or not message:
+            flash('Sila isi semua medan yang diperlukan.', 'error')
+            return redirect('/feedback')
+        
+        feedback = PlatformFeedback(
+            user_id=user.id,
+            feedback_type=feedback_type,
+            subject=subject,
+            message=message
+        )
+        db.session.add(feedback)
+        db.session.commit()
+        
+        flash('Terima kasih! Maklum balas anda telah dihantar.', 'success')
+        return redirect('/feedback')
+    
+    user_feedbacks = []
+    if user:
+        user_feedbacks = PlatformFeedback.query.filter_by(user_id=user.id).order_by(PlatformFeedback.created_at.desc()).limit(10).all()
+    
+    return render_template('feedback.html', 
+                         user=user, 
+                         active_page='feedback',
+                         user_feedbacks=user_feedbacks,
+                         lang=get_user_language(),
+                         t=t)
+
 @app.route('/syarat-terma')
 def syarat_terma():
     user = User.query.get(session.get('user_id')) if 'user_id' in session else None
@@ -7948,6 +8015,73 @@ def resolve_dispute(dispute_id):
     except Exception as e:
         app.logger.error(f"Resolve dispute error: {str(e)}")
         return jsonify({'error': 'Failed to resolve dispute'}), 500
+
+@app.route('/admin/feedback')
+@page_login_required
+def admin_feedback():
+    """Admin page for managing platform feedback"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    if not user.is_admin:
+        return redirect('/dashboard')
+    
+    status_filter = request.args.get('status', 'all')
+    
+    query = PlatformFeedback.query
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+    
+    feedbacks = query.order_by(PlatformFeedback.created_at.desc()).all()
+    
+    feedback_list = []
+    for fb in feedbacks:
+        feedback_user = User.query.get(fb.user_id)
+        feedback_list.append({
+            'feedback': fb,
+            'user': feedback_user
+        })
+    
+    stats = {
+        'total': PlatformFeedback.query.count(),
+        'new': PlatformFeedback.query.filter_by(status='new').count(),
+        'reviewed': PlatformFeedback.query.filter_by(status='reviewed').count(),
+        'resolved': PlatformFeedback.query.filter_by(status='resolved').count()
+    }
+    
+    return render_template('admin_feedback.html', 
+                         user=user, 
+                         feedbacks=feedback_list, 
+                         stats=stats,
+                         current_filter=status_filter,
+                         active_page='admin', 
+                         lang=get_user_language(), 
+                         t=t)
+
+@app.route('/api/admin/feedback/<int:feedback_id>/respond', methods=['POST'])
+@admin_required
+def respond_to_feedback(feedback_id):
+    """Respond to platform feedback"""
+    try:
+        admin_id = session['user_id']
+        data = request.json
+        
+        response_text = data.get('response', '').strip()
+        new_status = data.get('status', 'reviewed')
+        
+        feedback = PlatformFeedback.query.get_or_404(feedback_id)
+        
+        if response_text:
+            feedback.admin_response = response_text
+            feedback.responded_by = admin_id
+            feedback.responded_at = datetime.utcnow()
+        
+        feedback.status = new_status
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Respond to feedback error: {str(e)}")
+        return jsonify({'error': 'Failed to respond to feedback'}), 500
 
 # ============================================
 # ESCROW MILESTONE ROUTES
