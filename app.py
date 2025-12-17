@@ -1717,8 +1717,11 @@ def post_gig():
                         # Create GigPhoto record
                         gig_photo = GigPhoto(
                             gig_id=new_gig.id,
+                            uploader_id=user_id,
                             filename=unique_filename,
                             original_filename=photo.filename,
+                            file_path=file_path,
+                            file_size=file_size,
                             photo_type='reference'
                         )
                         db.session.add(gig_photo)
