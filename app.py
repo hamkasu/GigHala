@@ -3143,6 +3143,69 @@ def reject_application(application_id):
         app.logger.error(f"Reject application error: {str(e)}")
         return jsonify({'error': 'Failed to reject application'}), 500
 
+@app.route('/api/gigs/<int:gig_id>/mark-completed', methods=['POST'])
+def mark_gig_completed(gig_id):
+    """Freelancer marks work as completed (ready for client to release payment)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only assigned freelancer can mark work as completed
+        if gig.freelancer_id != user_id:
+            return jsonify({'error': 'Only the assigned freelancer can mark work as completed'}), 403
+
+        # Gig must be in progress
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'Gig must be in progress to mark as completed'}), 400
+
+        # Check if escrow is funded
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        if not escrow or escrow.status != 'funded':
+            return jsonify({'error': 'Escrow must be funded before completing work'}), 400
+
+        # Mark gig as completed
+        gig.status = 'completed'
+
+        # Update application status
+        application = Application.query.filter_by(
+            gig_id=gig_id,
+            freelancer_id=user_id,
+            status='accepted'
+        ).first()
+
+        if application:
+            application.work_submitted = True
+            application.work_submission_date = datetime.utcnow()
+
+        db.session.commit()
+
+        # Create notification for client
+        notification = Notification(
+            user_id=gig.client_id,
+            notification_type='work_completed',
+            title='Work Completed',
+            message=f'Freelancer has completed work for: {gig.title}',
+            link=f'/gig/{gig.id}'
+        )
+        db.session.add(notification)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Work marked as completed! Client can now release payment.',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Mark gig completed error: {str(e)}")
+        return jsonify({'error': 'Failed to mark gig as completed'}), 500
+
 @app.route('/api/gigs/<int:gig_id>/submit-work', methods=['POST'])
 def submit_work(gig_id):
     """Freelancer submits work for client review"""
@@ -3463,12 +3526,16 @@ def release_escrow(gig_id):
         # Only client can release escrow
         if gig.client_id != user_id:
             return jsonify({'error': 'Only the client can release escrow'}), 403
-        
+
+        # Check if work is completed
+        if gig.status != 'completed':
+            return jsonify({'error': 'Work must be marked as completed by the freelancer before releasing payment'}), 400
+
         escrow = Escrow.query.filter_by(gig_id=gig_id).first()
-        
+
         if not escrow:
             return jsonify({'error': 'No escrow found'}), 404
-        
+
         if escrow.status != 'funded':
             return jsonify({'error': f'Escrow cannot be released (status: {escrow.status})'}), 400
         

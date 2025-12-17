@@ -294,6 +294,11 @@
                         {{ item.application.created_at.strftime('%d %b %Y') }}
                     </td>
                     <td>
+                        {% if item.role == 'freelancer' and item.gig.status == 'in_progress' %}
+                        <button class="action-btn primary" onclick="markGigCompleted({{ item.gig.id }}, this)" style="margin-right: 8px;">
+                            {{ 'Tandai Selesai' if lang == 'ms' else 'Mark Completed' }}
+                        </button>
+                        {% endif %}
                         <a href="/gig/{{ item.gig.id }}" class="action-btn primary">
                             {{ 'Lihat' if lang == 'ms' else 'View' }}
                         </a>
@@ -314,4 +319,41 @@
     </div>
     {% endif %}
 </main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function markGigCompleted(gigId, button) {
+    if (!confirm('{{ "Adakah anda pasti kerja sudah selesai? Klien akan dapat melepaskan pembayaran selepas ini." if lang == "ms" else "Are you sure the work is completed? The client will be able to release payment after this." }}')) {
+        return;
+    }
+
+    // Disable button and show loading
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '{{ "Memproses..." if lang == "ms" else "Processing..." }}';
+
+    fetch('/api/gigs/' + gigId + '/mark-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            button.disabled = false;
+            button.innerHTML = originalText;
+        } else {
+            alert(data.message || '{{ "Kerja ditandakan sebagai selesai!" if lang == "ms" else "Work marked as completed!" }}');
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+</script>
 {% endblock %}

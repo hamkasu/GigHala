@@ -1159,11 +1159,25 @@
                 </div>
 
                 <div class="escrow-actions">
+                    {% if is_freelancer and escrow.status == 'funded' and gig.status == 'in_progress' %}
+                    <button class="escrow-btn escrow-btn-primary" onclick="markWorkCompleted()" id="markCompletedBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        {{ 'Tandai Kerja Selesai' if lang == 'ms' else 'Mark Work as Completed' }}
+                    </button>
+                    {% endif %}
+
                     {% if is_own_gig and escrow.status == 'funded' and gig.status == 'completed' %}
                     <button class="escrow-btn escrow-btn-primary" onclick="releaseEscrow()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         {{ 'Lepaskan Dana' if lang == 'ms' else 'Release Funds' }}
                     </button>
+                    {% endif %}
+
+                    {% if is_own_gig and escrow.status == 'funded' and gig.status == 'in_progress' %}
+                    <p style="text-align: center; color: var(--text-gray); font-size: 13px; padding: 12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        {{ 'Menunggu freelancer menandakan kerja selesai' if lang == 'ms' else 'Waiting for freelancer to mark work as completed' }}
+                    </p>
                     {% endif %}
 
                     {% if escrow.status == 'funded' %}
@@ -1498,6 +1512,44 @@
             alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
             button.disabled = false;
             button.innerHTML = originalText;
+        });
+    }
+
+    function markWorkCompleted() {
+        if (!confirm('{{ "Adakah anda pasti kerja sudah selesai? Klien akan dapat melepaskan pembayaran selepas ini." if lang == "ms" else "Are you sure the work is completed? The client will be able to release payment after this." }}')) {
+            return;
+        }
+
+        const button = document.getElementById('markCompletedBtn');
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span> {{ "Memproses..." if lang == "ms" else "Processing..." }}';
+        }
+
+        fetch('/api/gigs/{{ gig.id }}/mark-completed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> {{ "Tandai Kerja Selesai" if lang == "ms" else "Mark Work as Completed" }}';
+                }
+            } else {
+                alert(data.message || '{{ "Kerja ditandakan sebagai selesai!" if lang == "ms" else "Work marked as completed!" }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> {{ "Tandai Kerja Selesai" if lang == "ms" else "Mark Work as Completed" }}';
+            }
         });
     }
 
