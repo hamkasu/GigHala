@@ -3959,6 +3959,296 @@ def escrow_page():
 # END ESCROW ENDPOINTS
 # ============================================================================
 
+# ============================================================================
+# STRIPE CHECKOUT FOR ESCROW
+# ============================================================================
+
+@app.route('/api/stripe/create-checkout-session', methods=['POST'])
+@login_required
+def create_stripe_checkout_session():
+    """Create a Stripe Checkout session for escrow funding"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+        
+        data = request.json or {}
+        gig_id = data.get('gig_id')
+        
+        if not gig_id:
+            return jsonify({'error': 'gig_id is required'}), 400
+        
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        
+        # Only client can fund escrow
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can fund the escrow'}), 403
+        
+        # Gig must have an assigned freelancer
+        if not gig.freelancer_id:
+            return jsonify({'error': 'Gig must have an assigned freelancer before funding'}), 400
+        
+        # Check if escrow already funded
+        existing = Escrow.query.filter_by(gig_id=gig_id).first()
+        if existing and existing.status in ['funded', 'released']:
+            return jsonify({'error': 'Escrow already funded for this gig'}), 400
+        
+        # Get amount from request or use gig budget
+        amount = float(data.get('amount', gig.budget or gig.budget_max or 0))
+        
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+        
+        # Calculate fees
+        platform_fee = calculate_commission(amount)
+        processing_fee = (amount * PROCESSING_FEE_PERCENT) + PROCESSING_FEE_FIXED
+        total_amount = amount + processing_fee
+        net_amount = amount - platform_fee
+        
+        # Generate unique order ID
+        order_id = f"ESC-{gig_id}-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Create or update escrow as pending
+        if existing:
+            escrow = existing
+            escrow.amount = amount
+            escrow.platform_fee = platform_fee
+            escrow.net_amount = net_amount
+            escrow.status = 'pending'
+            escrow.payment_reference = order_id
+        else:
+            escrow = Escrow(
+                gig_id=gig_id,
+                client_id=user_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=platform_fee,
+                net_amount=net_amount,
+                status='pending',
+                payment_reference=order_id
+            )
+            db.session.add(escrow)
+        
+        db.session.commit()
+        
+        # Build callback URLs
+        base_url = request.host_url.rstrip('/')
+        if not base_url or 'localhost' in base_url:
+            domain = os.environ.get('REPLIT_DEV_DOMAIN', '')
+            if domain:
+                base_url = f"https://{domain}"
+        
+        success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}"
+        cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
+        
+        # Create Stripe Checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'myr',
+                    'product_data': {
+                        'name': f'Escrow for: {gig.title[:50]}',
+                        'description': f'Platform fee: RM{platform_fee:.2f}, Processing: RM{processing_fee:.2f}'
+                    },
+                    'unit_amount': int(total_amount * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            customer_email=user.email,
+            metadata={
+                'gig_id': str(gig_id),
+                'escrow_id': str(escrow.id),
+                'order_id': order_id,
+                'amount': str(amount),
+                'platform_fee': str(platform_fee),
+                'net_amount': str(net_amount)
+            }
+        )
+        
+        # Update escrow with Stripe session ID
+        escrow.payment_reference = checkout_session.id
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'checkout_url': checkout_session.url,
+            'session_id': checkout_session.id,
+            'fee_breakdown': {
+                'gig_amount': amount,
+                'platform_fee': platform_fee,
+                'processing_fee': processing_fee,
+                'total_charge': total_amount,
+                'freelancer_receives': net_amount
+            }
+        }), 200
+        
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error: {str(e)}")
+        return jsonify({'error': f'Payment error: {str(e)}'}), 400
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Create checkout session error: {str(e)}")
+        return jsonify({'error': 'Failed to create payment session'}), 500
+
+
+@app.route('/api/stripe/checkout-success')
+def stripe_checkout_success():
+    """Handle successful Stripe checkout redirect"""
+    session_id = request.args.get('session_id')
+    gig_id = request.args.get('gig_id')
+    
+    if not session_id:
+        flash('Payment session not found', 'error')
+        return redirect('/escrow')
+    
+    try:
+        # Retrieve the session from Stripe
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        
+        if checkout_session.payment_status == 'paid':
+            # Find escrow by session ID
+            escrow = Escrow.query.filter_by(payment_reference=session_id).first()
+            
+            if escrow and escrow.status == 'pending':
+                # Update escrow to funded
+                escrow.status = 'funded'
+                escrow.funded_at = datetime.utcnow()
+                escrow.payment_reference = checkout_session.payment_intent
+                
+                # Update client wallet
+                client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+                if not client_wallet:
+                    client_wallet = Wallet(user_id=escrow.client_id)
+                    db.session.add(client_wallet)
+                client_wallet.held_balance += escrow.amount
+                
+                # Create receipt
+                gig = Gig.query.get(escrow.gig_id)
+                if gig:
+                    create_escrow_receipt(escrow, gig, 'stripe')
+                
+                # Create payment history
+                payment_history = PaymentHistory(
+                    user_id=escrow.client_id,
+                    type='escrow_fund',
+                    amount=escrow.amount,
+                    balance_before=client_wallet.balance,
+                    balance_after=client_wallet.balance,
+                    description=f"Escrow funded for gig: {gig.title if gig else 'Unknown'}",
+                    reference_number=checkout_session.payment_intent,
+                    payment_gateway='stripe'
+                )
+                db.session.add(payment_history)
+                
+                # Create notification for freelancer
+                notification = Notification(
+                    user_id=escrow.freelancer_id,
+                    type='payment',
+                    title='Escrow Funded',
+                    message=f'Client has funded RM{escrow.amount:.2f} for gig: {gig.title if gig else "Unknown"}',
+                    link=f'/gig/{escrow.gig_id}'
+                )
+                db.session.add(notification)
+                
+                db.session.commit()
+                
+                flash('Payment successful! Escrow has been funded.', 'success')
+            else:
+                flash('Payment already processed.', 'info')
+        else:
+            flash('Payment not completed. Please try again.', 'warning')
+            
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe verification error: {str(e)}")
+        flash('Could not verify payment. Please check your escrow status.', 'error')
+    except Exception as e:
+        app.logger.error(f"Checkout success error: {str(e)}")
+        flash('Error processing payment. Please contact support.', 'error')
+    
+    return redirect(f'/escrow?gig_id={gig_id}' if gig_id else '/escrow')
+
+
+@app.route('/api/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    
+    try:
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        else:
+            # Without webhook secret, parse the event directly (less secure)
+            event = stripe.Event.construct_from(
+                json.loads(payload), stripe.api_key
+            )
+        
+        # Handle checkout.session.completed event
+        if event['type'] == 'checkout.session.completed':
+            session_data = event['data']['object']
+            
+            # Find escrow by session ID
+            escrow = Escrow.query.filter_by(payment_reference=session_data['id']).first()
+            
+            if escrow and escrow.status == 'pending':
+                escrow.status = 'funded'
+                escrow.funded_at = datetime.utcnow()
+                escrow.payment_reference = session_data.get('payment_intent', session_data['id'])
+                
+                # Update client wallet
+                client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+                if not client_wallet:
+                    client_wallet = Wallet(user_id=escrow.client_id)
+                    db.session.add(client_wallet)
+                client_wallet.held_balance += escrow.amount
+                
+                # Create receipt
+                gig = Gig.query.get(escrow.gig_id)
+                if gig:
+                    create_escrow_receipt(escrow, gig, 'stripe')
+                
+                db.session.commit()
+                app.logger.info(f"Escrow {escrow.id} funded via webhook")
+        
+        # Handle payment_intent.payment_failed event
+        elif event['type'] == 'payment_intent.payment_failed':
+            payment_intent = event['data']['object']
+            app.logger.warning(f"Payment failed: {payment_intent.get('id')}")
+        
+        return jsonify({'status': 'success'}), 200
+        
+    except ValueError as e:
+        app.logger.error(f"Invalid webhook payload: {str(e)}")
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        app.logger.error(f"Invalid webhook signature: {str(e)}")
+        return jsonify({'error': 'Invalid signature'}), 400
+    except Exception as e:
+        app.logger.error(f"Webhook error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/stripe/config')
+def stripe_config():
+    """Return Stripe publishable key for frontend"""
+    publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+    return jsonify({
+        'publishable_key': publishable_key,
+        'configured': bool(publishable_key and stripe.api_key)
+    })
+
+# ============================================================================
+# END STRIPE CHECKOUT
+# ============================================================================
+
 # Helper function to recalculate user rating
 def recalculate_user_rating(user_id):
     """Recalculate and update user's average rating based on all reviews"""
