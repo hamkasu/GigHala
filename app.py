@@ -777,6 +777,23 @@ def generate_receipt_number(receipt_type='RCP'):
     
     return receipt_number
 
+def generate_escrow_number():
+    """Generate a unique escrow number with collision resistance"""
+    import uuid
+    date_part = datetime.utcnow().strftime('%Y%m%d')
+    unique_part = uuid.uuid4().hex[:8].upper()
+    escrow_number = f"ESC-{date_part}-{unique_part}"
+
+    max_attempts = 5
+    for attempt in range(max_attempts):
+        existing = Escrow.query.filter_by(escrow_number=escrow_number).first()
+        if not existing:
+            return escrow_number
+        unique_part = uuid.uuid4().hex[:8].upper()
+        escrow_number = f"ESC-{date_part}-{unique_part}"
+
+    return escrow_number
+
 def create_escrow_receipt(escrow, gig, payment_method='fpx'):
     """Create a receipt for escrow funding (idempotent - only creates if none exists)"""
     existing_receipt = Receipt.query.filter_by(
@@ -1163,6 +1180,7 @@ def get_active_payment_gateway():
 class Escrow(db.Model):
     """Model for tracking escrow payments between clients and freelancers"""
     id = db.Column(db.Integer, primary_key=True)
+    escrow_number = db.Column(db.String(50), unique=True, nullable=False)
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -1182,6 +1200,7 @@ class Escrow(db.Model):
         """Convert escrow to dictionary for JSON response"""
         return {
             'id': self.id,
+            'escrow_number': self.escrow_number,
             'gig_id': self.gig_id,
             'client_id': self.client_id,
             'freelancer_id': self.freelancer_id,
@@ -3364,6 +3383,7 @@ def create_escrow():
             escrow.funded_at = datetime.utcnow()
         else:
             escrow = Escrow(
+                escrow_number=generate_escrow_number(),
                 gig_id=gig_id,
                 client_id=user_id,
                 freelancer_id=gig.freelancer_id,
@@ -3652,6 +3672,7 @@ def initiate_escrow_payment(gig_id):
             escrow.payment_reference = order_id
         else:
             escrow = Escrow(
+                escrow_number=generate_escrow_number(),
                 gig_id=gig_id,
                 client_id=user_id,
                 freelancer_id=gig.freelancer_id,
@@ -4021,6 +4042,7 @@ def create_stripe_checkout_session():
             escrow.payment_reference = order_id
         else:
             escrow = Escrow(
+                escrow_number=generate_escrow_number(),
                 gig_id=gig_id,
                 client_id=user_id,
                 freelancer_id=gig.freelancer_id,
