@@ -5182,6 +5182,8 @@ def get_transactions():
         per_page = request.args.get('per_page', 20, type=int)
         transaction_type = request.args.get('type', 'all')  # all, sent, received
 
+        app.logger.info(f"GET /api/billing/transactions - user_id={user_id}, type={transaction_type}")
+
         # Build query
         if transaction_type == 'sent':
             query = Transaction.query.filter_by(client_id=user_id)
@@ -5191,6 +5193,9 @@ def get_transactions():
             query = Transaction.query.filter(
                 (Transaction.client_id == user_id) | (Transaction.freelancer_id == user_id)
             )
+
+        total_count = query.count()
+        app.logger.info(f"Found {total_count} total transactions for user {user_id}")
 
         pagination = query.order_by(Transaction.transaction_date.desc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -5220,9 +5225,12 @@ def get_transactions():
                 'type': 'sent' if t.client_id == user_id else 'received'
             })
 
+        app.logger.info(f"Returning {len(transactions)} transactions to frontend")
         return jsonify(transactions), 200
     except Exception as e:
         app.logger.error(f"Get transactions error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Failed to get transactions'}), 500
 
 @app.route('/api/billing/invoices', methods=['GET'])
@@ -5235,6 +5243,8 @@ def get_invoices():
         per_page = request.args.get('per_page', 20, type=int)
         status = request.args.get('status', 'all')
 
+        app.logger.info(f"GET /api/billing/invoices - user_id={user_id}, status={status}")
+
         # Build query
         query = Invoice.query.filter(
             (Invoice.client_id == user_id) | (Invoice.freelancer_id == user_id)
@@ -5242,6 +5252,9 @@ def get_invoices():
 
         if status != 'all':
             query = query.filter_by(status=status)
+
+        total_count = query.count()
+        app.logger.info(f"Found {total_count} total invoices for user {user_id}")
 
         pagination = query.order_by(Invoice.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
@@ -5273,9 +5286,12 @@ def get_invoices():
                 'role': 'client' if inv.client_id == user_id else 'freelancer'
             })
 
+        app.logger.info(f"Returning {len(invoices)} invoices to frontend")
         return jsonify(invoices), 200
     except Exception as e:
         app.logger.error(f"Get invoices error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Failed to get invoices'}), 500
 
 @app.route('/api/billing/payouts', methods=['GET'])
@@ -5286,6 +5302,11 @@ def get_payouts():
         user_id = session['user_id']
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
+
+        app.logger.info(f"GET /api/billing/payouts - user_id={user_id}")
+
+        total_count = Payout.query.filter_by(freelancer_id=user_id).count()
+        app.logger.info(f"Found {total_count} total payouts for user {user_id}")
 
         pagination = Payout.query.filter_by(freelancer_id=user_id).order_by(
             Payout.requested_at.desc()
@@ -5309,9 +5330,12 @@ def get_payouts():
                 'failure_reason': p.failure_reason
             })
 
+        app.logger.info(f"Returning {len(payouts)} payouts to frontend")
         return jsonify(payouts), 200
     except Exception as e:
         app.logger.error(f"Get payouts error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Failed to get payouts'}), 500
 
 @app.route('/api/billing/payouts', methods=['POST'])
