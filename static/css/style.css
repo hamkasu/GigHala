@@ -93,7 +93,12 @@ body {
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 24px;
+    margin-left: auto;
+}
+
+.nav-links .btn-primary {
+    margin-left: 8px;
 }
 
 .nav-link {
