@@ -692,6 +692,11 @@
         50% { box-shadow: 0 0 0 8px rgba(14, 165, 233, 0); }
     }
 
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
     .escrow-step-label {
         font-size: 11px;
         color: var(--text-gray);
@@ -1183,13 +1188,24 @@
                     </p>
                     <div class="form-group">
                         <label class="form-label">{{ 'Jumlah (RM)' if lang == 'ms' else 'Amount (RM)' }}</label>
-                        <input type="number" class="form-input" id="escrowAmount" 
+                        <input type="number" class="form-input" id="escrowAmount"
                                value="{{ gig.budget_min }}" min="{{ gig.budget_min }}" step="1">
                     </div>
-                    <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
+                        <select class="form-input" id="paymentGateway">
+                            <option value="stripe">{{ 'Kad Kredit/Debit (Stripe)' if lang == 'ms' else 'Credit/Debit Card (Stripe)' }}</option>
+                            <option value="payhalal">{{ 'FPX/E-Wallet (PayHalal)' if lang == 'ms' else 'FPX/E-Wallet (PayHalal)' }}</option>
+                        </select>
+                    </div>
+                    <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()" id="fundEscrowBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                         {{ 'Dana Escrow' if lang == 'ms' else 'Fund Escrow' }}
                     </button>
+                    <p style="text-align: center; margin-top: 12px; font-size: 12px; color: var(--text-gray);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        {{ 'Pembayaran selamat melalui penyedia pembayaran yang dipercayai' if lang == 'ms' else 'Secure payment through trusted payment providers' }}
+                    </p>
                 </div>
                 {% elif is_freelancer %}
                 <p style="text-align: center; color: var(--text-gray); font-size: 14px;">
@@ -1390,6 +1406,8 @@
 
     function fundEscrow() {
         const amount = document.getElementById('escrowAmount')?.value;
+        const gateway = document.getElementById('paymentGateway')?.value || 'stripe';
+
         if (!amount || parseFloat(amount) <= 0) {
             alert('{{ "Sila masukkan jumlah yang sah" if lang == "ms" else "Please enter a valid amount" }}');
             return;
@@ -1399,26 +1417,87 @@
             return;
         }
 
-        fetch('/api/escrow/create', {
+        // Disable button to prevent double-clicks
+        const button = document.getElementById('fundEscrowBtn');
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span> {{ "Memproses..." if lang == "ms" else "Processing..." }}';
+
+        if (gateway === 'stripe') {
+            // Use Stripe Checkout
+            initiateStripeCheckout(parseFloat(amount), button, originalText);
+        } else if (gateway === 'payhalal') {
+            // Use PayHalal
+            initiatePayHalalPayment(parseFloat(amount), button, originalText);
+        } else {
+            alert('{{ "Gerbang pembayaran tidak dikonfigurasikan" if lang == "ms" else "Payment gateway not configured" }}');
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+
+    function initiateStripeCheckout(amount, button, originalText) {
+        // Create Stripe checkout session
+        fetch('/api/stripe/create-checkout-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 gig_id: {{ gig.id }},
-                amount: parseFloat(amount)
+                amount: amount
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.error) {
                 alert(data.error);
+                button.disabled = false;
+                button.innerHTML = originalText;
+            } else if (data.url) {
+                // Redirect to Stripe Checkout
+                window.location.href = data.url;
             } else {
-                alert('{{ "Escrow berjaya didanai!" if lang == "ms" else "Escrow funded successfully!" }}');
-                window.location.reload();
+                alert('{{ "Ralat mencipta sesi pembayaran" if lang == "ms" else "Error creating payment session" }}');
+                button.disabled = false;
+                button.innerHTML = originalText;
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            button.disabled = false;
+            button.innerHTML = originalText;
+        });
+    }
+
+    function initiatePayHalalPayment(amount, button, originalText) {
+        // Create PayHalal payment
+        fetch('/api/escrow/{{ gig.id }}/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amount
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                button.disabled = false;
+                button.innerHTML = originalText;
+            } else if (data.payment_url) {
+                // Redirect to PayHalal payment page
+                window.location.href = data.payment_url;
+            } else {
+                alert('{{ "Ralat mencipta pembayaran" if lang == "ms" else "Error creating payment" }}');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            button.disabled = false;
+            button.innerHTML = originalText;
         });
     }
 
