@@ -507,12 +507,19 @@
         <h3 class="section-title">Financial Statistics</h3>
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Revenue</h3>
-                <div class="value" id="stat-revenue">RM 0</div>
+                <h3>Total Payout</h3>
+                <div class="value" id="stat-payout">RM 0</div>
+                <div class="label">Total amount paid to workers</div>
             </div>
             <div class="stat-card">
                 <h3>Commission</h3>
                 <div class="value" id="stat-commission">RM 0</div>
+                <div class="label">Cumulative commission earned</div>
+            </div>
+            <div class="stat-card">
+                <h3>Escrow</h3>
+                <div class="value" id="stat-escrow">RM 0</div>
+                <div class="label">Amount held in escrow</div>
             </div>
             <div class="stat-card">
                 <h3>Applications</h3>
@@ -954,8 +961,9 @@
             }
 
             if (data.financial) {
-                document.getElementById('stat-revenue').textContent = `RM ${(data.financial.total_revenue || 0).toFixed(2)}`;
+                document.getElementById('stat-payout').textContent = `RM ${(data.financial.total_payout || 0).toFixed(2)}`;
                 document.getElementById('stat-commission').textContent = `RM ${(data.financial.commission || 0).toFixed(2)}`;
+                document.getElementById('stat-escrow').textContent = `RM ${(data.financial.escrow || 0).toFixed(2)}`;
             }
 
             if (data.applications) {

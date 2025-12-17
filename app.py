@@ -4818,9 +4818,19 @@ def admin_stats():
         total_applications = Application.query.count()
         pending_applications = Application.query.filter_by(status='pending').count()
 
-        total_transactions = Transaction.query.count()
-        total_revenue = db.session.query(db.func.sum(Transaction.amount)).scalar() or 0
+        # Financial statistics
+        # Total payout: Sum of all released escrows (amount paid to workers)
+        total_payout = db.session.query(db.func.sum(Escrow.amount)).filter(
+            Escrow.status == 'released'
+        ).scalar() or 0
+
+        # Commission: Sum of all commission amounts charged
         total_commission = db.session.query(db.func.sum(Transaction.commission)).scalar() or 0
+
+        # Escrow: Sum of all funded escrows (money currently held)
+        total_escrow = db.session.query(db.func.sum(Escrow.amount)).filter(
+            Escrow.status == 'funded'
+        ).scalar() or 0
 
         # Recent users (last 7 days)
         week_ago = datetime.utcnow() - timedelta(days=7)
@@ -4836,7 +4846,8 @@ def admin_stats():
                 'clients': total_clients,
                 'verified': verified_users,
                 'halal_verified': halal_verified_users,
-                'recent_week': recent_users
+                'recent_week': recent_users,
+                'recent': recent_users
             },
             'gigs': {
                 'total': total_gigs,
@@ -4844,16 +4855,17 @@ def admin_stats():
                 'in_progress': in_progress_gigs,
                 'completed': completed_gigs,
                 'halal_compliant': halal_gigs,
-                'recent_week': recent_gigs
+                'recent_week': recent_gigs,
+                'recent': recent_gigs
             },
             'applications': {
                 'total': total_applications,
                 'pending': pending_applications
             },
-            'transactions': {
-                'total': total_transactions,
-                'revenue': float(total_revenue),
-                'commission': float(total_commission)
+            'financial': {
+                'total_payout': float(total_payout),
+                'commission': float(total_commission),
+                'escrow': float(total_escrow)
             }
         }), 200
     except Exception as e:
