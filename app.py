@@ -3716,9 +3716,9 @@ def initiate_escrow_payment(gig_id):
         if existing and existing.status in ['funded', 'released']:
             return jsonify({'error': 'Escrow already funded for this gig'}), 400
         
-        # Get amount from request or use gig budget
+        # Get amount from request or use gig budget_max
         data = request.json or {}
-        amount = float(data.get('amount', gig.budget or 0))
+        amount = float(data.get('amount', gig.budget_max or 0))
         
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
@@ -4087,8 +4087,8 @@ def create_stripe_checkout_session():
         if existing and existing.status in ['funded', 'released']:
             return jsonify({'error': 'Escrow already funded for this gig'}), 400
         
-        # Get amount from request or use gig budget
-        amount = float(data.get('amount', gig.budget or gig.budget_max or 0))
+        # Get amount from request or use gig budget_max
+        amount = float(data.get('amount', gig.budget_max or 0))
         
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
