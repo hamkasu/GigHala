@@ -58,6 +58,15 @@ The application runs on port 5000 via the "Start application" workflow.
 - **Dispute**: Dispute cases between users
 - **DisputeMessage**: Messages in dispute discussions
 - **Milestone**: Escrow payment milestones
+- **PlatformFeedback**: User feedback/suggestions to platform admins
+
+## New Features (December 17, 2025)
+
+### Platform Feedback System
+- `/feedback` - Submit platform feedback (suggestions, complaints, feature requests)
+- `/admin/feedback` - Admin page to view and respond to user feedback
+- Types: suggestion, complaint, bug_report, feature_request, other
+- Status tracking: new, reviewed, resolved, closed
 
 ## New Features (December 16, 2025)
 
@@ -117,6 +126,9 @@ The application runs on port 5000 via the "Start application" workflow.
 - Database connection string automatically converts to `postgresql+psycopg://` dialect for SQLAlchemy
 
 ## Recent Changes
+- December 17, 2025: Added Platform Feedback System - users can submit suggestions, complaints, bug reports to admins via /feedback page; admin can view and respond to feedback at /admin/feedback; added PlatformFeedback model with status tracking (new/reviewed/resolved/closed)
+- December 17, 2025: Improved Messages visibility - added Messages link to header navigation, user dropdown menu, mobile bottom nav, and dashboard quick actions
+- December 17, 2025: Added Feedback tab to admin panel navigation for easy access to user feedback management
 - December 16, 2025: Added Islamic and Western dual date display - shows both Hijri (e.g., "25 Jamadil Akhir 1447H") and Gregorian (e.g., "16 Disember 2025") dates at the top of every page using hijri-converter library; supports Malay and English month names
 - December 16, 2025: Added 7 major new features: Portfolio Management (/portfolio, /profile/<username>), Real-time Messaging (/messages with polling), Notifications System (/notifications with preferences), Identity Verification (/verification with IC/MyKad upload), Dispute Resolution (/disputes, /dispute/new), Escrow Milestones (milestone-based payments), and Admin panels for verification/dispute review
 - December 16, 2025: Added database models for PortfolioItem, Conversation, Message, Notification, NotificationPreference, IdentityVerification, Dispute, DisputeMessage, and Milestone
