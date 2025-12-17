@@ -656,29 +656,42 @@
         try {
             const type = document.getElementById('transactionType').value;
             const response = await fetch(`/api/billing/transactions?type=${type}`);
-            if (response.ok) {
-                const data = await response.json();
-                loading.style.display = 'none';
 
-                if (data.length === 0) {
-                    empty.style.display = 'block';
-                } else {
-                    content.style.display = 'block';
-                    const tbody = document.getElementById('transactionsBody');
-                    tbody.innerHTML = data.map(txn => `
-                        <tr>
-                            <td>${new Date(txn.transaction_date).toLocaleDateString()}</td>
-                            <td>Payment for Gig #${txn.gig_id || 'N/A'}</td>
-                            <td>MYR ${txn.amount.toFixed(2)}</td>
-                            <td><span class="badge ${txn.client_id === walletData?.user_id ? 'sent' : 'received'}">${txn.client_id === walletData?.user_id ? 'Sent' : 'Received'}</span></td>
-                            <td><span class="badge ${txn.status}">${txn.status}</span></td>
-                        </tr>
-                    `).join('');
-                }
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Transaction API error:', error);
+                loading.style.display = 'none';
+                empty.querySelector('h3').textContent = 'Error Loading Transactions';
+                empty.querySelector('p').textContent = error.error || 'Failed to load transactions';
+                empty.style.display = 'block';
+                return;
+            }
+
+            const data = await response.json();
+            loading.style.display = 'none';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                empty.querySelector('h3').textContent = 'No Transactions Yet';
+                empty.querySelector('p').textContent = 'Your transaction history will appear here';
+                empty.style.display = 'block';
+            } else {
+                content.style.display = 'block';
+                const tbody = document.getElementById('transactionsBody');
+                tbody.innerHTML = data.map(txn => `
+                    <tr>
+                        <td>${new Date(txn.transaction_date || txn.date).toLocaleDateString()}</td>
+                        <td>${txn.gig_title ? txn.gig_title : 'Payment for Gig #' + (txn.gig_id || 'N/A')}</td>
+                        <td>MYR ${txn.amount.toFixed(2)}</td>
+                        <td><span class="badge ${txn.type || (txn.client_id === walletData?.user_id ? 'sent' : 'received')}">${txn.type === 'sent' || txn.client_id === walletData?.user_id ? 'Sent' : 'Received'}</span></td>
+                        <td><span class="badge ${txn.status}">${txn.status}</span></td>
+                    </tr>
+                `).join('');
             }
         } catch (error) {
             console.error('Error loading transactions:', error);
             loading.style.display = 'none';
+            empty.querySelector('h3').textContent = 'Error Loading Transactions';
+            empty.querySelector('p').textContent = error.message || 'An unexpected error occurred';
             empty.style.display = 'block';
         }
     }
@@ -695,29 +708,42 @@
         try {
             const status = document.getElementById('invoiceStatus').value;
             const response = await fetch(`/api/billing/invoices?status=${status}`);
-            if (response.ok) {
-                const data = await response.json();
-                loading.style.display = 'none';
 
-                if (data.length === 0) {
-                    empty.style.display = 'block';
-                } else {
-                    content.style.display = 'block';
-                    const tbody = document.getElementById('invoicesBody');
-                    tbody.innerHTML = data.map(inv => `
-                        <tr>
-                            <td>#${inv.invoice_number}</td>
-                            <td>Gig #${inv.gig_id}</td>
-                            <td>MYR ${inv.total_amount.toFixed(2)}</td>
-                            <td><span class="badge ${inv.status}">${inv.status}</span></td>
-                            <td>${new Date(inv.issue_date).toLocaleDateString()}</td>
-                        </tr>
-                    `).join('');
-                }
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Invoice API error:', error);
+                loading.style.display = 'none';
+                empty.querySelector('h3').textContent = 'Error Loading Invoices';
+                empty.querySelector('p').textContent = error.error || 'Failed to load invoices';
+                empty.style.display = 'block';
+                return;
+            }
+
+            const data = await response.json();
+            loading.style.display = 'none';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                empty.querySelector('h3').textContent = 'No Invoices Yet';
+                empty.querySelector('p').textContent = 'Your invoices will appear here';
+                empty.style.display = 'block';
+            } else {
+                content.style.display = 'block';
+                const tbody = document.getElementById('invoicesBody');
+                tbody.innerHTML = data.map(inv => `
+                    <tr>
+                        <td>#${inv.invoice_number}</td>
+                        <td>${inv.gig_title || 'Gig #' + inv.gig_id}</td>
+                        <td>MYR ${inv.total_amount.toFixed(2)}</td>
+                        <td><span class="badge ${inv.status}">${inv.status}</span></td>
+                        <td>${new Date(inv.issue_date || inv.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
             }
         } catch (error) {
             console.error('Error loading invoices:', error);
             loading.style.display = 'none';
+            empty.querySelector('h3').textContent = 'Error Loading Invoices';
+            empty.querySelector('p').textContent = error.message || 'An unexpected error occurred';
             empty.style.display = 'block';
         }
     }
@@ -733,29 +759,42 @@
 
         try {
             const response = await fetch('/api/billing/payouts');
-            if (response.ok) {
-                const data = await response.json();
-                loading.style.display = 'none';
 
-                if (data.length === 0) {
-                    empty.style.display = 'block';
-                } else {
-                    content.style.display = 'block';
-                    const tbody = document.getElementById('payoutsBody');
-                    tbody.innerHTML = data.map(p => `
-                        <tr>
-                            <td>#${p.id}</td>
-                            <td>MYR ${p.amount.toFixed(2)}</td>
-                            <td>${p.payout_method}</td>
-                            <td><span class="badge ${p.status}">${p.status}</span></td>
-                            <td>${new Date(p.requested_at).toLocaleDateString()}</td>
-                        </tr>
-                    `).join('');
-                }
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Payout API error:', error);
+                loading.style.display = 'none';
+                empty.querySelector('h3').textContent = 'Error Loading Payouts';
+                empty.querySelector('p').textContent = error.error || 'Failed to load payouts';
+                empty.style.display = 'block';
+                return;
+            }
+
+            const data = await response.json();
+            loading.style.display = 'none';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                empty.querySelector('h3').textContent = 'No Payout Requests';
+                empty.querySelector('p').textContent = 'Request a payout to withdraw your earnings';
+                empty.style.display = 'block';
+            } else {
+                content.style.display = 'block';
+                const tbody = document.getElementById('payoutsBody');
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>#${p.payout_number || p.id}</td>
+                        <td>MYR ${p.amount.toFixed(2)}</td>
+                        <td>${p.payout_method || p.payment_method || 'N/A'}</td>
+                        <td><span class="badge ${p.status}">${p.status.toUpperCase()}</span></td>
+                        <td>${new Date(p.requested_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
             }
         } catch (error) {
             console.error('Error loading payouts:', error);
             loading.style.display = 'none';
+            empty.querySelector('h3').textContent = 'Error Loading Payouts';
+            empty.querySelector('p').textContent = error.message || 'An unexpected error occurred';
             empty.style.display = 'block';
         }
     }
