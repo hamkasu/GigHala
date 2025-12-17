@@ -103,6 +103,14 @@ The application runs on port 5000 via the "Start application" workflow.
 ## Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string (auto-configured)
 - `SECRET_KEY`: Flask session secret (auto-generated if not set)
+- `STRIPE_SECRET_KEY`: Stripe secret API key for payment processing
+- `STRIPE_PUBLISHABLE_KEY`: Stripe publishable key for frontend checkout
+
+## Stripe Integration Notes
+- Stripe is configured manually via secrets (not using Replit integration)
+- Stripe Checkout is used for escrow payments
+- Endpoints: `/api/stripe/create-checkout-session`, `/api/stripe/checkout-success`, `/api/stripe/webhook`, `/api/stripe/config`
+- Payment gateway can be toggled between Stripe and PayHalal in admin settings
 
 ## Deployment Notes
 - Uses `psycopg[binary]` instead of `psycopg2-binary` for Python 3.13 compatibility
