@@ -3378,8 +3378,10 @@ def create_escrow():
         
         # Update client wallet (deduct held_balance)
         client_wallet = Wallet.query.filter_by(user_id=user_id).first()
-        if client_wallet:
-            client_wallet.held_balance += amount
+        if not client_wallet:
+            client_wallet = Wallet(user_id=user_id)
+            db.session.add(client_wallet)
+        client_wallet.held_balance += amount
         
         # Create receipt for escrow funding
         db.session.flush()  # Get escrow ID
@@ -3395,8 +3397,8 @@ def create_escrow():
         
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Create escrow error: {str(e)}")
-        return jsonify({'error': 'Failed to create escrow'}), 500
+        app.logger.error(f"Create escrow error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to create escrow', 'details': str(e) if app.debug else None}), 500
 
 @app.route('/api/escrow/<int:gig_id>', methods=['GET'])
 def get_escrow(gig_id):
