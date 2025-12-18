@@ -5196,17 +5196,61 @@ def admin_update_gig(gig_id):
 @app.route('/api/admin/gigs/<int:gig_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_gig(gig_id):
-    """Delete a gig"""
+    """Delete a gig and all associated records"""
     try:
         gig = Gig.query.get_or_404(gig_id)
 
-        # Delete associated applications
+        # Delete gig photos with file cleanup
+        gig_photos = GigPhoto.query.filter_by(gig_id=gig_id).all()
+        for photo in gig_photos:
+            if photo.file_path and os.path.exists(photo.file_path):
+                os.remove(photo.file_path)
+            db.session.delete(photo)
+
+        # Delete work photos with file cleanup
+        work_photos = WorkPhoto.query.filter_by(gig_id=gig_id).all()
+        for photo in work_photos:
+            if photo.file_path and os.path.exists(photo.file_path):
+                os.remove(photo.file_path)
+            db.session.delete(photo)
+
+        # Delete dispute messages (must be before disputes)
+        disputes = Dispute.query.filter_by(gig_id=gig_id).all()
+        for dispute in disputes:
+            DisputeMessage.query.filter_by(dispute_id=dispute.id).delete()
+            db.session.delete(dispute)
+
+        # Delete reviews and recalculate affected user ratings
+        reviews = Review.query.filter_by(gig_id=gig_id).all()
+        affected_users = set()
+        for review in reviews:
+            affected_users.add(review.reviewed_user_id)
+            db.session.delete(review)
+
+        # Recalculate ratings for affected users
+        for user_id in affected_users:
+            recalculate_user_rating(user_id)
+
+        # Delete milestones
+        Milestone.query.filter_by(gig_id=gig_id).delete()
+
+        # Delete invoices
+        Invoice.query.filter_by(gig_id=gig_id).delete()
+
+        # Delete transactions
+        Transaction.query.filter_by(gig_id=gig_id).delete()
+
+        # Delete escrow records
+        Escrow.query.filter_by(gig_id=gig_id).delete()
+
+        # Delete applications
         Application.query.filter_by(gig_id=gig_id).delete()
 
+        # Finally delete the gig itself
         db.session.delete(gig)
         db.session.commit()
 
-        return jsonify({'message': 'Gig deleted successfully'}), 200
+        return jsonify({'message': 'Gig and all associated data deleted successfully'}), 200
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Admin delete gig error: {str(e)}")
