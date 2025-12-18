@@ -7113,6 +7113,20 @@ def init_database():
                 Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
                 Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
                 Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
+                Category(name='Programming & Tech', slug='programming', description='IT support, coding, app fixes, software development', icon='code-square'),
+                Category(name='Business Consulting', slug='consulting', description='Career advice, business strategy, executive consulting', icon='trending-up'),
+                Category(name='Engineering Services', slug='engineering', description='CAD, repairs, technical consulting, 3D design', icon='tool'),
+                Category(name='Music & Audio', slug='music', description='Music lessons, audio editing, voiceovers, production', icon='music'),
+                Category(name='Photography', slug='photography', description='Photo shoots, photo editing, retouching', icon='camera-alt'),
+                Category(name='Finance & Bookkeeping', slug='finance', description='Budgeting, basic accounting advice, bookkeeping', icon='dollar-sign'),
+                Category(name='Crafts & Handmade', slug='crafts', description='Custom handmade items, craft tutorials, DIY', icon='package'),
+                Category(name='Home & Garden', slug='garden', description='Home repairs, organization advice, gardening', icon='home'),
+                Category(name='Life Coaching', slug='coaching', description='Wellness coaching, mentoring, life advice', icon='heart'),
+                Category(name='Data Analysis', slug='data', description='Spreadsheets, research tasks, data entry', icon='bar-chart-2'),
+                Category(name='Pet Services', slug='pets', description='Pet sitting, dog walking, pet training', icon='award'),
+                Category(name='Handyman & Repairs', slug='handyman', description='Small home fixes, assembly, maintenance', icon='wrench'),
+                Category(name='Tour Guiding', slug='tours', description='Local and virtual tours, travel guiding', icon='map-pin'),
+                Category(name='Event Planning', slug='events', description='Small events, weddings, party planning', icon='calendar'),
             ]
             for cat in default_categories:
                 db.session.add(cat)
