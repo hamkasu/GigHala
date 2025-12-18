@@ -1939,7 +1939,17 @@ def dashboard():
 
     # Get stats
     total_gigs_posted = Gig.query.filter_by(client_id=user_id).count() if user.user_type in ['client', 'both'] else 0
-    total_applications = Application.query.filter_by(freelancer_id=user_id).count() if user.user_type in ['freelancer', 'both'] else 0
+    
+    # Count only active applications (pending/shortlisted) for non-completed/cancelled gigs
+    total_applications = 0
+    if user.user_type in ['freelancer', 'both']:
+        total_applications = db.session.query(Application).join(
+            Gig, Application.gig_id == Gig.id
+        ).filter(
+            Application.freelancer_id == user_id,
+            Application.status.in_(['pending', 'shortlisted']),
+            Gig.status.in_(['open', 'in_progress'])
+        ).count()
     
     # Count completed gigs - include both freelancer-side and client-side completed gigs
     total_gigs_completed = 0
