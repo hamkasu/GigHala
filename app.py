@@ -5494,7 +5494,11 @@ def get_categories():
         'icon': emoji_map.get(cat.slug, '📋')
     } for cat in categories]
 
-    return jsonify(result)
+    response = jsonify(result)
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 # Admin Routes
 @app.route('/admin')
