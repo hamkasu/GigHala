@@ -914,6 +914,7 @@ class Gig(db.Model):
     status = db.Column(db.String(20), default='open')  # open, in_progress, pending_review, completed, cancelled
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    agreed_amount = db.Column(db.Float)
     halal_compliant = db.Column(db.Boolean, default=True)
     halal_verified = db.Column(db.Boolean, default=False)
     is_instant_payout = db.Column(db.Boolean, default=False)
@@ -5426,6 +5427,7 @@ def admin_get_gigs():
         result = []
         for g in gigs.items:
             client = User.query.get(g.client_id)
+            worker = User.query.get(g.freelancer_id) if g.freelancer_id else None
             result.append({
                 'id': g.id,
                 'title': g.title,
@@ -5439,11 +5441,17 @@ def admin_get_gigs():
                 'views': g.views,
                 'applications': g.applications,
                 'created_at': g.created_at.isoformat(),
+                'agreed_amount': g.agreed_amount,
                 'client': {
                     'id': client.id,
                     'username': client.username,
                     'email': client.email
-                } if client else None
+                } if client else None,
+                'worker': {
+                    'id': worker.id,
+                    'username': worker.username,
+                    'email': worker.email
+                } if worker else None
             })
 
         return jsonify({
@@ -5474,6 +5482,10 @@ def admin_update_gig(gig_id):
         # Update halal verification
         if 'halal_verified' in data:
             gig.halal_verified = bool(data['halal_verified'])
+
+        # Update agreed amount
+        if 'agreed_amount' in data:
+            gig.agreed_amount = float(data['agreed_amount']) if data['agreed_amount'] else None
 
         db.session.commit()
 

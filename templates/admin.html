@@ -576,6 +576,7 @@
                         <th>ID</th>
                         <th>Title</th>
                         <th>Client</th>
+                        <th>Worker</th>
                         <th>Category</th>
                         <th>Budget</th>
                         <th>Status</th>
@@ -1035,6 +1036,7 @@
                     <td>${gig.id}</td>
                     <td>${gig.title}</td>
                     <td>${gig.client ? gig.client.username : 'N/A'}</td>
+                    <td>${gig.worker ? `${gig.worker.username}<br><small>RM ${gig.agreed_amount || 'N/A'}</small>` : 'Not assigned'}</td>
                     <td>${gig.category || 'N/A'}</td>
                     <td>RM ${gig.budget_min}-${gig.budget_max}</td>
                     <td><span class="badge ${gig.status.replace('_', '-')}">${gig.status}</span></td>
