@@ -3975,6 +3975,25 @@ def release_escrow(gig_id):
         escrow.status = 'released'
         escrow.released_at = datetime.utcnow()
 
+        # Create or update transaction record to track commission
+        transaction = Transaction.query.filter_by(gig_id=gig_id).first()
+        if not transaction:
+            transaction = Transaction(
+                gig_id=gig_id,
+                freelancer_id=gig.freelancer_id,
+                client_id=gig.client_id,
+                amount=escrow.amount,
+                commission=escrow.platform_fee,
+                net_amount=escrow.net_amount,
+                payment_method='escrow',
+                status='completed'
+            )
+            db.session.add(transaction)
+        else:
+            # Update existing transaction
+            transaction.commission = escrow.platform_fee
+            transaction.status = 'completed'
+
         # Update wallets
         client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
         freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
@@ -8646,6 +8665,25 @@ def resolve_dispute(dispute_id):
             elif resolution_type == 'release_payment':
                 escrow.status = 'released'
                 escrow.released_at = datetime.utcnow()
+
+                # Create or update transaction record to track commission
+                transaction = Transaction.query.filter_by(gig_id=escrow.gig_id).first()
+                if not transaction:
+                    transaction = Transaction(
+                        gig_id=escrow.gig_id,
+                        freelancer_id=escrow.freelancer_id,
+                        client_id=escrow.client_id,
+                        amount=escrow.amount,
+                        commission=escrow.platform_fee,
+                        net_amount=escrow.net_amount,
+                        payment_method='escrow',
+                        status='completed'
+                    )
+                    db.session.add(transaction)
+                else:
+                    # Update existing transaction
+                    transaction.commission = escrow.platform_fee
+                    transaction.status = 'completed'
         
         for user_id in [dispute.filed_by_id, dispute.against_id]:
             notification = Notification(
@@ -8863,7 +8901,26 @@ def approve_milestone(milestone_id):
         if all(m.status == 'released' for m in all_milestones):
             escrow.status = 'released'
             escrow.released_at = datetime.utcnow()
-            
+
+            # Create or update transaction record to track commission
+            transaction = Transaction.query.filter_by(gig_id=escrow.gig_id).first()
+            if not transaction:
+                transaction = Transaction(
+                    gig_id=escrow.gig_id,
+                    freelancer_id=escrow.freelancer_id,
+                    client_id=escrow.client_id,
+                    amount=escrow.amount,
+                    commission=escrow.platform_fee,
+                    net_amount=escrow.net_amount,
+                    payment_method='escrow',
+                    status='completed'
+                )
+                db.session.add(transaction)
+            else:
+                # Update existing transaction
+                transaction.commission = escrow.platform_fee
+                transaction.status = 'completed'
+
             gig = Gig.query.get(escrow.gig_id)
             if gig:
                 gig.status = 'completed'
