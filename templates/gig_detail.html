@@ -925,6 +925,184 @@
         background: #fee2e2;
         color: #dc2626;
     }
+
+    /* Rating System Styles */
+    .rating-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        border: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+
+    .rating-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .rating-card-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .rating-card-title {
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 16px;
+    }
+
+    .rating-card-subtitle {
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    .star-rating {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .star-rating .star {
+        font-size: 32px;
+        cursor: pointer;
+        color: #d1d5db;
+        transition: all 0.2s;
+    }
+
+    .star-rating .star:hover,
+    .star-rating .star.active {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+
+    .star-rating .star.hovered {
+        color: #fcd34d;
+    }
+
+    .rating-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        resize: vertical;
+        min-height: 80px;
+        margin-bottom: 16px;
+    }
+
+    .rating-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .rating-submit-btn {
+        width: 100%;
+        padding: 12px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .rating-submit-btn:hover {
+        background: var(--primary-hover);
+    }
+
+    .rating-submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .review-display {
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .review-display-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .review-display-stars {
+        color: #fbbf24;
+        font-size: 18px;
+    }
+
+    .review-display-author {
+        font-size: 12px;
+        color: var(--text-gray);
+    }
+
+    .review-display-comment {
+        font-size: 14px;
+        color: var(--text-dark);
+        line-height: 1.5;
+    }
+
+    .review-pending-badge {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .review-completed-badge {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .rating-target-info {
+        text-align: center;
+        margin-bottom: 16px;
+        padding: 12px;
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+    }
+
+    .rating-target-name {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .rating-target-role {
+        font-size: 12px;
+        color: var(--text-gray);
+    }
 </style>
 {% endblock %}
 
@@ -1237,6 +1415,86 @@
                     {{ 'Menunggu klien untuk mendana escrow' if lang == 'ms' else 'Waiting for client to fund escrow' }}
                 </p>
                 {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if gig.status == 'completed' and current_user and current_user.is_authenticated and (is_own_gig or is_freelancer) %}
+            <div class="sidebar-card rating-card">
+                <div class="rating-card-header">
+                    <div class="rating-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
+                    <div>
+                        <div class="rating-card-title">{{ 'Penilaian Bersama' if lang == 'ms' else 'Mutual Rating' }}</div>
+                        <div class="rating-card-subtitle">{{ 'Beri penilaian untuk gig ini' if lang == 'ms' else 'Rate this gig experience' }}</div>
+                    </div>
+                </div>
+
+                {% if user_has_reviewed %}
+                <div class="review-completed-badge" style="margin-bottom: 16px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    {{ 'Anda sudah memberi penilaian' if lang == 'ms' else 'You have already rated' }}
+                </div>
+                
+                {% if user_review %}
+                <div class="review-display">
+                    <div class="review-display-header">
+                        <div class="review-display-stars">
+                            {% for i in range(user_review.rating) %}★{% endfor %}{% for i in range(5 - user_review.rating) %}☆{% endfor %}
+                        </div>
+                        <div class="review-display-author">{{ 'Penilaian anda' if lang == 'ms' else 'Your rating' }}</div>
+                    </div>
+                    {% if user_review.comment %}
+                    <div class="review-display-comment">{{ user_review.comment }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="rating-target-info">
+                    {% if is_own_gig and freelancer_user %}
+                    <div class="rating-target-name">{{ freelancer_user.full_name or freelancer_user.username }}</div>
+                    <div class="rating-target-role">{{ 'Freelancer' if lang == 'ms' else 'Freelancer' }}</div>
+                    {% elif is_freelancer and client %}
+                    <div class="rating-target-name">{{ client.full_name or client.username }}</div>
+                    <div class="rating-target-role">{{ 'Klien' if lang == 'ms' else 'Client' }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="star-rating" id="starRating">
+                    <span class="star" data-rating="1">☆</span>
+                    <span class="star" data-rating="2">☆</span>
+                    <span class="star" data-rating="3">☆</span>
+                    <span class="star" data-rating="4">☆</span>
+                    <span class="star" data-rating="5">☆</span>
+                </div>
+
+                <textarea class="rating-textarea" id="ratingComment" placeholder="{{ 'Tulis ulasan anda (pilihan)...' if lang == 'ms' else 'Write your review (optional)...' }}"></textarea>
+
+                <button class="rating-submit-btn" id="submitRatingBtn" onclick="submitRating()" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    {{ 'Hantar Penilaian' if lang == 'ms' else 'Submit Rating' }}
+                </button>
+                {% endif %}
+
+                {% if other_party_review %}
+                <hr style="margin: 16px 0; border: none; border-top: 1px solid var(--border);">
+                <div class="review-display">
+                    <div class="review-display-header">
+                        <div class="review-display-stars">
+                            {% for i in range(other_party_review.rating) %}★{% endfor %}{% for i in range(5 - other_party_review.rating) %}☆{% endfor %}
+                        </div>
+                        <div class="review-display-author">{{ 'Oleh ' if lang == 'ms' else 'By ' }}{{ other_party_review.reviewer_name }}</div>
+                    </div>
+                    {% if other_party_review.comment %}
+                    <div class="review-display-comment">{{ other_party_review.comment }}</div>
+                    {% endif %}
+                </div>
+                {% elif not user_has_reviewed %}
+                <div class="review-pending-badge" style="margin-top: 16px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    {{ 'Pihak lain belum memberi penilaian' if lang == 'ms' else 'Other party has not rated yet' }}
+                </div>
                 {% endif %}
             </div>
             {% endif %}
@@ -1654,6 +1912,92 @@
         .catch(error => {
             console.error('Error:', error);
             alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    // Rating System
+    let selectedRating = 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const starRating = document.getElementById('starRating');
+        if (starRating) {
+            const stars = starRating.querySelectorAll('.star');
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.dataset.rating);
+                    updateStars(selectedRating);
+                    document.getElementById('submitRatingBtn').disabled = false;
+                });
+
+                star.addEventListener('mouseenter', function() {
+                    const hoverRating = parseInt(this.dataset.rating);
+                    stars.forEach((s, index) => {
+                        if (index < hoverRating) {
+                            s.classList.add('hovered');
+                            s.textContent = '★';
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseleave', function() {
+                    stars.forEach(s => s.classList.remove('hovered'));
+                    updateStars(selectedRating);
+                });
+            });
+        }
+    });
+
+    function updateStars(rating) {
+        const stars = document.querySelectorAll('#starRating .star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+                star.textContent = '★';
+            } else {
+                star.classList.remove('active');
+                star.textContent = '☆';
+            }
+        });
+    }
+
+    function submitRating() {
+        if (selectedRating < 1 || selectedRating > 5) {
+            alert('{{ "Sila pilih penilaian dari 1 hingga 5 bintang" if lang == "ms" else "Please select a rating from 1 to 5 stars" }}');
+            return;
+        }
+
+        const comment = document.getElementById('ratingComment').value.trim();
+        const button = document.getElementById('submitRatingBtn');
+        const originalText = button.innerHTML;
+
+        button.disabled = true;
+        button.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span> {{ "Menghantar..." if lang == "ms" else "Submitting..." }}';
+
+        fetch('/api/gigs/{{ gig.id }}/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                rating: selectedRating,
+                comment: comment
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                button.disabled = false;
+                button.innerHTML = originalText;
+            } else {
+                alert('{{ "Penilaian berjaya dihantar!" if lang == "ms" else "Rating submitted successfully!" }}');
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            button.disabled = false;
+            button.innerHTML = originalText;
         });
     }
 </script>

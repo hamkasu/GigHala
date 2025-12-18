@@ -1599,6 +1599,47 @@ def view_gig(gig_id):
                         'created_at': app_item.created_at
                     })
         
+        # Get reviews for this gig (for mutual rating display)
+        gig_reviews = []
+        user_has_reviewed = False
+        user_review = None
+        other_party_review = None
+        freelancer_user = None
+        
+        if gig.status == 'completed':
+            reviews = Review.query.filter_by(gig_id=gig_id).all()
+            for review in reviews:
+                reviewer = User.query.get(review.reviewer_id)
+                reviewee = User.query.get(review.reviewee_id)
+                review_data = {
+                    'id': review.id,
+                    'reviewer_id': review.reviewer_id,
+                    'reviewer_name': reviewer.full_name or reviewer.username if reviewer else 'Unknown',
+                    'reviewee_id': review.reviewee_id,
+                    'reviewee_name': reviewee.full_name or reviewee.username if reviewee else 'Unknown',
+                    'rating': review.rating,
+                    'comment': review.comment,
+                    'created_at': review.created_at
+                }
+                gig_reviews.append(review_data)
+                
+                # Check if current user has reviewed
+                if current_user and review.reviewer_id == current_user.id:
+                    user_has_reviewed = True
+                    user_review = review_data
+                # Get the other party's review based on role
+                elif current_user:
+                    # If current user is client, show freelancer's review
+                    if is_own_gig and review.reviewer_id == gig.freelancer_id:
+                        other_party_review = review_data
+                    # If current user is freelancer, show client's review
+                    elif is_freelancer and review.reviewer_id == gig.client_id:
+                        other_party_review = review_data
+            
+            # Get freelancer info for review form
+            if gig.freelancer_id:
+                freelancer_user = User.query.get(gig.freelancer_id)
+        
         return render_template('gig_detail.html',
                               gig=gig,
                               client=client,
@@ -1612,6 +1653,11 @@ def view_gig(gig_id):
                               escrow=escrow,
                               gig_photos=gig_photos,
                               gig_applications=gig_applications,
+                              gig_reviews=gig_reviews,
+                              user_has_reviewed=user_has_reviewed,
+                              user_review=user_review,
+                              other_party_review=other_party_review,
+                              freelancer_user=freelancer_user,
                               lang=get_user_language(),
                               t=t)
     except HTTPException:
