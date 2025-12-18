@@ -1941,7 +1941,21 @@ def dashboard():
     total_gigs_posted = Gig.query.filter_by(client_id=user_id).count() if user.user_type in ['client', 'both'] else 0
     total_gigs_completed = Gig.query.filter_by(freelancer_id=user_id, status='completed').count() if user.user_type in ['freelancer', 'both'] else 0
     total_applications = Application.query.filter_by(freelancer_id=user_id).count() if user.user_type in ['freelancer', 'both'] else 0
-    total_gigs_accepted = Application.query.filter_by(freelancer_id=user_id, status='accepted').count() if user.user_type in ['freelancer', 'both'] else 0
+    
+    # Count accepted gigs - include both freelancer-side and client-side accepted gigs
+    total_gigs_accepted = 0
+    if user.user_type in ['freelancer', 'both']:
+        # Gigs where user is freelancer with accepted application
+        total_gigs_accepted += Application.query.filter_by(freelancer_id=user_id, status='accepted').count()
+    if user.user_type in ['client', 'both']:
+        # Gigs where user is client who accepted an application
+        client_accepted = db.session.query(Application).join(
+            Gig, Application.gig_id == Gig.id
+        ).filter(
+            Gig.client_id == user_id,
+            Application.status == 'accepted'
+        ).count()
+        total_gigs_accepted += client_accepted
 
     # Get recent transactions
     recent_transactions = Transaction.query.filter(
