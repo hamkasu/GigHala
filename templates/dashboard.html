@@ -39,6 +39,24 @@
         overflow: hidden;
     }
 
+    .stat-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.2s ease;
+    }
+
+    .stat-card-link:hover .stat-card {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary);
+    }
+
+    .stat-card-link .stat-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
     .stat-card::before {
         content: '';
         position: absolute;
@@ -433,57 +451,69 @@
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card primary">
-        <div class="stat-label">{{ t('wallet_balance') }}</div>
-        <div class="stat-value">MYR {{ "%.2f"|format(wallet.balance) }}</div>
-        <div class="stat-description">{{ t('available_withdraw') }}</div>
-    </div>
+    <a href="/billing" class="stat-card-link">
+        <div class="stat-card primary">
+            <div class="stat-label">{{ t('wallet_balance') }}</div>
+            <div class="stat-value">MYR {{ "%.2f"|format(wallet.balance) }}</div>
+            <div class="stat-description">{{ t('available_withdraw') }}</div>
+        </div>
+    </a>
 
     {% if user.user_type in ['freelancer', 'both'] %}
-    <div class="stat-card green">
-        <div class="stat-label">{{ t('completed_gigs') }}</div>
-        <div class="stat-value">{{ total_gigs_completed }}</div>
-        <div class="stat-description">{{ t('successfully_finished') }}</div>
-    </div>
+    <a href="/accepted-gigs" class="stat-card-link">
+        <div class="stat-card green">
+            <div class="stat-label">{{ t('completed_gigs') }}</div>
+            <div class="stat-value">{{ total_gigs_completed }}</div>
+            <div class="stat-description">{{ t('successfully_finished') }}</div>
+        </div>
+    </a>
 
-    <div class="stat-card blue">
-        <div class="stat-label">{{ t('active_applications') }}</div>
-        <div class="stat-value">{{ total_applications }}</div>
-        <div class="stat-description">{{ t('submitted_proposals') }}</div>
-    </div>
+    <a href="/gigs" class="stat-card-link">
+        <div class="stat-card blue">
+            <div class="stat-label">{{ t('active_applications') }}</div>
+            <div class="stat-value">{{ total_applications }}</div>
+            <div class="stat-description">{{ t('submitted_proposals') }}</div>
+        </div>
+    </a>
     {% endif %}
 
     {% if user.user_type in ['client', 'both'] %}
-    <div class="stat-card orange">
-        <div class="stat-label">{{ t('posted_gigs') }}</div>
-        <div class="stat-value">{{ total_gigs_posted }}</div>
-        <div class="stat-description">{{ t('total_gigs_created') }}</div>
-    </div>
+    <a href="/gigs" class="stat-card-link">
+        <div class="stat-card orange">
+            <div class="stat-label">{{ t('posted_gigs') }}</div>
+            <div class="stat-value">{{ total_gigs_posted }}</div>
+            <div class="stat-description">{{ t('total_gigs_created') }}</div>
+        </div>
+    </a>
     {% endif %}
 
-    <div class="stat-card green">
-        <div class="stat-label">{{ t('total_earned') }}</div>
-        <div class="stat-value">MYR {{ "%.2f"|format(wallet.total_earned) }}</div>
-        <div class="stat-description">{{ t('all_time_earnings') }}</div>
-    </div>
+    <a href="/billing" class="stat-card-link">
+        <div class="stat-card green">
+            <div class="stat-label">{{ t('total_earned') }}</div>
+            <div class="stat-value">MYR {{ "%.2f"|format(wallet.total_earned) }}</div>
+            <div class="stat-description">{{ t('all_time_earnings') }}</div>
+        </div>
+    </a>
 
-    <div class="stat-card orange">
-        <div class="stat-label">{{ t('your_rating') }}</div>
-        <div class="stat-value">
-            {% if user.review_count > 0 %}
-            {{ "%.1f"|format(user.rating) }} ⭐
-            {% else %}
-            {{ t('no_ratings_yet') }}
-            {% endif %}
+    <a href="/portfolio" class="stat-card-link">
+        <div class="stat-card orange">
+            <div class="stat-label">{{ t('your_rating') }}</div>
+            <div class="stat-value">
+                {% if user.review_count > 0 %}
+                {{ "%.1f"|format(user.rating) }} ⭐
+                {% else %}
+                {{ t('no_ratings_yet') }}
+                {% endif %}
+            </div>
+            <div class="stat-description">
+                {% if user.review_count > 0 %}
+                {{ t('based_on_review' if user.review_count == 1 else 'based_on_reviews', count=user.review_count) }}
+                {% else %}
+                {{ t('complete_gigs_rated') }}
+                {% endif %}
+            </div>
         </div>
-        <div class="stat-description">
-            {% if user.review_count > 0 %}
-            {{ t('based_on_review' if user.review_count == 1 else 'based_on_reviews', count=user.review_count) }}
-            {% else %}
-            {{ t('complete_gigs_rated') }}
-            {% endif %}
-        </div>
-    </div>
+    </a>
 </div>
 
 <div class="dashboard-grid">
