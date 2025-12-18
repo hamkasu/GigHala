@@ -151,6 +151,8 @@ TRANSLATIONS = {
         'available_withdraw': 'Boleh dikeluarkan',
         'completed_gigs': 'Gig Selesai',
         'successfully_finished': 'Berjaya diselesaikan',
+        'accepted_gigs': 'Gig Diterima',
+        'applications_accepted': 'Permohonan diterima',
         'active_applications': 'Permohonan Aktif',
         'submitted_proposals': 'Cadangan dihantar',
         'posted_gigs': 'Gig Disiarkan',
@@ -361,6 +363,8 @@ TRANSLATIONS = {
         'available_withdraw': 'Available to withdraw',
         'completed_gigs': 'Completed Gigs',
         'successfully_finished': 'Successfully finished',
+        'accepted_gigs': 'Accepted Gigs',
+        'applications_accepted': 'Applications accepted',
         'active_applications': 'Active Applications',
         'submitted_proposals': 'Submitted proposals',
         'posted_gigs': 'Posted Gigs',
@@ -1937,6 +1941,7 @@ def dashboard():
     total_gigs_posted = Gig.query.filter_by(client_id=user_id).count() if user.user_type in ['client', 'both'] else 0
     total_gigs_completed = Gig.query.filter_by(freelancer_id=user_id, status='completed').count() if user.user_type in ['freelancer', 'both'] else 0
     total_applications = Application.query.filter_by(freelancer_id=user_id).count() if user.user_type in ['freelancer', 'both'] else 0
+    total_gigs_accepted = Application.query.filter_by(freelancer_id=user_id, status='accepted').count() if user.user_type in ['freelancer', 'both'] else 0
 
     # Get recent transactions
     recent_transactions = Transaction.query.filter(
@@ -1973,6 +1978,7 @@ def dashboard():
                          total_gigs_posted=total_gigs_posted,
                          total_gigs_completed=total_gigs_completed,
                          total_applications=total_applications,
+                         total_gigs_accepted=total_gigs_accepted,
                          recent_transactions=recent_transactions,
                          gigs_to_review=gigs_to_review,
                          recent_reviews=recent_reviews,
