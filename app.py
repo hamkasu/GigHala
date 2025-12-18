@@ -908,6 +908,7 @@ class Gig(db.Model):
     category = db.Column(db.String(50), nullable=False)
     budget_min = db.Column(db.Float, nullable=False)
     budget_max = db.Column(db.Float, nullable=False)
+    approved_budget = db.Column(db.Float)  # Actual amount approved by client
     duration = db.Column(db.String(50))  # e.g., "1-3 days", "1 week"
     location = db.Column(db.String(100))
     is_remote = db.Column(db.Boolean, default=True)
@@ -1718,8 +1719,12 @@ def post_gig():
             try:
                 budget_min = float(form_data['budget_min']) if form_data['budget_min'] else 0
                 budget_max = float(form_data['budget_max']) if form_data['budget_max'] else 0
+                approved_budget = float(form_data['approved_budget']) if form_data.get('approved_budget') else None
                 if budget_min < 0 or budget_max < 0 or budget_min > budget_max:
                     flash('Nilai budget tidak sah.', 'error')
+                    return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+                if approved_budget is not None and approved_budget < 0:
+                    flash('Nilai approved budget tidak sah.', 'error')
                     return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
             except (ValueError, TypeError):
                 flash('Format budget tidak sah.', 'error')
@@ -1752,6 +1757,7 @@ def post_gig():
                 category=category,
                 budget_min=budget_min,
                 budget_max=budget_max,
+                approved_budget=approved_budget,
                 duration=duration,
                 location=location,
                 is_remote=form_data['is_remote'],
@@ -1853,6 +1859,7 @@ def edit_gig(gig_id):
         'location': gig.location or '',
         'budget_min': gig.budget_min,
         'budget_max': gig.budget_max,
+        'approved_budget': gig.approved_budget or '',
         'deadline': gig.deadline.strftime('%Y-%m-%d') if gig.deadline else '',
         'is_remote': gig.is_remote,
         'halal_compliant': gig.halal_compliant,
@@ -1870,6 +1877,7 @@ def edit_gig(gig_id):
             'location': request.form.get('location', ''),
             'budget_min': request.form.get('budget_min', ''),
             'budget_max': request.form.get('budget_max', ''),
+            'approved_budget': request.form.get('approved_budget', ''),
             'deadline': request.form.get('deadline', ''),
             'is_remote': request.form.get('is_remote') == 'on',
             'halal_compliant': request.form.get('halal_compliant') == 'on',
@@ -1877,23 +1885,27 @@ def edit_gig(gig_id):
             'is_brand_partnership': request.form.get('is_brand_partnership') == 'on',
             'skills_required': request.form.get('skills_required', '[]')
         }
-        
+
         try:
             title = sanitize_input(form_data['title'], max_length=200)
             description = sanitize_input(form_data['description'], max_length=5000)
             category = sanitize_input(form_data['category'], max_length=50)
             duration = sanitize_input(form_data['duration'], max_length=50)
             location = sanitize_input(form_data['location'], max_length=100)
-            
+
             if not title or not description or not category:
                 flash('Sila isi semua maklumat yang diperlukan.', 'error')
                 return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
-            
+
             try:
                 budget_min = float(form_data['budget_min']) if form_data['budget_min'] else 0
                 budget_max = float(form_data['budget_max']) if form_data['budget_max'] else 0
+                approved_budget = float(form_data['approved_budget']) if form_data.get('approved_budget') else None
                 if budget_min < 0 or budget_max < 0 or budget_min > budget_max:
                     flash('Nilai budget tidak sah.', 'error')
+                    return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+                if approved_budget is not None and approved_budget < 0:
+                    flash('Nilai approved budget tidak sah.', 'error')
                     return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
             except (ValueError, TypeError):
                 flash('Format budget tidak sah.', 'error')
@@ -1930,6 +1942,7 @@ def edit_gig(gig_id):
             gig.category = category
             gig.budget_min = budget_min
             gig.budget_max = budget_max
+            gig.approved_budget = approved_budget
             gig.duration = duration
             gig.location = location
             gig.is_remote = form_data['is_remote']
@@ -2691,6 +2704,7 @@ def get_gigs():
                 'category': g.category,
                 'budget_min': g.budget_min,
                 'budget_max': g.budget_max,
+                'approved_budget': g.approved_budget,
                 'location': g.location,
                 'is_remote': g.is_remote,
                 'halal_compliant': g.halal_compliant,
@@ -2736,10 +2750,13 @@ def create_gig():
         try:
             budget_min = float(data['budget_min'])
             budget_max = float(data['budget_max'])
+            approved_budget = float(data['approved_budget']) if data.get('approved_budget') else None
             if budget_min < 0 or budget_max < 0 or budget_min > budget_max:
                 return jsonify({'error': 'Invalid budget values'}), 400
             if budget_min > 1000000 or budget_max > 1000000:
                 return jsonify({'error': 'Budget values too high'}), 400
+            if approved_budget is not None and (approved_budget < 0 or approved_budget > 1000000):
+                return jsonify({'error': 'Invalid approved budget value'}), 400
         except (ValueError, TypeError):
             return jsonify({'error': 'Invalid budget format'}), 400
 
@@ -2765,6 +2782,7 @@ def create_gig():
             category=category,
             budget_min=budget_min,
             budget_max=budget_max,
+            approved_budget=approved_budget,
             duration=duration,
             location=location,
             is_remote=bool(data.get('is_remote', True)),
@@ -2803,6 +2821,7 @@ def get_gig(gig_id):
         'category': gig.category,
         'budget_min': gig.budget_min,
         'budget_max': gig.budget_max,
+        'approved_budget': gig.approved_budget,
         'location': gig.location,
         'is_remote': gig.is_remote,
         'status': gig.status,
@@ -5591,6 +5610,7 @@ def admin_get_gigs():
                 'category': g.category,
                 'budget_min': g.budget_min,
                 'budget_max': g.budget_max,
+                'approved_budget': g.approved_budget,
                 'status': g.status,
                 'halal_compliant': g.halal_compliant,
                 'halal_verified': g.halal_verified,
@@ -5642,6 +5662,10 @@ def admin_update_gig(gig_id):
         # Update agreed amount
         if 'agreed_amount' in data:
             gig.agreed_amount = float(data['agreed_amount']) if data['agreed_amount'] else None
+
+        # Update approved budget
+        if 'approved_budget' in data:
+            gig.approved_budget = float(data['approved_budget']) if data['approved_budget'] else None
 
         db.session.commit()
 
