@@ -409,6 +409,7 @@ const app = {
             password: formData.get('password'),
             full_name: formData.get('full_name'),
             phone: formData.get('phone'),
+            ic_number: formData.get('ic_number'),
             location: formData.get('location'),
             user_type: formData.get('user_type'),
             privacy_consent: true

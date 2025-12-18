@@ -305,6 +305,8 @@ TRANSLATIONS = {
         'full_name': 'Nama Penuh',
         'username': 'Username',
         'phone_number': 'No. Telefon',
+        'ic_passport_no': 'No. MyKad / Passport',
+        'ic_passport_hint': 'Masukkan nombor MyKad (12 digit) atau nombor passport anda',
         'location': 'Lokasi',
         'select_location': 'Pilih lokasi',
         'register_as': 'Daftar sebagai',
@@ -517,6 +519,8 @@ TRANSLATIONS = {
         'full_name': 'Full Name',
         'username': 'Username',
         'phone_number': 'Phone Number',
+        'ic_passport_no': 'IC / Passport No.',
+        'ic_passport_hint': 'Enter your MyKad (12 digits) or passport number',
         'location': 'Location',
         'select_location': 'Select location',
         'register_as': 'Register as',
@@ -882,8 +886,8 @@ class User(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     halal_verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
-    # IC Number (Malaysian Identity Card - 12 digits)
-    ic_number = db.Column(db.String(12))
+    # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
+    ic_number = db.Column(db.String(20))
     # Bank account details for payment transfers
     bank_name = db.Column(db.String(100))
     bank_account_number = db.Column(db.String(30))
@@ -2503,6 +2507,16 @@ def register():
         if not data or not data.get('email') or not data.get('username') or not data.get('password'):
             return jsonify({'error': 'Missing required fields'}), 400
 
+        # Validate IC/Passport number (mandatory)
+        ic_number = data.get('ic_number', '').strip()
+        if not ic_number:
+            return jsonify({'error': 'IC/Passport number is required'}), 400
+        
+        # Validate IC format (12 digits for MyKad) or alphanumeric for passport
+        ic_number_clean = re.sub(r'[-\s]', '', ic_number)  # Remove dashes and spaces
+        if not re.match(r'^[A-Za-z0-9]{6,20}$', ic_number_clean):
+            return jsonify({'error': 'Invalid IC/Passport number format (6-20 alphanumeric characters)'}), 400
+
         # Validate privacy consent (PDPA 2010 requirement)
         if not data.get('privacy_consent'):
             return jsonify({'error': 'You must agree to the Privacy Policy to register'}), 400
@@ -2553,7 +2567,8 @@ def register():
             phone=data.get('phone'),
             full_name=full_name,
             user_type=user_type,
-            location=location
+            location=location,
+            ic_number=ic_number_clean
         )
 
         db.session.add(new_user)
