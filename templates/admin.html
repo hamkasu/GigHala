@@ -1038,7 +1038,7 @@
                     <td>${gig.client ? gig.client.username : 'N/A'}</td>
                     <td>${gig.worker ? `${gig.worker.username}<br><small>RM ${gig.agreed_amount || 'N/A'}</small>` : 'Not assigned'}</td>
                     <td>${gig.category || 'N/A'}</td>
-                    <td>RM ${gig.budget_min}-${gig.budget_max}</td>
+                    <td>RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</td>
                     <td><span class="badge ${gig.status.replace('_', '-')}">${gig.status}</span></td>
                     <td>
                         <div class="action-btns">

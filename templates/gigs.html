@@ -514,7 +514,7 @@
                             </div>
                             <div class="gig-price">
                                 <div class="price-label">${translations.budget}</div>
-                                <div class="price-value">RM ${gig.budget_min}-${gig.budget_max}</div>
+                                <div class="price-value">RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</div>
                             </div>
                         </div>
                     </div>

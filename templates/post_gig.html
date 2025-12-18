@@ -438,7 +438,7 @@
                         <label class="form-label">
                             Budget Minimum (RM) <span class="required">*</span>
                         </label>
-                        <input type="number" class="form-input" id="budget_min" name="budget_min" 
+                        <input type="number" class="form-input" id="budget_min" name="budget_min"
                                placeholder="100" min="1" required value="{{ form_data.budget_min if form_data else '' }}">
                     </div>
 
@@ -446,8 +446,20 @@
                         <label class="form-label">
                             Budget Maksimum (RM) <span class="required">*</span>
                         </label>
-                        <input type="number" class="form-input" id="budget_max" name="budget_max" 
+                        <input type="number" class="form-input" id="budget_max" name="budget_max"
                                placeholder="500" min="1" required value="{{ form_data.budget_max if form_data else '' }}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Approved Budget (RM)
+                            <small class="text-muted" style="font-weight: normal;">Jumlah sebenar yang diluluskan</small>
+                        </label>
+                        <input type="number" class="form-input" id="approved_budget" name="approved_budget"
+                               placeholder="300" min="1" step="0.01" value="{{ form_data.approved_budget if form_data else '' }}">
+                        <small class="form-text text-muted">Pilihan: Masukkan jumlah tepat yang telah diluluskan untuk gig ini</small>
                     </div>
                 </div>
 

@@ -228,7 +228,7 @@
                         <div class="gig-category">{{ item.gig.category }}</div>
                     </td>
                     <td class="price-cell">
-                        MYR {{ "%.2f"|format(item.gig.budget_min) }}{% if item.gig.budget_max %} - {{ "%.2f"|format(item.gig.budget_max) }}{% endif %}
+                        MYR {% if item.gig.approved_budget %}{{ "%.2f"|format(item.gig.approved_budget) }}{% else %}{{ "%.2f"|format(item.gig.budget_min) }} - {{ "%.2f"|format(item.gig.budget_max) }}{% endif %}
                     </td>
                     <td>
                         <span class="badge {{ item.gig.status }}">
