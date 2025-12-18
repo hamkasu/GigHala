@@ -6744,6 +6744,63 @@ def set_payment_gateway_setting():
         app.logger.error(f"Set payment gateway error: {str(e)}")
         return jsonify({'error': 'Failed to set payment gateway'}), 500
 
+@app.route('/api/admin/master-reset', methods=['POST'])
+@admin_required
+def admin_master_reset():
+    """Master reset - delete all data except user accounts"""
+    try:
+        data = request.get_json()
+        password = data.get('password')
+        
+        if not password:
+            return jsonify({'error': 'Password is required'}), 400
+        
+        user_id = session.get('user_id')
+        admin_user = User.query.get(user_id)
+        
+        if not admin_user or not check_password_hash(admin_user.password_hash, password):
+            return jsonify({'error': 'Invalid password'}), 401
+        
+        deleted_count = 0
+        
+        deleted_count += Notification.query.delete()
+        deleted_count += DisputeMessage.query.delete()
+        deleted_count += Milestone.query.delete()
+        deleted_count += Dispute.query.delete()
+        deleted_count += Message.query.delete()
+        deleted_count += Conversation.query.delete()
+        deleted_count += Review.query.delete()
+        deleted_count += PaymentHistory.query.delete()
+        deleted_count += Receipt.query.delete()
+        deleted_count += Invoice.query.delete()
+        deleted_count += Escrow.query.delete()
+        deleted_count += Transaction.query.delete()
+        deleted_count += Application.query.delete()
+        deleted_count += WorkPhoto.query.delete()
+        deleted_count += GigPhoto.query.delete()
+        deleted_count += PortfolioItem.query.delete()
+        deleted_count += PlatformFeedback.query.delete()
+        deleted_count += Payout.query.delete()
+        deleted_count += MicroTask.query.delete()
+        deleted_count += Referral.query.delete()
+        deleted_count += Gig.query.delete()
+        
+        Wallet.query.update({Wallet.balance: 0, Wallet.pending_balance: 0, Wallet.escrow_balance: 0})
+        
+        db.session.commit()
+        
+        app.logger.warning(f"MASTER RESET performed by admin user {user_id} ({admin_user.username}). Deleted {deleted_count} records.")
+        
+        return jsonify({
+            'message': 'Master reset completed successfully',
+            'deleted_count': deleted_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Master reset error: {str(e)}")
+        return jsonify({'error': f'Failed to perform reset: {str(e)}'}), 500
+
 # ==================== PAYMENT APPROVAL ROUTES ====================
 
 @app.route('/payments')

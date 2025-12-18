@@ -457,6 +457,7 @@
     <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
     <a href="/admin/feedback" class="tab-btn" style="text-decoration:none;">Feedback</a>
+    <button class="tab-btn" onclick="switchTab('reset')" style="color: #dc2626;">Reset Data</button>
 </div>
 
 <div id="dashboard-tab" class="tab-content active">
@@ -707,6 +708,61 @@
                     <div class="value" id="current-processing-fee">2%</div>
                     <div class="label">Based on selected gateway</div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="reset-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header" style="background: #fef2f2; border-bottom-color: #fecaca;">
+            <h2 style="color: #dc2626;">⚠️ Master Data Reset</h2>
+        </div>
+        <div style="padding: 24px;">
+            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                <h3 style="color: #dc2626; margin: 0 0 12px 0;">Warning: Destructive Action</h3>
+                <p style="color: #7f1d1d; margin: 0 0 16px 0;">This action will permanently delete all platform data except user account information. This cannot be undone.</p>
+                <div style="font-size: 14px; color: #991b1b;">
+                    <strong>What will be DELETED:</strong>
+                    <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                        <li>All gigs and applications</li>
+                        <li>All transactions, invoices, and receipts</li>
+                        <li>All messages and conversations</li>
+                        <li>All reviews and ratings</li>
+                        <li>All disputes and milestones</li>
+                        <li>All notifications</li>
+                        <li>All portfolio items</li>
+                        <li>All payouts and payment history</li>
+                        <li>All platform feedback</li>
+                    </ul>
+                </div>
+                <div style="font-size: 14px; color: #065f46; margin-top: 16px;">
+                    <strong>What will be PRESERVED:</strong>
+                    <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                        <li>User accounts (username, email, password)</li>
+                        <li>User profiles and settings</li>
+                        <li>Wallet balances (will be reset to 0)</li>
+                        <li>Identity verification status</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: var(--bg-light); border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                <h4 style="margin: 0 0 16px 0; color: var(--text-dark);">Security Confirmation</h4>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Type "RESET" to confirm:</label>
+                    <input type="text" id="reset-confirm-text" placeholder="Type RESET" style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; width: 100%; max-width: 300px; font-size: 16px;">
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Enter your admin password:</label>
+                    <input type="password" id="reset-admin-password" placeholder="Your password" style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; width: 100%; max-width: 300px; font-size: 16px;">
+                </div>
+                <button onclick="performMasterReset()" style="background: #dc2626; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer;">
+                    🗑️ Reset All Data
+                </button>
+            </div>
+            
+            <div id="reset-log" style="display: none; background: #1f2937; color: #10b981; padding: 16px; border-radius: 8px; font-family: monospace; font-size: 13px; max-height: 300px; overflow-y: auto;">
             </div>
         </div>
     </div>
@@ -1428,6 +1484,64 @@
     function closePayoutModal() {
         document.getElementById('payout-detail-modal').classList.remove('active');
         currentPayoutId = null;
+    }
+
+    async function performMasterReset() {
+        const confirmText = document.getElementById('reset-confirm-text').value;
+        const password = document.getElementById('reset-admin-password').value;
+        const resetLog = document.getElementById('reset-log');
+        
+        if (confirmText !== 'RESET') {
+            alert('Please type "RESET" to confirm.');
+            return;
+        }
+        
+        if (!password) {
+            alert('Please enter your admin password.');
+            return;
+        }
+        
+        if (!confirm('FINAL WARNING: This will permanently delete all platform data except user accounts. This action CANNOT be undone. Are you absolutely sure?')) {
+            return;
+        }
+        
+        resetLog.style.display = 'block';
+        resetLog.innerHTML = '> Starting master reset...\n';
+        
+        try {
+            const response = await fetch('/api/admin/master-reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                resetLog.innerHTML += '> Deleted gig applications...\n';
+                resetLog.innerHTML += '> Deleted transactions and payments...\n';
+                resetLog.innerHTML += '> Deleted messages and conversations...\n';
+                resetLog.innerHTML += '> Deleted reviews and ratings...\n';
+                resetLog.innerHTML += '> Deleted disputes and milestones...\n';
+                resetLog.innerHTML += '> Deleted notifications...\n';
+                resetLog.innerHTML += '> Deleted portfolio items...\n';
+                resetLog.innerHTML += '> Deleted gigs...\n';
+                resetLog.innerHTML += '> Reset wallet balances...\n';
+                resetLog.innerHTML += '> ✅ Master reset completed successfully!\n';
+                resetLog.innerHTML += `> Deleted: ${data.deleted_count || 'all'} records\n`;
+                
+                document.getElementById('reset-confirm-text').value = '';
+                document.getElementById('reset-admin-password').value = '';
+                
+                alert('Master reset completed successfully. All data has been cleared.');
+            } else {
+                resetLog.innerHTML += `> ❌ Error: ${data.error}\n`;
+                alert(data.error || 'Failed to perform reset');
+            }
+        } catch (error) {
+            resetLog.innerHTML += `> ❌ Error: ${error.message}\n`;
+            alert('An error occurred during reset');
+        }
     }
 
     checkAdminAccess();
