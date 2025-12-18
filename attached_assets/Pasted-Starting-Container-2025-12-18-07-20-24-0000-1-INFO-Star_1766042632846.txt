@@ -1,0 +1,104 @@
+Starting Container
+[2025-12-18 07:20:24 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-12-18 07:20:24 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+[2025-12-18 07:20:24 +0000] [1] [INFO] Using worker: sync
+[2025-12-18 07:20:24 +0000] [4] [INFO] Booting worker with pid: 4
+[2025-12-18 07:23:08,357] ERROR in app: Exception on /dashboard [GET]
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column gig.approved_budget does not exist
+LINE 1: ...gig_budget_min, gig.budget_max AS gig_budget_max, gig.approv...
+                                                             ^
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 869, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 867, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 852, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 849, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 1984, in dashboard
+    posted_gigs = Gig.query.filter_by(client_id=user_id).order_by(Gig.created_at.desc()).limit(5).all()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2351, in execute
+    return meth(
+    return self._execute_internal(
+           ^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2249, in _execute_internal
+    return connection._execute_clauseelement(
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+    result = conn.execute(
+          ^^^^^^^^^^^^^^^^^^^^^^
+             ^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+[SQL: SELECT gig.id AS gig_id, gig.title AS gig_title, gig.description AS gig_description, gig.category AS gig_category, gig.budget_min AS gig_budget_min, gig.budget_max AS gig_budget_max, gig.approved_budget AS gig_approved_budget, gig.duration AS gig_duration, gig.location AS gig_location, gig.is_remote AS gig_is_remote, gig.status AS gig_status, gig.client_id AS gig_client_id, gig.freelancer_id AS gig_freelancer_id, gig.agreed_amount AS gig_agreed_amount, gig.halal_compliant AS gig_halal_compliant, gig.halal_verified AS gig_halal_verified, gig.is_instant_payout AS gig_is_instant_payout, gig.is_brand_partnership AS gig_is_brand_partnership, gig.skills_required AS gig_skills_required, gig.created_at AS gig_created_at, gig.deadline AS gig_deadline, gig.views AS gig_views, gig.applications AS gig_applications 
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column gig.approved_budget does not exist
+LINE 1: ...gig_budget_min, gig.budget_max AS gig_budget_max, gig.approv...
+                                                             ^
+                                                             ^
+FROM gig 
+The above exception was the direct cause of the following exception:
+WHERE gig.client_id = %(client_id_1)s ORDER BY gig.created_at DESC 
+ LIMIT %(param_1)s]
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 1455, in wsgi_app
+[parameters: {'client_id_1': 6, 'param_1': 5}]
+    response = self.full_dispatch_request()
+(Background on this error at: https://sqlalche.me/e/20/f405)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2025-12-18 07:23:10,286] ERROR in app: Exception on /dashboard [GET]
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column gig.approved_budget does not exist
+LINE 1: ...gig_budget_min, gig.budget_max AS gig_budget_max, gig.approv...
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 869, in full_dispatch_request
+  File "/opt/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2704, in all
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/app.py", line 849, in decorated_function
