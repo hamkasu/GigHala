@@ -1646,6 +1646,30 @@ def view_gig(gig_id):
             if gig.freelancer_id:
                 freelancer_user = User.query.get(gig.freelancer_id)
         
+        # Get invoices and receipts for this gig
+        gig_invoices = []
+        gig_receipts = []
+        if current_user and (is_own_gig or is_freelancer):
+            invoices = Invoice.query.filter_by(gig_id=gig_id).order_by(Invoice.created_at.desc()).all()
+            for inv in invoices:
+                gig_invoices.append({
+                    'id': inv.id,
+                    'invoice_number': inv.invoice_number,
+                    'amount': inv.total_amount,
+                    'status': inv.status,
+                    'created_at': inv.created_at
+                })
+            
+            receipts = Receipt.query.filter_by(gig_id=gig_id).order_by(Receipt.created_at.desc()).all()
+            for rec in receipts:
+                gig_receipts.append({
+                    'id': rec.id,
+                    'receipt_number': rec.receipt_number,
+                    'receipt_type': rec.receipt_type,
+                    'amount': rec.total_amount,
+                    'created_at': rec.created_at
+                })
+        
         return render_template('gig_detail.html',
                               gig=gig,
                               client=client,
@@ -1664,6 +1688,8 @@ def view_gig(gig_id):
                               user_review=user_review,
                               other_party_review=other_party_review,
                               freelancer_user=freelancer_user,
+                              gig_invoices=gig_invoices,
+                              gig_receipts=gig_receipts,
                               lang=get_user_language(),
                               t=t)
     except HTTPException:
@@ -2065,6 +2091,25 @@ def dashboard():
     # Get recent reviews received
     recent_reviews = Review.query.filter_by(reviewee_id=user_id).order_by(Review.created_at.desc()).limit(5).all()
 
+    # Get recent invoices (as client or freelancer)
+    recent_invoices = Invoice.query.filter(
+        (Invoice.client_id == user_id) | (Invoice.freelancer_id == user_id)
+    ).order_by(Invoice.created_at.desc()).limit(5).all()
+    
+    # Enrich invoices with gig info
+    invoices_with_gigs = []
+    for inv in recent_invoices:
+        gig = Gig.query.get(inv.gig_id)
+        invoices_with_gigs.append({
+            'id': inv.id,
+            'invoice_number': inv.invoice_number,
+            'amount': inv.total_amount,
+            'status': inv.status,
+            'created_at': inv.created_at,
+            'gig_title': gig.title if gig else 'N/A',
+            'gig_id': inv.gig_id
+        })
+
     return render_template('dashboard.html',
                          user=user,
                          wallet=wallet,
@@ -2078,6 +2123,7 @@ def dashboard():
                          recent_transactions=recent_transactions,
                          gigs_to_review=gigs_to_review,
                          recent_reviews=recent_reviews,
+                         recent_invoices=invoices_with_gigs,
                          lang=get_user_language(),
                          t=t)
 

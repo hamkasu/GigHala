@@ -648,6 +648,35 @@
 
     <div class="section">
         <div class="section-header">
+            <h2 class="section-title">{{ t('recent_invoices') if t('recent_invoices') != 'recent_invoices' else 'Recent Invoices' }}</h2>
+            <a href="/documents" class="view-all">{{ t('view_all') if t('view_all') != 'view_all' else 'View All' }}</a>
+        </div>
+
+        {% if recent_invoices %}
+            {% for inv in recent_invoices %}
+            <a href="/invoice/{{ inv.id }}" class="gig-item" style="display: block; text-decoration: none; color: inherit;">
+                <div class="gig-title" style="display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    {{ inv.invoice_number }}
+                </div>
+                <div class="gig-meta">
+                    <span>{{ inv.gig_title }}</span>
+                    <span>MYR {{ "%.2f"|format(inv.amount) }}</span>
+                    <span><span class="badge {{ inv.status }}">{{ inv.status }}</span></span>
+                    <span>{{ inv.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📄</div>
+                <p>{{ t('no_invoices_yet') if t('no_invoices_yet') != 'no_invoices_yet' else 'No invoices yet' }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-header">
             <h2 class="section-title">{{ t('gigs_to_review') }}</h2>
         </div>
 
