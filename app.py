@@ -2402,7 +2402,11 @@ def settings():
     """User account settings page"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    return render_template('settings.html', user=user, lang=get_user_language(), t=t)
+    
+    # Get user's verification status
+    verification = IdentityVerification.query.filter_by(user_id=user_id).order_by(IdentityVerification.created_at.desc()).first()
+    
+    return render_template('settings.html', user=user, verification=verification, lang=get_user_language(), t=t)
 
 @app.route('/settings/profile', methods=['POST'])
 @page_login_required
@@ -2554,6 +2558,78 @@ def update_bank_details():
         db.session.rollback()
         app.logger.error(f"Bank update error: {str(e)}")
         flash('Ralat berlaku. Sila cuba lagi.', 'error')
+    
+    return redirect('/settings')
+
+@app.route('/settings/verification', methods=['POST'])
+@page_login_required
+def upload_verification_documents():
+    """Upload IC/passport documents for verification"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    try:
+        ic_front = request.files.get('ic_front')
+        ic_back = request.files.get('ic_back')
+        
+        if not ic_front or not ic_back:
+            flash('Sila muat naik kedua-dua gambar IC (depan dan belakang).', 'error')
+            return redirect('/settings')
+        
+        # Validate file types
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+        
+        def allowed_file(filename):
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+        
+        if not allowed_file(ic_front.filename) or not allowed_file(ic_back.filename):
+            flash('Format fail tidak sah. Sila muat naik gambar (PNG, JPG, JPEG, GIF, WEBP).', 'error')
+            return redirect('/settings')
+        
+        # Create verification folder if not exists
+        verification_folder = os.path.join(UPLOAD_FOLDER, 'verification', str(user_id))
+        os.makedirs(verification_folder, exist_ok=True)
+        
+        # Save files with secure names
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        front_ext = ic_front.filename.rsplit('.', 1)[1].lower()
+        back_ext = ic_back.filename.rsplit('.', 1)[1].lower()
+        
+        front_filename = f"ic_front_{timestamp}.{front_ext}"
+        back_filename = f"ic_back_{timestamp}.{back_ext}"
+        
+        ic_front.save(os.path.join(verification_folder, front_filename))
+        ic_back.save(os.path.join(verification_folder, back_filename))
+        
+        # Check if user already has pending verification
+        existing = IdentityVerification.query.filter_by(user_id=user_id, status='pending').first()
+        
+        if existing:
+            # Update existing pending verification
+            existing.ic_front_image = f"verification/{user_id}/{front_filename}"
+            existing.ic_back_image = f"verification/{user_id}/{back_filename}"
+            existing.ic_number = user.ic_number or ''
+            existing.full_name = user.full_name or user.username
+            existing.updated_at = datetime.utcnow()
+        else:
+            # Create new verification request
+            verification = IdentityVerification(
+                user_id=user_id,
+                ic_number=user.ic_number or '',
+                full_name=user.full_name or user.username,
+                ic_front_image=f"verification/{user_id}/{front_filename}",
+                ic_back_image=f"verification/{user_id}/{back_filename}",
+                status='pending'
+            )
+            db.session.add(verification)
+        
+        db.session.commit()
+        flash('Dokumen berjaya dimuat naik! Pengesahan sedang diproses.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Verification upload error: {str(e)}")
+        flash('Ralat berlaku semasa memuat naik dokumen. Sila cuba lagi.', 'error')
     
     return redirect('/settings')
 
@@ -8490,6 +8566,10 @@ def review_verification(verification_id):
         reason = data.get('reason', '')
         
         verification = IdentityVerification.query.get_or_404(verification_id)
+        
+        # Check if documents are uploaded before allowing approval
+        if action == 'approve' and (not verification.ic_front_image or not verification.ic_back_image):
+            return jsonify({'error': 'Cannot verify user without uploaded IC/passport documents (front and back).'}), 400
         
         if action == 'approve':
             verification.status = 'approved'

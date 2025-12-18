@@ -122,17 +122,25 @@
                 </div>
                 <div class="ic-preview">
                     {% if v.ic_front_image %}
-                    <a href="{{ v.ic_front_image }}" target="_blank"><img src="{{ v.ic_front_image }}" alt="IC Front"></a>
+                    <a href="/uploads/{{ v.ic_front_image }}" target="_blank"><img src="/uploads/{{ v.ic_front_image }}" alt="IC Front"></a>
+                    {% else %}
+                    <span style="color: #dc2626; font-size: 12px;">No Front</span>
                     {% endif %}
                     {% if v.ic_back_image %}
-                    <a href="{{ v.ic_back_image }}" target="_blank"><img src="{{ v.ic_back_image }}" alt="IC Back"></a>
+                    <a href="/uploads/{{ v.ic_back_image }}" target="_blank"><img src="/uploads/{{ v.ic_back_image }}" alt="IC Back"></a>
+                    {% else %}
+                    <span style="color: #dc2626; font-size: 12px;">No Back</span>
                     {% endif %}
                     {% if v.selfie_image %}
-                    <a href="{{ v.selfie_image }}" target="_blank"><img src="{{ v.selfie_image }}" alt="Selfie"></a>
+                    <a href="/uploads/{{ v.selfie_image }}" target="_blank"><img src="/uploads/{{ v.selfie_image }}" alt="Selfie"></a>
                     {% endif %}
                 </div>
                 <div class="action-btns">
+                    {% if v.ic_front_image and v.ic_back_image %}
                     <button class="btn-approve" onclick="reviewVerification({{ v.id }}, 'approve')">Approve</button>
+                    {% else %}
+                    <button class="btn-approve" disabled style="opacity: 0.5; cursor: not-allowed;" title="Documents required">Approve</button>
+                    {% endif %}
                     <button class="btn-reject" onclick="reviewVerification({{ v.id }}, 'reject')">Reject</button>
                 </div>
             </div>
@@ -181,7 +189,8 @@ async function reviewVerification(id, action) {
             document.getElementById(`verification-${id}`).remove();
             alert(`Verification ${action}d successfully`);
         } else {
-            alert('Failed to process verification');
+            const data = await response.json();
+            alert(data.error || 'Failed to process verification');
         }
     } catch (error) {
         alert('An error occurred');
