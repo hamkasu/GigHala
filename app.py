@@ -926,6 +926,7 @@ class Application(db.Model):
     status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected
     work_submitted = db.Column(db.Boolean, default=False)  # Track if work has been submitted
     work_submission_date = db.Column(db.DateTime)  # When work was submitted
+    completion_notes = db.Column(db.Text)  # Freelancer's notes when marking work as completed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Transaction(db.Model):
@@ -3172,6 +3173,49 @@ def reject_application(application_id):
         app.logger.error(f"Reject application error: {str(e)}")
         return jsonify({'error': 'Failed to reject application'}), 500
 
+@app.route('/api/gigs/<int:gig_id>', methods=['GET'])
+def get_gig_details(gig_id):
+    """Get gig details with client information and photos"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Check if user has access to this gig
+        if gig.client_id != user_id and gig.freelancer_id != user_id:
+            # Check if user has an application for this gig
+            application = Application.query.filter_by(gig_id=gig_id, freelancer_id=user_id).first()
+            if not application:
+                return jsonify({'error': 'Unauthorized'}), 403
+
+        # Get client information
+        client = User.query.get(gig.client_id)
+
+        # Get gig photos
+        photos = WorkPhoto.query.filter_by(gig_id=gig_id).all()
+
+        return jsonify({
+            'id': gig.id,
+            'title': gig.title,
+            'description': gig.description,
+            'category': gig.category,
+            'budget_min': gig.budget_min,
+            'budget_max': gig.budget_max,
+            'status': gig.status,
+            'client': {
+                'id': client.id,
+                'username': client.username,
+                'full_name': client.full_name
+            } if client else None,
+            'photos': [photo.to_dict() for photo in photos]
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get gig details error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch gig details'}), 500
+
 @app.route('/api/gigs/<int:gig_id>/mark-completed', methods=['POST'])
 def mark_gig_completed(gig_id):
     """Freelancer marks work as completed (ready for client to release payment)"""
@@ -3195,10 +3239,10 @@ def mark_gig_completed(gig_id):
         if not escrow or escrow.status != 'funded':
             return jsonify({'error': 'Escrow must be funded before completing work'}), 400
 
-        # Mark gig as completed
-        gig.status = 'completed'
+        # Get completion notes from form data
+        completion_notes = request.form.get('completion_notes', '')
 
-        # Update application status
+        # Update application status with completion notes
         application = Application.query.filter_by(
             gig_id=gig_id,
             freelancer_id=user_id,
@@ -3208,6 +3252,39 @@ def mark_gig_completed(gig_id):
         if application:
             application.work_submitted = True
             application.work_submission_date = datetime.utcnow()
+            application.completion_notes = completion_notes
+
+        # Handle completion photo uploads
+        completion_photos = request.files.getlist('completion_photos')
+        if completion_photos:
+            upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads/work_photos')
+            os.makedirs(upload_folder, exist_ok=True)
+
+            for photo in completion_photos:
+                if photo and photo.filename:
+                    # Secure filename and save
+                    filename = secure_filename(photo.filename)
+                    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+                    unique_filename = f"{gig_id}_{user_id}_{timestamp}_{filename}"
+                    file_path = os.path.join(upload_folder, unique_filename)
+                    photo.save(file_path)
+
+                    # Create WorkPhoto record
+                    work_photo = WorkPhoto(
+                        gig_id=gig_id,
+                        uploader_id=user_id,
+                        uploader_type='freelancer',
+                        filename=unique_filename,
+                        original_filename=filename,
+                        file_path=f'/uploads/work_photos/{unique_filename}',
+                        file_size=os.path.getsize(file_path),
+                        caption='Completion proof',
+                        upload_stage='completed'
+                    )
+                    db.session.add(work_photo)
+
+        # Mark gig as completed
+        gig.status = 'completed'
 
         db.session.commit()
 
