@@ -14,7 +14,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
+# Make entrypoint script executable
+RUN chmod +x entrypoint.sh
+
 ENV PORT=5000
 EXPOSE ${PORT}
 
-CMD gunicorn app:app --bind 0.0.0.0:${PORT} --workers 1 --timeout 180 --access-logfile - --error-logfile -
+# Use entrypoint script to run migrations before starting server
+ENTRYPOINT ["./entrypoint.sh"]
