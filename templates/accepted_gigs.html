@@ -215,6 +215,316 @@
             padding: 12px 16px;
         }
     }
+
+    /* Completion Modal Styles */
+    .completion-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        align-items: center;
+        justify-content: center;
+        overflow-y: auto;
+        padding: 20px;
+    }
+
+    .completion-modal.active {
+        display: flex;
+    }
+
+    .completion-modal-content {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .completion-modal-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: var(--bg-white);
+        z-index: 1;
+    }
+
+    .completion-modal-header h2 {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0 0 6px 0;
+    }
+
+    .completion-modal-header p {
+        color: var(--text-gray);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .completion-modal-body {
+        padding: 28px;
+    }
+
+    .completion-section {
+        margin-bottom: 24px;
+    }
+
+    .completion-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .completion-section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .completion-section-title svg {
+        width: 18px;
+        height: 18px;
+        color: var(--primary);
+    }
+
+    .gig-info-box {
+        background: var(--bg-light);
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border-left: 3px solid var(--primary);
+    }
+
+    .gig-info-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .gig-info-description {
+        color: var(--text-gray);
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .client-info-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-light);
+        padding: 12px;
+        border-radius: var(--radius-md);
+    }
+
+    .client-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .client-details h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0 0 4px 0;
+    }
+
+    .client-details p {
+        font-size: 13px;
+        color: var(--text-gray);
+        margin: 0;
+    }
+
+    .photos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .photo-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .photo-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-group textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        transition: border-color 0.2s;
+    }
+
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--primary);
+        background: var(--bg-light);
+    }
+
+    .file-upload-area.drag-over {
+        border-color: var(--primary);
+        background: var(--bg-light);
+    }
+
+    .file-upload-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
+    .file-upload-text {
+        color: var(--text-gray);
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .file-upload-hint {
+        color: var(--text-light);
+        font-size: 12px;
+    }
+
+    .file-upload-input {
+        display: none;
+    }
+
+    .uploaded-files {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .uploaded-file-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .uploaded-file-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .uploaded-file-remove {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .uploaded-file-remove:hover {
+        background: #dc2626;
+    }
+
+    .completion-modal-footer {
+        padding: 20px 28px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        position: sticky;
+        bottom: 0;
+        background: var(--bg-white);
+    }
+
+    .modal-btn {
+        padding: 10px 20px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .modal-btn-cancel {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+
+    .modal-btn-cancel:hover {
+        background: #d1d5db;
+    }
+
+    .modal-btn-submit {
+        background: var(--primary);
+        color: white;
+    }
+
+    .modal-btn-submit:hover {
+        background: var(--primary-dark);
+    }
+
+    .modal-btn-submit:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
 </style>
 {% endblock %}
 
@@ -318,42 +628,306 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Completion Modal -->
+    <div id="completionModal" class="completion-modal">
+        <div class="completion-modal-content">
+            <div class="completion-modal-header">
+                <h2>{{ 'Tandai Kerja Selesai' if lang == 'ms' else 'Mark Work as Completed' }}</h2>
+                <p>{{ 'Lengkapkan borang ini untuk menandakan kerja anda telah selesai' if lang == 'ms' else 'Complete this form to mark your work as done' }}</p>
+            </div>
+
+            <div class="completion-modal-body">
+                <!-- Gig Information -->
+                <div class="completion-section">
+                    <div class="completion-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {{ 'Maklumat Gig' if lang == 'ms' else 'Gig Information' }}
+                    </div>
+                    <div class="gig-info-box">
+                        <div class="gig-info-title" id="modalGigTitle"></div>
+                        <div class="gig-info-description" id="modalGigDescription"></div>
+                    </div>
+                </div>
+
+                <!-- Client Information -->
+                <div class="completion-section">
+                    <div class="completion-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        {{ 'Klien' if lang == 'ms' else 'Client' }}
+                    </div>
+                    <div class="client-info-box">
+                        <div class="client-avatar" id="modalClientAvatar"></div>
+                        <div class="client-details">
+                            <h4 id="modalClientName"></h4>
+                            <p id="modalClientRole">{{ 'Klien' if lang == 'ms' else 'Client' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Gig Photos -->
+                <div class="completion-section" id="existingPhotosSection" style="display: none;">
+                    <div class="completion-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {{ 'Foto Gig' if lang == 'ms' else 'Gig Photos' }}
+                    </div>
+                    <div class="photos-grid" id="modalExistingPhotos"></div>
+                </div>
+
+                <!-- Completion Notes -->
+                <div class="completion-section">
+                    <div class="form-group">
+                        <label for="completionNotes">
+                            {{ 'Catatan / Komen' if lang == 'ms' else 'Notes / Comments' }}
+                            <span style="color: #ef4444;">*</span>
+                        </label>
+                        <textarea
+                            id="completionNotes"
+                            placeholder="{{ 'Terangkan kerja yang telah anda selesaikan, sebarang nota penting atau butiran tambahan untuk klien...' if lang == 'ms' else 'Describe the work you completed, any important notes or additional details for the client...' }}"
+                            required
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- Photo Upload for Completion Proof -->
+                <div class="completion-section">
+                    <div class="form-group">
+                        <label>
+                            {{ 'Muat Naik Foto Bukti Kerja' if lang == 'ms' else 'Upload Proof of Work Photos' }}
+                            <span style="color: #ef4444;">*</span>
+                        </label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <div class="file-upload-icon">📸</div>
+                            <div class="file-upload-text">
+                                {{ 'Klik untuk memilih foto atau seret & lepas di sini' if lang == 'ms' else 'Click to select photos or drag & drop here' }}
+                            </div>
+                            <div class="file-upload-hint">
+                                {{ 'PNG, JPG, JPEG (maksimum 5MB setiap foto)' if lang == 'ms' else 'PNG, JPG, JPEG (max 5MB per photo)' }}
+                            </div>
+                        </div>
+                        <input
+                            type="file"
+                            id="completionPhotos"
+                            class="file-upload-input"
+                            accept="image/*"
+                            multiple
+                            required
+                        />
+                        <div class="uploaded-files" id="uploadedFilesPreview"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="completion-modal-footer">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeCompletionModal()">
+                    {{ 'Batal' if lang == 'ms' else 'Cancel' }}
+                </button>
+                <button type="button" class="modal-btn modal-btn-submit" id="submitCompletionBtn" onclick="submitCompletion()">
+                    {{ 'Hantar & Tandai Selesai' if lang == 'ms' else 'Submit & Mark Completed' }}
+                </button>
+            </div>
+        </div>
+    </div>
 </main>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+let currentGigId = null;
+let selectedFiles = [];
+
 function markGigCompleted(gigId, button) {
-    if (!confirm('{{ "Adakah anda pasti kerja sudah selesai? Klien akan dapat melepaskan pembayaran selepas ini." if lang == "ms" else "Are you sure the work is completed? The client will be able to release payment after this." }}')) {
+    currentGigId = gigId;
+
+    // Fetch gig details to populate the modal
+    fetch('/api/gigs/' + gigId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+
+            // Populate modal with gig details
+            document.getElementById('modalGigTitle').textContent = data.title;
+            document.getElementById('modalGigDescription').textContent = data.description || '{{ "Tiada keterangan" if lang == "ms" else "No description" }}';
+
+            // Populate client information
+            if (data.client) {
+                const initials = data.client.username.substring(0, 2).toUpperCase();
+                document.getElementById('modalClientAvatar').textContent = initials;
+                document.getElementById('modalClientName').textContent = data.client.full_name || data.client.username;
+            }
+
+            // Populate existing photos if any
+            if (data.photos && data.photos.length > 0) {
+                document.getElementById('existingPhotosSection').style.display = 'block';
+                const photosGrid = document.getElementById('modalExistingPhotos');
+                photosGrid.innerHTML = '';
+                data.photos.forEach(photo => {
+                    const photoDiv = document.createElement('div');
+                    photoDiv.className = 'photo-item';
+                    photoDiv.innerHTML = `<img src="${photo.file_path}" alt="${photo.caption || 'Gig photo'}" />`;
+                    photosGrid.appendChild(photoDiv);
+                });
+            } else {
+                document.getElementById('existingPhotosSection').style.display = 'none';
+            }
+
+            // Clear previous form data
+            document.getElementById('completionNotes').value = '';
+            document.getElementById('completionPhotos').value = '';
+            selectedFiles = [];
+            updateFilePreview();
+
+            // Show modal
+            document.getElementById('completionModal').classList.add('active');
+        })
+        .catch(error => {
+            console.error('Error fetching gig details:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+}
+
+function closeCompletionModal() {
+    document.getElementById('completionModal').classList.remove('active');
+    currentGigId = null;
+    selectedFiles = [];
+}
+
+// File upload handling
+const fileUploadArea = document.getElementById('fileUploadArea');
+const fileInput = document.getElementById('completionPhotos');
+
+fileUploadArea.addEventListener('click', () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+});
+
+// Drag and drop
+fileUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.add('drag-over');
+});
+
+fileUploadArea.addEventListener('dragleave', () => {
+    fileUploadArea.classList.remove('drag-over');
+});
+
+fileUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(files) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+
+    Array.from(files).forEach(file => {
+        if (!allowedTypes.includes(file.type)) {
+            alert('{{ "Jenis fail tidak sah. Sila muat naik PNG, JPG atau JPEG." if lang == "ms" else "Invalid file type. Please upload PNG, JPG or JPEG." }}');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            alert('{{ "Saiz fail terlalu besar. Maksimum 5MB setiap foto." if lang == "ms" else "File size too large. Maximum 5MB per photo." }}');
+            return;
+        }
+
+        selectedFiles.push(file);
+    });
+
+    updateFilePreview();
+}
+
+function updateFilePreview() {
+    const previewContainer = document.getElementById('uploadedFilesPreview');
+    previewContainer.innerHTML = '';
+
+    selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'uploaded-file-item';
+            fileDiv.innerHTML = `
+                <img src="${e.target.result}" alt="${file.name}" />
+                <button class="uploaded-file-remove" onclick="removeFile(${index})" type="button">×</button>
+            `;
+            previewContainer.appendChild(fileDiv);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    updateFilePreview();
+}
+
+async function submitCompletion() {
+    const notes = document.getElementById('completionNotes').value.trim();
+
+    if (!notes) {
+        alert('{{ "Sila masukkan catatan/komen" if lang == "ms" else "Please enter notes/comments" }}');
         return;
     }
 
-    // Disable button and show loading
-    const originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = '{{ "Memproses..." if lang == "ms" else "Processing..." }}';
+    if (selectedFiles.length === 0) {
+        alert('{{ "Sila muat naik sekurang-kurangnya satu foto bukti kerja" if lang == "ms" else "Please upload at least one proof of work photo" }}');
+        return;
+    }
 
-    fetch('/api/gigs/' + gigId + '/mark-completed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-            button.disabled = false;
-            button.innerHTML = originalText;
-        } else {
+    const submitBtn = document.getElementById('submitCompletionBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '{{ "Menghantar..." if lang == "ms" else "Submitting..." }}';
+
+    try {
+        // Create FormData to send files and data
+        const formData = new FormData();
+        formData.append('completion_notes', notes);
+        selectedFiles.forEach((file, index) => {
+            formData.append('completion_photos', file);
+        });
+
+        const response = await fetch('/api/gigs/' + currentGigId + '/mark-completed', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
             alert(data.message || '{{ "Kerja ditandakan sebagai selesai!" if lang == "ms" else "Work marked as completed!" }}');
+            closeCompletionModal();
             window.location.reload();
+        } else {
+            alert(data.error || '{{ "Ralat berlaku" if lang == "ms" else "An error occurred" }}');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '{{ "Hantar & Tandai Selesai" if lang == "ms" else "Submit & Mark Completed" }}';
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
         alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
-        button.disabled = false;
-        button.innerHTML = originalText;
-    });
+        submitBtn.disabled = false;
+        submitBtn.textContent = '{{ "Hantar & Tandai Selesai" if lang == "ms" else "Submit & Mark Completed" }}';
+    }
 }
+
+// Close modal when clicking outside
+document.getElementById('completionModal').addEventListener('click', (e) => {
+    if (e.target.id === 'completionModal') {
+        closeCompletionModal();
+    }
+});
 </script>
 {% endblock %}
