@@ -1939,8 +1939,16 @@ def dashboard():
 
     # Get stats
     total_gigs_posted = Gig.query.filter_by(client_id=user_id).count() if user.user_type in ['client', 'both'] else 0
-    total_gigs_completed = Gig.query.filter_by(freelancer_id=user_id, status='completed').count() if user.user_type in ['freelancer', 'both'] else 0
     total_applications = Application.query.filter_by(freelancer_id=user_id).count() if user.user_type in ['freelancer', 'both'] else 0
+    
+    # Count completed gigs - include both freelancer-side and client-side completed gigs
+    total_gigs_completed = 0
+    if user.user_type in ['freelancer', 'both']:
+        # Gigs where user is freelancer and gig is completed
+        total_gigs_completed += Gig.query.filter_by(freelancer_id=user_id, status='completed').count()
+    if user.user_type in ['client', 'both']:
+        # Gigs where user is client and gig is completed
+        total_gigs_completed += Gig.query.filter_by(client_id=user_id, status='completed').count()
     
     # Count accepted gigs - include both freelancer-side and client-side accepted gigs
     total_gigs_accepted = 0
@@ -2053,6 +2061,62 @@ def accepted_gigs():
                          user=user,
                          accepted_gigs=accepted_gigs_list,
                          active_page='accepted-gigs',
+                         lang=get_user_language(),
+                         t=t)
+
+@app.route('/completed-gigs')
+@page_login_required
+def completed_gigs():
+    """Page showing all completed gigs for the user"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    completed_gigs_list = []
+    
+    # Get gigs where user is the freelancer and gig is completed
+    if user.user_type in ['freelancer', 'both']:
+        freelancer_completed = Gig.query.filter_by(
+            freelancer_id=user_id, 
+            status='completed'
+        ).order_by(Gig.created_at.desc()).all()
+        
+        for gig in freelancer_completed:
+            client = User.query.get(gig.client_id)
+            # Get the accepted application for price
+            app = Application.query.filter_by(gig_id=gig.id, freelancer_id=user_id, status='accepted').first()
+            completed_gigs_list.append({
+                'gig': gig,
+                'application': app,
+                'role': 'freelancer',
+                'other_party': client,
+                'proposed_price': app.proposed_price if app else gig.budget_min
+            })
+    
+    # Get gigs where user is the client and gig is completed
+    if user.user_type in ['client', 'both']:
+        client_completed = Gig.query.filter_by(
+            client_id=user_id, 
+            status='completed'
+        ).order_by(Gig.created_at.desc()).all()
+        
+        for gig in client_completed:
+            # Avoid duplicates if user is both client and freelancer on same gig
+            if not any(item['gig'].id == gig.id for item in completed_gigs_list):
+                freelancer = User.query.get(gig.freelancer_id) if gig.freelancer_id else None
+                # Get the accepted application for price
+                app = Application.query.filter_by(gig_id=gig.id, status='accepted').first()
+                completed_gigs_list.append({
+                    'gig': gig,
+                    'application': app,
+                    'role': 'client',
+                    'other_party': freelancer,
+                    'proposed_price': app.proposed_price if app else gig.budget_min
+                })
+    
+    return render_template('completed_gigs.html',
+                         user=user,
+                         completed_gigs=completed_gigs_list,
+                         active_page='completed-gigs',
                          lang=get_user_language(),
                          t=t)
 
