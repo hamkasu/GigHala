@@ -3570,15 +3570,73 @@ def submit_work(gig_id):
         # Update gig status to pending review
         gig.status = 'pending_review'
 
+        # Create invoice for the client
+        # Check if invoice already exists for this gig
+        existing_invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+
+        if not existing_invoice:
+            # Get the agreed amount from the gig
+            amount = gig.agreed_amount if gig.agreed_amount else gig.budget
+
+            # Calculate commission using tiered structure
+            commission = calculate_commission(amount)
+
+            # Generate invoice number
+            import random
+            invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+            # Create invoice with status 'issued' (not yet paid)
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                gig_id=gig_id,
+                client_id=gig.client_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=commission,
+                tax_amount=0.0,
+                total_amount=amount,
+                status='issued',  # Will be marked as 'paid' when client pays
+                due_date=datetime.utcnow() + timedelta(days=7),  # 7 days to pay
+                notes=f'Invoice for completed work: {gig.title}'
+            )
+            db.session.add(invoice)
+            db.session.flush()  # Get invoice ID
+
+            # Create notification for client about the invoice
+            client_notification = Notification(
+                user_id=gig.client_id,
+                notification_type='payment',
+                title='Invoice Created',
+                message=f'Invoice {invoice_number} created for gig: {gig.title}. Amount: MYR {amount:.2f}',
+                link=f'/invoice/{invoice.id}',
+                related_id=invoice.id
+            )
+            db.session.add(client_notification)
+
+            # Create notification for worker about the invoice
+            worker_notification = Notification(
+                user_id=gig.freelancer_id,
+                notification_type='payment',
+                title='Invoice Issued',
+                message=f'Invoice {invoice_number} issued to client for gig: {gig.title}. You will receive MYR {amount - commission:.2f} after payment.',
+                link=f'/invoice/{invoice.id}',
+                related_id=invoice.id
+            )
+            db.session.add(worker_notification)
+
         db.session.commit()
 
         return jsonify({
-            'message': 'Work submitted successfully. Waiting for client review.',
+            'message': 'Work submitted successfully. Invoice created and shared. Waiting for client review.',
             'gig': {
                 'id': gig.id,
                 'status': gig.status,
                 'work_photos_count': work_photos
-            }
+            },
+            'invoice': {
+                'id': invoice.id if not existing_invoice else existing_invoice.id,
+                'invoice_number': invoice.invoice_number if not existing_invoice else existing_invoice.invoice_number
+            } if not existing_invoice or invoice else None
         }), 200
 
     except Exception as e:
@@ -3611,14 +3669,47 @@ def approve_work(gig_id):
         freelancer = User.query.get(gig.freelancer_id)
         freelancer.completed_gigs += 1
 
+        # Check if escrow exists and send reminder notification
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+
+        if escrow and escrow.status == 'funded':
+            # Notify client to release payment
+            client_notification = Notification(
+                user_id=gig.client_id,
+                notification_type='payment',
+                title='Release Payment',
+                message=f'Work approved for "{gig.title}". Please release the escrow payment to complete the transaction.',
+                link=f'/escrow',
+                related_id=gig.id
+            )
+            db.session.add(client_notification)
+
+        # Notify freelancer that work was approved
+        freelancer_notification = Notification(
+            user_id=gig.freelancer_id,
+            notification_type='work_completed',
+            title='Work Approved',
+            message=f'Your work for "{gig.title}" has been approved by the client. Awaiting payment release.',
+            link=f'/gig/{gig.id}',
+            related_id=gig.id
+        )
+        db.session.add(freelancer_notification)
+
         db.session.commit()
 
         return jsonify({
-            'message': 'Work approved! Gig marked as completed.',
+            'message': 'Work approved! Gig marked as completed. Please release payment if escrow is funded.',
             'gig': {
                 'id': gig.id,
                 'status': gig.status
-            }
+            },
+            'invoice': {
+                'id': invoice.id,
+                'invoice_number': invoice.invoice_number,
+                'status': invoice.status
+            } if invoice else None,
+            'has_escrow': escrow is not None and escrow.status == 'funded'
         }), 200
 
     except Exception as e:
@@ -3840,11 +3931,11 @@ def release_escrow(gig_id):
     """Release escrow funds to freelancer (client action after work approval)"""
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     try:
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
-        
+
         # Only client can release escrow
         if gig.client_id != user_id:
             return jsonify({'error': 'Only the client can release escrow'}), 403
@@ -3860,26 +3951,26 @@ def release_escrow(gig_id):
 
         if escrow.status != 'funded':
             return jsonify({'error': f'Escrow cannot be released (status: {escrow.status})'}), 400
-        
+
         # Release escrow
         escrow.status = 'released'
         escrow.released_at = datetime.utcnow()
-        
+
         # Update wallets
         client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
         freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
-        
+
         if client_wallet:
             client_wallet.held_balance -= escrow.amount
             client_wallet.total_spent += escrow.amount
-        
+
         if not freelancer_wallet:
             freelancer_wallet = Wallet(user_id=gig.freelancer_id)
             db.session.add(freelancer_wallet)
-        
+
         freelancer_wallet.balance += escrow.net_amount
         freelancer_wallet.total_earned += escrow.net_amount
-        
+
         # Record payment history
         payment_history = PaymentHistory(
             user_id=gig.freelancer_id,
@@ -3891,14 +3982,79 @@ def release_escrow(gig_id):
             reference_number=escrow.payment_reference
         )
         db.session.add(payment_history)
-        
+
+        # Mark invoice as paid (if exists)
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+        if invoice and invoice.status != 'paid':
+            invoice.status = 'paid'
+            invoice.paid_at = datetime.utcnow()
+            invoice.payment_method = 'escrow'
+            invoice.payment_reference = escrow.payment_reference
+
+        # Create payment receipt
+        # Check if receipt already exists for this payment
+        existing_receipt = Receipt.query.filter_by(
+            gig_id=gig_id,
+            receipt_type='payment'
+        ).first()
+
+        receipt = None
+        if not existing_receipt:
+            receipt = Receipt(
+                receipt_number=generate_receipt_number('payment'),
+                receipt_type='payment',
+                user_id=gig.client_id,  # Receipt issued to client (payer)
+                gig_id=gig_id,
+                escrow_id=escrow.id,
+                invoice_id=invoice.id if invoice else None,
+                amount=escrow.amount,
+                platform_fee=escrow.platform_fee,
+                total_amount=escrow.amount,
+                payment_method='escrow',
+                payment_reference=escrow.payment_reference,
+                description=f"Payment receipt for gig: {gig.title}"
+            )
+            db.session.add(receipt)
+            db.session.flush()  # Get receipt ID
+
+            # Create notification for client about the receipt
+            client_notification = Notification(
+                user_id=gig.client_id,
+                notification_type='payment',
+                title='Payment Receipt',
+                message=f'Payment of MYR {escrow.amount:.2f} processed for gig: {gig.title}. Receipt #{receipt.receipt_number}',
+                link=f'/receipt/{receipt.id}',
+                related_id=receipt.id
+            )
+            db.session.add(client_notification)
+
+            # Create notification for worker about payment received
+            worker_notification = Notification(
+                user_id=gig.freelancer_id,
+                notification_type='payment',
+                title='Payment Received',
+                message=f'Payment of MYR {escrow.net_amount:.2f} received for gig: {gig.title}. Receipt #{receipt.receipt_number}',
+                link=f'/receipt/{receipt.id}',
+                related_id=receipt.id
+            )
+            db.session.add(worker_notification)
+
         db.session.commit()
-        
+
         return jsonify({
-            'message': 'Escrow released successfully! Funds transferred to freelancer.',
-            'escrow': escrow.to_dict()
+            'message': 'Payment completed! Invoice marked as paid and receipt created.',
+            'escrow': escrow.to_dict(),
+            'invoice': {
+                'id': invoice.id,
+                'invoice_number': invoice.invoice_number,
+                'status': invoice.status
+            } if invoice else None,
+            'receipt': {
+                'id': receipt.id if receipt else existing_receipt.id,
+                'receipt_number': receipt.receipt_number if receipt else existing_receipt.receipt_number
+            } if receipt or existing_receipt else None
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Release escrow error: {str(e)}")
