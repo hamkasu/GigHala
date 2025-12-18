@@ -5224,7 +5224,7 @@ def admin_delete_gig(gig_id):
         reviews = Review.query.filter_by(gig_id=gig_id).all()
         affected_users = set()
         for review in reviews:
-            affected_users.add(review.reviewed_user_id)
+            affected_users.add(review.reviewee_id)
             db.session.delete(review)
 
         # Recalculate ratings for affected users
