@@ -2036,6 +2036,66 @@ def accepted_gigs():
                          lang=get_user_language(),
                          t=t)
 
+@app.route('/my-applications')
+@page_login_required
+def my_applications():
+    """Page showing all applications made by the user"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    # Get all applications made by the user
+    applications_list = []
+    if user.user_type in ['freelancer', 'both']:
+        applications_raw = Application.query.filter_by(
+            freelancer_id=user_id
+        ).order_by(Application.created_at.desc()).all()
+
+        for app in applications_raw:
+            gig = Gig.query.get(app.gig_id)
+            if gig:
+                client = User.query.get(gig.client_id)
+                applications_list.append({
+                    'application': app,
+                    'gig': gig,
+                    'client': client
+                })
+
+    return render_template('my_applications.html',
+                         user=user,
+                         applications=applications_list,
+                         active_page='my-applications',
+                         lang=get_user_language(),
+                         t=t)
+
+@app.route('/my-gigs')
+@page_login_required
+def my_gigs():
+    """Page showing all gigs posted by the user"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    # Get all gigs posted by the user
+    gigs_list = []
+    if user.user_type in ['client', 'both']:
+        gigs = Gig.query.filter_by(
+            client_id=user_id
+        ).order_by(Gig.created_at.desc()).all()
+
+        for gig in gigs:
+            # Get application count for each gig
+            app_count = Application.query.filter_by(gig_id=gig.id).count()
+            gigs_list.append({
+                'gig': gig,
+                'application_count': app_count
+            })
+
+    return render_template('my_gigs.html',
+                         user=user,
+                         gigs=gigs_list,
+                         active_page='my-gigs',
+                         lang=get_user_language(),
+                         t=t)
+
 @app.route('/documents')
 @page_login_required
 def documents_page():

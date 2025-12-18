@@ -468,7 +468,7 @@
         </div>
     </a>
 
-    <a href="/gigs" class="stat-card-link">
+    <a href="/my-applications" class="stat-card-link">
         <div class="stat-card blue">
             <div class="stat-label">{{ t('active_applications') }}</div>
             <div class="stat-value">{{ total_applications }}</div>
@@ -478,7 +478,7 @@
     {% endif %}
 
     {% if user.user_type in ['client', 'both'] %}
-    <a href="/gigs" class="stat-card-link">
+    <a href="/my-gigs" class="stat-card-link">
         <div class="stat-card orange">
             <div class="stat-label">{{ t('posted_gigs') }}</div>
             <div class="stat-value">{{ total_gigs_posted }}</div>
