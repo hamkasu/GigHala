@@ -2671,7 +2671,7 @@ def get_gigs():
     try:
         category = sanitize_input(request.args.get('category', ''), max_length=50)
         location = sanitize_input(request.args.get('location', ''), max_length=100)
-        halal_only = request.args.get('halal_only', 'true').lower() == 'true'
+        halal_only = request.args.get('halal_only', 'false').lower() == 'true'
         search = sanitize_input(request.args.get('search', ''), max_length=200)
 
         query = Gig.query.filter_by(status='open')
