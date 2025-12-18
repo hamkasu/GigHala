@@ -3941,6 +3941,89 @@ def initiate_escrow_payment(gig_id):
         app.logger.error(f"Initiate escrow payment error: {str(e)}")
         return jsonify({'error': 'Failed to initiate payment'}), 500
 
+@app.route('/api/escrow/<int:gig_id>/test-fund', methods=['POST'])
+def test_fund_escrow(gig_id):
+    """TEST ONLY: Simulate successful escrow funding without payment gateway"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client can fund escrow
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can fund the escrow'}), 403
+
+        # Gig must have an assigned freelancer
+        if not gig.freelancer_id:
+            return jsonify({'error': 'Gig must have an assigned freelancer'}), 400
+
+        # Get amount from request or use gig budget_max
+        data = request.json or {}
+        amount = float(data.get('amount', gig.budget_max or 1500))
+
+        if amount <= 0:
+            return jsonify({'error': 'Invalid amount'}), 400
+
+        # Check if escrow already exists
+        existing = Escrow.query.filter_by(gig_id=gig_id).first()
+        if existing and existing.status in ['funded', 'released']:
+            return jsonify({'error': 'Escrow already funded for this gig'}), 400
+
+        # Calculate platform fee
+        platform_fee = calculate_commission(amount)
+        net_amount = amount - platform_fee
+
+        # Create or update escrow
+        if existing:
+            escrow = existing
+            escrow.amount = amount
+            escrow.platform_fee = platform_fee
+            escrow.net_amount = net_amount
+            escrow.status = 'funded'
+            escrow.funded_at = datetime.utcnow()
+            escrow.payment_reference = f"TEST-{uuid.uuid4().hex[:8].upper()}"
+        else:
+            escrow = Escrow(
+                escrow_number=generate_escrow_number(),
+                gig_id=gig_id,
+                client_id=user_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=platform_fee,
+                net_amount=net_amount,
+                status='funded',
+                funded_at=datetime.utcnow(),
+                payment_reference=f"TEST-{uuid.uuid4().hex[:8].upper()}"
+            )
+            db.session.add(escrow)
+
+        # Update client wallet (deduct held_balance)
+        client_wallet = Wallet.query.filter_by(user_id=user_id).first()
+        if not client_wallet:
+            client_wallet = Wallet(user_id=user_id)
+            db.session.add(client_wallet)
+        client_wallet.held_balance += amount
+
+        # Create receipt for escrow funding
+        db.session.flush()  # Get escrow ID
+        receipt = create_escrow_receipt(escrow, gig, 'test')
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': '✓ TEST: Escrow funded successfully (no real payment)',
+            'escrow': escrow.to_dict(),
+            'receipt_number': receipt.receipt_number
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Test fund escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to fund escrow', 'details': str(e)}), 500
+
 
 @app.route('/api/payhalal/escrow-webhook', methods=['POST'])
 def payhalal_escrow_webhook():
