@@ -3038,8 +3038,17 @@ def delete_gig_photo(photo_id):
 def serve_gig_photo(filename):
     """Serve gig reference photos (public access)"""
     try:
+        photo_dir = os.path.join(UPLOAD_FOLDER, 'gig_photos')
+        file_path = os.path.join(photo_dir, filename)
+
+        # Check if file exists
+        if not os.path.exists(file_path):
+            app.logger.warning(f"Gig photo not found: {filename}")
+            # Return a 404 response that the frontend can handle
+            return "Photo not found", 404
+
         # Gig photos are public, anyone can view them
-        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'gig_photos'), filename)
+        return send_from_directory(photo_dir, filename)
     except Exception as e:
         app.logger.error(f"Serve gig photo error: {str(e)}")
         return jsonify({'error': 'Failed to load photo'}), 500
@@ -3210,8 +3219,16 @@ def serve_work_photo(filename):
         if not (gig.freelancer_id == user_id or gig.client_id == user_id or user.is_admin):
             return jsonify({'error': 'You are not authorized to view this photo'}), 403
 
+        # Check if file exists
+        photo_dir = os.path.join(UPLOAD_FOLDER, 'work_photos')
+        file_path = os.path.join(photo_dir, filename)
+
+        if not os.path.exists(file_path):
+            app.logger.warning(f"Work photo not found: {filename}")
+            return "Photo not found", 404
+
         # Serve the file
-        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'work_photos'), filename)
+        return send_from_directory(photo_dir, filename)
 
     except Exception as e:
         app.logger.error(f"Serve work photo error: {str(e)}")
