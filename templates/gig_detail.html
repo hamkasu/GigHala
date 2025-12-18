@@ -1146,10 +1146,12 @@
             {% if gig_photos and gig_photos|length > 0 %}
             <div class="gig-section">
                 <h3 class="section-title">{{ 'Gambar Rujukan' if lang == 'ms' else 'Reference Photos' }}</h3>
-                <div class="photo-gallery">
+                <div class="photo-gallery" id="photoGallery">
                     {% for photo in gig_photos %}
                     <div class="photo-item" onclick="openPhotoModal('/uploads/gig_photos/{{ photo.filename }}')">
-                        <img src="/uploads/gig_photos/{{ photo.filename }}" alt="{{ photo.original_filename }}">
+                        <img src="/uploads/gig_photos/{{ photo.filename }}"
+                             alt="{{ photo.original_filename }}"
+                             onerror="handleBrokenImage(this)">
                     </div>
                     {% endfor %}
                 </div>
@@ -1578,6 +1580,27 @@
 
     function closePhotoModal() {
         document.getElementById('photoModal').classList.remove('active');
+    }
+
+    function handleBrokenImage(img) {
+        // Hide the parent photo-item container when image fails to load
+        const photoItem = img.closest('.photo-item');
+        if (photoItem) {
+            photoItem.style.display = 'none';
+            console.warn('Failed to load image:', img.src);
+        }
+
+        // Check if all photos failed to load and hide the entire section
+        const gallery = document.getElementById('photoGallery');
+        if (gallery) {
+            const visiblePhotos = gallery.querySelectorAll('.photo-item:not([style*="display: none"])');
+            if (visiblePhotos.length === 0) {
+                const section = gallery.closest('.gig-section');
+                if (section) {
+                    section.style.display = 'none';
+                }
+            }
+        }
     }
 
     function openApplicationModal() {
