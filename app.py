@@ -6785,7 +6785,7 @@ def admin_master_reset():
         deleted_count += Referral.query.delete()
         deleted_count += Gig.query.delete()
         
-        Wallet.query.update({Wallet.balance: 0, Wallet.pending_balance: 0, Wallet.escrow_balance: 0})
+        Wallet.query.update({Wallet.balance: 0, Wallet.held_balance: 0, Wallet.total_earned: 0, Wallet.total_spent: 0})
         
         db.session.commit()
         
