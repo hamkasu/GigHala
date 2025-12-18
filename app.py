@@ -5394,8 +5394,10 @@ def admin_stats():
             Escrow.status == 'released'
         ).scalar() or 0
 
-        # Commission: Sum of all commission amounts charged
-        total_commission = db.session.query(db.func.sum(Transaction.commission)).scalar() or 0
+        # Commission: Sum of all platform fees from released escrows (earned commission)
+        total_commission = db.session.query(db.func.sum(Escrow.platform_fee)).filter(
+            Escrow.status == 'released'
+        ).scalar() or 0
 
         # Escrow: Sum of all funded escrows (money currently held)
         total_escrow = db.session.query(db.func.sum(Escrow.amount)).filter(
