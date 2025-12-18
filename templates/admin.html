@@ -575,6 +575,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Title</th>
+                        <th>Client</th>
                         <th>Category</th>
                         <th>Budget</th>
                         <th>Status</th>
@@ -1033,6 +1034,7 @@
                 <tr>
                     <td>${gig.id}</td>
                     <td>${gig.title}</td>
+                    <td>${gig.client ? gig.client.username : 'N/A'}</td>
                     <td>${gig.category || 'N/A'}</td>
                     <td>RM ${gig.budget_min}-${gig.budget_max}</td>
                     <td><span class="badge ${gig.status.replace('_', '-')}">${gig.status}</span></td>
