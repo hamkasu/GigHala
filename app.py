@@ -5459,24 +5459,42 @@ def get_stats():
 
 @app.route('/api/categories', methods=['GET'])
 def get_categories():
-    categories = [
-        {'id': 'design', 'name': 'Design & Kreatif', 'icon': '🎨'},
-        {'id': 'writing', 'name': 'Penulisan & Terjemahan', 'icon': '✍️'},
-        {'id': 'content', 'name': 'Penciptaan Kandungan', 'icon': '📸'},
-        {'id': 'photography', 'name': 'Fotografi, Videografi & Animasi', 'icon': '📷'},
-        {'id': 'web', 'name': 'Pembangunan Web', 'icon': '💻'},
-        {'id': 'marketing', 'name': 'Pemasaran Digital', 'icon': '📱'},
-        {'id': 'tutoring', 'name': 'Tunjuk Ajar', 'icon': '📚'},
-        {'id': 'admin', 'name': 'Sokongan Admin & Pentadbiran Maya', 'icon': '📋'},
-        {'id': 'general', 'name': 'Kerja Am', 'icon': '🔧'},
-        {'id': 'delivery', 'name': 'Penghantaran & Logistik', 'icon': '🚚'},
-        {'id': 'micro_tasks', 'name': 'Micro-Tasks & Tugasan', 'icon': '✅'},
-        {'id': 'events', 'name': 'Pengurusan Acara', 'icon': '🎉'},
-        {'id': 'caregiving', 'name': 'Penjagaan & Perkhidmatan', 'icon': '🏥'},
-        {'id': 'creative_other', 'name': 'Lain-lain Kreatif', 'icon': '🎭'}
-    ]
+    # Emoji mapping for categories
+    emoji_map = {
+        'design': '🎨',
+        'writing': '✍️',
+        'video': '🎬',
+        'tutoring': '📚',
+        'content': '📱',
+        'web': '💻',
+        'marketing': '📈',
+        'admin': '📋',
+        'general': '📦',
+        'programming': '🖥️',
+        'consulting': '💼',
+        'engineering': '🛠️',
+        'music': '🎵',
+        'photography': '📸',
+        'finance': '💰',
+        'crafts': '✨',
+        'garden': '🌱',
+        'coaching': '💪',
+        'data': '📊',
+        'pets': '🐾',
+        'handyman': '🔧',
+        'tours': '✈️',
+        'events': '🎉',
+        'online-selling': '🛍️'
+    }
+    
+    categories = Category.query.all()
+    result = [{
+        'id': cat.slug,
+        'name': cat.name,
+        'icon': emoji_map.get(cat.slug, '📋')
+    } for cat in categories]
 
-    return jsonify(categories)
+    return jsonify(result)
 
 # Admin Routes
 @app.route('/admin')
@@ -7127,6 +7145,7 @@ def init_database():
                 Category(name='Handyman & Repairs', slug='handyman', description='Small home fixes, assembly, maintenance', icon='wrench'),
                 Category(name='Tour Guiding', slug='tours', description='Local and virtual tours, travel guiding', icon='map-pin'),
                 Category(name='Event Planning', slug='events', description='Small events, weddings, party planning', icon='calendar'),
+                Category(name='Online Selling', slug='online-selling', description='Handmade goods, crafts, online products', icon='shopping-cart'),
             ]
             for cat in default_categories:
                 db.session.add(cat)
