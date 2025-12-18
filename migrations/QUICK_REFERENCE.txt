@@ -1,0 +1,116 @@
+================================================================================
+QUICK REFERENCE - Database Migration Commands
+================================================================================
+
+📁 Files you need:
+   - MANUAL_POSTGRESQL.sql  (for PostgreSQL)
+   - MANUAL_SQLITE.sql      (for SQLite)
+   - VERIFY.sql             (to check it worked)
+
+================================================================================
+POSTGRESQL - Copy ONE of these commands:
+================================================================================
+
+# Method 1: One command (easiest)
+psql $DATABASE_URL < migrations/MANUAL_POSTGRESQL.sql
+
+# Method 2: Interactive
+psql $DATABASE_URL
+\i migrations/MANUAL_POSTGRESQL.sql
+\i migrations/VERIFY.sql
+\q
+
+# Method 3: With connection details
+psql -h hostname -U username -d database_name < migrations/MANUAL_POSTGRESQL.sql
+
+# Verify it worked
+psql $DATABASE_URL -c "\d invoice"
+psql $DATABASE_URL -c "\d receipt"
+
+
+================================================================================
+SQLITE - Copy ONE of these commands:
+================================================================================
+
+# Method 1: One command (easiest)
+sqlite3 gighalal.db < migrations/MANUAL_SQLITE.sql
+
+# Method 2: Interactive
+sqlite3 gighalal.db
+.read migrations/MANUAL_SQLITE.sql
+.read migrations/VERIFY.sql
+.quit
+
+# Verify it worked
+sqlite3 gighalal.db ".schema invoice"
+sqlite3 gighalal.db ".schema receipt"
+
+
+================================================================================
+ALTERNATIVE - Use Python (works for both PostgreSQL and SQLite):
+================================================================================
+
+python3 migrations/run_migration.py
+
+
+================================================================================
+BACKUP FIRST (IMPORTANT!):
+================================================================================
+
+# PostgreSQL backup
+pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
+
+# SQLite backup
+sqlite3 gighalal.db ".backup 'backup_$(date +%Y%m%d).db'"
+
+
+================================================================================
+WHAT GETS CREATED:
+================================================================================
+
+✓ invoice table        (tracks client invoices)
+✓ receipt table        (tracks payment receipts)
+✓ notification table   (enhanced for invoice/receipt notifications)
+✓ 15+ indexes          (for fast queries)
+
+
+================================================================================
+VERIFY SUCCESS:
+================================================================================
+
+# Should see these tables and NOT get errors:
+SELECT * FROM invoice LIMIT 1;
+SELECT * FROM receipt LIMIT 1;
+SELECT * FROM notification LIMIT 1;
+
+
+================================================================================
+TROUBLESHOOTING:
+================================================================================
+
+Error: "relation already exists"
+  → OK! Table already exists, continue.
+
+Error: "column already exists"
+  → OK! Column already exists, continue.
+
+Error: "syntax error"
+  → Make sure you're using the right SQL file for your database type.
+
+Error: "no such table: user"
+  → Run: python3 -c "from app import app, db; app.app_context().push(); db.create_all()"
+
+
+================================================================================
+ROLLBACK (if needed):
+================================================================================
+
+# Only do this if you need to undo everything
+DROP TABLE receipt CASCADE;  -- PostgreSQL
+DROP TABLE invoice CASCADE;  -- PostgreSQL
+
+DROP TABLE receipt;  -- SQLite
+DROP TABLE invoice;  -- SQLite
+
+
+================================================================================
