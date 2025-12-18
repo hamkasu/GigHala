@@ -7124,49 +7124,43 @@ def init_database():
         db.create_all()
         
         # Add default categories if they don't exist
-        if Category.query.count() == 0:
-            default_categories = [
-                Category(name='Design', slug='design', description='Logo design, graphic design, UI/UX', icon='palette'),
-                Category(name='Writing & Translation', slug='writing', description='Content writing, translation, copywriting', icon='edit'),
-                Category(name='Video & Animation', slug='video', description='Video editing, animation, motion graphics', icon='video'),
-                Category(name='Tutoring & Education', slug='tutoring', description='Online tutoring, teaching, coaching', icon='book'),
-                Category(name='Content Creation', slug='content', description='Social media content, TikTok, Instagram Reels', icon='camera'),
-                Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
-                Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
-                Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
-                Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
-                Category(name='Programming & Tech', slug='programming', description='IT support, coding, app fixes, software development', icon='code-square'),
-                Category(name='Business Consulting', slug='consulting', description='Career advice, business strategy, executive consulting', icon='trending-up'),
-                Category(name='Engineering Services', slug='engineering', description='CAD, repairs, technical consulting, 3D design', icon='tool'),
-                Category(name='Music & Audio', slug='music', description='Music lessons, audio editing, voiceovers, production', icon='music'),
-                Category(name='Photography', slug='photography', description='Photo shoots, photo editing, retouching', icon='camera-alt'),
-                Category(name='Finance & Bookkeeping', slug='finance', description='Budgeting, basic accounting advice, bookkeeping', icon='dollar-sign'),
-                Category(name='Crafts & Handmade', slug='crafts', description='Custom handmade items, craft tutorials, DIY', icon='package'),
-                Category(name='Home & Garden', slug='garden', description='Home repairs, organization advice, gardening', icon='home'),
-                Category(name='Life Coaching', slug='coaching', description='Wellness coaching, mentoring, life advice', icon='heart'),
-                Category(name='Data Analysis', slug='data', description='Spreadsheets, research tasks, data entry', icon='bar-chart-2'),
-                Category(name='Pet Services', slug='pets', description='Pet sitting, dog walking, pet training', icon='award'),
-                Category(name='Handyman & Repairs', slug='handyman', description='Small home fixes, assembly, maintenance', icon='wrench'),
-                Category(name='Tour Guiding', slug='tours', description='Local and virtual tours, travel guiding', icon='map-pin'),
-                Category(name='Event Planning', slug='events', description='Small events, weddings, party planning', icon='calendar'),
-                Category(name='Online Selling', slug='online-selling', description='Handmade goods, crafts, online products', icon='shopping-cart'),
-            ]
-            for cat in default_categories:
+        default_categories = [
+            Category(name='Design', slug='design', description='Logo design, graphic design, UI/UX', icon='palette'),
+            Category(name='Writing & Translation', slug='writing', description='Content writing, translation, copywriting', icon='edit'),
+            Category(name='Video & Animation', slug='video', description='Video editing, animation, motion graphics', icon='video'),
+            Category(name='Tutoring & Education', slug='tutoring', description='Online tutoring, teaching, coaching', icon='book'),
+            Category(name='Content Creation', slug='content', description='Social media content, TikTok, Instagram Reels', icon='camera'),
+            Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
+            Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
+            Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
+            Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
+            Category(name='Programming & Tech', slug='programming', description='IT support, coding, app fixes, software development', icon='code-square'),
+            Category(name='Business Consulting', slug='consulting', description='Career advice, business strategy, executive consulting', icon='trending-up'),
+            Category(name='Engineering Services', slug='engineering', description='CAD, repairs, technical consulting, 3D design', icon='tool'),
+            Category(name='Music & Audio', slug='music', description='Music lessons, audio editing, voiceovers, production', icon='music'),
+            Category(name='Photography', slug='photography', description='Photo shoots, photo editing, retouching', icon='camera-alt'),
+            Category(name='Finance & Bookkeeping', slug='finance', description='Budgeting, basic accounting advice, bookkeeping', icon='dollar-sign'),
+            Category(name='Crafts & Handmade', slug='crafts', description='Custom handmade items, craft tutorials, DIY', icon='package'),
+            Category(name='Home & Garden', slug='garden', description='Home repairs, organization advice, gardening', icon='home'),
+            Category(name='Life Coaching', slug='coaching', description='Wellness coaching, mentoring, life advice', icon='heart'),
+            Category(name='Data Analysis', slug='data', description='Spreadsheets, research tasks, data entry', icon='bar-chart-2'),
+            Category(name='Pet Services', slug='pets', description='Pet sitting, dog walking, pet training', icon='award'),
+            Category(name='Handyman & Repairs', slug='handyman', description='Small home fixes, assembly, maintenance', icon='wrench'),
+            Category(name='Tour Guiding', slug='tours', description='Local and virtual tours, travel guiding', icon='map-pin'),
+            Category(name='Event Planning', slug='events', description='Small events, weddings, party planning', icon='calendar'),
+            Category(name='Online Selling', slug='online-selling', description='Handmade goods, crafts, online products', icon='shopping-cart'),
+        ]
+        
+        # Add all categories that don't exist (support for existing databases)
+        added_count = 0
+        for cat in default_categories:
+            if not Category.query.filter_by(slug=cat.slug).first():
                 db.session.add(cat)
+                added_count += 1
+        
+        if added_count > 0:
             db.session.commit()
-            print("Default categories added successfully!")
-
-        # Add General Works category if it doesn't exist (for existing databases)
-        if not Category.query.filter_by(slug='general').first():
-            general_cat = Category(
-                name='General Works',
-                slug='general',
-                description='General tasks, miscellaneous work, other services',
-                icon='briefcase'
-            )
-            db.session.add(general_cat)
-            db.session.commit()
-            print("General Works category added!")
+            print(f"Added {added_count} new categories successfully!")
 
         # Add sample data if database is empty
         if User.query.count() == 0:
