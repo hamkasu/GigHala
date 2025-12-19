@@ -636,13 +636,32 @@ def format_date_dual(date_obj, lang=None):
 @app.context_processor
 def inject_translations():
     today_dual = get_dual_date()
+
+    # Calculate unread message count for logged-in users
+    unread_message_count = 0
+    if 'user_id' in session:
+        user_id = session['user_id']
+        # Get all non-archived conversations for the user
+        conversations = Conversation.query.filter(
+            ((Conversation.participant_1_id == user_id) & (Conversation.is_archived_by_1 == False)) |
+            ((Conversation.participant_2_id == user_id) & (Conversation.is_archived_by_2 == False))
+        ).all()
+
+        # Count unread messages across all conversations
+        for conv in conversations:
+            unread_message_count += Message.query.filter_by(
+                conversation_id=conv.id,
+                is_read=False
+            ).filter(Message.sender_id != user_id).count()
+
     return dict(
-        t=t, 
+        t=t,
         lang=get_user_language(),
         today_gregorian=today_dual['gregorian'],
         today_hijri=today_dual['hijri'],
         today_dual=today_dual['full'],
-        format_date_dual=format_date_dual
+        format_date_dual=format_date_dual,
+        unread_message_count=unread_message_count
     )
 
 # Security headers middleware

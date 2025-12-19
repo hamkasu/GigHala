@@ -169,6 +169,46 @@
             color: var(--primary);
         }
 
+        .nav-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 12px;
+            min-width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4px;
+        }
+
+        .mobile-nav-badge {
+            position: absolute;
+            top: 8px;
+            right: 24px;
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
         .user-menu {
             display: flex;
             align-items: center;
@@ -823,7 +863,12 @@
                     {% if user.user_type in ['client', 'both'] %}
                     <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post Gig</a>
                     {% endif %}
-                    <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">Messages</a>
+                    <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">
+                        Messages
+                        {% if unread_message_count > 0 %}
+                        <span class="nav-badge">{{ unread_message_count }}</span>
+                        {% endif %}
+                    </a>
                     <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Wallet</a>
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">Admin</a>
@@ -941,9 +986,12 @@
                 <span>Post</span>
             </a>
             {% endif %}
-            <a href="/messages" class="mobile-nav-item {% if active_page == 'messages' %}active{% endif %}">
+            <a href="/messages" class="mobile-nav-item {% if active_page == 'messages' %}active{% endif %}" style="position: relative;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span>Mesej</span>
+                {% if unread_message_count > 0 %}
+                <span class="mobile-nav-badge">{{ unread_message_count }}</span>
+                {% endif %}
             </a>
             <a href="/documents" class="mobile-nav-item {% if active_page == 'documents' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
