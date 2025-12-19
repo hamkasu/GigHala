@@ -876,7 +876,7 @@
         gap: 8px;
     }
 
-    .btn-accept, .btn-reject {
+    .btn-accept, .btn-reject, .btn-message {
         flex: 1;
         padding: 8px 12px;
         border: none;
@@ -910,6 +910,15 @@
         background: #fee2e2;
         color: #dc2626;
         border-color: #fecaca;
+    }
+
+    .btn-message {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-message:hover {
+        background: #2563eb;
     }
 
     .application-status {
@@ -1414,6 +1423,10 @@
                     <div class="already-applied">
                         <p>{{ 'Anda sudah memohon untuk gig ini' if lang == 'ms' else 'You have already applied for this gig' }}</p>
                         <p class="status">{{ 'Status' if lang == 'ms' else 'Status' }}: {{ existing_application.status|title }}</p>
+                        <button class="apply-btn" onclick="messageClient({{ gig.client_id }}, {{ gig.id }})" style="margin-top: 12px; background: #3b82f6;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            {{ 'Mesej Pelanggan' if lang == 'ms' else 'Message Client' }}
+                        </button>
                     </div>
                     {% elif gig.status == 'open' %}
                     <button class="apply-btn" onclick="openApplicationModal()">
@@ -1471,6 +1484,10 @@
                             <button class="btn-reject" onclick="rejectApplication({{ app.id }})">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 {{ 'Tolak' if lang == 'ms' else 'Reject' }}
+                            </button>
+                            <button class="btn-message" onclick="messageApplicant({{ app.freelancer_id }}, {{ gig.id }}, '{{ app.freelancer_name }}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                {{ 'Mesej' if lang == 'ms' else 'Message' }}
                             </button>
                         </div>
                         {% else %}
@@ -1620,6 +1637,17 @@
                 </p>
                 {% endif %}
                 {% endif %}
+            </div>
+
+            <div class="sidebar-card" style="margin-top: 16px;">
+                <h4 class="section-title" style="margin-bottom: 12px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    {{ 'Komunikasi' if lang == 'ms' else 'Communication' }}
+                </h4>
+                <button class="apply-btn" onclick="{% if is_own_gig %}messageFreelancer({{ gig.freelancer_id }}, {{ gig.id }}){% else %}messageClient({{ gig.client_id }}, {{ gig.id }}){% endif %}" style="background: #3b82f6; width: 100%;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    {% if is_own_gig %}{{ 'Mesej Freelancer' if lang == 'ms' else 'Message Freelancer' }}{% else %}{{ 'Mesej Pelanggan' if lang == 'ms' else 'Message Client' }}{% endif %}
+                </button>
             </div>
             {% endif %}
 
@@ -1973,6 +2001,75 @@
             } else {
                 alert('{{ "Permohonan berjaya ditolak." if lang == "ms" else "Application rejected." }}');
                 window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function messageApplicant(freelancerId, gigId, freelancerName) {
+        fetch('/api/messages/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: freelancerId,
+                gig_id: gigId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                window.location.href = '/messages/' + data.conversation_id;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function messageClient(clientId, gigId) {
+        fetch('/api/messages/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: clientId,
+                gig_id: gigId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                window.location.href = '/messages/' + data.conversation_id;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function messageFreelancer(freelancerId, gigId) {
+        fetch('/api/messages/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: freelancerId,
+                gig_id: gigId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                window.location.href = '/messages/' + data.conversation_id;
             }
         })
         .catch(error => {
