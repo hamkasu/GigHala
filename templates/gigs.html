@@ -203,6 +203,19 @@
         min-height: 44px;
     }
 
+    .gig-category {
+        display: inline-block;
+        padding: 4px 10px;
+        background: var(--bg-light);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-gray);
+        text-transform: capitalize;
+        margin-bottom: 10px;
+    }
+
     .gig-meta {
         display: flex;
         gap: 16px;
@@ -695,6 +708,11 @@
             const gradient = categoryGradients[gig.category?.toLowerCase()] || '#667eea, #764ba2';
             const clientInitials = gig.client_name ? gig.client_name.substring(0, 2).toUpperCase() : 'CL';
 
+            // Format category name (e.g., 'virtual-assistant' -> 'Virtual Assistant')
+            const categoryName = gig.category
+                ? gig.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+                : 'General';
+
             return `
                 <div class="gig-card" onclick="viewGig(${gig.id})">
                     <div class="gig-header" style="background: linear-gradient(135deg, ${gradient})">
@@ -715,6 +733,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="gig-category">${categoryName}</div>
                         <div class="gig-title">${gig.title}</div>
                         <div class="gig-meta">
                             ${gig.distance ? `<span style="color: #00c853; font-weight: 600;">📍 ${gig.distance} km</span>` : ''}
