@@ -3533,6 +3533,34 @@ def accept_application(application_id):
         for other_app in other_applications:
             other_app.status = 'rejected'
 
+        # Auto-create conversation between client and freelancer
+        existing_conv = Conversation.query.filter(
+            ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == application.freelancer_id)) |
+            ((Conversation.participant_1_id == application.freelancer_id) & (Conversation.participant_2_id == user_id))
+        ).first()
+
+        if not existing_conv:
+            conversation = Conversation(
+                participant_1_id=user_id,
+                participant_2_id=application.freelancer_id,
+                gig_id=gig.id
+            )
+            db.session.add(conversation)
+            db.session.flush()  # Flush to get the conversation ID
+
+            # Add a system message to notify about the acceptance
+            system_message = Message(
+                conversation_id=conversation.id,
+                sender_id=user_id,
+                content=f"Application accepted! Let's discuss the details of '{gig.title}'.",
+                message_type='text'
+            )
+            conversation.last_message_at = datetime.utcnow()
+            db.session.add(system_message)
+        elif existing_conv and existing_conv.gig_id != gig.id:
+            # Update the existing conversation to link it to this gig
+            existing_conv.gig_id = gig.id
+
         db.session.commit()
 
         return jsonify({
