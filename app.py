@@ -803,17 +803,20 @@ def generate_escrow_number():
     return escrow_number
 
 def create_escrow_receipt(escrow, gig, payment_method='fpx'):
-    """Create a receipt for escrow funding (idempotent - only creates if none exists)"""
-    existing_receipt = Receipt.query.filter_by(
+    """Create receipts for escrow funding for both client and freelancer (idempotent - only creates if none exists)"""
+    # Check if receipts already exist
+    existing_client_receipt = Receipt.query.filter_by(
         escrow_id=escrow.id,
-        receipt_type='escrow_funding'
+        receipt_type='escrow_funding',
+        user_id=escrow.client_id
     ).first()
-    
-    if existing_receipt:
-        app.logger.info(f"Receipt already exists for escrow {escrow.id}: {existing_receipt.receipt_number}")
-        return existing_receipt
-    
-    receipt = Receipt(
+
+    if existing_client_receipt:
+        app.logger.info(f"Receipts already exist for escrow {escrow.id}: {existing_client_receipt.receipt_number}")
+        return existing_client_receipt
+
+    # Create receipt for client (payer)
+    client_receipt = Receipt(
         receipt_number=generate_receipt_number('escrow_funding'),
         receipt_type='escrow_funding',
         user_id=escrow.client_id,
@@ -826,8 +829,26 @@ def create_escrow_receipt(escrow, gig, payment_method='fpx'):
         payment_reference=escrow.payment_reference,
         description=f"Escrow funding for gig: {gig.title}"
     )
-    db.session.add(receipt)
-    return receipt
+    db.session.add(client_receipt)
+
+    # Create receipt for freelancer (recipient) if freelancer is assigned
+    if gig.freelancer_id:
+        freelancer_receipt = Receipt(
+            receipt_number=generate_receipt_number('escrow_funding'),
+            receipt_type='escrow_funding',
+            user_id=gig.freelancer_id,
+            gig_id=gig.id,
+            escrow_id=escrow.id,
+            amount=escrow.amount,
+            platform_fee=escrow.platform_fee,
+            total_amount=escrow.amount,
+            payment_method=payment_method,
+            payment_reference=escrow.payment_reference,
+            description=f"Escrow funding for gig: {gig.title}"
+        )
+        db.session.add(freelancer_receipt)
+
+    return client_receipt
 
 # Login required decorator for API routes
 def login_required(f):
@@ -2376,17 +2397,27 @@ def view_receipt(receipt_id):
     """View a specific receipt"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    
+
     receipt = Receipt.query.get_or_404(receipt_id)
-    
-    # Only the receipt owner can view
-    if receipt.user_id != user_id:
+
+    # Check if user has permission to view this receipt
+    # User can view if:
+    # 1. They own the receipt, OR
+    # 2. They are involved in the gig (as client or freelancer)
+    has_permission = receipt.user_id == user_id
+
+    if not has_permission and receipt.gig_id:
+        gig = Gig.query.get(receipt.gig_id)
+        if gig:
+            has_permission = (gig.client_id == user_id or gig.freelancer_id == user_id)
+
+    if not has_permission:
         flash('Anda tidak mempunyai akses untuk melihat resit ini.', 'error')
         return redirect('/documents')
-    
+
     gig = Gig.query.get(receipt.gig_id) if receipt.gig_id else None
     escrow = Escrow.query.get(receipt.escrow_id) if receipt.escrow_id else None
-    
+
     return render_template('receipt_view.html',
                          user=user,
                          receipt=receipt,
@@ -4168,19 +4199,23 @@ def release_escrow(gig_id):
             invoice.payment_method = 'escrow'
             invoice.payment_reference = escrow.payment_reference
 
-        # Create payment receipt
-        # Check if receipt already exists for this payment
-        existing_receipt = Receipt.query.filter_by(
+        # Create payment receipts for both client and freelancer
+        # Check if receipts already exist for this payment
+        existing_client_receipt = Receipt.query.filter_by(
             gig_id=gig_id,
-            receipt_type='payment'
+            receipt_type='payment',
+            user_id=gig.client_id
         ).first()
 
-        receipt = None
-        if not existing_receipt:
-            receipt = Receipt(
+        client_receipt = None
+        freelancer_receipt = None
+
+        if not existing_client_receipt:
+            # Create receipt for client (payer)
+            client_receipt = Receipt(
                 receipt_number=generate_receipt_number('payment'),
                 receipt_type='payment',
-                user_id=gig.client_id,  # Receipt issued to client (payer)
+                user_id=gig.client_id,
                 gig_id=gig_id,
                 escrow_id=escrow.id,
                 invoice_id=invoice.id if invoice else None,
@@ -4191,7 +4226,25 @@ def release_escrow(gig_id):
                 payment_reference=escrow.payment_reference,
                 description=f"Payment receipt for gig: {gig.title}"
             )
-            db.session.add(receipt)
+            db.session.add(client_receipt)
+            db.session.flush()  # Get receipt ID
+
+            # Create receipt for freelancer (recipient)
+            freelancer_receipt = Receipt(
+                receipt_number=generate_receipt_number('payment'),
+                receipt_type='payment',
+                user_id=gig.freelancer_id,
+                gig_id=gig_id,
+                escrow_id=escrow.id,
+                invoice_id=invoice.id if invoice else None,
+                amount=escrow.net_amount,  # Net amount after platform fee
+                platform_fee=escrow.platform_fee,
+                total_amount=escrow.amount,
+                payment_method='escrow',
+                payment_reference=escrow.payment_reference,
+                description=f"Payment received for gig: {gig.title}"
+            )
+            db.session.add(freelancer_receipt)
             db.session.flush()  # Get receipt ID
 
             # Create notification for client about the receipt
@@ -4199,9 +4252,9 @@ def release_escrow(gig_id):
                 user_id=gig.client_id,
                 notification_type='payment',
                 title='Payment Receipt',
-                message=f'Payment of MYR {escrow.amount:.2f} processed for gig: {gig.title}. Receipt #{receipt.receipt_number}',
-                link=f'/receipt/{receipt.id}',
-                related_id=receipt.id
+                message=f'Payment of MYR {escrow.amount:.2f} processed for gig: {gig.title}. Receipt #{client_receipt.receipt_number}',
+                link=f'/receipt/{client_receipt.id}',
+                related_id=client_receipt.id
             )
             db.session.add(client_notification)
 
@@ -4210,9 +4263,9 @@ def release_escrow(gig_id):
                 user_id=gig.freelancer_id,
                 notification_type='payment',
                 title='Payment Received',
-                message=f'Payment of MYR {escrow.net_amount:.2f} received for gig: {gig.title}. Receipt #{receipt.receipt_number}',
-                link=f'/receipt/{receipt.id}',
-                related_id=receipt.id
+                message=f'Payment of MYR {escrow.net_amount:.2f} received for gig: {gig.title}. Receipt #{freelancer_receipt.receipt_number}',
+                link=f'/receipt/{freelancer_receipt.id}',
+                related_id=freelancer_receipt.id
             )
             db.session.add(worker_notification)
 
