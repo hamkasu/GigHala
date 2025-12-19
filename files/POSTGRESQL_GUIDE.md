@@ -1,4 +1,4 @@
-# PostgreSQL Database Guide for GigHalal
+# PostgreSQL Database Guide for GigHala
 
 ## Environment Variable
 Your PostgreSQL connection string should be set as:

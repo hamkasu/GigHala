@@ -1,7 +1,7 @@
-# GigHalal - Platform Gig Halal #1 Malaysia
+# GigHala - Platform Gig Halal #1 Malaysia
 
 ## Overview
-GigHalal is a Malaysian halal gig economy platform built with Flask. Its main purpose is to connect freelancers with clients for halal-compliant freelance work opportunities, fostering a trusted marketplace for services. The platform aims to be the leading halal gig platform in Malaysia.
+GigHala is a Malaysian halal gig economy platform built with Flask. Its main purpose is to connect freelancers with clients for halal-compliant freelance work opportunities, fostering a trusted marketplace for services. The platform aims to be the leading halal gig platform in Malaysia.
 
 ## User Preferences
 I want iterative development. Ask before making major changes. I prefer detailed explanations. Do not make changes to the folder `files/`.
@@ -10,7 +10,7 @@ I want iterative development. Ask before making major changes. I prefer detailed
 The application uses a Flask backend with PostgreSQL as the database, managed by Replit. SQLAlchemy is used as the ORM. The frontend is built with Vanilla JavaScript and CSS.
 
 ### UI/UX Decisions
-The platform features a consistent dark-themed navigation bar (`#1F2937`) with a distinctive "GigHalal" green branding (`#1DBF73`). It includes a mobile-first design with PWA support for installability on mobile devices and a mobile bottom navigation bar. All informational pages use a `static_page.html` template for consistent styling. Dual date display (Hijri and Gregorian) is integrated across all pages.
+The platform features a consistent dark-themed navigation bar (`#1F2937`) with a distinctive "GigHala" green branding (`#1DBF73`). It includes a mobile-first design with PWA support for installability on mobile devices and a mobile bottom navigation bar. All informational pages use a `static_page.html` template for consistent styling. Dual date display (Hijri and Gregorian) is integrated across all pages.
 
 ### Technical Implementations
 - **User Management**: Registration, login, profile editing, password/email change, and bank account management.

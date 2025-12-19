@@ -1,11 +1,11 @@
-# Railway Deployment Guide for GigHalal
+# Railway Deployment Guide for GigHala
 
 ## 🚂 Quick Railway Deployment
 
 ### Prerequisites
 - GitHub account
 - Railway account (free tier available)
-- Your GigHalal code pushed to GitHub
+- Your GigHala code pushed to GitHub
 
 ## Step-by-Step Deployment
 
@@ -17,7 +17,7 @@
    git init
    git add .
    git commit -m "Initial commit"
-   git remote add origin https://github.com/yourusername/gighalal.git
+   git remote add origin https://github.com/yourusername/gighala.git
    git push -u origin main
    ```
 
@@ -25,7 +25,7 @@
    - Go to https://railway.app
    - Click "New Project"
    - Select "Deploy from GitHub repo"
-   - Authorize GitHub and select your GigHalal repository
+   - Authorize GitHub and select your GigHala repository
 
 ### 2. Add PostgreSQL Database
 
@@ -58,7 +58,7 @@ Railway will automatically:
 - Install dependencies
 - Use nixpacks.toml configuration
 - Start application with Procfile command
-- Provide a public URL like: https://gighalal-production.up.railway.app
+- Provide a public URL like: https://gighala-production.up.railway.app
 
 ## Common Issues & Solutions
 
@@ -171,7 +171,7 @@ After first deployment:
 ### Development
 ```
 FLASK_DEBUG=True
-DATABASE_URL=sqlite:///gighalal.db
+DATABASE_URL=sqlite:///gighala.db
 ```
 
 ### Production (Railway)
@@ -187,7 +187,7 @@ SECRET_KEY=<generated-secret>
 2. Click "Generate Domain" (free subdomain)
 3. Or add custom domain:
    - Click "Custom Domain"
-   - Add your domain (e.g., gighalal.com)
+   - Add your domain (e.g., gighala.com)
    - Update DNS CNAME record
 
 ## Scaling
@@ -217,7 +217,7 @@ If deployment fails:
 - Hobby: $5/month (usage-based after free tier)
 - Pro: $20/month (includes $20 usage credit)
 
-**GigHalal Estimated Costs:**
+**GigHala Estimated Costs:**
 - Small (100 users): ~$5-10/month
 - Medium (1,000 users): ~$15-25/month
 - Large (10,000+ users): ~$50-100/month
@@ -259,9 +259,9 @@ After successful deployment:
 - Docs: https://docs.railway.app
 - Status: https://status.railway.app
 
-**GigHalal Support:**
-- GitHub Issues: https://github.com/yourusername/gighalal/issues
-- Email: support@gighalal.com
+**GigHala Support:**
+- GitHub Issues: https://github.com/yourusername/gighala/issues
+- Email: support@gighala.com
 
 ---
 

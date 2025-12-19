@@ -1,4 +1,4 @@
-# GigHalal API Documentation
+# GigHala API Documentation
 
 Base URL: `https://your-app.up.railway.app/api`
 
@@ -422,6 +422,6 @@ Real-time features planned:
 ## Support
 
 For API support:
-- Email: api@gighalal.com
-- Documentation: https://docs.gighalal.com
-- Status Page: https://status.gighalal.com
+- Email: api@gighala.com
+- Documentation: https://docs.gighala.com
+- Status Page: https://status.gighala.com

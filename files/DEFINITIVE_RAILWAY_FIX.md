@@ -11,7 +11,7 @@ This error means Railway cannot detect your Python project. Here are **3 guarant
 **Do this in Railway Dashboard RIGHT NOW:**
 
 ### Step 1: Go to Settings
-1. Click on your **GigHalal** service in Railway
+1. Click on your **GigHala** service in Railway
 2. Click **Settings** tab
 3. Scroll to **Build** section
 
@@ -53,7 +53,7 @@ If Solution 1 fails, test Railway works with a minimal app:
 
 ### Step 1: Rename Files
 ```bash
-cd gighalal
+cd gighala
 mv app.py app_full.py
 mv simple_app.py app.py
 mv requirements.txt requirements_full.txt  
@@ -91,7 +91,7 @@ git push
 Create a `.nixpacks` folder to force detection:
 
 ```bash
-cd gighalal
+cd gighala
 mkdir .nixpacks
 
 cat > .nixpacks/plan.json << 'EOF'
@@ -145,7 +145,7 @@ git push origin main
 ### 2. Wrong Repository Structure
 Railway expects files at root level:
 ```
-gighalal/           ← Root of repo
+gighala/           ← Root of repo
 ├── app.py          ← Must be here
 ├── requirements.txt ← Must be here
 ├── nixpacks.toml   ← Must be here
@@ -154,7 +154,7 @@ gighalal/           ← Root of repo
 
 NOT like this:
 ```
-gighalal/
+gighala/
 └── src/            ← Wrong!
     ├── app.py
     └── requirements.txt
@@ -184,7 +184,7 @@ If Railway keeps failing, Render.com is more forgiving:
 1. Go to https://render.com
 2. Sign in with GitHub
 3. Click **New** → **Web Service**
-4. Select your **gighalal** repository
+4. Select your **gighala** repository
 5. Configure:
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn app:app`
@@ -202,10 +202,10 @@ After deploying, check these:
 ### ✅ Railway Dashboard Shows:
 - Build status: **Success** (green checkmark)
 - Deploy status: **Active** (green dot)
-- URL generated: https://gighalal-production.up.railway.app
+- URL generated: https://gighala-production.up.railway.app
 
 ### ✅ Visit URL and See:
-- GigHalal homepage loads
+- GigHala homepage loads
 - Green/cream color scheme
 - "Jana Pendapatan Halal" heading
 

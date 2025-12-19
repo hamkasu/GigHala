@@ -1,4 +1,4 @@
-# GigHalal Deployment Checklist
+# GigHala Deployment Checklist
 
 ## ✅ Pre-Deployment Checklist
 
@@ -39,10 +39,10 @@ git init
 git add .
 
 # Commit
-git commit -m "Initial GigHalal deployment"
+git commit -m "Initial GigHala deployment"
 
 # Create GitHub repository and push
-git remote add origin https://github.com/yourusername/gighalal.git
+git remote add origin https://github.com/yourusername/gighala.git
 git branch -M main
 git push -u origin main
 ```
@@ -52,7 +52,7 @@ git push -u origin main
 2. Sign in with GitHub
 3. Click "New Project"
 4. Select "Deploy from GitHub repo"
-5. Choose `gighalal` repository
+5. Choose `gighala` repository
 6. Railway will auto-detect Python and start building
 
 ### 3. Add PostgreSQL Database
@@ -173,7 +173,7 @@ if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
 # Add to app.py for better logging
 import logging
 logging.basicConfig(level=logging.INFO)
-app.logger.info("GigHalal application started")
+app.logger.info("GigHala application started")
 ```
 
 ### External Monitoring (Optional)
@@ -208,15 +208,15 @@ app.logger.info("GigHalal application started")
 
 ### React Native Setup (Next Phase)
 ```bash
-npx react-native init GigHalalMobile
-cd GigHalalMobile
+npx react-native init GigHalaMobile
+cd GigHalaMobile
 npm install axios react-navigation
 ```
 
 ### Flutter Setup (Alternative)
 ```bash
-flutter create gighalal_mobile
-cd gighalal_mobile
+flutter create gighala_mobile
+cd gighala_mobile
 flutter pub add http provider
 ```
 
@@ -307,10 +307,10 @@ flutter pub add http provider
 ### Technical Support
 - Railway Discord: https://discord.gg/railway
 - Railway Docs: https://docs.railway.app
-- GitHub Issues: https://github.com/yourusername/gighalal/issues
+- GitHub Issues: https://github.com/yourusername/gighala/issues
 
 ### Business Support
-- Email: support@gighalal.com
+- Email: support@gighala.com
 - WhatsApp: +60123456789
 - Office Hours: 9 AM - 6 PM MYT
 
@@ -318,7 +318,7 @@ flutter pub add http provider
 
 ## ✨ You're Ready to Deploy!
 
-Follow this checklist step-by-step and you'll have GigHalal live in under 30 minutes!
+Follow this checklist step-by-step and you'll have GigHala live in under 30 minutes!
 
 **Remember:**
 - Test thoroughly before launch
