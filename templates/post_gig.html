@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Post a Gig{% endblock %}
+{% block title %}{{ t('post_new_gig') }}{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -354,8 +354,8 @@
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <h1 class="page-title">{% if edit_mode %}Edit Gig{% else %}Post a New Gig{% endif %}</h1>
-        <p class="page-subtitle">{% if edit_mode %}Kemaskini maklumat gig anda{% else %}Cari freelancer yang sesuai untuk projek anda{% endif %}</p>
+        <h1 class="page-title">{% if edit_mode %}{{ t('edit_gig') }}{% else %}{{ t('post_new_gig') }}{% endif %}</h1>
+        <p class="page-subtitle">{% if edit_mode %}{{ t('update_gig_subtitle') }}{% else %}{{ t('find_freelancer_subtitle') }}{% endif %}</p>
     </div>
 
     <div class="form-card">
@@ -372,30 +372,30 @@
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="file-text" width="18"></i>
-                    Maklumat Gig
+                    {{ t('gig_information') }}
                 </h3>
 
                 <div class="form-group">
                     <label class="form-label">
-                        Tajuk Gig <span class="required">*</span>
+                        {{ t('gig_title') }} <span class="required">*</span>
                     </label>
-                    <input type="text" class="form-input" id="title" name="title" 
-                           placeholder="e.g., Design logo untuk restoran halal saya" required
+                    <input type="text" class="form-input" id="title" name="title"
+                           placeholder="{{ t('gig_title_placeholder') }}" required
                            value="{{ form_data.title if form_data else '' }}">
-                    <p class="form-hint">Tulis tajuk yang jelas dan menarik perhatian</p>
+                    <p class="form-hint">{{ t('gig_title_hint') }}</p>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">
-                        Penerangan <span class="required">*</span>
+                        {{ t('description') }} <span class="required">*</span>
                     </label>
-                    <textarea class="form-textarea" id="description" name="description" 
-                              placeholder="Terangkan projek anda dengan terperinci. Masukkan keperluan, deliverables, dan arahan khusus." required>{{ form_data.description if form_data else '' }}</textarea>
+                    <textarea class="form-textarea" id="description" name="description"
+                              placeholder="{{ t('description_placeholder') }}" required>{{ form_data.description if form_data else '' }}</textarea>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">
-                        Kategori <span class="required">*</span>
+                        {{ t('category') }} <span class="required">*</span>
                     </label>
                     <div class="category-cards">
                         {% for cat in categories %}
@@ -443,13 +443,13 @@
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="dollar-sign" width="18"></i>
-                    Budget & Tempoh
+                    {{ t('budget_duration') }}
                 </h3>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">
-                            Budget Minimum (RM) <span class="required">*</span>
+                            {{ t('budget_min') }} <span class="required">*</span>
                         </label>
                         <input type="number" class="form-input" id="budget_min" name="budget_min"
                                placeholder="100" min="1" required value="{{ form_data.budget_min if form_data else '' }}">
@@ -457,7 +457,7 @@
 
                     <div class="form-group">
                         <label class="form-label">
-                            Budget Maksimum (RM) <span class="required">*</span>
+                            {{ t('budget_max') }} <span class="required">*</span>
                         </label>
                         <input type="number" class="form-input" id="budget_max" name="budget_max"
                                placeholder="500" min="1" required value="{{ form_data.budget_max if form_data else '' }}">
@@ -467,30 +467,30 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">
-                            Approved Budget (RM)
-                            <small class="text-muted" style="font-weight: normal;">Jumlah sebenar yang diluluskan</small>
+                            {{ t('approved_budget') }}
+                            <small class="text-muted" style="font-weight: normal;">{{ t('approved_budget_hint') }}</small>
                         </label>
                         <input type="number" class="form-input" id="approved_budget" name="approved_budget"
                                placeholder="300" min="1" step="0.01" value="{{ form_data.approved_budget if form_data else '' }}">
-                        <small class="form-text text-muted">Pilihan: Masukkan jumlah tepat yang telah diluluskan untuk gig ini</small>
+                        <small class="form-text text-muted">{{ t('approved_budget_help') }}</small>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Tempoh</label>
+                        <label class="form-label">{{ t('duration') }}</label>
                         <select class="form-select" id="duration" name="duration">
-                            <option value="">Pilih tempoh</option>
-                            <option value="1-3 days" {% if form_data and form_data.duration == '1-3 days' %}selected{% endif %}>1-3 hari</option>
-                            <option value="1 week" {% if form_data and form_data.duration == '1 week' %}selected{% endif %}>1 minggu</option>
-                            <option value="2 weeks" {% if form_data and form_data.duration == '2 weeks' %}selected{% endif %}>2 minggu</option>
-                            <option value="1 month" {% if form_data and form_data.duration == '1 month' %}selected{% endif %}>1 bulan</option>
-                            <option value="Ongoing" {% if form_data and form_data.duration == 'Ongoing' %}selected{% endif %}>Berterusan</option>
+                            <option value="">{{ t('select_duration') }}</option>
+                            <option value="1-3 days" {% if form_data and form_data.duration == '1-3 days' %}selected{% endif %}>{{ t('duration_1_3_days') }}</option>
+                            <option value="1 week" {% if form_data and form_data.duration == '1 week' %}selected{% endif %}>{{ t('duration_1_week') }}</option>
+                            <option value="2 weeks" {% if form_data and form_data.duration == '2 weeks' %}selected{% endif %}>{{ t('duration_2_weeks') }}</option>
+                            <option value="1 month" {% if form_data and form_data.duration == '1 month' %}selected{% endif %}>{{ t('duration_1_month') }}</option>
+                            <option value="Ongoing" {% if form_data and form_data.duration == 'Ongoing' %}selected{% endif %}>{{ t('duration_ongoing') }}</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Tarikh Akhir</label>
+                        <label class="form-label">{{ t('deadline') }}</label>
                         <input type="date" class="form-input" id="deadline" name="deadline" value="{{ form_data.deadline if form_data else '' }}">
                     </div>
                 </div>
@@ -499,23 +499,23 @@
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="map-pin" width="18"></i>
-                    Lokasi & Kemahiran
+                    {{ t('location_skills') }}
                 </h3>
 
                 <div class="form-group">
-                    <label class="form-label">Lokasi</label>
+                    <label class="form-label">{{ t('location') }}</label>
                     <input
                         type="text"
                         class="form-select"
                         id="location"
                         name="location"
                         list="locationsList"
-                        placeholder="Taip atau pilih lokasi"
+                        placeholder="{{ t('type_or_select_location') }}"
                         value="{{ form_data.location if form_data else '' }}"
                     >
                     <datalist id="locationsList">
-                        <option value="Semua lokasi">
-                        <option value="Remote">
+                        <option value="{{ t('all_locations_option') }}">
+                        <option value="{{ t('remote_option') }}">
 
                         <!-- Johor -->
                         <option value="Batu Pahat, Johor">
@@ -688,12 +688,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Kemahiran Diperlukan</label>
+                    <label class="form-label">{{ t('skills_required') }}</label>
                     <div class="skills-container" id="skillsContainer">
-                        <input type="text" class="skills-input" id="skillInput" 
-                               placeholder="Taip kemahiran dan tekan Enter">
+                        <input type="text" class="skills-input" id="skillInput"
+                               placeholder="{{ t('type_skill_enter') }}">
                     </div>
-                    <p class="form-hint">Tekan Enter untuk menambah setiap kemahiran</p>
+                    <p class="form-hint">{{ t('press_enter_add_skill') }}</p>
                     <input type="hidden" id="skillsHidden" name="skills_required" value="{{ form_data.skills_required if form_data else '[]' }}">
                 </div>
             </div>
@@ -701,15 +701,15 @@
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="image" width="18"></i>
-                    Gambar Rujukan
+                    {{ t('reference_photos') }}
                 </h3>
 
                 <div class="form-group">
-                    <label class="form-label">Muat Naik Gambar (Pilihan)</label>
+                    <label class="form-label">{{ t('upload_photos_optional') }}</label>
                     <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photoInput').click()">
                         <div class="photo-upload-icon">📷</div>
-                        <p class="photo-upload-text"><strong>Klik untuk muat naik</strong> atau seret gambar ke sini</p>
-                        <p class="photo-upload-hint">PNG, JPG atau WEBP (Maksimum 5MB setiap gambar, maksimum 5 gambar)</p>
+                        <p class="photo-upload-text"><strong>{{ t('click_to_upload') }}</strong> {{ t('drag_photos_here') }}</p>
+                        <p class="photo-upload-hint">{{ t('photo_format_hint') }}</p>
                     </div>
                     <input type="file" id="photoInput" name="photos" multiple accept="image/png,image/jpeg,image/webp" style="display: none;">
                     <div class="photo-previews" id="photoPreviews"></div>
@@ -719,39 +719,39 @@
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="settings" width="18"></i>
-                    Pilihan Tambahan
+                    {{ t('additional_options') }}
                 </h3>
 
                 <div class="checkbox-grid">
                     <label class="checkbox-item">
                         <input type="checkbox" id="is_remote" name="is_remote" {% if not form_data or form_data.is_remote %}checked{% endif %}>
                         <div>
-                            <div class="checkbox-label">🏠 Kerja Remote</div>
-                            <div class="checkbox-desc">Freelancer boleh bekerja dari mana-mana</div>
+                            <div class="checkbox-label">🏠 {{ t('remote_work') }}</div>
+                            <div class="checkbox-desc">{{ t('remote_work_desc') }}</div>
                         </div>
                     </label>
 
                     <label class="checkbox-item">
                         <input type="checkbox" id="halal_compliant" name="halal_compliant" {% if not form_data or form_data.halal_compliant %}checked{% endif %}>
                         <div>
-                            <div class="checkbox-label">☪️ Halal Compliant</div>
-                            <div class="checkbox-desc">Projek patuh syariah</div>
+                            <div class="checkbox-label">☪️ {{ t('halal_compliant') }}</div>
+                            <div class="checkbox-desc">{{ t('halal_compliant_desc') }}</div>
                         </div>
                     </label>
 
                     <label class="checkbox-item">
                         <input type="checkbox" id="is_instant_payout" name="is_instant_payout" {% if form_data and form_data.is_instant_payout %}checked{% endif %}>
                         <div>
-                            <div class="checkbox-label">⚡ Instant Payout</div>
-                            <div class="checkbox-desc">Bayaran dalam 24 jam</div>
+                            <div class="checkbox-label">⚡ {{ t('instant_payout_label') }}</div>
+                            <div class="checkbox-desc">{{ t('instant_payout_desc') }}</div>
                         </div>
                     </label>
 
                     <label class="checkbox-item">
                         <input type="checkbox" id="is_brand_partnership" name="is_brand_partnership" {% if form_data and form_data.is_brand_partnership %}checked{% endif %}>
                         <div>
-                            <div class="checkbox-label">🌟 Brand Partnership</div>
-                            <div class="checkbox-desc">Kolaborasi dengan jenama</div>
+                            <div class="checkbox-label">🌟 {{ t('brand_partnership') }}</div>
+                            <div class="checkbox-desc">{{ t('brand_partnership_desc') }}</div>
                         </div>
                     </label>
                 </div>
@@ -760,14 +760,14 @@
             <div class="submit-section">
                 <div class="submit-info">
                     {% if edit_mode %}
-                    <a href="/gig/{{ gig.id }}" style="color: var(--primary);">← Kembali ke gig</a>
+                    <a href="/gig/{{ gig.id }}" style="color: var(--primary);">← {{ t('back_to_gig') }}</a>
                     {% else %}
-                    ✓ Tiada bayaran untuk post gig
+                    ✓ {{ t('no_post_fee') }}
                     {% endif %}
                 </div>
                 <button type="submit" class="btn btn-primary" id="submitBtn">
                     <i data-feather="{% if edit_mode %}check{% else %}send{% endif %}" width="16"></i>
-                    {% if edit_mode %}Simpan Perubahan{% else %}Post Gig{% endif %}
+                    {% if edit_mode %}{{ t('save_changes') }}{% else %}{{ t('post_gig_btn') }}{% endif %}
                 </button>
             </div>
         </form>
@@ -849,23 +849,23 @@
 
         if (!category) {
             e.preventDefault();
-            showAlert('Sila pilih kategori', 'error');
+            showAlert('{{ t('please_select_category') }}', 'error');
             return;
         }
 
         if (budgetMin > budgetMax) {
             e.preventDefault();
-            showAlert('Budget maksimum mesti lebih besar daripada budget minimum', 'error');
+            showAlert('{{ t('budget_max_error') }}', 'error');
             return;
         }
 
         document.getElementById('skillsHidden').value = JSON.stringify(skills);
-        
+
         // Sync photo files before submit
         syncPhotoInput();
-        
+
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-feather="loader" width="16"></i> Memproses...';
+        submitBtn.innerHTML = '<i data-feather="loader" width="16"></i> {{ t('processing') }}';
         feather.replace();
     });
 
@@ -897,15 +897,15 @@
         const newFiles = Array.from(e.target.files);
         for (let file of newFiles) {
             if (selectedFiles.length >= MAX_FILES) {
-                showAlert('Maksimum 5 gambar sahaja dibenarkan', 'error');
+                showAlert('{{ t('max_5_photos') }}', 'error');
                 break;
             }
             if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-                showAlert('Hanya fail PNG, JPG atau WEBP dibenarkan', 'error');
+                showAlert('{{ t('only_image_formats') }}', 'error');
                 continue;
             }
             if (file.size > MAX_SIZE) {
-                showAlert('Saiz fail mesti kurang daripada 5MB', 'error');
+                showAlert('{{ t('max_file_size_5mb') }}', 'error');
                 continue;
             }
             selectedFiles.push(file);
@@ -916,26 +916,26 @@
 
     function handleFiles(files) {
         const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
-        
+
         for (let file of files) {
             if (selectedFiles.length >= MAX_FILES) {
-                showAlert('Maksimum 5 gambar sahaja dibenarkan', 'error');
+                showAlert('{{ t('max_5_photos') }}', 'error');
                 break;
             }
-            
+
             if (!validTypes.includes(file.type)) {
-                showAlert('Hanya fail PNG, JPG atau WEBP dibenarkan', 'error');
+                showAlert('{{ t('only_image_formats') }}', 'error');
                 continue;
             }
-            
+
             if (file.size > MAX_SIZE) {
-                showAlert('Saiz fail mesti kurang daripada 5MB', 'error');
+                showAlert('{{ t('max_file_size_5mb') }}', 'error');
                 continue;
             }
-            
+
             selectedFiles.push(file);
         }
-        
+
         syncPhotoInput();
         updatePhotoPreviews();
     }
