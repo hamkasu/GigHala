@@ -3,6 +3,8 @@
 {% block title %}Browse Gigs{% endblock %}
 
 {% block extra_styles %}
+<!-- Leaflet CSS for Maps -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     .gigs-container {
         max-width: 1400px;
@@ -311,10 +313,35 @@
 <div class="gigs-container">
     <!-- Filters Bar -->
     <div class="filters-bar">
+        <!-- Location Permission Banner -->
+        <div id="locationBanner" style="display: none; background: #e3f2fd; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 4px solid #2196f3;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">📍</span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #1976d2; margin-bottom: 4px;" id="locationBannerTitle">Enable Location for Nearby Gigs</div>
+                    <div style="font-size: 13px; color: #455a64;" id="locationBannerText">Find gigs closest to you by enabling location access</div>
+                </div>
+                <button onclick="requestLocation()" id="enableLocationBtn" style="padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;">Enable</button>
+                <button onclick="dismissLocationBanner()" style="padding: 8px 12px; background: transparent; color: #757575; border: none; cursor: pointer;">✕</button>
+            </div>
+        </div>
+
         <div class="filters-row">
             <div class="filter-group">
                 <label class="filter-label">{{ t('search') }}</label>
                 <input type="text" class="filter-input" placeholder="{{ t('keywords_placeholder') }}" id="searchInput">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">📍 Distance</label>
+                <select class="filter-input" id="distanceFilter" onchange="filterGigs()" disabled>
+                    <option value="">All Locations</option>
+                    <option value="5">Within 5 km</option>
+                    <option value="10">Within 10 km</option>
+                    <option value="25">Within 25 km</option>
+                    <option value="50">Within 50 km</option>
+                    <option value="100">Within 100 km</option>
+                </select>
             </div>
 
             <div class="filter-group">
@@ -330,6 +357,23 @@
                 <button class="search-btn" onclick="filterGigs()">{{ t('search_gig_btn') }}</button>
             </div>
         </div>
+
+        <!-- Map Toggle -->
+        <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;" id="mapToggleSection" hidden>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-gray);">
+                <input type="checkbox" id="showMapToggle" onchange="toggleMap()" style="cursor: pointer;">
+                <span>🗺️ Show Map View</span>
+            </label>
+            <span id="locationStatus" style="font-size: 13px; color: #00c853; display: none;">
+                <span style="display: inline-block; width: 8px; height: 8px; background: #00c853; border-radius: 50%; margin-right: 6px;"></span>
+                Location enabled
+            </span>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="mapContainer" style="display: none; background: white; border-radius: 12px; margin-bottom: 24px; overflow: hidden; border: 1px solid var(--border); height: 400px;">
+        <div id="map" style="width: 100%; height: 100%;"></div>
     </div>
 
     <!-- Results Header -->
@@ -340,6 +384,7 @@
         <div>
             <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">{{ t('sort_by') }}</label>
             <select class="sort-select" id="sortSelect" onchange="filterGigs()">
+                <option value="nearest" id="nearestOption" style="display: none;">📍 Nearest First</option>
                 <option value="budget_high">{{ t('budget_highest') }}</option>
                 <option value="budget_low">{{ t('budget_lowest') }}</option>
                 <option value="newest">{{ t('newest') }}</option>
@@ -365,11 +410,18 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<!-- Leaflet JS for Maps -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let allGigs = [];
     let filteredGigs = [];
     let currentPage = 1;
     const pageSize = 12;
+
+    // Geolocation state
+    let userLocation = null;
+    let map = null;
+    let markers = [];
 
     // Get category from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -428,9 +480,168 @@
         budget: "{{ t('budget') }}"
     };
 
+    // Geolocation Functions
+    function checkLocationPermission() {
+        // Check if location was previously denied
+        const locationDenied = localStorage.getItem('locationDenied');
+        const locationDismissed = localStorage.getItem('locationBannerDismissed');
+
+        if (locationDenied === 'true' || locationDismissed === 'true') {
+            return;
+        }
+
+        // Check if geolocation is supported
+        if ('geolocation' in navigator) {
+            // Show banner if permission not yet requested
+            navigator.permissions.query({ name: 'geolocation' }).then(result => {
+                if (result.state === 'prompt') {
+                    document.getElementById('locationBanner').style.display = 'block';
+                } else if (result.state === 'granted') {
+                    requestLocation();
+                }
+            }).catch(() => {
+                // Fallback if permissions API not supported
+                document.getElementById('locationBanner').style.display = 'block';
+            });
+        }
+    }
+
+    function requestLocation() {
+        document.getElementById('enableLocationBtn').textContent = 'Loading...';
+        document.getElementById('enableLocationBtn').disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                // Hide banner and show success
+                document.getElementById('locationBanner').style.display = 'none';
+                document.getElementById('distanceFilter').disabled = false;
+                document.getElementById('mapToggleSection').hidden = false;
+                document.getElementById('locationStatus').style.display = 'inline';
+
+                // Show "Nearest" sort option
+                document.getElementById('nearestOption').style.display = 'block';
+                document.getElementById('sortSelect').value = 'nearest';
+
+                // Reload gigs with location
+                loadGigs();
+            },
+            (error) => {
+                console.error('Location error:', error);
+                localStorage.setItem('locationDenied', 'true');
+
+                // Update banner to show error
+                document.getElementById('locationBannerTitle').textContent = 'Location Access Denied';
+                document.getElementById('locationBannerText').textContent = 'You can still browse all gigs without location filtering.';
+                document.getElementById('enableLocationBtn').style.display = 'none';
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('locationBanner').style.display = 'none';
+                }, 5000);
+            },
+            {
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 300000 // Cache for 5 minutes
+            }
+        );
+    }
+
+    function dismissLocationBanner() {
+        document.getElementById('locationBanner').style.display = 'none';
+        localStorage.setItem('locationBannerDismissed', 'true');
+    }
+
+    function initMap() {
+        if (!userLocation) return;
+
+        // Initialize map centered on user location
+        map = L.map('map').setView([userLocation.lat, userLocation.lng], 11);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Add user location marker
+        const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+            icon: L.divIcon({
+                className: 'user-location-marker',
+                html: '<div style="background: #2196f3; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20]
+            })
+        }).addTo(map);
+        userMarker.bindPopup('📍 Your Location');
+
+        // Add gig markers
+        updateMapMarkers();
+    }
+
+    function updateMapMarkers() {
+        if (!map) return;
+
+        // Clear existing markers
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
+
+        // Add markers for filtered gigs with coordinates
+        filteredGigs.forEach(gig => {
+            if (gig.latitude && gig.longitude) {
+                const marker = L.marker([gig.latitude, gig.longitude], {
+                    icon: L.divIcon({
+                        className: 'gig-marker',
+                        html: `<div style="background: #00c853; color: white; padding: 6px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">RM ${gig.approved_budget || gig.budget_max}</div>`,
+                        iconSize: [60, 30]
+                    })
+                }).addTo(map);
+
+                const distance = gig.distance ? `${gig.distance} km away` : '';
+                marker.bindPopup(`
+                    <div style="min-width: 200px;">
+                        <h3 style="margin: 0 0 8px 0; font-size: 14px;">${gig.title}</h3>
+                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${distance}</p>
+                        <p style="margin: 0 0 8px 0; font-size: 13px; color: #00c853; font-weight: 600;">RM ${gig.approved_budget || gig.budget_min + '-' + gig.budget_max}</p>
+                        <button onclick="viewGig(${gig.id})" style="width: 100%; padding: 8px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">View Gig</button>
+                    </div>
+                `);
+
+                markers.push(marker);
+            }
+        });
+    }
+
+    function toggleMap() {
+        const mapContainer = document.getElementById('mapContainer');
+        const showMap = document.getElementById('showMapToggle').checked;
+
+        if (showMap) {
+            mapContainer.style.display = 'block';
+            if (!map) {
+                setTimeout(initMap, 100); // Delay to ensure container is visible
+            } else {
+                map.invalidateSize();
+                updateMapMarkers();
+            }
+        } else {
+            mapContainer.style.display = 'none';
+        }
+    }
+
     async function loadGigs() {
         try {
-            const response = await fetch('/api/gigs');
+            // Use nearby endpoint if location is available
+            let apiUrl = '/api/gigs';
+            if (userLocation) {
+                apiUrl = `/api/gigs/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+            }
+
+            const response = await fetch(apiUrl);
             if (response.ok) {
                 allGigs = await response.json();
 
@@ -499,11 +710,14 @@
                             <div class="seller-avatar">${clientInitials}</div>
                             <div>
                                 <div class="seller-name">${gig.client_name || 'Client'}</div>
-                                <div class="seller-location">${gig.location || 'Malaysia'}</div>
+                                <div class="seller-location">
+                                    ${gig.distance ? `📍 ${gig.distance} km away` : (gig.location || 'Malaysia')}
+                                </div>
                             </div>
                         </div>
                         <div class="gig-title">${gig.title}</div>
                         <div class="gig-meta">
+                            ${gig.distance ? `<span style="color: #00c853; font-weight: 600;">📍 ${gig.distance} km</span>` : ''}
                             <span>⏱ ${gig.duration || translations.flexible}</span>
                             <span>👁 ${gig.views || 0}</span>
                             <span>👥 ${gig.applications || 0}</span>
@@ -538,6 +752,7 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
         const priceMax = parseInt(document.getElementById('priceMax').value) || 999999;
+        const maxDistance = parseFloat(document.getElementById('distanceFilter').value);
         const sortBy = document.getElementById('sortSelect').value;
 
         let filtered = allGigs.filter(gig => {
@@ -546,18 +761,36 @@
                 gig.description.toLowerCase().includes(search);
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
             const matchesCategory = !selectedCategory || gig.category === selectedCategory;
-            return matchesSearch && matchesPrice && matchesCategory;
+
+            // Distance filter
+            const matchesDistance = !maxDistance || !userLocation ||
+                (gig.distance !== null && gig.distance !== undefined && gig.distance <= maxDistance);
+
+            return matchesSearch && matchesPrice && matchesCategory && matchesDistance;
         });
 
+        // Sort based on selection
         if (sortBy === 'budget_high') {
             filtered.sort((a, b) => b.budget_max - a.budget_max);
         } else if (sortBy === 'budget_low') {
             filtered.sort((a, b) => a.budget_min - b.budget_min);
+        } else if (sortBy === 'nearest' && userLocation) {
+            // Sort by distance when location is available
+            filtered.sort((a, b) => {
+                if (a.distance === null || a.distance === undefined) return 1;
+                if (b.distance === null || b.distance === undefined) return -1;
+                return a.distance - b.distance;
+            });
         } else {
             filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         }
 
         renderGigs(filtered);
+
+        // Update map markers if map is visible
+        if (map) {
+            updateMapMarkers();
+        }
     }
 
     function loadMore() {
@@ -598,6 +831,7 @@
 
     // Call on page load
     highlightActiveCategory();
+    checkLocationPermission();
     loadGigs();
 </script>
 {% endblock %}

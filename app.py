@@ -12,6 +12,8 @@ import json
 import re
 import stripe
 import uuid
+import math
+import requests
 from hijri_converter import Hijri, Gregorian
 from authlib.integrations.flask_client import OAuth
 
@@ -105,6 +107,160 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Geolocation Helper Functions
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the distance between two points on Earth using the Haversine formula.
+    Returns distance in kilometers.
+    """
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+
+    # Convert latitude and longitude to radians
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+
+    # Haversine formula
+    a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+
+    # Earth's radius in kilometers
+    earth_radius_km = 6371
+
+    distance = earth_radius_km * c
+    return round(distance, 2)
+
+def geocode_location(location_string):
+    """
+    Convert a location string (city, state) to latitude and longitude coordinates.
+    Uses OpenStreetMap's Nominatim API (free, no API key required).
+    Returns tuple (latitude, longitude) or (None, None) if geocoding fails.
+    """
+    if not location_string or location_string.strip() == '':
+        return None, None
+
+    try:
+        # Add Malaysia to the search query for better results
+        search_query = f"{location_string}, Malaysia"
+
+        # Nominatim API endpoint
+        url = "https://nominatim.openstreetmap.org/search"
+        params = {
+            'q': search_query,
+            'format': 'json',
+            'limit': 1
+        }
+
+        # Set a user agent (required by Nominatim)
+        headers = {
+            'User-Agent': 'GigHala/1.0 (contact@gighala.com)'
+        }
+
+        response = requests.get(url, params=params, headers=headers, timeout=5)
+
+        if response.status_code == 200:
+            data = response.json()
+            if data and len(data) > 0:
+                lat = float(data[0]['lat'])
+                lon = float(data[0]['lon'])
+                return lat, lon
+
+        return None, None
+
+    except Exception as e:
+        print(f"Geocoding error for '{location_string}': {str(e)}")
+        return None, None
+
+# Malaysian cities coordinates cache (for fallback and faster lookups)
+MALAYSIAN_CITIES = {
+    # Kuala Lumpur
+    'Kuala Lumpur, KL': (3.1390, 101.6869),
+    'Cheras, KL': (3.1193, 101.7284),
+    'Kepong, KL': (3.2176, 101.6386),
+    'Bangsar, KL': (3.1279, 101.6707),
+
+    # Johor
+    'Johor Bahru, Johor': (1.4927, 103.7414),
+    'Skudai, Johor': (1.5327, 103.6572),
+    'Kulai, Johor': (1.6553, 103.6005),
+    'Kluang, Johor': (2.0307, 103.3170),
+    'Muar, Johor': (2.0443, 102.5689),
+
+    # Penang
+    'George Town, Penang': (5.4141, 100.3288),
+    'Butterworth, Penang': (5.3991, 100.3643),
+    'Bayan Lepas, Penang': (5.2974, 100.2665),
+
+    # Selangor
+    'Petaling Jaya, Selangor': (3.1073, 101.6067),
+    'Shah Alam, Selangor': (3.0733, 101.5185),
+    'Subang Jaya, Selangor': (3.0437, 101.5874),
+    'Klang, Selangor': (3.0327, 101.4450),
+    'Ampang, Selangor': (3.1490, 101.7611),
+    'Kajang, Selangor': (2.9920, 101.7885),
+    'Rawang, Selangor': (3.3214, 101.5769),
+    'Sepang, Selangor': (2.7297, 101.7434),
+
+    # Perak
+    'Ipoh, Perak': (4.5975, 101.0901),
+    'Taiping, Perak': (4.8598, 100.7336),
+    'Teluk Intan, Perak': (4.0275, 101.0213),
+
+    # Kedah
+    'Alor Setar, Kedah': (6.1239, 100.3681),
+    'Sungai Petani, Kedah': (5.6472, 100.4878),
+
+    # Kelantan
+    'Kota Bharu, Kelantan': (6.1331, 102.2386),
+
+    # Terengganu
+    'Kuala Terengganu, Terengganu': (5.3302, 103.1408),
+
+    # Pahang
+    'Kuantan, Pahang': (3.8077, 103.3260),
+    'Temerloh, Pahang': (3.4508, 102.4184),
+
+    # Melaka
+    'Melaka City, Melaka': (2.1896, 102.2501),
+
+    # Negeri Sembilan
+    'Seremban, Negeri Sembilan': (2.7258, 101.9424),
+    'Nilai, Negeri Sembilan': (2.8200, 101.8005),
+
+    # Sabah
+    'Kota Kinabalu, Sabah': (5.9804, 116.0735),
+    'Sandakan, Sabah': (5.8402, 118.1179),
+    'Tawau, Sabah': (4.2451, 117.8934),
+
+    # Sarawak
+    'Kuching, Sarawak': (1.5535, 110.3593),
+    'Miri, Sarawak': (4.3997, 113.9914),
+    'Sibu, Sarawak': (2.3000, 111.8200),
+
+    # Perlis
+    'Kangar, Perlis': (6.4414, 100.1986),
+
+    # Putrajaya
+    'Putrajaya, Putrajaya': (2.9264, 101.6964),
+}
+
+def get_coordinates(location_string):
+    """
+    Get coordinates for a location, using cache first, then geocoding API.
+    Returns tuple (latitude, longitude) or (None, None) if location cannot be resolved.
+    """
+    if not location_string:
+        return None, None
+
+    # Check cache first
+    if location_string in MALAYSIAN_CITIES:
+        return MALAYSIAN_CITIES[location_string]
+
+    # Try geocoding
+    return geocode_location(location_string)
 
 # Rate limiting storage (in-memory, consider Redis for production)
 login_attempts = {}
@@ -1163,6 +1319,8 @@ class User(db.Model):
     full_name = db.Column(db.String(120))
     user_type = db.Column(db.String(20), default='freelancer')  # freelancer, client, both
     location = db.Column(db.String(100))
+    latitude = db.Column(db.Float, nullable=True)  # Geolocation latitude
+    longitude = db.Column(db.Float, nullable=True)  # Geolocation longitude
     skills = db.Column(db.Text)  # JSON string
     bio = db.Column(db.Text)
     rating = db.Column(db.Float, default=0.0)
@@ -1203,6 +1361,8 @@ class Gig(db.Model):
     approved_budget = db.Column(db.Float)  # Actual amount approved by client
     duration = db.Column(db.String(50))  # e.g., "1-3 days", "1 week"
     location = db.Column(db.String(100))
+    latitude = db.Column(db.Float, nullable=True)  # Geolocation latitude
+    longitude = db.Column(db.Float, nullable=True)  # Geolocation longitude
     is_remote = db.Column(db.Boolean, default=True)
     status = db.Column(db.String(20), default='open')  # open, in_progress, pending_review, completed, cancelled
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -3364,6 +3524,104 @@ def get_gigs():
         app.logger.error(f"Get gigs error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve gigs'}), 500
 
+@app.route('/api/gigs/nearby', methods=['GET'])
+@api_rate_limit(requests_per_minute=120)
+def get_nearby_gigs():
+    """
+    Get gigs sorted by distance from user's location.
+    Query params:
+    - lat: user's latitude (required)
+    - lng: user's longitude (required)
+    - max_distance: maximum distance in km (optional, default: no limit)
+    - category: filter by category (optional)
+    - halal_only: filter halal-compliant gigs only (optional)
+    - search: search in title/description (optional)
+    """
+    try:
+        # Get user's location
+        try:
+            user_lat = float(request.args.get('lat'))
+            user_lng = float(request.args.get('lng'))
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Valid latitude and longitude are required'}), 400
+
+        # Optional filters
+        max_distance = request.args.get('max_distance', type=float)  # in km
+        category = sanitize_input(request.args.get('category', ''), max_length=50)
+        halal_only = request.args.get('halal_only', 'false').lower() == 'true'
+        search = sanitize_input(request.args.get('search', ''), max_length=200)
+
+        # Base query for open gigs
+        query = Gig.query.filter_by(status='open')
+
+        # Apply filters
+        if category:
+            query = query.filter_by(category=category)
+        if halal_only:
+            query = query.filter_by(halal_compliant=True)
+        if search:
+            search_pattern = f'%{search}%'
+            query = query.filter(
+                (Gig.title.ilike(search_pattern)) | (Gig.description.ilike(search_pattern))
+            )
+
+        # Get all matching gigs
+        gigs = query.all()
+
+        # Calculate distance for each gig and filter by max_distance
+        gigs_with_distance = []
+        for g in gigs:
+            # Get client information
+            client = User.query.get(g.client_id)
+            client_name = client.full_name if (client and client.full_name) else 'Client'
+
+            # Calculate distance if gig has coordinates
+            distance = None
+            if g.latitude is not None and g.longitude is not None:
+                distance = calculate_distance(user_lat, user_lng, g.latitude, g.longitude)
+
+            # Apply max_distance filter if specified
+            if max_distance is not None:
+                if distance is None or distance > max_distance:
+                    continue
+
+            gig_data = {
+                'id': g.id,
+                'title': g.title,
+                'description': g.description,
+                'category': g.category,
+                'budget_min': g.budget_min,
+                'budget_max': g.budget_max,
+                'approved_budget': g.approved_budget,
+                'location': g.location,
+                'latitude': g.latitude,
+                'longitude': g.longitude,
+                'is_remote': g.is_remote,
+                'halal_compliant': g.halal_compliant,
+                'halal_verified': g.halal_verified,
+                'is_instant_payout': g.is_instant_payout,
+                'is_brand_partnership': g.is_brand_partnership,
+                'duration': g.duration,
+                'views': g.views,
+                'applications': g.applications,
+                'client_name': client_name,
+                'created_at': g.created_at.isoformat(),
+                'distance': distance  # Distance in km
+            }
+
+            gigs_with_distance.append(gig_data)
+
+        # Sort by distance (gigs without coordinates at the end)
+        gigs_with_distance.sort(key=lambda x: (x['distance'] is None, x['distance'] or float('inf')))
+
+        # Limit results
+        result = gigs_with_distance[:50]
+
+        return jsonify(result)
+    except Exception as e:
+        app.logger.error(f"Get nearby gigs error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve nearby gigs'}), 500
+
 @app.route('/api/gigs', methods=['POST'])
 @api_rate_limit(requests_per_minute=30)
 def create_gig():
@@ -3417,6 +3675,11 @@ def create_gig():
             except (ValueError, TypeError):
                 return jsonify({'error': 'Invalid deadline format'}), 400
 
+        # Geocode location to get coordinates
+        latitude, longitude = None, None
+        if location and not data.get('is_remote', True):
+            latitude, longitude = get_coordinates(location)
+
         new_gig = Gig(
             title=title,
             description=description,
@@ -3426,6 +3689,8 @@ def create_gig():
             approved_budget=approved_budget,
             duration=duration,
             location=location,
+            latitude=latitude,
+            longitude=longitude,
             is_remote=bool(data.get('is_remote', True)),
             client_id=session['user_id'],
             halal_compliant=bool(data.get('halal_compliant', True)),
