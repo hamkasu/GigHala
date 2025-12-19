@@ -24,7 +24,7 @@ SQLite version of the invoice and receipt workflow migration.
 
 **To apply (SQLite):**
 ```bash
-sqlite3 gighalal.db < migrations/001_invoice_receipt_workflow_sqlite.sql
+sqlite3 gighala.db < migrations/001_invoice_receipt_workflow_sqlite.sql
 ```
 
 ## Using Flask-SQLAlchemy

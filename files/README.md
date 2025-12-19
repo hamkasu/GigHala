@@ -1,4 +1,4 @@
-# GigHalal - Platform Gig Halal #1 Malaysia
+# GigHala - Platform Gig Halal #1 Malaysia
 
 <div align="center">
   <h3>☪ Jana Pendapatan Halal & Berkah dari Rumah</h3>
@@ -49,8 +49,8 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/gighalal.git
-cd gighalal
+git clone https://github.com/yourusername/gighala.git
+cd gighala
 ```
 
 2. **Create virtual environment**
@@ -89,7 +89,7 @@ Visit http://localhost:5000 to see the app running!
 1. Go to [Railway.app](https://railway.app)
 2. Click "New Project"
 3. Select "Deploy from GitHub repo"
-4. Connect your GitHub account and select the GigHalal repository
+4. Connect your GitHub account and select the GigHala repository
 
 ### Step 2: Add PostgreSQL Database
 
@@ -140,7 +140,7 @@ cmd = 'gunicorn app:app --bind 0.0.0.0:$PORT'
 ## 🗂️ Project Structure
 
 ```
-gighalal/
+gighala/
 ├── app.py                  # Main Flask application
 ├── requirements.txt        # Python dependencies
 ├── Procfile               # Railway deployment configuration
@@ -160,7 +160,7 @@ gighalal/
 
 ## 🎨 Design Philosophy
 
-GigHalal features a distinctive **Malaysian Islamic aesthetic**:
+GigHala features a distinctive **Malaysian Islamic aesthetic**:
 
 ### Color Palette
 - **Primary Green** (#0D7C66): Islamic heritage, halal trust
@@ -227,7 +227,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 Having issues? Contact us:
-- **Email**: support@gighalal.com
+- **Email**: support@gighala.com
 - **WhatsApp**: +60123456789
 - **Office**: Calmic Sdn Bhd, Johor Bahru, Malaysia
 

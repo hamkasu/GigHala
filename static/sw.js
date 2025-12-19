@@ -1,6 +1,6 @@
-const CACHE_NAME = 'gighalal-v1';
-const STATIC_CACHE = 'gighalal-static-v1';
-const DYNAMIC_CACHE = 'gighalal-dynamic-v1';
+const CACHE_NAME = 'gighala-v1';
+const STATIC_CACHE = 'gighala-static-v1';
+const DYNAMIC_CACHE = 'gighala-dynamic-v1';
 
 const STATIC_ASSETS = [
   '/',

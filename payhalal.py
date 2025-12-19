@@ -1,5 +1,5 @@
 """
-PayHalal Integration Module for GigHalal
+PayHalal Integration Module for GigHala
 Malaysia's First Shariah-Compliant Payment Gateway
 
 This module provides integration with PayHalal (https://payhalal.my/) for processing

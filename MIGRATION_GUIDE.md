@@ -41,7 +41,7 @@ psql $DATABASE_URL < migrations/001_invoice_receipt_workflow.sql
 
 #### For SQLite:
 ```bash
-sqlite3 gighalal.db < migrations/001_invoice_receipt_workflow_sqlite.sql
+sqlite3 gighala.db < migrations/001_invoice_receipt_workflow_sqlite.sql
 ```
 
 ## What Gets Updated?
@@ -110,9 +110,9 @@ psql $DATABASE_URL -c "\d receipt"
 psql $DATABASE_URL -c "\d notification"
 
 # For SQLite
-sqlite3 gighalal.db ".schema invoice"
-sqlite3 gighalal.db ".schema receipt"
-sqlite3 gighalal.db ".schema notification"
+sqlite3 gighala.db ".schema invoice"
+sqlite3 gighala.db ".schema receipt"
+sqlite3 gighala.db ".schema notification"
 ```
 
 ## Rollback (If Needed)
@@ -184,7 +184,7 @@ For production environments:
    pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
 
    # SQLite
-   sqlite3 gighalal.db ".backup 'backup_$(date +%Y%m%d).db'"
+   sqlite3 gighala.db ".backup 'backup_$(date +%Y%m%d).db'"
    ```
 
 2. **Run migration in maintenance window**

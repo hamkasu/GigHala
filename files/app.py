@@ -11,7 +11,7 @@ import uuid
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
-database_url = os.environ.get('DATABASE_URL', 'sqlite:///gighalal.db')
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///gighala.db')
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql+psycopg://', 1)
 elif database_url.startswith('postgresql://'):
@@ -1128,7 +1128,7 @@ with app.app_context():
         # Sample users
         sample_user = User(
             username='demo_freelancer',
-            email='freelancer@gighalal.com',
+            email='freelancer@gighala.com',
             password_hash=generate_password_hash('password123'),
             full_name='Ahmad Zaki',
             user_type='freelancer',
@@ -1144,7 +1144,7 @@ with app.app_context():
         
         sample_client = User(
             username='demo_client',
-            email='client@gighalal.com',
+            email='client@gighala.com',
             password_hash=generate_password_hash('password123'),
             full_name='Siti Nurhaliza',
             user_type='client',
@@ -1253,7 +1253,7 @@ with app.app_context():
                 task_type='survey'
             ),
             MicroTask(
-                title='Share GigHalal Post on Social Media',
+                title='Share GigHala Post on Social Media',
                 description='Share our promotional post and tag 3 friends',
                 reward=5.0,
                 task_type='content_creation'

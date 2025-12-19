@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GigHalal - Simplified Single-File Version
+GigHala - Simplified Single-File Version
 This version is guaranteed to work on Railway with zero configuration.
 """
 
@@ -15,7 +15,7 @@ def home():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>GigHalal - Platform Gig Halal #1 Malaysia</title>
+        <title>GigHala - Platform Gig Halal #1 Malaysia</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
@@ -64,7 +64,7 @@ def home():
     <body>
         <div class="container">
             <div class="hero">
-                <div class="logo">☪ GigHalal</div>
+                <div class="logo">☪ GigHala</div>
                 <h1>Platform Gig Halal #1 Malaysia</h1>
                 <p class="subtitle">Jana Pendapatan RM800-RM4,000 Sebulan dari Rumah</p>
             </div>
@@ -113,7 +113,7 @@ def home():
 def test():
     return jsonify({
         'status': 'success',
-        'message': 'GigHalal API is running!',
+        'message': 'GigHala API is running!',
         'platform': 'Railway',
         'version': '1.0.0'
     })

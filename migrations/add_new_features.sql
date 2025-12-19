@@ -1,4 +1,4 @@
--- GigHalal Database Migration: New Features
+-- GigHala Database Migration: New Features
 -- Run these queries to add support for:
 -- 1. Rating & Review System (already exists)
 -- 2. Profile Portfolios

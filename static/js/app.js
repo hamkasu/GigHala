@@ -1,4 +1,4 @@
-// GigHalal Application
+// GigHala Application
 const app = {
     currentUser: null,
     gigs: [],
@@ -6,7 +6,7 @@ const app = {
     
     // Initialize app
     async init() {
-        console.log('Initializing GigHalal App...');
+        console.log('Initializing GigHala App...');
         await this.loadCategories();
         await this.loadGigs();
         await this.loadStats();

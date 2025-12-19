@@ -14,7 +14,7 @@ This means Railway's Nixpacks builder cannot detect your project type correctly.
 ### Option 1: Use Railway Settings (FASTEST - 2 minutes)
 
 1. **In Railway Dashboard:**
-   - Click on your service (GigHalal)
+   - Click on your service (GigHala)
    - Go to **Settings** tab
    - Scroll to **Build** section
    
@@ -33,7 +33,7 @@ This means Railway's Nixpacks builder cannot detect your project type correctly.
 ### Option 2: Ensure All Files Are Committed (2 minutes)
 
 ```bash
-cd gighalal
+cd gighala
 
 # Check if nixpacks.toml exists
 ls -la nixpacks.toml
@@ -161,7 +161,7 @@ Railway and Heroku use similar configs. If Railway is problematic:
 heroku login
 
 # Create app
-heroku create gighalal-malaysia
+heroku create gighala-malaysia
 
 # Add PostgreSQL
 heroku addons:create heroku-postgresql:mini

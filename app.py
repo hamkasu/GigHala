@@ -29,7 +29,7 @@ if not app.secret_key:
     app.secret_key = secrets.token_hex(32)
     print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET or SECRET_KEY environment variable in production!")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///gighalal.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///gighala.db')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql+psycopg2://', 1)
 elif app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://'):
@@ -298,7 +298,7 @@ TRANSLATIONS = {
         'testimonial_1_name': 'Nurul Huda',
         'testimonial_1_role': 'Video Editor • KL',
         'testimonial_1_earnings': 'Pendapatan: RM 4,500/bulan',
-        'testimonial_2': '"Fresh grad cari kerja susah. GigHalal bagi peluang saya buat income sambil tunggu tawaran tetap. Sekarang side income saya RM 2,800!"',
+        'testimonial_2': '"Fresh grad cari kerja susah. GigHala bagi peluang saya buat income sambil tunggu tawaran tetap. Sekarang side income saya RM 2,800!"',
         'testimonial_2_name': 'Ahmad Zaki',
         'testimonial_2_role': 'Graphic Designer • Penang',
         'testimonial_2_earnings': 'Pendapatan: RM 2,800/bulan',
@@ -512,7 +512,7 @@ TRANSLATIONS = {
         'testimonial_1_name': 'Nurul Huda',
         'testimonial_1_role': 'Video Editor • KL',
         'testimonial_1_earnings': 'Earnings: RM 4,500/month',
-        'testimonial_2': '"Fresh grad finding work is hard. GigHalal gave me the opportunity to earn income while waiting for permanent offers. Now my side income is RM 2,800!"',
+        'testimonial_2': '"Fresh grad finding work is hard. GigHala gave me the opportunity to earn income while waiting for permanent offers. Now my side income is RM 2,800!"',
         'testimonial_2_name': 'Ahmad Zaki',
         'testimonial_2_role': 'Graphic Designer • Penang',
         'testimonial_2_earnings': 'Earnings: RM 2,800/month',
@@ -1615,7 +1615,7 @@ class Milestone(db.Model):
         }
 
 class PlatformFeedback(db.Model):
-    """Model for user feedback about the GigHalal platform"""
+    """Model for user feedback about the GigHala platform"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     feedback_type = db.Column(db.String(50), nullable=False)  # suggestion, bug, complaint, praise, other
@@ -4974,7 +4974,7 @@ def initiate_escrow_payment(gig_id):
                 'manual_instructions': {
                     'bank_name': 'Maybank',
                     'account_number': '512345678901',
-                    'account_name': 'GigHalal Sdn Bhd',
+                    'account_name': 'GigHala Sdn Bhd',
                     'reference': order_id,
                     'amount': total_amount
                 }
@@ -7758,7 +7758,7 @@ def init_database():
             # Sample users
             sample_user = User(
                 username='demo_freelancer',
-                email='freelancer@gighalal.com',
+                email='freelancer@gighala.com',
                 password_hash=generate_password_hash('password123'),
                 full_name='Ahmad Zaki',
                 user_type='freelancer',
@@ -7774,7 +7774,7 @@ def init_database():
             
             sample_client = User(
                 username='demo_client',
-                email='client@gighalal.com',
+                email='client@gighala.com',
                 password_hash=generate_password_hash('password123'),
                 full_name='Siti Nurhaliza',
                 user_type='client',
@@ -7785,7 +7785,7 @@ def init_database():
             # Admin user
             admin_user = User(
                 username='admin',
-                email='admin@gighalal.com',
+                email='admin@gighala.com',
                 password_hash=generate_password_hash('Admin123!'),
                 full_name='GigHala Administrator',
                 user_type='both',
@@ -7897,7 +7897,7 @@ def init_database():
                     task_type='survey'
                 ),
                 MicroTask(
-                    title='Share GigHalal Post on Social Media',
+                    title='Share GigHala Post on Social Media',
                     description='Share our promotional post and tag 3 friends',
                     reward=5.0,
                     task_type='content_creation'
@@ -7923,8 +7923,8 @@ def cara_kerja():
     user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
-        <h2><span class="icon">🚀</span> Bagaimana GigHalal Berfungsi</h2>
-        <p>GigHalal menghubungkan freelancers dengan klien yang mencari perkhidmatan berkualiti. Platform kami memastikan semua transaksi adalah telus, selamat dan mematuhi prinsip halal.</p>
+        <h2><span class="icon">🚀</span> Bagaimana GigHala Berfungsi</h2>
+        <p>GigHala menghubungkan freelancers dengan klien yang mencari perkhidmatan berkualiti. Platform kami memastikan semua transaksi adalah telus, selamat dan mematuhi prinsip halal.</p>
         
         <div class="step-list">
             <div class="step-item">
@@ -8005,7 +8005,7 @@ def cara_kerja():
                          user=user, 
                          active_page='cara-kerja',
                          page_title='Cara Kerja',
-                         page_subtitle='Ketahui bagaimana platform GigHalal berfungsi untuk freelancers dan klien',
+                         page_subtitle='Ketahui bagaimana platform GigHala berfungsi untuk freelancers dan klien',
                          content=content)
 
 @app.route('/pricing')
@@ -8014,7 +8014,7 @@ def pricing():
     content = '''
     <div class="content-section">
         <h2><span class="icon">💰</span> Harga Telus & Berpatutan</h2>
-        <p>GigHalal menawarkan struktur harga yang telus tanpa bayaran tersembunyi. Kami menggunakan sistem komisyen berperingkat yang memberi ganjaran kepada freelancers dengan projek bernilai tinggi.</p>
+        <p>GigHala menawarkan struktur harga yang telus tanpa bayaran tersembunyi. Kami menggunakan sistem komisyen berperingkat yang memberi ganjaran kepada freelancers dengan projek bernilai tinggi.</p>
         
         <div class="pricing-grid">
             <div class="pricing-card">
@@ -8122,7 +8122,7 @@ def kategori():
     content = f'''
     <div class="content-section">
         <h2><span class="icon">📂</span> Semua Kategori</h2>
-        <p>Terokai pelbagai kategori gig yang tersedia di GigHalal. Sama ada anda mahir dalam design, penulisan, video editing atau tutoring - pasti ada peluang untuk anda!</p>
+        <p>Terokai pelbagai kategori gig yang tersedia di GigHala. Sama ada anda mahir dalam design, penulisan, video editing atau tutoring - pasti ada peluang untuk anda!</p>
         
         {categories_html}
     </div>
@@ -8207,7 +8207,7 @@ def panduan_freelancer():
     content = '''
     <div class="content-section">
         <h2><span class="icon">📖</span> Panduan Lengkap Freelancer</h2>
-        <p>Selamat datang ke dunia freelancing! Panduan ini akan membantu anda memulakan perjalanan sebagai freelancer di GigHalal.</p>
+        <p>Selamat datang ke dunia freelancing! Panduan ini akan membantu anda memulakan perjalanan sebagai freelancer di GigHala.</p>
     </div>
     
     <div class="content-section">
@@ -8290,7 +8290,7 @@ def panduan_freelancer():
                          user=user, 
                          active_page='panduan-freelancer',
                          page_title='Panduan Freelancer',
-                         page_subtitle='Panduan lengkap untuk berjaya sebagai freelancer di GigHalal',
+                         page_subtitle='Panduan lengkap untuk berjaya sebagai freelancer di GigHala',
                          content=content)
 
 @app.route('/faq')
@@ -8301,8 +8301,8 @@ def faq():
         <h2><span class="icon">❓</span> Soalan Lazim (FAQ)</h2>
         
         <div class="faq-item">
-            <div class="faq-question">Apakah GigHalal?</div>
-            <div class="faq-answer">GigHalal adalah platform gig economy #1 di Malaysia yang menghubungkan freelancers dengan klien. Kami fokus kepada peluang kerja yang halal dan berkah.</div>
+            <div class="faq-question">Apakah GigHala?</div>
+            <div class="faq-answer">GigHala adalah platform gig economy #1 di Malaysia yang menghubungkan freelancers dengan klien. Kami fokus kepada peluang kerja yang halal dan berkah.</div>
         </div>
         
         <div class="faq-item">
@@ -8347,7 +8347,7 @@ def faq():
         
         <div class="faq-item">
             <div class="faq-question">Bagaimana cara menghubungi sokongan pelanggan?</div>
-            <div class="faq-answer">Anda boleh menghubungi kami melalui email di support@gighalal.com atau WhatsApp di +60 12-345 6789. Waktu operasi: Isnin-Jumaat, 9am-6pm.</div>
+            <div class="faq-answer">Anda boleh menghubungi kami melalui email di support@gighala.com atau WhatsApp di +60 12-345 6789. Waktu operasi: Isnin-Jumaat, 9am-6pm.</div>
         </div>
     </div>
     '''
@@ -8355,7 +8355,7 @@ def faq():
                          user=user, 
                          active_page='faq',
                          page_title='FAQ',
-                         page_subtitle='Jawapan kepada soalan-soalan lazim tentang GigHalal',
+                         page_subtitle='Jawapan kepada soalan-soalan lazim tentang GigHala',
                          content=content)
 
 @app.route('/support')
@@ -8370,7 +8370,7 @@ def support():
             <div class="contact-card">
                 <div class="icon">📧</div>
                 <h4>Email</h4>
-                <p>support@gighalal.com</p>
+                <p>support@gighala.com</p>
                 <p style="font-size: 12px; margin-top: 8px;">Balas dalam 24 jam</p>
             </div>
             
@@ -8395,7 +8395,7 @@ def support():
         <ul>
             <li><a href="/faq" style="color: var(--primary);">Soalan Lazim (FAQ)</a></li>
             <li><a href="/panduan-freelancer" style="color: var(--primary);">Panduan Freelancer</a></li>
-            <li><a href="/cara-kerja" style="color: var(--primary);">Cara GigHalal Berfungsi</a></li>
+            <li><a href="/cara-kerja" style="color: var(--primary);">Cara GigHala Berfungsi</a></li>
             <li><a href="/pricing" style="color: var(--primary);">Struktur Harga</a></li>
         </ul>
     </div>
@@ -8466,10 +8466,10 @@ def syarat_terma():
         <p><em>Kemas kini terakhir: 15 Disember 2025</em></p>
         
         <h3>1. Penerimaan Terma</h3>
-        <p>Dengan mengakses atau menggunakan platform GigHalal, anda bersetuju untuk mematuhi Syarat & Terma ini. Jika anda tidak bersetuju dengan mana-mana bahagian terma ini, anda tidak boleh menggunakan perkhidmatan kami.</p>
+        <p>Dengan mengakses atau menggunakan platform GigHala, anda bersetuju untuk mematuhi Syarat & Terma ini. Jika anda tidak bersetuju dengan mana-mana bahagian terma ini, anda tidak boleh menggunakan perkhidmatan kami.</p>
         
         <h3>2. Kelayakan</h3>
-        <p>Untuk menggunakan GigHalal, anda mestilah:</p>
+        <p>Untuk menggunakan GigHala, anda mestilah:</p>
         <ul>
             <li>Berumur 18 tahun atau lebih</li>
             <li>Mempunyai kapasiti undang-undang untuk memasuki kontrak yang mengikat</li>
@@ -8485,7 +8485,7 @@ def syarat_terma():
         </ul>
         
         <h3>4. Yuran & Pembayaran</h3>
-        <p>GigHalal mengenakan yuran berikut:</p>
+        <p>GigHala mengenakan yuran berikut:</p>
         <ul>
             <li>Komisyen freelancer: 10% (standard) atau 5% (Pro)</li>
             <li>Yuran pemprosesan klien: 3%</li>
@@ -8506,13 +8506,13 @@ def syarat_terma():
         <p>Selepas pembayaran penuh, hak harta intelek untuk kerja yang disiapkan dipindahkan kepada klien kecuali dinyatakan sebaliknya dalam perjanjian gig.</p>
         
         <h3>7. Penyelesaian Pertikaian</h3>
-        <p>Sebarang pertikaian antara pengguna akan diselesaikan melalui proses mediasi GigHalal terlebih dahulu. Keputusan kami adalah muktamad.</p>
+        <p>Sebarang pertikaian antara pengguna akan diselesaikan melalui proses mediasi GigHala terlebih dahulu. Keputusan kami adalah muktamad.</p>
         
         <h3>8. Penamatan</h3>
-        <p>GigHalal berhak untuk menggantung atau menamatkan akaun anda atas sebarang pelanggaran Syarat & Terma ini.</p>
+        <p>GigHala berhak untuk menggantung atau menamatkan akaun anda atas sebarang pelanggaran Syarat & Terma ini.</p>
         
         <h3>9. Penafian</h3>
-        <p>Platform disediakan "sebagaimana adanya". GigHalal tidak menjamin ketersediaan berterusan atau bebas ralat.</p>
+        <p>Platform disediakan "sebagaimana adanya". GigHala tidak menjamin ketersediaan berterusan atau bebas ralat.</p>
         
         <h3>10. Undang-undang Yang Mentadbir</h3>
         <p>Terma ini ditadbir oleh undang-undang Malaysia. Sebarang pertikaian akan diselesaikan di mahkamah Malaysia.</p>
@@ -8522,7 +8522,7 @@ def syarat_terma():
                          user=user, 
                          active_page='syarat-terma',
                          page_title='Syarat & Terma',
-                         page_subtitle='Terma perkhidmatan GigHalal',
+                         page_subtitle='Terma perkhidmatan GigHala',
                          content=content)
 
 @app.route('/privasi')
@@ -8608,12 +8608,12 @@ def privasi():
         <p>Kami telah melantik Pegawai Perlindungan Data (DPO) yang bertanggungjawab untuk mengawasi pematuhan dengan PDPA.</p>
         <p><strong>Hubungi DPO:</strong></p>
         <ul>
-            <li>Email: dpo@gighalal.com</li>
+            <li>Email: dpo@gighala.com</li>
             <li>Telefon: +60 3-XXXX XXXX</li>
         </ul>
         
         <h3>14. Hubungi Kami</h3>
-        <p>Untuk soalan tentang privasi, hubungi: privacy@gighalal.com</p>
+        <p>Untuk soalan tentang privasi, hubungi: privacy@gighala.com</p>
     </div>
     '''
     return render_template('static_page.html', 
@@ -8629,7 +8629,7 @@ def halal_compliance():
     content = '''
     <div class="content-section">
         <h2><span class="icon">☪️</span> Pematuhan Halal</h2>
-        <p>GigHalal komited untuk menyediakan platform yang mematuhi prinsip-prinsip Islam. Berikut adalah garis panduan pematuhan halal kami.</p>
+        <p>GigHala komited untuk menyediakan platform yang mematuhi prinsip-prinsip Islam. Berikut adalah garis panduan pematuhan halal kami.</p>
     </div>
     
     <div class="content-section">
@@ -8695,13 +8695,13 @@ def halal_compliance():
             <p><strong>Misi Kami:</strong> Menyediakan platform gig economy yang membolehkan umat Islam menjana pendapatan yang halal dan berkah, sambil memastikan semua aktiviti mematuhi prinsip syariah.</p>
         </div>
         
-        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus mematuhi garis panduan Islam. Jika anda mempunyai sebarang soalan atau kebimbangan tentang pematuhan halal, sila hubungi kami di halal@gighalal.com.</p>
+        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus mematuhi garis panduan Islam. Jika anda mempunyai sebarang soalan atau kebimbangan tentang pematuhan halal, sila hubungi kami di halal@gighala.com.</p>
     </div>
     
     <div class="content-section">
         <h2><span class="icon">📣</span> Laporkan Pelanggaran</h2>
         <p>Jika anda menjumpai gig yang tidak mematuhi prinsip halal, sila laporkan kepada kami. Kami akan menyiasat dan mengambil tindakan yang sewajarnya.</p>
-        <p>Email: halal@gighalal.com</p>
+        <p>Email: halal@gighala.com</p>
     </div>
     '''
     return render_template('static_page.html', 
@@ -8717,7 +8717,7 @@ def gig_workers_bill():
     content = '''
     <div class="content-section">
         <h2><span class="icon">📜</span> Rang Undang-undang Pekerja Gig</h2>
-        <p>GigHalal menyokong hak-hak pekerja gig dan mematuhi peraturan yang ditetapkan oleh kerajaan Malaysia.</p>
+        <p>GigHala menyokong hak-hak pekerja gig dan mematuhi peraturan yang ditetapkan oleh kerajaan Malaysia.</p>
     </div>
     
     <div class="content-section">
@@ -8741,7 +8741,7 @@ def gig_workers_bill():
         </ul>
         
         <h3>Kebebasan & Fleksibiliti</h3>
-        <p>Sebagai pekerja gig di GigHalal, anda menikmati:</p>
+        <p>Sebagai pekerja gig di GigHala, anda menikmati:</p>
         <ul>
             <li>Kebebasan memilih gig</li>
             <li>Fleksibiliti waktu kerja</li>
@@ -8768,7 +8768,7 @@ def gig_workers_bill():
         </ul>
         
         <div class="highlight-box">
-            <p><strong>💡 Nota:</strong> GigHalal menyediakan penyata pendapatan tahunan untuk membantu anda dengan pengisytiharan cukai.</p>
+            <p><strong>💡 Nota:</strong> GigHala menyediakan penyata pendapatan tahunan untuk membantu anda dengan pengisytiharan cukai.</p>
         </div>
     </div>
     
@@ -8791,7 +8791,7 @@ def gig_workers_bill():
             <li>PERKESO (Pertubuhan Keselamatan Sosial)</li>
             <li>LHDN (Lembaga Hasil Dalam Negeri)</li>
         </ul>
-        <p style="margin-top: 16px;">Atau hubungi kami di: legal@gighalal.com</p>
+        <p style="margin-top: 16px;">Atau hubungi kami di: legal@gighala.com</p>
     </div>
     '''
     return render_template('static_page.html', 
