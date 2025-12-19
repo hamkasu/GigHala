@@ -1296,6 +1296,56 @@ body {
     text-decoration: none;
 }
 
+/* Social Login Buttons */
+.social-login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 0;
+}
+
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 8px;
+    background: white;
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-social:hover {
+    background: var(--soft-cream);
+    border-color: var(--text-gray);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-social svg {
+    flex-shrink: 0;
+}
+
+.btn-google:hover {
+    border-color: #4285F4;
+}
+
+.btn-microsoft:hover {
+    border-color: #00A4EF;
+}
+
+.btn-apple:hover {
+    border-color: #000;
+    background: #000;
+    color: white;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .hero .container {
