@@ -433,7 +433,7 @@
                                 {% elif cat.slug == 'creative-other' %}🎭
                                 {% else %}📋{% endif %}
                             </div>
-                            <div class="category-name">{{ cat.name }}</div>
+                            <div class="category-name">{{ t('category_' + cat.slug) }}</div>
                         </label>
                         {% endfor %}
                     </div>
