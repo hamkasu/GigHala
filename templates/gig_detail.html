@@ -1387,7 +1387,7 @@
     <div class="breadcrumb">
         <a href="/gigs">{{ t('browse_gigs') }}</a>
         <span>/</span>
-        <span>{{ gig.category }}</span>
+        <span>{{ t('category_' + gig.category) }}</span>
         <span>/</span>
         <span>{{ gig.title[:50] }}{% if gig.title|length > 50 %}...{% endif %}</span>
     </div>

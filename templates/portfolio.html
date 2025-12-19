@@ -283,7 +283,7 @@
                 <select name="category" class="form-select">
                     <option value="">Select category</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                    <option value="{{ cat.slug }}">{{ t('category_' + cat.slug) }}</option>
                     {% endfor %}
                 </select>
             </div>
