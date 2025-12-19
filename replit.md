@@ -1,4 +1,4 @@
-# GigHala - Platform Gig Halal #1 Malaysia
+# GigHala - Platform GigHala #1 Malaysia
 
 ## Overview
 GigHala is a Malaysian halal gig economy platform built with Flask. Its main purpose is to connect freelancers with clients for halal-compliant freelance work opportunities, fostering a trusted marketplace for services. The platform aims to be the leading halal gig platform in Malaysia.

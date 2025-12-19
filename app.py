@@ -8368,7 +8368,7 @@ def blog():
             <div class="blog-card-image">☪️</div>
             <div class="blog-card-content">
                 <div class="blog-card-date">1 Disember 2025</div>
-                <div class="blog-card-title">Mengapa Penting Memilih Gig Halal</div>
+                <div class="blog-card-title">Mengapa Penting Memilih GigHala</div>
                 <div class="blog-card-excerpt">Fahami kepentingan memilih kerja yang halal dan berkah dalam membina kerjaya freelance anda.</div>
             </div>
         </div>
