@@ -2288,12 +2288,15 @@ def completed_gigs():
             client = User.query.get(gig.client_id)
             # Get the accepted application for price
             app = Application.query.filter_by(gig_id=gig.id, freelancer_id=user_id, status='accepted').first()
+            # Get escrow status for this gig
+            escrow = Escrow.query.filter_by(gig_id=gig.id).first()
             completed_gigs_list.append({
                 'gig': gig,
                 'application': app,
                 'role': 'freelancer',
                 'other_party': client,
-                'proposed_price': app.proposed_price if app else gig.budget_min
+                'proposed_price': app.proposed_price if app else gig.budget_min,
+                'escrow': escrow
             })
     
     # Get gigs where user is the client and gig is completed
@@ -2309,12 +2312,15 @@ def completed_gigs():
                 freelancer = User.query.get(gig.freelancer_id) if gig.freelancer_id else None
                 # Get the accepted application for price
                 app = Application.query.filter_by(gig_id=gig.id, status='accepted').first()
+                # Get escrow status for this gig
+                escrow = Escrow.query.filter_by(gig_id=gig.id).first()
                 completed_gigs_list.append({
                     'gig': gig,
                     'application': app,
                     'role': 'client',
                     'other_party': freelancer,
-                    'proposed_price': app.proposed_price if app else gig.budget_min
+                    'proposed_price': app.proposed_price if app else gig.budget_min,
+                    'escrow': escrow
                 })
     
     return render_template('completed_gigs.html',
