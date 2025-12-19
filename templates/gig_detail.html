@@ -865,10 +865,24 @@
         cursor: pointer;
     }
 
+    .applicant-stats {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
     .applicant-rating {
         color: #f59e0b;
         font-size: 12px;
         font-weight: 600;
+    }
+
+    .applicant-track-record {
+        color: var(--text-gray);
+        font-size: 11px;
+        font-weight: 500;
     }
 
     .applicant-price {
@@ -878,11 +892,42 @@
         flex-shrink: 0;
     }
 
+    .applicant-bio {
+        font-size: 13px;
+        color: var(--text-dark);
+        line-height: 1.5;
+        margin-top: 10px;
+        margin-bottom: 8px;
+        padding: 10px;
+        background: rgba(46, 125, 50, 0.05);
+        border-left: 3px solid var(--primary);
+        border-radius: 4px;
+    }
+
+    .applicant-bio strong {
+        color: var(--primary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 4px;
+    }
+
     .applicant-message {
         font-size: 13px;
         color: var(--text-gray);
         line-height: 1.5;
         margin-bottom: 8px;
+        padding: 8px 0;
+    }
+
+    .applicant-message strong {
+        color: var(--text-dark);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 4px;
     }
 
     .application-date {
@@ -1485,14 +1530,29 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                     {% endif %}
                                 </div>
-                                {% if app.freelancer_rating %}
-                                <div class="applicant-rating">{{ "%.1f"|format(app.freelancer_rating) }} ★</div>
-                                {% endif %}
+                                <div class="applicant-stats">
+                                    {% if app.freelancer_rating %}
+                                    <span class="applicant-rating">{{ "%.1f"|format(app.freelancer_rating) }} ★</span>
+                                    {% endif %}
+                                    <span class="applicant-track-record">
+                                        {{ app.freelancer_completed_gigs }} {{ 'Gigs Selesai' if lang == 'ms' else 'Gigs Completed' }}
+                                        {% if app.freelancer_review_count > 0 %}
+                                        · {{ app.freelancer_review_count }} {{ 'Ulasan' if lang == 'ms' else 'Reviews' }}
+                                        {% endif %}
+                                    </span>
+                                </div>
                             </div>
                             <div class="applicant-price">RM {{ "%.0f"|format(app.proposed_price) }}</div>
                         </div>
+                        {% if app.freelancer_bio %}
+                        <div class="applicant-bio">
+                            <strong>{{ 'Bio:' if lang == 'ms' else 'Bio:' }}</strong> {{ app.freelancer_bio[:200] }}{% if app.freelancer_bio|length > 200 %}...{% endif %}
+                        </div>
+                        {% endif %}
                         {% if app.cover_letter %}
-                        <div class="applicant-message">{{ app.cover_letter[:150] }}{% if app.cover_letter|length > 150 %}...{% endif %}</div>
+                        <div class="applicant-message">
+                            <strong>{{ 'Surat Permohonan:' if lang == 'ms' else 'Cover Letter:' }}</strong> {{ app.cover_letter[:150] }}{% if app.cover_letter|length > 150 %}...{% endif %}
+                        </div>
                         {% endif %}
                         <div class="application-date">{{ app.created_at.strftime('%d %b %Y') }}</div>
                         {% if app.status == 'pending' %}
