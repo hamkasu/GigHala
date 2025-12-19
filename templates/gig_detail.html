@@ -829,6 +829,14 @@
         font-size: 16px;
         font-weight: 700;
         flex-shrink: 0;
+        text-decoration: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .applicant-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
     }
 
     .applicant-info {
@@ -843,6 +851,18 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .applicant-name a {
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .applicant-name a:hover {
+        color: var(--primary);
+        text-decoration: underline;
+        cursor: pointer;
     }
 
     .applicant-rating {
@@ -1457,10 +1477,10 @@
                     {% for app in gig_applications %}
                     <div class="application-item" id="application-{{ app.id }}">
                         <div class="applicant-header">
-                            <div class="applicant-avatar">{{ app.freelancer_username[0]|upper }}</div>
+                            <a href="/profile/{{ app.freelancer_username }}" class="applicant-avatar" title="{{ 'Lihat Profil' if lang == 'ms' else 'View Profile' }}">{{ app.freelancer_username[0]|upper }}</a>
                             <div class="applicant-info">
                                 <div class="applicant-name">
-                                    {{ app.freelancer_name }}
+                                    <a href="/profile/{{ app.freelancer_username }}" title="{{ 'Lihat Profil' if lang == 'ms' else 'View Profile' }}">{{ app.freelancer_name }}</a>
                                     {% if app.freelancer_is_verified %}
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                                     {% endif %}
