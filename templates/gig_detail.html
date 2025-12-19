@@ -1572,7 +1572,74 @@
                     </button>
                     {% endif %}
 
-                    {% if is_own_gig and escrow.status == 'funded' and gig.status == 'completed' %}
+                    {% if is_freelancer and gig.status == 'completed' and gig_invoices and not gig_invoices[0].invoice_submitted %}
+                    <div class="invoice-submission-form" style="margin-top: 16px; padding: 16px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+                        <h4 style="margin: 0 0 8px 0; color: #856404; font-size: 14px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            {{ 'Muat Naik Invois Anda' if lang == 'ms' else 'Submit Your Invoice' }}
+                        </h4>
+                        <p style="font-size: 12px; color: #856404; margin: 0 0 12px 0;">
+                            {{ 'Sila hantar invois anda untuk membolehkan pelanggan melepaskan pembayaran' if lang == 'ms' else 'Please submit your invoice to enable the client to release payment' }}
+                        </p>
+                        <form id="invoiceSubmissionForm" enctype="multipart/form-data">
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #333;">
+                                    {{ 'Nombor Invois' if lang == 'ms' else 'Invoice Number' }} *
+                                </label>
+                                <input type="text" id="invoiceNumber" required
+                                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;"
+                                       placeholder="{{ 'Cth: INV-2025-001' if lang == 'ms' else 'e.g., INV-2025-001' }}">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #333;">
+                                    {{ 'Tarikh Invois' if lang == 'ms' else 'Invoice Date' }}
+                                </label>
+                                <input type="date" id="invoiceDate"
+                                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #333;">
+                                    {{ 'Fail Invois (pilihan)' if lang == 'ms' else 'Invoice File (optional)' }}
+                                </label>
+                                <input type="file" id="invoiceFile" accept=".pdf,.jpg,.jpeg,.png"
+                                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                                <small style="color: #666; font-size: 11px;">PDF, JPG, PNG (max 5MB)</small>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: #333;">
+                                    {{ 'Nota' if lang == 'ms' else 'Notes' }}
+                                </label>
+                                <textarea id="invoiceNotes" rows="2"
+                                          style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;"
+                                          placeholder="{{ 'Nota tambahan (pilihan)' if lang == 'ms' else 'Additional notes (optional)' }}"></textarea>
+                            </div>
+                            <button type="submit" class="escrow-btn escrow-btn-primary" style="width: 100%; margin-top: 8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                {{ 'Hantar Invois' if lang == 'ms' else 'Submit Invoice' }}
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    {% if is_freelancer and gig.status == 'completed' and gig_invoices and gig_invoices[0].invoice_submitted %}
+                    <div style="margin-top: 16px; padding: 12px; background: #d1f2eb; border: 1px solid #28a745; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; color: #155724; font-size: 13px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            {{ 'Invois telah dihantar. Menunggu pelanggan melepaskan pembayaran.' if lang == 'ms' else 'Invoice submitted. Waiting for client to release payment.' }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if is_own_gig and escrow.status == 'funded' and gig.status == 'completed' and gig_invoices and not gig_invoices[0].invoice_submitted %}
+                    <div style="margin-top: 16px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; color: #856404; font-size: 13px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            {{ 'Menunggu freelancer menghantar invois' if lang == 'ms' else 'Waiting for freelancer to submit invoice' }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if is_own_gig and escrow.status == 'funded' and gig.status == 'completed' and gig_invoices and gig_invoices[0].invoice_submitted %}
                     <button class="escrow-btn escrow-btn-primary" onclick="releaseEscrow()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         {{ 'Lepaskan Dana' if lang == 'ms' else 'Release Funds' }}
@@ -2309,6 +2376,69 @@
             alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
         });
     }
+
+    // Invoice Submission Form Handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const invoiceForm = document.getElementById('invoiceSubmissionForm');
+        if (invoiceForm) {
+            invoiceForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const invoiceNumber = document.getElementById('invoiceNumber').value;
+                const invoiceDate = document.getElementById('invoiceDate').value;
+                const invoiceFile = document.getElementById('invoiceFile').files[0];
+                const invoiceNotes = document.getElementById('invoiceNotes').value;
+
+                if (!invoiceNumber || invoiceNumber.trim() === '') {
+                    alert('{{ "Sila masukkan nombor invois" if lang == "ms" else "Please enter invoice number" }}');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('invoice_number', invoiceNumber);
+                if (invoiceDate) {
+                    formData.append('invoice_date', invoiceDate);
+                }
+                if (invoiceFile) {
+                    if (invoiceFile.size > 5 * 1024 * 1024) {
+                        alert('{{ "Saiz fail terlalu besar. Maksimum 5MB" if lang == "ms" else "File too large. Maximum 5MB" }}');
+                        return;
+                    }
+                    formData.append('invoice_file', invoiceFile);
+                }
+                if (invoiceNotes) {
+                    formData.append('notes', invoiceNotes);
+                }
+
+                const submitButton = invoiceForm.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span> {{ "Menghantar..." if lang == "ms" else "Submitting..." }}';
+
+                fetch('/api/gigs/{{ gig.id }}/submit-invoice', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalText;
+                    } else {
+                        alert(data.message || '{{ "Invois berjaya dihantar!" if lang == "ms" else "Invoice submitted successfully!" }}');
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                });
+            });
+        }
+    });
 
     // Rating System
     let selectedRating = 0;

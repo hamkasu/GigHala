@@ -251,6 +251,19 @@
                                     {{ item.invoice.status|capitalize }}
                                 {% endif %}
                             </span>
+                            {% if item.invoice.status != 'paid' %}
+                                {% if item.invoice.invoice_submitted %}
+                                    <br><span class="doc-status" style="background: #d1fae5; color: #065f46; margin-top: 4px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align: middle;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        {{ 'Invois Dihantar' if lang == 'ms' else 'Invoice Submitted' }}
+                                    </span>
+                                {% else %}
+                                    <br><span class="doc-status" style="background: #fef3c7; color: #92400e; margin-top: 4px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        {{ 'Menunggu Invois' if lang == 'ms' else 'Awaiting Invoice' }}
+                                    </span>
+                                {% endif %}
+                            {% endif %}
                         </td>
                         <td class="date-cell">{{ item.invoice.created_at.strftime('%d %b %Y') }}</td>
                         <td>
