@@ -3788,25 +3788,75 @@ def mark_gig_completed(gig_id):
         # Mark gig as completed
         gig.status = 'completed'
 
+        # Auto-generate invoice when work is completed
+        # Check if invoice already exists
+        existing_invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+
+        if not existing_invoice:
+            # Generate invoice number
+            import random
+            invoice_number = f"INV-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+            # Calculate commission using tiered structure
+            commission = calculate_commission(escrow.amount)
+            net_amount = escrow.amount - commission
+
+            # Create invoice with 'issued' status (not yet paid)
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                transaction_id=None,  # Transaction will be created when payment is released
+                gig_id=gig_id,
+                client_id=gig.client_id,
+                freelancer_id=gig.freelancer_id,
+                amount=escrow.amount,
+                platform_fee=commission,
+                tax_amount=0.0,
+                total_amount=escrow.amount,
+                status='issued',  # Invoice is issued but not yet paid
+                payment_method='escrow',
+                payment_reference=escrow.payment_reference,
+                notes=f'Invoice for completed work: {gig.title}'
+            )
+            db.session.add(invoice)
+            db.session.flush()  # Get invoice ID
+
+            invoice_created = True
+            invoice_info = {
+                'id': invoice.id,
+                'invoice_number': invoice.invoice_number,
+                'amount': invoice.amount,
+                'platform_fee': commission,
+                'net_amount': net_amount
+            }
+        else:
+            invoice_created = False
+            invoice_info = {
+                'id': existing_invoice.id,
+                'invoice_number': existing_invoice.invoice_number,
+                'status': 'already_exists'
+            }
+
         db.session.commit()
 
         # Create notification for client
         notification = Notification(
             user_id=gig.client_id,
             notification_type='work_completed',
-            title='Work Completed',
-            message=f'Freelancer has completed work for: {gig.title}',
+            title='Work Completed - Invoice Ready',
+            message=f'Freelancer has completed work for: {gig.title}. Invoice #{invoice_info["invoice_number"]} is ready for payment.',
             link=f'/gig/{gig.id}'
         )
         db.session.add(notification)
         db.session.commit()
 
         return jsonify({
-            'message': 'Work marked as completed! Client can now release payment.',
+            'message': 'Work marked as completed! Invoice generated and ready for payment release.',
             'gig': {
                 'id': gig.id,
                 'status': gig.status
-            }
+            },
+            'invoice': invoice_info,
+            'invoice_created': invoice_created
         }), 200
 
     except Exception as e:
@@ -4288,13 +4338,18 @@ def release_escrow(gig_id):
         )
         db.session.add(payment_history)
 
-        # Mark invoice as paid (if exists)
+        # Mark invoice as paid (if exists) and link to transaction
+        db.session.flush()  # Ensure transaction has an ID
         invoice = Invoice.query.filter_by(gig_id=gig_id).first()
-        if invoice and invoice.status != 'paid':
-            invoice.status = 'paid'
-            invoice.paid_at = datetime.utcnow()
-            invoice.payment_method = 'escrow'
-            invoice.payment_reference = escrow.payment_reference
+        if invoice:
+            if invoice.status != 'paid':
+                invoice.status = 'paid'
+                invoice.paid_at = datetime.utcnow()
+                invoice.payment_method = 'escrow'
+                invoice.payment_reference = escrow.payment_reference
+            # Link invoice to transaction if not already linked
+            if not invoice.transaction_id:
+                invoice.transaction_id = transaction.id
 
         # Create payment receipts for both client and freelancer
         # Check if receipts already exist for this payment
@@ -6447,23 +6502,34 @@ def complete_gig_transaction(gig_id):
         db.session.add(transaction)
         db.session.flush()  # Get transaction ID
 
-        # Create invoice
-        invoice = Invoice(
-            invoice_number=invoice_number,
-            transaction_id=transaction.id,
-            gig_id=gig_id,
-            client_id=gig.client_id,
-            freelancer_id=gig.freelancer_id,
-            amount=amount,
-            platform_fee=commission,
-            tax_amount=0.0,
-            total_amount=amount,
-            status='paid',
-            payment_method=payment_method,
-            paid_at=datetime.utcnow(),
-            notes=f'Payment for: {gig.title}'
-        )
-        db.session.add(invoice)
+        # Check if invoice already exists (auto-generated on completion)
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+
+        if invoice:
+            # Update existing invoice to mark as paid
+            invoice.status = 'paid'
+            invoice.paid_at = datetime.utcnow()
+            invoice.payment_method = payment_method
+            invoice.transaction_id = transaction.id
+            invoice_number = invoice.invoice_number
+        else:
+            # Create new invoice if it doesn't exist
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                transaction_id=transaction.id,
+                gig_id=gig_id,
+                client_id=gig.client_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=commission,
+                tax_amount=0.0,
+                total_amount=amount,
+                status='paid',
+                payment_method=payment_method,
+                paid_at=datetime.utcnow(),
+                notes=f'Payment for: {gig.title}'
+            )
+            db.session.add(invoice)
 
         # Update or create freelancer wallet
         freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
@@ -6607,23 +6673,35 @@ def approve_and_pay_gig(gig_id):
         db.session.add(transaction)
         db.session.flush()
 
-        # Create invoice
-        invoice = Invoice(
-            invoice_number=invoice_number,
-            transaction_id=transaction.id,
-            gig_id=gig_id,
-            client_id=gig.client_id,
-            freelancer_id=gig.freelancer_id,
-            amount=amount,
-            platform_fee=commission,
-            tax_amount=0.0,
-            total_amount=amount,
-            status='paid',
-            payment_method=payment_method,
-            paid_at=datetime.utcnow(),
-            notes=f'Auto-payment for completed gig: {gig.title}'
-        )
-        db.session.add(invoice)
+        # Check if invoice already exists (auto-generated on completion)
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+
+        if invoice:
+            # Update existing invoice to mark as paid
+            invoice.status = 'paid'
+            invoice.paid_at = datetime.utcnow()
+            invoice.payment_method = payment_method
+            invoice.transaction_id = transaction.id
+            invoice.notes = f'Auto-payment for completed gig: {gig.title}'
+            invoice_number = invoice.invoice_number
+        else:
+            # Create new invoice if it doesn't exist
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                transaction_id=transaction.id,
+                gig_id=gig_id,
+                client_id=gig.client_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=commission,
+                tax_amount=0.0,
+                total_amount=amount,
+                status='paid',
+                payment_method=payment_method,
+                paid_at=datetime.utcnow(),
+                notes=f'Auto-payment for completed gig: {gig.title}'
+            )
+            db.session.add(invoice)
 
         # Update or create freelancer wallet
         freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
@@ -7102,24 +7180,39 @@ def approve_payment(gig_id):
         )
         db.session.add(transaction)
         db.session.flush()
-        
-        invoice = Invoice(
-            invoice_number=invoice_number,
-            transaction_id=transaction.id,
-            gig_id=gig_id,
-            client_id=gig.client_id,
-            freelancer_id=gig.freelancer_id,
-            amount=amount,
-            platform_fee=commission,
-            tax_amount=processing_fee,
-            total_amount=amount,
-            status='paid',
-            payment_method=payment_method,
-            payment_reference=stripe_payment_id,
-            paid_at=datetime.utcnow(),
-            notes=f'Payment approved for: {gig.title}'
-        )
-        db.session.add(invoice)
+
+        # Check if invoice already exists (auto-generated on completion)
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+
+        if invoice:
+            # Update existing invoice to mark as paid
+            invoice.status = 'paid'
+            invoice.paid_at = datetime.utcnow()
+            invoice.payment_method = payment_method
+            invoice.payment_reference = stripe_payment_id
+            invoice.transaction_id = transaction.id
+            invoice.tax_amount = processing_fee
+            invoice.notes = f'Payment approved for: {gig.title}'
+            invoice_number = invoice.invoice_number
+        else:
+            # Create new invoice if it doesn't exist
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                transaction_id=transaction.id,
+                gig_id=gig_id,
+                client_id=gig.client_id,
+                freelancer_id=gig.freelancer_id,
+                amount=amount,
+                platform_fee=commission,
+                tax_amount=processing_fee,
+                total_amount=amount,
+                status='paid',
+                payment_method=payment_method,
+                payment_reference=stripe_payment_id,
+                paid_at=datetime.utcnow(),
+                notes=f'Payment approved for: {gig.title}'
+            )
+            db.session.add(invoice)
         
         freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
         if not freelancer_wallet:
