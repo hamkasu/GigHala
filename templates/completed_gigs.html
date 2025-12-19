@@ -132,6 +132,21 @@
 
     .badge.completed { background: #d1fae5; color: #065f46; }
 
+    .escrow-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .escrow-badge.released { background: #D1FAE5; color: #065F46; }
+    .escrow-badge.funded { background: #DBEAFE; color: #1E40AF; }
+    .escrow-badge.pending { background: #FEF3C7; color: #92400E; }
+    .escrow-badge.refunded { background: #E5E7EB; color: #374151; }
+    .escrow-badge.disputed { background: #FEE2E2; color: #991B1B; }
+    .escrow-badge.no-escrow { background: #F3F4F6; color: #6B7280; }
+
     .role-badge {
         padding: 4px 10px;
         border-radius: 12px;
@@ -232,6 +247,7 @@
                     <th>{{ 'Pihak Lain' if lang == 'ms' else 'Other Party' }}</th>
                     <th>{{ 'Harga' if lang == 'ms' else 'Price' }}</th>
                     <th>{{ 'Status' if lang == 'ms' else 'Status' }}</th>
+                    <th>{{ 'Status Escrow' if lang == 'ms' else 'Escrow Status' }}</th>
                     <th>{{ 'Tarikh' if lang == 'ms' else 'Date' }}</th>
                     <th>{{ 'Tindakan' if lang == 'ms' else 'Action' }}</th>
                 </tr>
@@ -278,6 +294,39 @@
                         <span class="badge completed">
                             {{ 'Selesai' if lang == 'ms' else 'Completed' }}
                         </span>
+                    </td>
+                    <td>
+                        {% if item.escrow %}
+                            {% if item.escrow.status == 'released' %}
+                                <span class="escrow-badge released">
+                                    {{ 'Dilepaskan' if lang == 'ms' else 'Released' }}
+                                </span>
+                            {% elif item.escrow.status == 'funded' %}
+                                <span class="escrow-badge funded">
+                                    {{ 'Dibiayai' if lang == 'ms' else 'Funded' }}
+                                </span>
+                            {% elif item.escrow.status == 'pending' %}
+                                <span class="escrow-badge pending">
+                                    {{ 'Tertunda' if lang == 'ms' else 'Pending' }}
+                                </span>
+                            {% elif item.escrow.status == 'refunded' %}
+                                <span class="escrow-badge refunded">
+                                    {{ 'Dikembalikan' if lang == 'ms' else 'Refunded' }}
+                                </span>
+                            {% elif item.escrow.status == 'disputed' %}
+                                <span class="escrow-badge disputed">
+                                    {{ 'Dipertikaikan' if lang == 'ms' else 'Disputed' }}
+                                </span>
+                            {% else %}
+                                <span class="escrow-badge no-escrow">
+                                    {{ item.escrow.status|title }}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="escrow-badge no-escrow">
+                                {{ 'Tiada Escrow' if lang == 'ms' else 'No Escrow' }}
+                            </span>
+                        {% endif %}
                     </td>
                     <td class="date-cell">
                         {% if item.application %}
