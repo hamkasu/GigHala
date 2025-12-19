@@ -436,9 +436,10 @@
     let map = null;
     let markers = [];
 
-    // Get category from URL parameter
+    // Get category and search from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const selectedCategory = urlParams.get('category') || '';
+    const urlSearch = urlParams.get('search') || '';
 
     const categoryIcons = {
         'design': '🎨',
@@ -846,6 +847,11 @@
                 }
             });
         }
+    }
+
+    // Populate search input from URL parameter
+    if (urlSearch) {
+        document.getElementById('searchInput').value = urlSearch;
     }
 
     // Call on page load
