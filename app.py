@@ -13,6 +13,7 @@ import re
 import stripe
 import uuid
 from hijri_converter import Hijri, Gregorian
+from authlib.integrations.flask_client import OAuth
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -49,6 +50,42 @@ CORS(app,
      origins=allowed_origins,
      supports_credentials=True,
      max_age=3600)
+
+# OAuth Configuration
+oauth = OAuth(app)
+
+# Google OAuth
+google = oauth.register(
+    name='google',
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
+
+# Microsoft OAuth
+microsoft = oauth.register(
+    name='microsoft',
+    client_id=os.environ.get('MICROSOFT_CLIENT_ID'),
+    client_secret=os.environ.get('MICROSOFT_CLIENT_SECRET'),
+    server_metadata_url='https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)
+
+# Apple OAuth
+apple = oauth.register(
+    name='apple',
+    client_id=os.environ.get('APPLE_CLIENT_ID'),
+    client_secret=os.environ.get('APPLE_CLIENT_SECRET'),
+    server_metadata_url='https://appleid.apple.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'name email'
+    }
+)
 
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -953,7 +990,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=True)  # Nullable for OAuth users
     phone = db.Column(db.String(20))
     full_name = db.Column(db.String(120))
     user_type = db.Column(db.String(20), default='freelancer')  # freelancer, client, both
@@ -976,6 +1013,9 @@ class User(db.Model):
     bank_name = db.Column(db.String(100))
     bank_account_number = db.Column(db.String(30))
     bank_account_holder = db.Column(db.String(120))
+    # OAuth fields for social login
+    oauth_provider = db.Column(db.String(20))  # google, apple, microsoft, or null for regular
+    oauth_id = db.Column(db.String(255))  # User ID from OAuth provider
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2850,8 +2890,12 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
+        # Check if user exists and has a password (not OAuth user)
+        if not user or not user.password_hash:
+            return jsonify({'error': 'Invalid credentials'}), 401
+
         # Use constant-time comparison to prevent timing attacks
-        if user and check_password_hash(user.password_hash, data['password']):
+        if check_password_hash(user.password_hash, data['password']):
             session['user_id'] = user.id
             session.permanent = True
 
@@ -2886,6 +2930,188 @@ def logout():
         return redirect('/')
     # For POST requests (JavaScript calls), return JSON
     return jsonify({'message': 'Logged out successfully'}), 200
+
+# OAuth Login Routes
+@app.route('/api/auth/google')
+def google_login():
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/google/callback'
+    return google.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/google/callback')
+def google_callback():
+    try:
+        token = google.authorize_access_token()
+        user_info = token.get('userinfo')
+
+        if not user_info:
+            return redirect('/?error=google_auth_failed')
+
+        # Get user data from Google
+        oauth_id = user_info.get('sub')
+        email = user_info.get('email')
+        full_name = user_info.get('name')
+
+        if not oauth_id or not email:
+            return redirect('/?error=missing_google_data')
+
+        # Check if user exists with this OAuth provider
+        user = User.query.filter_by(oauth_provider='google', oauth_id=oauth_id).first()
+
+        if not user:
+            # Check if email already exists (link accounts)
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # Update existing account with OAuth info
+                user.oauth_provider = 'google'
+                user.oauth_id = oauth_id
+                db.session.commit()
+            else:
+                # Create new user
+                username = email.split('@')[0] + '_' + secrets.token_hex(4)
+                new_user = User(
+                    username=username,
+                    email=email,
+                    full_name=full_name,
+                    oauth_provider='google',
+                    oauth_id=oauth_id,
+                    user_type='both',
+                    is_verified=True  # Email is verified by Google
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                user = new_user
+
+        # Log user in
+        session['user_id'] = user.id
+        session.permanent = True
+
+        return redirect('/dashboard')
+    except Exception as e:
+        app.logger.error(f"Google OAuth error: {str(e)}")
+        return redirect('/?error=google_auth_failed')
+
+@app.route('/api/auth/microsoft')
+def microsoft_login():
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/microsoft/callback'
+    return microsoft.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/microsoft/callback')
+def microsoft_callback():
+    try:
+        token = microsoft.authorize_access_token()
+        user_info = token.get('userinfo')
+
+        if not user_info:
+            return redirect('/?error=microsoft_auth_failed')
+
+        # Get user data from Microsoft
+        oauth_id = user_info.get('sub') or user_info.get('oid')
+        email = user_info.get('email') or user_info.get('preferred_username')
+        full_name = user_info.get('name')
+
+        if not oauth_id or not email:
+            return redirect('/?error=missing_microsoft_data')
+
+        # Check if user exists with this OAuth provider
+        user = User.query.filter_by(oauth_provider='microsoft', oauth_id=oauth_id).first()
+
+        if not user:
+            # Check if email already exists (link accounts)
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # Update existing account with OAuth info
+                user.oauth_provider = 'microsoft'
+                user.oauth_id = oauth_id
+                db.session.commit()
+            else:
+                # Create new user
+                username = email.split('@')[0] + '_' + secrets.token_hex(4)
+                new_user = User(
+                    username=username,
+                    email=email,
+                    full_name=full_name,
+                    oauth_provider='microsoft',
+                    oauth_id=oauth_id,
+                    user_type='both',
+                    is_verified=True  # Email is verified by Microsoft
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                user = new_user
+
+        # Log user in
+        session['user_id'] = user.id
+        session.permanent = True
+
+        return redirect('/dashboard')
+    except Exception as e:
+        app.logger.error(f"Microsoft OAuth error: {str(e)}")
+        return redirect('/?error=microsoft_auth_failed')
+
+@app.route('/api/auth/apple')
+def apple_login():
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/apple/callback'
+    return apple.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/apple/callback')
+def apple_callback():
+    try:
+        token = apple.authorize_access_token()
+        user_info = token.get('userinfo')
+
+        if not user_info:
+            return redirect('/?error=apple_auth_failed')
+
+        # Get user data from Apple
+        oauth_id = user_info.get('sub')
+        email = user_info.get('email')
+
+        # Apple might not always provide the name after first login
+        full_name = None
+        if 'name' in user_info:
+            name_obj = user_info.get('name', {})
+            first_name = name_obj.get('firstName', '')
+            last_name = name_obj.get('lastName', '')
+            full_name = f"{first_name} {last_name}".strip()
+
+        if not oauth_id or not email:
+            return redirect('/?error=missing_apple_data')
+
+        # Check if user exists with this OAuth provider
+        user = User.query.filter_by(oauth_provider='apple', oauth_id=oauth_id).first()
+
+        if not user:
+            # Check if email already exists (link accounts)
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # Update existing account with OAuth info
+                user.oauth_provider = 'apple'
+                user.oauth_id = oauth_id
+                db.session.commit()
+            else:
+                # Create new user
+                username = email.split('@')[0] + '_' + secrets.token_hex(4)
+                new_user = User(
+                    username=username,
+                    email=email,
+                    full_name=full_name or email.split('@')[0],
+                    oauth_provider='apple',
+                    oauth_id=oauth_id,
+                    user_type='both',
+                    is_verified=True  # Email is verified by Apple
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                user = new_user
+
+        # Log user in
+        session['user_id'] = user.id
+        session.permanent = True
+
+        return redirect('/dashboard')
+    except Exception as e:
+        app.logger.error(f"Apple OAuth error: {str(e)}")
+        return redirect('/?error=apple_auth_failed')
 
 @app.route('/api/gigs', methods=['GET'])
 @api_rate_limit(requests_per_minute=120)
