@@ -1142,6 +1142,14 @@ class Invoice(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     notes = db.Column(db.Text)
 
+    # Freelancer invoice submission fields
+    invoice_submitted = db.Column(db.Boolean, default=False)
+    freelancer_invoice_number = db.Column(db.String(100))
+    freelancer_invoice_date = db.Column(db.DateTime)
+    freelancer_submitted_at = db.Column(db.DateTime)
+    freelancer_invoice_file = db.Column(db.String(255))
+    freelancer_invoice_notes = db.Column(db.Text)
+
 class Receipt(db.Model):
     """Model for storing payment receipts for escrow funding and other payments"""
     id = db.Column(db.Integer, primary_key=True)
@@ -1781,7 +1789,12 @@ def view_gig(gig_id):
                     'invoice_number': inv.invoice_number,
                     'amount': inv.total_amount,
                     'status': inv.status,
-                    'created_at': inv.created_at
+                    'created_at': inv.created_at,
+                    'invoice_submitted': inv.invoice_submitted,
+                    'freelancer_invoice_number': inv.freelancer_invoice_number,
+                    'freelancer_invoice_date': inv.freelancer_invoice_date,
+                    'freelancer_submitted_at': inv.freelancer_submitted_at,
+                    'freelancer_invoice_file': inv.freelancer_invoice_file
                 })
             
             receipts = Receipt.query.filter_by(gig_id=gig_id).order_by(Receipt.created_at.desc()).all()
@@ -4090,6 +4103,104 @@ def mark_gig_completed(gig_id):
         app.logger.error(f"Mark gig completed error: {str(e)}")
         return jsonify({'error': 'Failed to mark gig as completed'}), 500
 
+@app.route('/api/gigs/<int:gig_id>/submit-invoice', methods=['POST'])
+def submit_freelancer_invoice(gig_id):
+    """Freelancer submits their invoice for a completed gig"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only assigned freelancer can submit invoice
+        if gig.freelancer_id != user_id:
+            return jsonify({'error': 'Only the assigned freelancer can submit invoice'}), 403
+
+        # Gig must be completed
+        if gig.status != 'completed':
+            return jsonify({'error': 'Work must be marked as completed before submitting invoice'}), 400
+
+        # Get the invoice for this gig
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+        if not invoice:
+            return jsonify({'error': 'Invoice not found. Please mark work as completed first.'}), 404
+
+        # Check if invoice already submitted
+        if invoice.invoice_submitted:
+            return jsonify({'error': 'Invoice has already been submitted'}), 400
+
+        # Get invoice details from request
+        freelancer_invoice_number = request.form.get('invoice_number', '').strip()
+        invoice_date_str = request.form.get('invoice_date', '')
+        invoice_notes = request.form.get('notes', '')
+
+        # Validate required fields
+        if not freelancer_invoice_number:
+            return jsonify({'error': 'Invoice number is required'}), 400
+
+        # Parse invoice date
+        freelancer_invoice_date = None
+        if invoice_date_str:
+            try:
+                freelancer_invoice_date = datetime.strptime(invoice_date_str, '%Y-%m-%d')
+            except ValueError:
+                return jsonify({'error': 'Invalid invoice date format. Use YYYY-MM-DD'}), 400
+
+        # Handle invoice file upload (optional)
+        invoice_file_path = None
+        invoice_file = request.files.get('invoice_file')
+        if invoice_file and invoice_file.filename:
+            # Create upload directory
+            upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads/invoices')
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # Secure filename and save
+            filename = secure_filename(invoice_file.filename)
+            timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+            unique_filename = f"invoice_{gig_id}_{user_id}_{timestamp}_{filename}"
+            file_path = os.path.join(upload_folder, unique_filename)
+            invoice_file.save(file_path)
+
+            invoice_file_path = f'/uploads/invoices/{unique_filename}'
+
+        # Update invoice with freelancer submission details
+        invoice.invoice_submitted = True
+        invoice.freelancer_invoice_number = freelancer_invoice_number
+        invoice.freelancer_invoice_date = freelancer_invoice_date or datetime.utcnow()
+        invoice.freelancer_submitted_at = datetime.utcnow()
+        invoice.freelancer_invoice_file = invoice_file_path
+        invoice.freelancer_invoice_notes = invoice_notes
+
+        db.session.commit()
+
+        # Create notification for client
+        notification = Notification(
+            user_id=gig.client_id,
+            notification_type='invoice_submitted',
+            title='Invoice Submitted',
+            message=f'Freelancer has submitted invoice #{freelancer_invoice_number} for: {gig.title}. You can now release payment.',
+            link=f'/gig/{gig.id}'
+        )
+        db.session.add(notification)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Invoice submitted successfully! Client can now release payment.',
+            'invoice': {
+                'id': invoice.id,
+                'invoice_number': invoice.invoice_number,
+                'freelancer_invoice_number': freelancer_invoice_number,
+                'invoice_submitted': True,
+                'submitted_at': invoice.freelancer_submitted_at.isoformat()
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Submit invoice error: {str(e)}")
+        return jsonify({'error': 'Failed to submit invoice'}), 500
+
 @app.route('/api/gigs/<int:gig_id>/submit-work', methods=['POST'])
 def submit_work(gig_id):
     """Freelancer submits work for client review"""
@@ -4514,6 +4625,14 @@ def release_escrow(gig_id):
         if escrow.status != 'funded':
             return jsonify({'error': f'Escrow cannot be released (status: {escrow.status})'}), 400
 
+        # Check if freelancer has submitted their invoice
+        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+        if not invoice:
+            return jsonify({'error': 'Invoice not found. Freelancer must complete work first.'}), 400
+
+        if not invoice.invoice_submitted:
+            return jsonify({'error': 'Freelancer must submit their invoice before payment can be released'}), 400
+
         # Release escrow
         escrow.status = 'released'
         escrow.released_at = datetime.utcnow()
@@ -4564,9 +4683,9 @@ def release_escrow(gig_id):
         )
         db.session.add(payment_history)
 
-        # Mark invoice as paid (if exists) and link to transaction
+        # Mark invoice as paid and link to transaction
         db.session.flush()  # Ensure transaction has an ID
-        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+        # Invoice already fetched above for validation
         if invoice:
             if invoice.status != 'paid':
                 invoice.status = 'paid'
