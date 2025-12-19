@@ -15,7 +15,7 @@ def home():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>GigHala - Platform Gig Halal #1 Malaysia</title>
+        <title>GigHala - Platform GigHala #1 Malaysia</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
@@ -65,7 +65,7 @@ def home():
         <div class="container">
             <div class="hero">
                 <div class="logo">☪ GigHala</div>
-                <h1>Platform Gig Halal #1 Malaysia</h1>
+                <h1>Platform GigHala #1 Malaysia</h1>
                 <p class="subtitle">Jana Pendapatan RM800-RM4,000 Sebulan dari Rumah</p>
             </div>
             

@@ -1,4 +1,4 @@
-# GigHala - Platform Gig Halal #1 Malaysia
+# GigHala - Platform GigHala #1 Malaysia
 
 <div align="center">
   <h3>☪ Jana Pendapatan Halal & Berkah dari Rumah</h3>
