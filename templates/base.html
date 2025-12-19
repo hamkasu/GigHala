@@ -741,6 +741,7 @@
 
         .date-bar .date-separator {
             color: rgba(255,255,255,0.4);
+            padding: 0 4px;
         }
 
         .date-bar .gregorian-date {
@@ -754,11 +755,7 @@
                 padding: 6px 12px;
             }
             .date-bar .date-content {
-                flex-direction: column;
-                gap: 2px;
-            }
-            .date-bar .date-separator {
-                display: none;
+                gap: 8px;
             }
         }
 
@@ -853,7 +850,7 @@
     <div class="date-bar">
         <div class="date-content">
             <span class="hijri-date">{{ today_hijri }}</span>
-            <span class="date-separator">|</span>
+            <span class="date-separator">:</span>
             <span class="gregorian-date">{{ today_gregorian }}</span>
         </div>
     </div>
@@ -871,9 +868,9 @@
             
             <nav class="header-nav">
                 {% if user %}
-                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">Browse Gigs</a>
+                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">Browse</a>
                     {% if user.user_type in ['client', 'both'] %}
-                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post Gig</a>
+                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post</a>
                     {% endif %}
                     <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">
                         Messages
