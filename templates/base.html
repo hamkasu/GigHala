@@ -151,7 +151,8 @@
             display: flex;
             align-items: center;
             gap: 28px;
-            flex-shrink: 0;
+            flex-shrink: 1;
+            min-width: 0;
         }
 
         .nav-link {
@@ -501,7 +502,7 @@
             }
 
             .header-nav {
-                gap: 8px;
+                gap: 6px;
             }
 
             .nav-link {
@@ -516,6 +517,7 @@
             .user-avatar {
                 width: 32px;
                 height: 32px;
+                min-width: 32px;
                 font-size: 12px;
             }
 
@@ -558,6 +560,10 @@
                 font-size: 18px;
             }
 
+            .header-nav {
+                gap: 4px;
+            }
+
             .lang-switcher span#langText {
                 display: none;
             }
@@ -565,6 +571,12 @@
             .lang-switcher {
                 min-width: auto;
                 padding: 6px 8px;
+            }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
             }
 
             .footer-grid {
