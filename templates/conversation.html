@@ -168,6 +168,135 @@
         text-align: center;
         z-index: 10;
     }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .chat-container {
+            padding: 16px 12px;
+            height: calc(100vh - 60px);
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .chat-header {
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .chat-user-info h2 {
+            font-size: 16px;
+        }
+
+        .chat-user-info p {
+            font-size: 12px;
+        }
+
+        .chat-gig-badge {
+            display: none;
+        }
+
+        .messages-area {
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 85%;
+        }
+
+        .message-bubble {
+            padding: 10px 14px;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 10px;
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .chat-input {
+            padding: 10px 14px;
+            font-size: 15px;
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+            font-size: 13px;
+        }
+
+        .back-btn {
+            font-size: 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chat-container {
+            padding: 12px 8px;
+        }
+
+        .chat-header {
+            padding: 12px;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 14px;
+        }
+
+        .messages-area {
+            padding: 12px;
+        }
+
+        .message {
+            max-width: 90%;
+        }
+
+        .message-bubble {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .chat-input-area {
+            padding: 10px;
+        }
+
+        .send-btn {
+            padding: 10px 16px;
+            font-size: 12px;
+        }
+    }
+
+    /* Touch-friendly interactions */
+    @media (hover: none) and (pointer: coarse) {
+        .send-btn {
+            min-height: 44px;
+            min-width: 60px;
+        }
+
+        .back-btn {
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-input {
+            min-height: 44px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+    }
 </style>
 {% endblock %}
 

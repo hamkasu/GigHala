@@ -1379,6 +1379,182 @@
         font-size: 12px;
         color: var(--text-gray);
     }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        .gig-detail-container {
+            padding: 16px 12px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .breadcrumb {
+            font-size: 12px;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .gig-main {
+            padding: 20px 16px;
+        }
+
+        .gig-title {
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .gig-meta {
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 16px;
+        }
+
+        .gig-description {
+            font-size: 14px;
+            padding: 16px;
+        }
+
+        .skill-tag {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .photo-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+        }
+
+        .gig-sidebar {
+            padding: 20px 16px;
+        }
+
+        .sidebar-box {
+            padding: 16px;
+        }
+
+        .price-display {
+            font-size: 28px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .client-card {
+            padding: 16px;
+        }
+
+        .applicant-item {
+            padding: 14px;
+        }
+
+        .modal-content {
+            padding: 24px 16px;
+            margin: 16px;
+            width: calc(100% - 32px);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-input, .form-textarea {
+            padding: 12px;
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .gig-detail-container {
+            padding: 12px 8px;
+        }
+
+        .breadcrumb {
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+
+        .gig-main {
+            padding: 16px 12px;
+        }
+
+        .gig-title {
+            font-size: 20px;
+        }
+
+        .gig-badges {
+            gap: 6px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            font-size: 11px;
+        }
+
+        .gig-meta {
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .section-title {
+            font-size: 15px;
+        }
+
+        .gig-description {
+            font-size: 13px;
+            padding: 12px;
+        }
+
+        .photo-gallery {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .price-display {
+            font-size: 24px;
+        }
+
+        .rating-stars {
+            font-size: 32px;
+            gap: 4px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+        }
+    }
+
+    /* Touch-friendly interactions */
+    @media (hover: none) and (pointer: coarse) {
+        .action-btn,
+        .btn-primary,
+        .btn-secondary,
+        .btn-danger {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .rating-star {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            min-height: 44px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+
+        .photo-item {
+            min-height: 88px;
+        }
+    }
 </style>
 {% endblock %}
 
