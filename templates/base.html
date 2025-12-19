@@ -484,12 +484,14 @@
         /* Mobile */
         @media (max-width: 768px) {
             .header-top {
-                padding: 12px 16px;
-                gap: 12px;
+                padding: 12px 12px;
+                gap: 8px;
+                overflow: visible;
             }
 
             .logo {
                 font-size: 20px;
+                flex-shrink: 0;
             }
 
             .logo-icon {
@@ -502,7 +504,9 @@
             }
 
             .header-nav {
-                gap: 6px;
+                gap: 8px;
+                flex-shrink: 0;
+                overflow: visible;
             }
 
             .nav-link {
@@ -512,13 +516,19 @@
             .lang-switcher {
                 padding: 6px 10px;
                 font-size: 11px;
+                flex-shrink: 0;
             }
 
             .user-avatar {
                 width: 32px;
                 height: 32px;
                 min-width: 32px;
+                flex-shrink: 0;
                 font-size: 12px;
+            }
+
+            .user-menu {
+                flex-shrink: 0;
             }
 
             .btn-primary {
@@ -553,15 +563,20 @@
         /* Small Mobile */
         @media (max-width: 480px) {
             .header-top {
-                padding: 10px 12px;
+                padding: 10px 8px;
+                gap: 6px;
+                overflow: visible;
             }
 
             .logo {
                 font-size: 18px;
+                flex-shrink: 0;
             }
 
             .header-nav {
-                gap: 4px;
+                gap: 6px;
+                flex-shrink: 0;
+                overflow: visible;
             }
 
             .lang-switcher span#langText {
@@ -571,12 +586,18 @@
             .lang-switcher {
                 min-width: auto;
                 padding: 6px 8px;
+                flex-shrink: 0;
             }
 
             .user-avatar {
                 width: 32px;
                 height: 32px;
                 min-width: 32px;
+                flex-shrink: 0;
+            }
+
+            .user-menu {
+                flex-shrink: 0;
             }
 
             .footer-grid {
@@ -868,17 +889,17 @@
             
             <nav class="header-nav">
                 {% if user %}
-                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">Browse</a>
+                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">Cari</a>
                     {% if user.user_type in ['client', 'both'] %}
-                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Post</a>
+                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Hantar</a>
                     {% endif %}
                     <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">
-                        Messages
+                        Mesej
                         {% if unread_message_count > 0 %}
                         <span class="nav-badge">{{ unread_message_count }}</span>
                         {% endif %}
                     </a>
-                    <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Wallet</a>
+                    <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Dompet</a>
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">Admin</a>
                     {% endif %}
