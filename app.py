@@ -370,6 +370,32 @@ TRANSLATIONS = {
         'cat_caregiving': 'Penjagaan & Perkhidmatan',
         'cat_creative_other': 'Lain-lain Kreatif',
 
+        # Category Translations (for API)
+        'category_design': 'Reka Bentuk',
+        'category_writing': 'Penulisan & Terjemahan',
+        'category_video': 'Video & Animasi',
+        'category_tutoring': 'Tunjuk Ajar & Pendidikan',
+        'category_content': 'Penciptaan Kandungan',
+        'category_web': 'Pembangunan Web',
+        'category_marketing': 'Pemasaran Digital',
+        'category_admin': 'Pentadbiran & Pembantu Maya',
+        'category_general': 'Kerja Am',
+        'category_programming': 'Pengaturcaraan & Teknologi',
+        'category_consulting': 'Perundingan Perniagaan',
+        'category_engineering': 'Perkhidmatan Kejuruteraan',
+        'category_music': 'Muzik & Audio',
+        'category_photography': 'Fotografi',
+        'category_finance': 'Kewangan & Simpan Kira',
+        'category_crafts': 'Kraftangan & Buatan Tangan',
+        'category_garden': 'Rumah & Taman',
+        'category_coaching': 'Bimbingan Hidup',
+        'category_data': 'Analisis Data',
+        'category_pets': 'Perkhidmatan Haiwan Peliharaan',
+        'category_handyman': 'Tukang & Pembaikan',
+        'category_tours': 'Panduan Pelancongan',
+        'category_events': 'Perancangan Acara',
+        'category_online-selling': 'Jualan Dalam Talian',
+
         # Gigs Page
         'search': 'Cari',
         'keywords_placeholder': 'Kata kunci...',
@@ -585,6 +611,32 @@ TRANSLATIONS = {
         'cat_caregiving': 'Caregiving & Services',
         'cat_photography': 'Photography & Videography',
         'cat_creative_other': 'Other Creative',
+
+        # Category Translations (for API)
+        'category_design': 'Design',
+        'category_writing': 'Writing & Translation',
+        'category_video': 'Video & Animation',
+        'category_tutoring': 'Tutoring & Education',
+        'category_content': 'Content Creation',
+        'category_web': 'Web Development',
+        'category_marketing': 'Digital Marketing',
+        'category_admin': 'Admin & Virtual Assistant',
+        'category_general': 'General Works',
+        'category_programming': 'Programming & Tech',
+        'category_consulting': 'Business Consulting',
+        'category_engineering': 'Engineering Services',
+        'category_music': 'Music & Audio',
+        'category_photography': 'Photography',
+        'category_finance': 'Finance & Bookkeeping',
+        'category_crafts': 'Crafts & Handmade',
+        'category_garden': 'Home & Garden',
+        'category_coaching': 'Life Coaching',
+        'category_data': 'Data Analysis',
+        'category_pets': 'Pet Services',
+        'category_handyman': 'Handyman & Repairs',
+        'category_tours': 'Tour Guiding',
+        'category_events': 'Event Planning',
+        'category_online-selling': 'Online Selling',
 
         # Gigs Page
         'search': 'Search',
@@ -1654,7 +1706,16 @@ def index():
         db.session.add(stats)
     stats.value += 1
     db.session.commit()
-    return render_template('index.html', visitor_count=stats.value, lang=get_user_language(), t=t)
+
+    # Get dual date
+    today_dual = get_dual_date()
+
+    return render_template('index.html',
+                         visitor_count=stats.value,
+                         lang=get_user_language(),
+                         t=t,
+                         today_gregorian=today_dual['gregorian'],
+                         today_hijri=today_dual['hijri'])
 
 @app.route('/gigs')
 @page_login_required
@@ -6039,11 +6100,14 @@ def get_categories():
         'events': '🎉',
         'online-selling': '🛍️'
     }
-    
+
+    # Get user's language preference
+    lang = get_user_language()
+
     categories = Category.query.all()
     result = [{
         'id': cat.slug,
-        'name': cat.name,
+        'name': t(f'category_{cat.slug}'),  # Use translated name
         'icon': emoji_map.get(cat.slug, '📋')
     } for cat in categories]
 
