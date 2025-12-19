@@ -716,6 +716,50 @@ def sanitize_input(text, max_length=1000):
         text = text[:max_length]
     return text
 
+def contains_blocked_contact_info(text):
+    """
+    Check if message contains phone numbers or email addresses to prevent phishing.
+    Returns (is_blocked, reason) tuple.
+    """
+    if not text:
+        return False, None
+
+    # Email pattern - comprehensive regex for email detection
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+
+    # Phone number patterns - detect various formats
+    phone_patterns = [
+        r'\+?\d{1,4}[\s-]?\(?\d{1,4}\)?[\s-]?\d{1,4}[\s-]?\d{1,9}',  # International formats
+        r'\b0\d{1,2}[\s-]?\d{3,4}[\s-]?\d{4}\b',  # Malaysian local format (01X-XXX-XXXX)
+        r'\b\d{3}[\s-]\d{3}[\s-]\d{4}\b',  # Common format (XXX-XXX-XXXX)
+        r'\b\d{10,}\b',  # 10+ consecutive digits
+        r'\+60[\s-]?\d{1,2}[\s-]?\d{3,4}[\s-]?\d{4}',  # Malaysian international (+60)
+    ]
+
+    # Check for email addresses
+    if re.search(email_pattern, text):
+        return True, "Email addresses are not allowed in messages to prevent phishing"
+
+    # Check for phone numbers
+    for pattern in phone_patterns:
+        if re.search(pattern, text):
+            return True, "Phone numbers are not allowed in messages to prevent phishing"
+
+    # Check for common contact info indicators (case-insensitive)
+    contact_keywords = [
+        r'\b(email|e-mail)\s*(me|is|:|@)',
+        r'\b(call|text|whatsapp|telegram|viber|wechat)\s*(me|at)',
+        r'\bcontact\s*(me|at|via)',
+        r'\bphone\s*(number|is|:|#)',
+        r'\breach\s*(me|out)\s*(at|via|on)',
+    ]
+
+    for keyword_pattern in contact_keywords:
+        if re.search(keyword_pattern, text, re.IGNORECASE):
+            return True, "Messages suggesting off-platform contact are not allowed to prevent phishing"
+
+    return False, None
+
 # Rate limiting decorator
 def rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30):
     """Rate limit decorator to prevent brute force attacks"""
@@ -8478,10 +8522,15 @@ def send_message():
         data = request.json
         conversation_id = data.get('conversation_id')
         content = data.get('content', '').strip()
-        
+
         if not content:
             return jsonify({'error': 'Message cannot be empty'}), 400
-        
+
+        # Check for blocked contact information (phone numbers, emails)
+        is_blocked, block_reason = contains_blocked_contact_info(content)
+        if is_blocked:
+            return jsonify({'error': block_reason}), 400
+
         conv = Conversation.query.get(conversation_id)
         if not conv or (conv.participant_1_id != user_id and conv.participant_2_id != user_id):
             return jsonify({'error': 'Conversation not found'}), 404
@@ -8522,9 +8571,15 @@ def start_conversation():
         other_user_id = data.get('user_id')
         gig_id = data.get('gig_id')
         initial_message = data.get('message', '').strip()
-        
+
         if not other_user_id or other_user_id == user_id:
             return jsonify({'error': 'Invalid recipient'}), 400
+
+        # Check for blocked contact information in initial message
+        if initial_message:
+            is_blocked, block_reason = contains_blocked_contact_info(initial_message)
+            if is_blocked:
+                return jsonify({'error': block_reason}), 400
         
         existing = Conversation.query.filter(
             ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == other_user_id)) |
@@ -8932,10 +8987,15 @@ def add_dispute_message(dispute_id):
         user = User.query.get(user_id)
         data = request.json
         message_text = data.get('message', '').strip()
-        
+
         if not message_text:
             return jsonify({'error': 'Message cannot be empty'}), 400
-        
+
+        # Check for blocked contact information (phone numbers, emails)
+        is_blocked, block_reason = contains_blocked_contact_info(message_text)
+        if is_blocked:
+            return jsonify({'error': block_reason}), 400
+
         dispute = Dispute.query.get_or_404(dispute_id)
         if dispute.filed_by_id != user_id and dispute.against_id != user_id and not user.is_admin:
             return jsonify({'error': 'Unauthorized'}), 403

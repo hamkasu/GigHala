@@ -108,6 +108,7 @@
         margin-top: 4px;
     }
     .chat-input-area {
+        position: relative;
         background: var(--bg-white);
         border-radius: var(--radius-lg);
         border: 1px solid var(--border);
@@ -152,6 +153,21 @@
         color: var(--text-gray);
         font-size: 14px;
     }
+    .message-error {
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ff4444;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        max-width: 90%;
+        text-align: center;
+        z-index: 10;
+    }
 </style>
 {% endblock %}
 
@@ -185,6 +201,7 @@
     </div>
 
     <form class="chat-input-area" id="messageForm">
+        <div id="messageError" class="message-error" style="display: none;"></div>
         <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
         <button type="submit" class="send-btn" id="sendBtn">Send</button>
     </form>
@@ -206,9 +223,9 @@ messageForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const content = messageInput.value.trim();
     if (!content) return;
-    
+
     sendBtn.disabled = true;
-    
+
     try {
         const response = await fetch('/api/messages/send', {
             method: 'POST',
@@ -218,17 +235,22 @@ messageForm.addEventListener('submit', async function(e) {
                 content: content
             })
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             appendMessage(data.message, true);
             messageInput.value = '';
             lastMessageId = data.message.id;
+            clearError();
+        } else {
+            const errorData = await response.json();
+            showError(errorData.error || 'Failed to send message');
         }
     } catch (error) {
         console.error('Send error:', error);
+        showError('Failed to send message');
     }
-    
+
     sendBtn.disabled = false;
     messageInput.focus();
 });
@@ -258,6 +280,21 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function showError(message) {
+    const errorEl = document.getElementById('messageError');
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+    setTimeout(() => {
+        clearError();
+    }, 5000); // Auto-hide after 5 seconds
+}
+
+function clearError() {
+    const errorEl = document.getElementById('messageError');
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
 }
 
 async function pollMessages() {
