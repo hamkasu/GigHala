@@ -1039,16 +1039,16 @@ def get_dual_date(date_obj=None, lang=None):
         date_obj = datetime.now()
     if lang is None:
         lang = get_user_language()
-    
+
     # Gregorian date
     greg_month = GREGORIAN_MONTHS.get(lang, GREGORIAN_MONTHS['ms'])[date_obj.month - 1]
     gregorian = f"{date_obj.day} {greg_month} {date_obj.year}"
-    
-    # Convert to Hijri
+
+    # Convert to Hijri - Always use Malaysian (Malay) month names
     hijri = Gregorian(date_obj.year, date_obj.month, date_obj.day).to_hijri()
-    hijri_month = HIJRI_MONTHS.get(lang, HIJRI_MONTHS['ms'])[hijri.month - 1]
+    hijri_month = HIJRI_MONTHS['ms'][hijri.month - 1]  # Force Malaysian style
     hijri_str = f"{hijri.day} {hijri_month} {hijri.year}H"
-    
+
     return {'gregorian': gregorian, 'hijri': hijri_str, 'full': f"{gregorian} / {hijri_str}"}
 
 def format_date_dual(date_obj, lang=None):
