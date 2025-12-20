@@ -302,6 +302,7 @@
             background: var(--bg-white);
             border-bottom: 1px solid var(--border);
             overflow: hidden;
+            position: relative;
         }
 
         .categories-nav {
@@ -315,10 +316,48 @@
             -ms-overflow-style: none;
             -webkit-overflow-scrolling: touch;
             cursor: grab;
+            scroll-behavior: smooth;
         }
 
         .categories-nav::-webkit-scrollbar {
             display: none;
+        }
+
+        .categories-nav.dragging {
+            cursor: grabbing;
+            scroll-behavior: auto;
+        }
+
+        /* Gradient indicators for scrollable content */
+        .header-categories::before,
+        .header-categories::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .header-categories::before {
+            left: 0;
+            background: linear-gradient(to right, var(--bg-white), transparent);
+        }
+
+        .header-categories::after {
+            right: 0;
+            background: linear-gradient(to left, var(--bg-white), transparent);
+        }
+
+        .header-categories.show-left-gradient::before {
+            opacity: 1;
+        }
+
+        .header-categories.show-right-gradient::after {
+            opacity: 1;
         }
 
         .category-link {
@@ -1170,41 +1209,71 @@
 
         // Enable horizontal scrolling for category navigation
         const categoriesNav = document.querySelector('.categories-nav');
-        if (categoriesNav) {
+        const headerCategories = document.querySelector('.header-categories');
+
+        if (categoriesNav && headerCategories) {
             let isDown = false;
             let startX;
             let scrollLeft;
+            let hasMoved = false;
+
+            // Update gradient indicators based on scroll position
+            function updateGradients() {
+                const isAtStart = categoriesNav.scrollLeft <= 5;
+                const isAtEnd = categoriesNav.scrollLeft >= (categoriesNav.scrollWidth - categoriesNav.clientWidth - 5);
+
+                headerCategories.classList.toggle('show-left-gradient', !isAtStart);
+                headerCategories.classList.toggle('show-right-gradient', !isAtEnd);
+            }
 
             // Drag to scroll
             categoriesNav.addEventListener('mousedown', (e) => {
-                // Only enable drag on the nav container, not on links
-                if (e.target.closest('.category-link')) return;
-
                 isDown = true;
-                categoriesNav.style.cursor = 'grabbing';
-                categoriesNav.style.userSelect = 'none';
+                hasMoved = false;
+                categoriesNav.classList.add('dragging');
                 startX = e.pageX - categoriesNav.offsetLeft;
                 scrollLeft = categoriesNav.scrollLeft;
             });
 
             categoriesNav.addEventListener('mouseleave', () => {
                 isDown = false;
-                categoriesNav.style.cursor = 'grab';
+                categoriesNav.classList.remove('dragging');
             });
 
-            categoriesNav.addEventListener('mouseup', () => {
+            categoriesNav.addEventListener('mouseup', (e) => {
                 isDown = false;
-                categoriesNav.style.cursor = 'grab';
-                categoriesNav.style.userSelect = 'auto';
+                categoriesNav.classList.remove('dragging');
+
+                // If user dragged, prevent link click
+                if (hasMoved) {
+                    e.preventDefault();
+                    hasMoved = false;
+                }
             });
 
             categoriesNav.addEventListener('mousemove', (e) => {
                 if (!isDown) return;
                 e.preventDefault();
+
                 const x = e.pageX - categoriesNav.offsetLeft;
-                const walk = (x - startX) * 1.5; // Scroll speed multiplier
+                const walk = (x - startX) * 2; // Scroll speed multiplier
+
+                // If moved more than 5px, consider it a drag
+                if (Math.abs(walk) > 5) {
+                    hasMoved = true;
+                }
+
                 categoriesNav.scrollLeft = scrollLeft - walk;
             });
+
+            // Prevent click on links if dragging
+            categoriesNav.addEventListener('click', (e) => {
+                if (hasMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hasMoved = false;
+                }
+            }, true);
 
             // Mouse wheel horizontal scroll
             categoriesNav.addEventListener('wheel', (e) => {
@@ -1212,10 +1281,16 @@
                     e.preventDefault();
                     categoriesNav.scrollLeft += e.deltaY;
                 }
-            });
+            }, { passive: false });
 
-            // Set initial cursor
-            categoriesNav.style.cursor = 'grab';
+            // Update gradients on scroll
+            categoriesNav.addEventListener('scroll', updateGradients);
+
+            // Initial gradient update
+            updateGradients();
+
+            // Update gradients on window resize
+            window.addEventListener('resize', updateGradients);
         }
     </script>
     {% block extra_scripts %}{% endblock %}
