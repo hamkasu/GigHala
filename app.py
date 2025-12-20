@@ -7739,6 +7739,502 @@ def admin_billing_stats():
         app.logger.error(f"Admin billing stats error: {str(e)}")
         return jsonify({'error': 'Failed to get billing statistics'}), 500
 
+# ==================== ADMIN FINANCIAL REPORTS ROUTES ====================
+
+@app.route('/api/admin/reports/platform', methods=['GET'])
+@admin_required
+def admin_platform_financial_report():
+    """Generate platform-wide financial report for specified date range"""
+    try:
+        # Get date range parameters
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+
+        if not start_date_str or not end_date_str:
+            return jsonify({'error': 'start_date and end_date are required'}), 400
+
+        # Parse dates
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            # Set end date to end of day
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        if start_date > end_date:
+            return jsonify({'error': 'start_date must be before end_date'}), 400
+
+        # Total transactions in period
+        transactions = Transaction.query.filter(
+            Transaction.transaction_date >= start_date,
+            Transaction.transaction_date <= end_date,
+            Transaction.status == 'completed'
+        ).all()
+
+        total_transactions = len(transactions)
+        total_transaction_amount = sum(t.amount for t in transactions)
+        total_commission = sum(t.commission for t in transactions)
+        total_net_amount = sum(t.net_amount for t in transactions)
+
+        # Breakdown by payment method
+        payment_methods = {}
+        for t in transactions:
+            method = t.payment_method or 'unknown'
+            if method not in payment_methods:
+                payment_methods[method] = {'count': 0, 'amount': 0, 'commission': 0}
+            payment_methods[method]['count'] += 1
+            payment_methods[method]['amount'] += float(t.amount)
+            payment_methods[method]['commission'] += float(t.commission)
+
+        # Commission breakdown by tier
+        commission_breakdown = {
+            'tier_15_percent': {'count': 0, 'amount': 0, 'commission': 0},
+            'tier_10_percent': {'count': 0, 'amount': 0, 'commission': 0},
+            'tier_5_percent': {'count': 0, 'amount': 0, 'commission': 0}
+        }
+
+        for t in transactions:
+            amount = float(t.amount)
+            commission = float(t.commission)
+            if amount <= 500:
+                commission_breakdown['tier_15_percent']['count'] += 1
+                commission_breakdown['tier_15_percent']['amount'] += amount
+                commission_breakdown['tier_15_percent']['commission'] += commission
+            elif amount <= 2000:
+                commission_breakdown['tier_10_percent']['count'] += 1
+                commission_breakdown['tier_10_percent']['amount'] += amount
+                commission_breakdown['tier_10_percent']['commission'] += commission
+            else:
+                commission_breakdown['tier_5_percent']['count'] += 1
+                commission_breakdown['tier_5_percent']['amount'] += amount
+                commission_breakdown['tier_5_percent']['commission'] += commission
+
+        # Escrow statistics
+        escrows_funded = Escrow.query.filter(
+            Escrow.funded_at >= start_date,
+            Escrow.funded_at <= end_date
+        ).all()
+
+        escrows_released = Escrow.query.filter(
+            Escrow.released_at >= start_date,
+            Escrow.released_at <= end_date,
+            Escrow.status == 'released'
+        ).all()
+
+        total_escrow_funded = sum(e.amount for e in escrows_funded)
+        total_escrow_released = sum(e.amount for e in escrows_released)
+        total_escrow_fees = sum(e.platform_fee for e in escrows_released)
+
+        # Payout statistics
+        payouts_completed = Payout.query.filter(
+            Payout.completed_at >= start_date,
+            Payout.completed_at <= end_date,
+            Payout.status == 'completed'
+        ).all()
+
+        total_payouts = len(payouts_completed)
+        total_payout_amount = sum(p.amount for p in payouts_completed)
+        total_payout_fees = sum(p.fee for p in payouts_completed)
+
+        # Payout breakdown by method
+        payout_methods = {}
+        for p in payouts_completed:
+            method = p.payment_method or 'unknown'
+            if method not in payout_methods:
+                payout_methods[method] = {'count': 0, 'amount': 0, 'fees': 0}
+            payout_methods[method]['count'] += 1
+            payout_methods[method]['amount'] += float(p.amount)
+            payout_methods[method]['fees'] += float(p.fee)
+
+        # Invoice statistics
+        invoices_paid = Invoice.query.filter(
+            Invoice.paid_at >= start_date,
+            Invoice.paid_at <= end_date,
+            Invoice.status == 'paid'
+        ).all()
+
+        total_invoices = len(invoices_paid)
+        total_invoice_amount = sum(i.total_amount for i in invoices_paid)
+        total_platform_fees = sum(i.platform_fee for i in invoices_paid)
+
+        # New users in period
+        new_users = User.query.filter(
+            User.created_at >= start_date,
+            User.created_at <= end_date
+        ).count()
+
+        # Gigs completed in period
+        gigs_completed = Gig.query.filter(
+            Gig.updated_at >= start_date,
+            Gig.updated_at <= end_date,
+            Gig.status == 'completed'
+        ).count()
+
+        return jsonify({
+            'period': {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            },
+            'transactions': {
+                'total_count': total_transactions,
+                'total_amount': float(total_transaction_amount),
+                'total_commission': float(total_commission),
+                'total_net_amount': float(total_net_amount),
+                'payment_methods': payment_methods,
+                'commission_breakdown': commission_breakdown
+            },
+            'escrow': {
+                'funded_count': len(escrows_funded),
+                'funded_amount': float(total_escrow_funded),
+                'released_count': len(escrows_released),
+                'released_amount': float(total_escrow_released),
+                'platform_fees': float(total_escrow_fees)
+            },
+            'payouts': {
+                'total_count': total_payouts,
+                'total_amount': float(total_payout_amount),
+                'total_fees': float(total_payout_fees),
+                'payment_methods': payout_methods
+            },
+            'invoices': {
+                'total_count': total_invoices,
+                'total_amount': float(total_invoice_amount),
+                'platform_fees': float(total_platform_fees)
+            },
+            'overview': {
+                'new_users': new_users,
+                'gigs_completed': gigs_completed,
+                'total_revenue': float(total_commission + total_escrow_fees + total_platform_fees)
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Platform financial report error: {str(e)}")
+        return jsonify({'error': 'Failed to generate platform report'}), 500
+
+@app.route('/api/admin/reports/worker/<int:worker_id>', methods=['GET'])
+@admin_required
+def admin_worker_financial_report(worker_id):
+    """Generate financial report for a specific worker"""
+    try:
+        # Get worker
+        worker = User.query.get(worker_id)
+        if not worker:
+            return jsonify({'error': 'Worker not found'}), 404
+
+        # Get date range parameters
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+
+        if not start_date_str or not end_date_str:
+            return jsonify({'error': 'start_date and end_date are required'}), 400
+
+        # Parse dates
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        # Get worker's wallet
+        wallet = Wallet.query.filter_by(user_id=worker_id).first()
+
+        # Get completed transactions
+        transactions = Transaction.query.filter(
+            Transaction.freelancer_id == worker_id,
+            Transaction.transaction_date >= start_date,
+            Transaction.transaction_date <= end_date,
+            Transaction.status == 'completed'
+        ).all()
+
+        total_earned = sum(t.net_amount for t in transactions)
+        total_commission_paid = sum(t.commission for t in transactions)
+        transaction_count = len(transactions)
+
+        # Get gigs
+        gigs = Gig.query.join(Application).filter(
+            Application.freelancer_id == worker_id,
+            Application.status == 'accepted',
+            Gig.updated_at >= start_date,
+            Gig.updated_at <= end_date
+        ).all()
+
+        completed_gigs = [g for g in gigs if g.status == 'completed']
+        in_progress_gigs = [g for g in gigs if g.status == 'in_progress']
+
+        # Gig breakdown
+        gig_details = []
+        for gig in completed_gigs:
+            transaction = Transaction.query.filter_by(
+                gig_id=gig.id,
+                freelancer_id=worker_id,
+                status='completed'
+            ).first()
+
+            gig_details.append({
+                'gig_id': gig.id,
+                'title': gig.title,
+                'budget': float(gig.agreed_amount or gig.approved_budget or 0),
+                'earned': float(transaction.net_amount) if transaction else 0,
+                'commission': float(transaction.commission) if transaction else 0,
+                'completed_at': gig.updated_at.strftime('%Y-%m-%d') if gig.updated_at else None
+            })
+
+        # Get payouts
+        payouts = Payout.query.filter(
+            Payout.freelancer_id == worker_id,
+            Payout.completed_at >= start_date,
+            Payout.completed_at <= end_date,
+            Payout.status == 'completed'
+        ).all()
+
+        total_payouts = sum(p.amount for p in payouts)
+        payout_fees = sum(p.fee for p in payouts)
+
+        # Payout details
+        payout_details = [{
+            'payout_id': p.id,
+            'payout_number': p.payout_number,
+            'amount': float(p.amount),
+            'fee': float(p.fee),
+            'net_amount': float(p.net_amount),
+            'payment_method': p.payment_method,
+            'completed_at': p.completed_at.strftime('%Y-%m-%d %H:%M:%S') if p.completed_at else None
+        } for p in payouts]
+
+        # Escrows
+        escrows = Escrow.query.filter(
+            Escrow.freelancer_id == worker_id,
+            Escrow.released_at >= start_date,
+            Escrow.released_at <= end_date,
+            Escrow.status == 'released'
+        ).all()
+
+        total_escrow_released = sum(e.net_amount for e in escrows)
+
+        return jsonify({
+            'worker': {
+                'id': worker.id,
+                'username': worker.username,
+                'email': worker.email,
+                'user_type': worker.user_type
+            },
+            'period': {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            },
+            'wallet': {
+                'current_balance': float(wallet.balance) if wallet else 0,
+                'held_balance': float(wallet.held_balance) if wallet else 0,
+                'total_earned': float(wallet.total_earned) if wallet else 0
+            },
+            'earnings': {
+                'total_earned': float(total_earned),
+                'total_commission_paid': float(total_commission_paid),
+                'transaction_count': transaction_count,
+                'escrow_released': float(total_escrow_released)
+            },
+            'gigs': {
+                'completed_count': len(completed_gigs),
+                'in_progress_count': len(in_progress_gigs),
+                'gig_details': gig_details
+            },
+            'payouts': {
+                'total_amount': float(total_payouts),
+                'total_fees': float(payout_fees),
+                'payout_count': len(payouts),
+                'payout_details': payout_details
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Worker financial report error: {str(e)}")
+        return jsonify({'error': 'Failed to generate worker report'}), 500
+
+@app.route('/api/admin/reports/client/<int:client_id>', methods=['GET'])
+@admin_required
+def admin_client_financial_report(client_id):
+    """Generate spending report for a specific client"""
+    try:
+        # Get client
+        client = User.query.get(client_id)
+        if not client:
+            return jsonify({'error': 'Client not found'}), 404
+
+        # Get date range parameters
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+
+        if not start_date_str or not end_date_str:
+            return jsonify({'error': 'start_date and end_date are required'}), 400
+
+        # Parse dates
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        # Get client's wallet
+        wallet = Wallet.query.filter_by(user_id=client_id).first()
+
+        # Get transactions
+        transactions = Transaction.query.filter(
+            Transaction.client_id == client_id,
+            Transaction.transaction_date >= start_date,
+            Transaction.transaction_date <= end_date,
+            Transaction.status == 'completed'
+        ).all()
+
+        total_spent = sum(t.amount for t in transactions)
+        total_commission = sum(t.commission for t in transactions)
+        transaction_count = len(transactions)
+
+        # Payment method breakdown
+        payment_methods = {}
+        for t in transactions:
+            method = t.payment_method or 'unknown'
+            if method not in payment_methods:
+                payment_methods[method] = {'count': 0, 'amount': 0}
+            payment_methods[method]['count'] += 1
+            payment_methods[method]['amount'] += float(t.amount)
+
+        # Get gigs
+        gigs = Gig.query.filter(
+            Gig.client_id == client_id,
+            Gig.created_at >= start_date,
+            Gig.created_at <= end_date
+        ).all()
+
+        completed_gigs = [g for g in gigs if g.status == 'completed']
+        active_gigs = [g for g in gigs if g.status in ['open', 'in_progress']]
+
+        # Gig breakdown
+        gig_details = []
+        for gig in gigs:
+            transaction = Transaction.query.filter_by(
+                gig_id=gig.id,
+                client_id=client_id,
+                status='completed'
+            ).first()
+
+            gig_details.append({
+                'gig_id': gig.id,
+                'title': gig.title,
+                'status': gig.status,
+                'budget': float(gig.agreed_amount or gig.approved_budget or gig.budget_max or 0),
+                'spent': float(transaction.amount) if transaction else 0,
+                'commission': float(transaction.commission) if transaction else 0,
+                'created_at': gig.created_at.strftime('%Y-%m-%d') if gig.created_at else None,
+                'completed_at': gig.updated_at.strftime('%Y-%m-%d') if gig.status == 'completed' and gig.updated_at else None
+            })
+
+        # Get escrows
+        escrows_funded = Escrow.query.filter(
+            Escrow.client_id == client_id,
+            Escrow.funded_at >= start_date,
+            Escrow.funded_at <= end_date
+        ).all()
+
+        total_escrow_funded = sum(e.amount for e in escrows_funded)
+        escrow_pending = sum(e.amount for e in escrows_funded if e.status == 'funded')
+
+        # Get invoices
+        invoices = Invoice.query.filter(
+            Invoice.client_id == client_id,
+            Invoice.created_at >= start_date,
+            Invoice.created_at <= end_date
+        ).all()
+
+        paid_invoices = [i for i in invoices if i.status == 'paid']
+        total_invoice_amount = sum(i.total_amount for i in paid_invoices)
+
+        return jsonify({
+            'client': {
+                'id': client.id,
+                'username': client.username,
+                'email': client.email,
+                'user_type': client.user_type
+            },
+            'period': {
+                'start_date': start_date_str,
+                'end_date': end_date_str
+            },
+            'wallet': {
+                'current_balance': float(wallet.balance) if wallet else 0,
+                'total_spent': float(wallet.total_spent) if wallet else 0
+            },
+            'spending': {
+                'total_spent': float(total_spent),
+                'total_commission': float(total_commission),
+                'transaction_count': transaction_count,
+                'payment_methods': payment_methods
+            },
+            'gigs': {
+                'total_count': len(gigs),
+                'completed_count': len(completed_gigs),
+                'active_count': len(active_gigs),
+                'gig_details': gig_details
+            },
+            'escrow': {
+                'total_funded': float(total_escrow_funded),
+                'pending_amount': float(escrow_pending),
+                'funded_count': len(escrows_funded)
+            },
+            'invoices': {
+                'total_count': len(invoices),
+                'paid_count': len(paid_invoices),
+                'total_amount': float(total_invoice_amount)
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Client financial report error: {str(e)}")
+        return jsonify({'error': 'Failed to generate client report'}), 500
+
+@app.route('/api/admin/reports/workers', methods=['GET'])
+@admin_required
+def admin_get_workers_list():
+    """Get list of workers for report selection"""
+    try:
+        workers = User.query.filter_by(user_type='freelancer').order_by(User.username).all()
+
+        workers_list = [{
+            'id': w.id,
+            'username': w.username,
+            'email': w.email,
+            'total_earnings': float(w.total_earnings or 0),
+            'completed_gigs': w.completed_gigs or 0
+        } for w in workers]
+
+        return jsonify({'workers': workers_list}), 200
+    except Exception as e:
+        app.logger.error(f"Get workers list error: {str(e)}")
+        return jsonify({'error': 'Failed to get workers list'}), 500
+
+@app.route('/api/admin/reports/clients', methods=['GET'])
+@admin_required
+def admin_get_clients_list():
+    """Get list of clients for report selection"""
+    try:
+        clients = User.query.filter_by(user_type='client').order_by(User.username).all()
+
+        clients_list = [{
+            'id': c.id,
+            'username': c.username,
+            'email': c.email
+        } for c in clients]
+
+        # Get spending for each client
+        for client_data in clients_list:
+            wallet = Wallet.query.filter_by(user_id=client_data['id']).first()
+            client_data['total_spent'] = float(wallet.total_spent) if wallet else 0
+
+        return jsonify({'clients': clients_list}), 200
+    except Exception as e:
+        app.logger.error(f"Get clients list error: {str(e)}")
+        return jsonify({'error': 'Failed to get clients list'}), 500
+
 # ==================== ADMIN SETTINGS ROUTES ====================
 
 @app.route('/api/admin/settings/payment-gateway', methods=['GET'])
