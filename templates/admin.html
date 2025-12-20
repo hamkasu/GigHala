@@ -548,6 +548,35 @@
                 <div class="label" id="stat-pending-apps">0 pending</div>
             </div>
         </div>
+
+        <h3 class="section-title">SOCSO Compliance (Gig Workers Bill 2025)</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total SOCSO Collected</h3>
+                <div class="value" id="stat-socso-collected">RM 0</div>
+                <div class="label">1.25% deducted from freelancer earnings</div>
+            </div>
+            <div class="stat-card">
+                <h3>Remitted to SOCSO</h3>
+                <div class="value" id="stat-socso-remitted">RM 0</div>
+                <div class="label">Paid via ASSIST Portal</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Remittance</h3>
+                <div class="value" id="stat-socso-pending">RM 0</div>
+                <div class="label">Awaiting ASSIST Portal submission</div>
+            </div>
+            <div class="stat-card">
+                <h3>Registered Freelancers</h3>
+                <div class="value" id="stat-socso-registered">0</div>
+                <div class="label" id="stat-socso-compliance">0% compliance rate</div>
+            </div>
+            <div class="stat-card">
+                <h3>Current Month Collection</h3>
+                <div class="value" id="stat-socso-current-month">RM 0</div>
+                <div class="label">This month's SOCSO deductions</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1463,6 +1492,15 @@
                 document.getElementById('stat-payout').textContent = `RM ${(data.financial.total_payout || 0).toFixed(2)}`;
                 document.getElementById('stat-commission').textContent = `RM ${(data.financial.commission || 0).toFixed(2)}`;
                 document.getElementById('stat-escrow').textContent = `RM ${(data.financial.escrow || 0).toFixed(2)}`;
+            }
+
+            if (data.socso) {
+                document.getElementById('stat-socso-collected').textContent = `RM ${(data.socso.total_collected || 0).toFixed(2)}`;
+                document.getElementById('stat-socso-remitted').textContent = `RM ${(data.socso.total_remitted || 0).toFixed(2)}`;
+                document.getElementById('stat-socso-pending').textContent = `RM ${(data.socso.pending_remittance || 0).toFixed(2)}`;
+                document.getElementById('stat-socso-registered').textContent = data.socso.registered_freelancers || 0;
+                document.getElementById('stat-socso-compliance').textContent = `${(data.socso.compliance_rate || 0).toFixed(1)}% compliance rate`;
+                document.getElementById('stat-socso-current-month').textContent = `RM ${(data.socso.current_month_collection || 0).toFixed(2)}`;
             }
 
             if (data.applications) {
