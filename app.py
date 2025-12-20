@@ -6781,22 +6781,86 @@ def get_stats():
 
 @app.route('/api/categories', methods=['GET'])
 def get_categories():
-    # Emoji mapping for categories
+    # Emoji mapping for categories - comprehensive map for all 41 categories
     emoji_map = {
+        # Design & Creative
+        'graphic-design': '🎨',
+        'ui-ux': '🎨',
+        'illustration': '🖌️',
+        'logo-design': '🏷️',
+        'fashion': '👗',
+        'interior-design': '🏠',
+        
+        # Writing & Content
+        'content-writing': '✍️',
+        'translation': '🌐',
+        'proofreading': '✏️',
+        'resume': '📄',
+        'email-marketing': '📧',
+        'social-copy': '📱',
+        
+        # Video & Media
+        'video-editing': '🎬',
+        'animation': '🎞️',
+        'voiceover': '🎙️',
+        'podcast': '🎧',
+        'photography': '📸',
+        
+        # Web & App Development
+        'web-development': '💻',
+        'app-development': '📱',
+        'ecommerce': '🛒',
+        
+        # Marketing & Business
+        'digital-marketing': '📈',
+        'social-media': '📲',
+        'business-consulting': '💼',
+        'data-analysis': '📊',
+        
+        # Education & Tutoring
+        'tutoring': '📚',
+        'language-teaching': '🗣️',
+        
+        # Technical & Engineering
+        'programming': '🖥️',
+        'engineering': '🛠️',
+        
+        # Admin & Support
+        'virtual-assistant': '📋',
+        'transcription': '🎤',
+        'data-entry': '💾',
+        
+        # Finance & Legal
+        'bookkeeping': '💰',
+        'legal': '⚖️',
+        
+        # Lifestyle & Personal
+        'wellness-coaching': '💪',
+        'personal-styling': '👔',
+        'pet-services': '🐾',
+        
+        # Home & Handyman
+        'home-repair': '🔧',
+        'cleaning': '🧹',
+        'gardening': '🌱',
+        
+        # Specialized Services
+        'crafts': '✨',
+        'music-production': '🎵',
+        'event-planning': '🎉',
+        'tours': '✈️',
+        
+        # General
+        'general': '📦',
         'design': '🎨',
         'writing': '✍️',
         'video': '🎬',
-        'tutoring': '📚',
         'content': '📱',
         'web': '💻',
         'marketing': '📈',
         'admin': '📋',
-        'general': '📦',
-        'programming': '🖥️',
         'consulting': '💼',
-        'engineering': '🛠️',
         'music': '🎵',
-        'photography': '📸',
         'finance': '💰',
         'crafts': '✨',
         'garden': '🌱',
@@ -6804,7 +6868,6 @@ def get_categories():
         'data': '📊',
         'pets': '🐾',
         'handyman': '🔧',
-        'tours': '✈️',
         'events': '🎉',
         'online-selling': '🛍️'
     }
