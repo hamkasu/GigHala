@@ -706,6 +706,11 @@
                     <tbody id="socsoReportBody"></tbody>
                 </table>
             </div>
+            <div id="socsoEmpty" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📊</div>
+                <h3>No SOCSO Data Available</h3>
+                <p>No SOCSO contributions recorded for the selected period</p>
+            </div>
         </div>
     </div>
 </div>
@@ -1248,6 +1253,7 @@
             }
 
             loadDashboard();
+            populateSocsoYears();
         } catch (error) {
             console.error('Error checking admin access:', error);
             window.location.href = '/';
@@ -1354,11 +1360,36 @@
         }
     }
 
+    async function populateSocsoYears() {
+        try {
+            const response = await fetch('/api/admin/socso/monthly-report?year=all');
+            const data = await response.json();
+            if (data.report && data.report.length > 0) {
+                const years = new Set();
+                data.report.forEach(row => {
+                    const year = new Date(row.contribution_month).getFullYear();
+                    years.add(year);
+                });
+                const yearSelect = document.getElementById('socsoReportYear');
+                [...years].sort().reverse().forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error populating SOCSO years:', error);
+        }
+    }
+
     async function loadSocsoReport() {
         const loading = document.getElementById('socsoReportLoading');
         const content = document.getElementById('socsoReportContent');
+        const empty = document.getElementById('socsoEmpty');
         loading.style.display = 'block';
         content.style.display = 'none';
+        empty.style.display = 'none';
         try {
             const year = document.getElementById('socsoReportYear').value || new Date().getFullYear();
             const month = document.getElementById('socsoReportMonth').value;
@@ -1382,10 +1413,13 @@
                     </tr>`;
                 });
                 content.style.display = 'block';
+            } else {
+                empty.style.display = 'block';
             }
             loading.style.display = 'none';
         } catch (error) {
             console.error('SOCSO report error:', error);
+            empty.style.display = 'block';
             loading.style.display = 'none';
         }
     }
