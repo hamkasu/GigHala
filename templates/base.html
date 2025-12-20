@@ -304,55 +304,98 @@
             position: relative;
         }
 
-        .categories-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 12px 16px;
+        .category-dropdown-container {
             max-width: 1400px;
             margin: 0 auto;
-            max-height: none;
+            padding: 12px 16px;
+            position: relative;
         }
 
-        .categories-nav::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Hide scroll buttons for multi-line layout */
-        .category-scroll-btn {
-            display: none;
-        }
-
-        .category-link {
+        .category-dropdown-btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            color: var(--text-gray);
-            font-size: 13px;
-            font-weight: 500;
-            padding: 8px 14px;
-            background: var(--bg-light);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .category-link:hover {
-            color: var(--primary);
-            background: rgba(29, 191, 115, 0.08);
-            border-color: var(--primary);
-        }
-
-        .category-link.active {
-            color: white;
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .category-link .cat-icon {
+            gap: 8px;
+            color: var(--text-dark);
             font-size: 14px;
+            font-weight: 500;
+            padding: 10px 16px;
+            background: var(--bg-white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 200px;
+            justify-content: space-between;
+        }
+
+        .category-dropdown-btn:hover {
+            border-color: var(--primary);
+            background: rgba(29, 191, 115, 0.05);
+        }
+
+        .category-dropdown-btn .cat-icon {
+            font-size: 16px;
+        }
+
+        .dropdown-arrow {
+            font-size: 10px;
+            transition: transform 0.2s;
+            color: var(--text-gray);
+        }
+
+        .category-dropdown-btn.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .category-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 16px;
+            margin-top: 4px;
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .category-dropdown-menu.show {
+            display: block;
+        }
+
+        .category-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: var(--text-dark);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--bg-light);
+        }
+
+        .category-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .category-dropdown-item:hover {
+            background: rgba(29, 191, 115, 0.08);
+            color: var(--primary);
+        }
+
+        .category-dropdown-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .category-dropdown-item .cat-icon {
+            font-size: 16px;
         }
 
         .main-content {
@@ -481,8 +524,7 @@
                 display: none;
             }
 
-            .categories-nav {
-                gap: 8px;
+            .category-dropdown-container {
                 padding: 12px 16px;
             }
 
@@ -546,14 +588,23 @@
                 font-size: 13px;
             }
 
-            .categories-nav {
-                gap: 8px;
+            .category-dropdown-container {
                 padding: 10px 12px;
             }
 
-            .category-link {
-                font-size: 12px;
-                padding: 7px 12px;
+            .category-dropdown-btn {
+                font-size: 13px;
+                padding: 8px 12px;
+                min-width: 180px;
+            }
+
+            .category-dropdown-menu {
+                left: 12px;
+            }
+
+            .category-dropdown-item {
+                font-size: 13px;
+                padding: 10px 14px;
             }
 
             .main-content {
@@ -969,25 +1020,99 @@
         
         {% if active_page == 'gigs' %}
         <div class="header-categories">
-            <nav class="categories-nav">
-                <a href="/gigs" class="category-link {% if not request.args.get('category') %}active{% endif %}"><span class="cat-icon">🔥</span>{{ t('all_categories') if t('all_categories') != 'all_categories' else 'Semua' }}</a>
-                <a href="/gigs?category=design" class="category-link {% if request.args.get('category') == 'design' %}active{% endif %}"><span class="cat-icon">🎨</span>{{ t('cat_design') }}</a>
-                <a href="/gigs?category=writing" class="category-link {% if request.args.get('category') == 'writing' %}active{% endif %}"><span class="cat-icon">✍️</span>{{ t('cat_writing') }}</a>
-                <a href="/gigs?category=video" class="category-link {% if request.args.get('category') == 'video' %}active{% endif %}"><span class="cat-icon">🎬</span>{{ t('cat_video') }}</a>
-                <a href="/gigs?category=web" class="category-link {% if request.args.get('category') == 'web' %}active{% endif %}"><span class="cat-icon">💻</span>{{ t('cat_web') }}</a>
-                <a href="/gigs?category=marketing" class="category-link {% if request.args.get('category') == 'marketing' %}active{% endif %}"><span class="cat-icon">📈</span>{{ t('cat_marketing') }}</a>
-                <a href="/gigs?category=tutoring" class="category-link {% if request.args.get('category') == 'tutoring' %}active{% endif %}"><span class="cat-icon">📚</span>{{ t('cat_tutoring') }}</a>
-                <a href="/gigs?category=content" class="category-link {% if request.args.get('category') == 'content' %}active{% endif %}"><span class="cat-icon">📝</span>{{ t('cat_content') }}</a>
-                <a href="/gigs?category=admin" class="category-link {% if request.args.get('category') == 'admin' %}active{% endif %}"><span class="cat-icon">💼</span>{{ t('cat_admin') }}</a>
-                <a href="/gigs?category=general" class="category-link {% if request.args.get('category') == 'general' %}active{% endif %}"><span class="cat-icon">🔧</span>{{ t('cat_general') }}</a>
-                <a href="/gigs?category=virtual-assistant" class="category-link {% if request.args.get('category') == 'virtual-assistant' %}active{% endif %}"><span class="cat-icon">🤖</span>{{ t('cat_virtual_assistant') }}</a>
-                <a href="/gigs?category=delivery" class="category-link {% if request.args.get('category') == 'delivery' %}active{% endif %}"><span class="cat-icon">🚚</span>{{ t('cat_delivery') }}</a>
-                <a href="/gigs?category=micro-tasks" class="category-link {% if request.args.get('category') == 'micro-tasks' %}active{% endif %}"><span class="cat-icon">⚡</span>{{ t('cat_micro_tasks') }}</a>
-                <a href="/gigs?category=events" class="category-link {% if request.args.get('category') == 'events' %}active{% endif %}"><span class="cat-icon">🎉</span>{{ t('cat_events') }}</a>
-                <a href="/gigs?category=caregiving" class="category-link {% if request.args.get('category') == 'caregiving' %}active{% endif %}"><span class="cat-icon">🏥</span>{{ t('cat_caregiving') }}</a>
-                <a href="/gigs?category=photography" class="category-link {% if request.args.get('category') == 'photography' %}active{% endif %}"><span class="cat-icon">📷</span>{{ t('cat_photography') }}</a>
-                <a href="/gigs?category=creative-other" class="category-link {% if request.args.get('category') == 'creative-other' %}active{% endif %}"><span class="cat-icon">✨</span>{{ t('cat_creative_other') }}</a>
-            </nav>
+            <div class="category-dropdown-container">
+                <button class="category-dropdown-btn" onclick="toggleCategoryDropdown(event)">
+                    {% if request.args.get('category') == 'design' %}
+                        <span class="cat-icon">🎨</span>{{ t('cat_design') }}
+                    {% elif request.args.get('category') == 'writing' %}
+                        <span class="cat-icon">✍️</span>{{ t('cat_writing') }}
+                    {% elif request.args.get('category') == 'video' %}
+                        <span class="cat-icon">🎬</span>{{ t('cat_video') }}
+                    {% elif request.args.get('category') == 'web' %}
+                        <span class="cat-icon">💻</span>{{ t('cat_web') }}
+                    {% elif request.args.get('category') == 'marketing' %}
+                        <span class="cat-icon">📈</span>{{ t('cat_marketing') }}
+                    {% elif request.args.get('category') == 'tutoring' %}
+                        <span class="cat-icon">📚</span>{{ t('cat_tutoring') }}
+                    {% elif request.args.get('category') == 'content' %}
+                        <span class="cat-icon">📝</span>{{ t('cat_content') }}
+                    {% elif request.args.get('category') == 'admin' %}
+                        <span class="cat-icon">💼</span>{{ t('cat_admin') }}
+                    {% elif request.args.get('category') == 'general' %}
+                        <span class="cat-icon">🔧</span>{{ t('cat_general') }}
+                    {% elif request.args.get('category') == 'virtual-assistant' %}
+                        <span class="cat-icon">🤖</span>{{ t('cat_virtual_assistant') }}
+                    {% elif request.args.get('category') == 'delivery' %}
+                        <span class="cat-icon">🚚</span>{{ t('cat_delivery') }}
+                    {% elif request.args.get('category') == 'micro-tasks' %}
+                        <span class="cat-icon">⚡</span>{{ t('cat_micro_tasks') }}
+                    {% elif request.args.get('category') == 'events' %}
+                        <span class="cat-icon">🎉</span>{{ t('cat_events') }}
+                    {% elif request.args.get('category') == 'caregiving' %}
+                        <span class="cat-icon">🏥</span>{{ t('cat_caregiving') }}
+                    {% elif request.args.get('category') == 'photography' %}
+                        <span class="cat-icon">📷</span>{{ t('cat_photography') }}
+                    {% elif request.args.get('category') == 'creative-other' %}
+                        <span class="cat-icon">✨</span>{{ t('cat_creative_other') }}
+                    {% else %}
+                        <span class="cat-icon">🔥</span>{{ t('all_categories') if t('all_categories') != 'all_categories' else 'Semua' }}
+                    {% endif %}
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="category-dropdown-menu">
+                    <a href="/gigs" class="category-dropdown-item {% if not request.args.get('category') %}active{% endif %}">
+                        <span class="cat-icon">🔥</span>{{ t('all_categories') if t('all_categories') != 'all_categories' else 'Semua' }}
+                    </a>
+                    <a href="/gigs?category=design" class="category-dropdown-item {% if request.args.get('category') == 'design' %}active{% endif %}">
+                        <span class="cat-icon">🎨</span>{{ t('cat_design') }}
+                    </a>
+                    <a href="/gigs?category=writing" class="category-dropdown-item {% if request.args.get('category') == 'writing' %}active{% endif %}">
+                        <span class="cat-icon">✍️</span>{{ t('cat_writing') }}
+                    </a>
+                    <a href="/gigs?category=video" class="category-dropdown-item {% if request.args.get('category') == 'video' %}active{% endif %}">
+                        <span class="cat-icon">🎬</span>{{ t('cat_video') }}
+                    </a>
+                    <a href="/gigs?category=web" class="category-dropdown-item {% if request.args.get('category') == 'web' %}active{% endif %}">
+                        <span class="cat-icon">💻</span>{{ t('cat_web') }}
+                    </a>
+                    <a href="/gigs?category=marketing" class="category-dropdown-item {% if request.args.get('category') == 'marketing' %}active{% endif %}">
+                        <span class="cat-icon">📈</span>{{ t('cat_marketing') }}
+                    </a>
+                    <a href="/gigs?category=tutoring" class="category-dropdown-item {% if request.args.get('category') == 'tutoring' %}active{% endif %}">
+                        <span class="cat-icon">📚</span>{{ t('cat_tutoring') }}
+                    </a>
+                    <a href="/gigs?category=content" class="category-dropdown-item {% if request.args.get('category') == 'content' %}active{% endif %}">
+                        <span class="cat-icon">📝</span>{{ t('cat_content') }}
+                    </a>
+                    <a href="/gigs?category=admin" class="category-dropdown-item {% if request.args.get('category') == 'admin' %}active{% endif %}">
+                        <span class="cat-icon">💼</span>{{ t('cat_admin') }}
+                    </a>
+                    <a href="/gigs?category=general" class="category-dropdown-item {% if request.args.get('category') == 'general' %}active{% endif %}">
+                        <span class="cat-icon">🔧</span>{{ t('cat_general') }}
+                    </a>
+                    <a href="/gigs?category=virtual-assistant" class="category-dropdown-item {% if request.args.get('category') == 'virtual-assistant' %}active{% endif %}">
+                        <span class="cat-icon">🤖</span>{{ t('cat_virtual_assistant') }}
+                    </a>
+                    <a href="/gigs?category=delivery" class="category-dropdown-item {% if request.args.get('category') == 'delivery' %}active{% endif %}">
+                        <span class="cat-icon">🚚</span>{{ t('cat_delivery') }}
+                    </a>
+                    <a href="/gigs?category=micro-tasks" class="category-dropdown-item {% if request.args.get('category') == 'micro-tasks' %}active{% endif %}">
+                        <span class="cat-icon">⚡</span>{{ t('cat_micro_tasks') }}
+                    </a>
+                    <a href="/gigs?category=events" class="category-dropdown-item {% if request.args.get('category') == 'events' %}active{% endif %}">
+                        <span class="cat-icon">🎉</span>{{ t('cat_events') }}
+                    </a>
+                    <a href="/gigs?category=caregiving" class="category-dropdown-item {% if request.args.get('category') == 'caregiving' %}active{% endif %}">
+                        <span class="cat-icon">🏥</span>{{ t('cat_caregiving') }}
+                    </a>
+                    <a href="/gigs?category=photography" class="category-dropdown-item {% if request.args.get('category') == 'photography' %}active{% endif %}">
+                        <span class="cat-icon">📷</span>{{ t('cat_photography') }}
+                    </a>
+                    <a href="/gigs?category=creative-other" class="category-dropdown-item {% if request.args.get('category') == 'creative-other' %}active{% endif %}">
+                        <span class="cat-icon">✨</span>{{ t('cat_creative_other') }}
+                    </a>
+                </div>
+            </div>
         </div>
         {% endif %}
     </header>
@@ -1170,8 +1295,28 @@
             deferredPrompt = null;
         });
 
-        // Category navigation - now uses wrapping layout instead of horizontal scrolling
-        // No additional JavaScript needed for multi-line display
+        // Category dropdown toggle
+        function toggleCategoryDropdown(event) {
+            event.stopPropagation();
+            const btn = event.currentTarget;
+            const menu = btn.nextElementSibling;
+
+            btn.classList.toggle('active');
+            menu.classList.toggle('show');
+        }
+
+        // Close category dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.category-dropdown-container');
+            if (container && !container.contains(event.target)) {
+                const btn = container.querySelector('.category-dropdown-btn');
+                const menu = container.querySelector('.category-dropdown-menu');
+                if (btn && menu) {
+                    btn.classList.remove('active');
+                    menu.classList.remove('show');
+                }
+            }
+        });
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
