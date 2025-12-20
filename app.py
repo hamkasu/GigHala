@@ -404,6 +404,39 @@ TRANSLATIONS = {
         'logout': 'Log Keluar',
         'logout_confirm': 'Adakah anda pasti mahu log keluar?',
 
+        # Navigation Menu
+        'nav_search': 'Cari',
+        'nav_submit': 'Hantar',
+        'nav_messages': 'Mesej',
+        'nav_wallet': 'Dompet',
+        'nav_admin': 'Admin',
+        'nav_dashboard': 'Dashboard',
+        'nav_accepted_gigs': 'Gig Diterima',
+        'nav_escrow': 'Escrow',
+        'nav_documents': 'Dokumen',
+        'nav_settings': 'Tetapan Akaun',
+        'nav_home': 'Laman Utama',
+        'nav_post': 'Siar',
+
+        # SOCSO
+        'socso_statement': 'Penyata SOCSO',
+        'socso_contributions': 'Caruman SOCSO',
+        'socso_record': 'Rekod Caruman SOCSO',
+        'contribution_period': 'Tempoh Caruman',
+        'contribution_date': 'Tarikh Caruman',
+        'gross_amount': 'Jumlah Kasar',
+        'platform_fee': 'Yuran Platform',
+        'net_earnings': 'Pendapatan Bersih',
+        'socso_deduction': 'Potongan SOCSO (1.25%)',
+        'final_payout': 'Bayaran Akhir',
+        'contribution_type': 'Jenis Caruman',
+        'remittance_status': 'Status Penghantaran',
+        'remitted': 'Telah Dihantar',
+        'pending_remittance': 'Menunggu Penghantaran',
+        'total_contributions': 'Jumlah Caruman',
+        'print_statement': 'Cetak Penyata',
+        'back_to_billing': 'Kembali ke Bil',
+
         # Homepage - Navigation
         'find_gigs': 'Cari Gig',
         'categories': 'Kategori',
@@ -701,6 +734,39 @@ TRANSLATIONS = {
         # Logout
         'logout': 'Logout',
         'logout_confirm': 'Are you sure you want to logout?',
+
+        # Navigation Menu
+        'nav_search': 'Search',
+        'nav_submit': 'Submit',
+        'nav_messages': 'Messages',
+        'nav_wallet': 'Wallet',
+        'nav_admin': 'Admin',
+        'nav_dashboard': 'Dashboard',
+        'nav_accepted_gigs': 'Accepted Gigs',
+        'nav_escrow': 'Escrow',
+        'nav_documents': 'Documents',
+        'nav_settings': 'Account Settings',
+        'nav_home': 'Home',
+        'nav_post': 'Post',
+
+        # SOCSO
+        'socso_statement': 'SOCSO Statement',
+        'socso_contributions': 'SOCSO Contributions',
+        'socso_record': 'SOCSO Contribution Record',
+        'contribution_period': 'Contribution Period',
+        'contribution_date': 'Contribution Date',
+        'gross_amount': 'Gross Amount',
+        'platform_fee': 'Platform Fee',
+        'net_earnings': 'Net Earnings',
+        'socso_deduction': 'SOCSO Deduction (1.25%)',
+        'final_payout': 'Final Payout',
+        'contribution_type': 'Contribution Type',
+        'remittance_status': 'Remittance Status',
+        'remitted': 'Remitted',
+        'pending_remittance': 'Pending Remittance',
+        'total_contributions': 'Total Contributions',
+        'print_statement': 'Print Statement',
+        'back_to_billing': 'Back to Billing',
 
         # Homepage - Navigation
         'find_gigs': 'Find Gigs',
@@ -7191,6 +7257,44 @@ def billing_page():
     user_id = session.get('user_id')
     user = User.query.get(user_id)
     return render_template('billing.html', user=user, active_page='billing', lang=get_user_language(), t=t)
+
+@app.route('/billing/socso-statement')
+@page_login_required
+def socso_statement():
+    """SOCSO contribution statement for printing"""
+    user_id = session.get('user_id')
+    user = User.query.get(user_id)
+
+    # Get all SOCSO contributions for this user
+    contributions = SocsoContribution.query.filter_by(
+        freelancer_id=user_id
+    ).order_by(SocsoContribution.created_at.desc()).all()
+
+    # Calculate totals
+    total_gross = sum(c.gross_amount for c in contributions)
+    total_fees = sum(c.platform_commission for c in contributions)
+    total_net = sum(c.net_earnings for c in contributions)
+    total_socso = sum(c.socso_amount for c in contributions)
+
+    # Get date range
+    start_date = None
+    end_date = None
+    if contributions:
+        start_date = contributions[-1].created_at.strftime('%d/%m/%Y')
+        end_date = contributions[0].created_at.strftime('%d/%m/%Y')
+
+    return render_template('socso_print_view.html',
+                         user=user,
+                         contributions=contributions,
+                         total_gross=total_gross,
+                         total_fees=total_fees,
+                         total_net=total_net,
+                         total_socso=total_socso,
+                         start_date=start_date,
+                         end_date=end_date,
+                         active_page='billing',
+                         lang=get_user_language(),
+                         t=t)
 
 @app.route('/api/billing/wallet', methods=['GET'])
 @login_required

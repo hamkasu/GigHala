@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('socso_statement') }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .socso-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .socso-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 40px;
+    }
+
+    .socso-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .socso-logo {
+        font-size: 28px;
+        font-weight: 800;
+    }
+
+    .socso-logo span {
+        color: var(--primary);
+    }
+
+    .socso-meta {
+        text-align: right;
+    }
+
+    .socso-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .socso-period {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .worker-section {
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .worker-section h4 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-gray);
+        margin-bottom: 12px;
+    }
+
+    .worker-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+    }
+
+    .worker-details {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .contributions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+
+    .contributions-table thead {
+        background: var(--bg-light);
+    }
+
+    .contributions-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-dark);
+        border-bottom: 2px solid var(--border);
+    }
+
+    .contributions-table th.amount {
+        text-align: right;
+    }
+
+    .contributions-table td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    .contributions-table td.amount {
+        text-align: right;
+        font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    }
+
+    .contributions-table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-badge.remitted {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .summary-section {
+        background: var(--primary-light);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        margin-bottom: 30px;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        font-size: 16px;
+    }
+
+    .summary-row.total {
+        border-top: 2px solid var(--primary);
+        margin-top: 10px;
+        padding-top: 16px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .socso-footer {
+        text-align: center;
+        padding-top: 30px;
+        border-top: 1px solid var(--border);
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .socso-footer p {
+        margin: 8px 0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 12px 32px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        border: none;
+        font-size: 16px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-light);
+    }
+
+    @media print {
+        .action-buttons, .header, .footer, .mobile-bottom-nav {
+            display: none !important;
+        }
+
+        .socso-container {
+            max-width: 100%;
+        }
+
+        .socso-card {
+            border: none;
+            box-shadow: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .socso-card {
+            padding: 24px;
+        }
+
+        .socso-header {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .socso-meta {
+            text-align: left;
+        }
+
+        .contributions-table {
+            font-size: 12px;
+        }
+
+        .contributions-table th,
+        .contributions-table td {
+            padding: 8px 6px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="socso-container">
+        <div class="socso-card">
+            <div class="socso-header">
+                <div class="socso-logo">
+                    GigHala
+                </div>
+                <div class="socso-meta">
+                    <div class="socso-title">{{ t('socso_statement') }}</div>
+                    <div class="socso-period">
+                        {{ t('contribution_period') }}: {% if start_date and end_date %}{{ start_date }} - {{ end_date }}{% else %}{{ 'Semua' if lang == 'ms' else 'All Time' }}{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="worker-section">
+                <h4>{{ 'Pekerja Gig' if lang == 'ms' else 'Gig Worker' }}</h4>
+                <div class="worker-name">{{ user.full_name or user.username }}</div>
+                <div class="worker-details">
+                    <div>{{ 'Email' if lang == 'ms' else 'Email' }}: {{ user.email }}</div>
+                    {% if user.ic_number %}
+                    <div>{{ 'No. MyKad' if lang == 'ms' else 'IC Number' }}: {{ user.ic_number }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <table class="contributions-table">
+                <thead>
+                    <tr>
+                        <th>{{ t('contribution_date') }}</th>
+                        <th class="amount">{{ t('gross_amount') }}</th>
+                        <th class="amount">{{ t('platform_fee') }}</th>
+                        <th class="amount">{{ t('net_earnings') }}</th>
+                        <th class="amount">{{ t('socso_deduction') }}</th>
+                        <th class="amount">{{ t('final_payout') }}</th>
+                        <th>{{ t('remittance_status') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contribution in contributions %}
+                    <tr>
+                        <td>{{ contribution.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td class="amount">RM {{ "%.2f"|format(contribution.gross_amount) }}</td>
+                        <td class="amount">RM {{ "%.2f"|format(contribution.platform_commission) }}</td>
+                        <td class="amount">RM {{ "%.2f"|format(contribution.net_earnings) }}</td>
+                        <td class="amount">RM {{ "%.2f"|format(contribution.socso_amount) }}</td>
+                        <td class="amount">RM {{ "%.2f"|format(contribution.final_payout) }}</td>
+                        <td>
+                            {% if contribution.remitted_to_socso %}
+                            <span class="status-badge remitted">{{ t('remitted') }}</span>
+                            {% else %}
+                            <span class="status-badge pending">{{ t('pending_remittance') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not contributions %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-gray);">
+                            {{ 'Tiada rekod caruman SOCSO' if lang == 'ms' else 'No SOCSO contribution records' }}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+
+            {% if contributions %}
+            <div class="summary-section">
+                <div class="summary-row">
+                    <span>{{ 'Jumlah Pendapatan Kasar' if lang == 'ms' else 'Total Gross Earnings' }}</span>
+                    <span>RM {{ "%.2f"|format(total_gross) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>{{ 'Jumlah Yuran Platform' if lang == 'ms' else 'Total Platform Fees' }}</span>
+                    <span>RM {{ "%.2f"|format(total_fees) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>{{ 'Jumlah Pendapatan Bersih' if lang == 'ms' else 'Total Net Earnings' }}</span>
+                    <span>RM {{ "%.2f"|format(total_net) }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>{{ t('total_contributions') }}</span>
+                    <span>RM {{ "%.2f"|format(total_socso) }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="socso-footer">
+                <p>{{ 'Penyata ini dijana secara automatik oleh sistem GigHala' if lang == 'ms' else 'This statement is automatically generated by GigHala system' }}</p>
+                <p>{{ 'GigHala - Platform Gig Economy Halal #1 Malaysia' if lang == 'ms' else 'GigHala - Malaysia\'s #1 Halal Gig Economy Platform' }}</p>
+                <p>{{ 'Untuk pertanyaan, sila hubungi support@gighala.com' if lang == 'ms' else 'For inquiries, please contact support@gighala.com' }}</p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/billing" class="btn btn-outline">
+                    {{ t('back_to_billing') }}
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    {{ t('print_statement') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
