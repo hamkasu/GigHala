@@ -837,6 +837,7 @@
                     <option value="platform">Platform-Wide Financial Report</option>
                     <option value="worker">Worker Financial Report</option>
                     <option value="client">Client Spending Report</option>
+                    <option value="socso">SOCSO Payout Report</option>
                 </select>
             </div>
 
@@ -1102,6 +1103,38 @@
 
                     <div id="client-payment-methods" style="margin-top: 24px;"></div>
                     <div id="client-gig-details" style="margin-top: 24px;"></div>
+                </div>
+
+                <!-- SOCSO Payout Report -->
+                <div id="socso-report" style="display: none;">
+                    <div style="background: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <div style="font-size: 13px; color: #1e40af;">
+                            <strong>Period:</strong> <span id="socso-period"></span>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--text); margin: 20px 0 12px 0;">SOCSO Summary</h4>
+                    <div class="stats-grid" style="margin-bottom: 24px;">
+                        <div class="stat-card">
+                            <h3>Total Freelancers</h3>
+                            <div class="value" id="socso-total-freelancers">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Transactions</h3>
+                            <div class="value" id="socso-total-transactions">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total SOCSO Collected</h3>
+                            <div class="value" id="socso-total-amount">RM 0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Total Net Earnings</h3>
+                            <div class="value" id="socso-total-earnings">RM 0</div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--text); margin: 20px 0 12px 0;">Freelancer Breakdown</h4>
+                    <div id="socso-details-table" style="overflow-x: auto;"></div>
                 </div>
             </div>
         </div>
@@ -2158,6 +2191,12 @@
                 url = `/api/admin/reports/worker/${userId}?start_date=${startDate}&end_date=${endDate}`;
             } else if (reportType === 'client') {
                 url = `/api/admin/reports/client/${userId}?start_date=${startDate}&end_date=${endDate}`;
+            } else if (reportType === 'socso') {
+                // Parse dates to get year and month for SOCSO report
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const year = start.getFullYear();
+                url = `/api/admin/socso/monthly-report?year=${year}`;
             }
 
             const response = await fetch(url);
@@ -2178,6 +2217,7 @@
             document.getElementById('platform-report').style.display = 'none';
             document.getElementById('worker-report').style.display = 'none';
             document.getElementById('client-report').style.display = 'none';
+            document.getElementById('socso-report').style.display = 'none';
 
             // Display the appropriate report
             if (reportType === 'platform') {
@@ -2186,6 +2226,8 @@
                 displayWorkerReport(data);
             } else if (reportType === 'client') {
                 displayClientReport(data);
+            } else if (reportType === 'socso') {
+                displaySOSCOReport(data);
             }
         } catch (error) {
             console.error('Error generating report:', error);
@@ -2503,6 +2545,68 @@
         }
     }
 
+    function displaySOSCOReport(data) {
+        document.getElementById('report-title').textContent = 'SOCSO Payout Report';
+        document.getElementById('socso-report').style.display = 'block';
+
+        // Period - using the filters from the response
+        const startDate = document.getElementById('report-start-date').value;
+        const endDate = document.getElementById('report-end-date').value;
+        document.getElementById('socso-period').textContent = `${startDate} to ${endDate}`;
+
+        // Summary
+        document.getElementById('socso-total-freelancers').textContent = data.totals.total_freelancers;
+        document.getElementById('socso-total-transactions').textContent = data.totals.total_transactions;
+        document.getElementById('socso-total-amount').textContent =
+            `RM ${data.totals.total_socso_amount.toFixed(2)}`;
+        document.getElementById('socso-total-earnings').textContent =
+            `RM ${data.totals.total_net_earnings.toFixed(2)}`;
+
+        // Freelancer breakdown table
+        const tableContainer = document.getElementById('socso-details-table');
+        tableContainer.innerHTML = '';
+
+        if (data.report.length > 0) {
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Freelancer</th>
+                        <th>IC Number</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Transactions</th>
+                        <th>Net Earnings</th>
+                        <th>SOCSO Amount</th>
+                        <th>Final Payout</th>
+                        <th>Remitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.report.map(record => `
+                        <tr>
+                            <td>${record.contribution_month}</td>
+                            <td>${record.full_name}</td>
+                            <td>${record.ic_number || 'N/A'}</td>
+                            <td>${record.email}</td>
+                            <td>${record.phone || 'N/A'}</td>
+                            <td>${record.transaction_count}</td>
+                            <td>RM ${record.total_net_earnings.toFixed(2)}</td>
+                            <td>RM ${record.total_socso_amount.toFixed(2)}</td>
+                            <td>RM ${record.total_final_payout.toFixed(2)}</td>
+                            <td>${record.all_remitted ? '<span class="badge badge-completed">Yes</span>' : '<span class="badge badge-pending">No</span>'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            tableContainer.appendChild(table);
+        } else {
+            tableContainer.innerHTML = '<p style="color: var(--text-gray); padding: 20px; text-align: center;">No SOCSO contributions in this period</p>';
+        }
+    }
+
     function exportReportToCSV() {
         if (!currentReportData || !currentReportType) {
             alert('No report data to export');
@@ -2575,6 +2679,25 @@
             csvContent += 'Gig ID,Title,Status,Budget,Spent,Commission,Created\n';
             currentReportData.gigs.gig_details.forEach(gig => {
                 csvContent += `${gig.gig_id},"${gig.title}",${gig.status},${gig.budget},${gig.spent},${gig.commission},${gig.created_at || 'N/A'}\n`;
+            });
+        } else if (currentReportType === 'socso') {
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            filename = `socso_payout_report_${startDate}_to_${endDate}.csv`;
+            csvContent = 'SOCSO Payout Report\n\n';
+            csvContent += `Period,${startDate} to ${endDate}\n\n`;
+
+            csvContent += 'Summary\n';
+            csvContent += `Total Freelancers,${currentReportData.totals.total_freelancers}\n`;
+            csvContent += `Total Transactions,${currentReportData.totals.total_transactions}\n`;
+            csvContent += `Total Net Earnings,${currentReportData.totals.total_net_earnings}\n`;
+            csvContent += `Total SOCSO Amount,${currentReportData.totals.total_socso_amount}\n`;
+            csvContent += `Total Final Payout,${currentReportData.totals.total_final_payout}\n\n`;
+
+            csvContent += 'Freelancer Breakdown\n';
+            csvContent += 'Month,Freelancer,IC Number,Email,Phone,Transactions,Net Earnings,SOCSO Amount,Final Payout,Remitted\n';
+            currentReportData.report.forEach(record => {
+                csvContent += `${record.contribution_month},"${record.full_name}",${record.ic_number || 'N/A'},${record.email},${record.phone || 'N/A'},${record.transaction_count},${record.total_net_earnings.toFixed(2)},${record.total_socso_amount.toFixed(2)},${record.total_final_payout.toFixed(2)},${record.all_remitted ? 'Yes' : 'No'}\n`;
             });
         }
 
