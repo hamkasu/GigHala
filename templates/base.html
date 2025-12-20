@@ -314,6 +314,7 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
             -webkit-overflow-scrolling: touch;
+            cursor: grab;
         }
 
         .categories-nav::-webkit-scrollbar {
@@ -1166,6 +1167,56 @@
             if (installBanner) installBanner.style.display = 'none';
             deferredPrompt = null;
         });
+
+        // Enable horizontal scrolling for category navigation
+        const categoriesNav = document.querySelector('.categories-nav');
+        if (categoriesNav) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            // Drag to scroll
+            categoriesNav.addEventListener('mousedown', (e) => {
+                // Only enable drag on the nav container, not on links
+                if (e.target.closest('.category-link')) return;
+
+                isDown = true;
+                categoriesNav.style.cursor = 'grabbing';
+                categoriesNav.style.userSelect = 'none';
+                startX = e.pageX - categoriesNav.offsetLeft;
+                scrollLeft = categoriesNav.scrollLeft;
+            });
+
+            categoriesNav.addEventListener('mouseleave', () => {
+                isDown = false;
+                categoriesNav.style.cursor = 'grab';
+            });
+
+            categoriesNav.addEventListener('mouseup', () => {
+                isDown = false;
+                categoriesNav.style.cursor = 'grab';
+                categoriesNav.style.userSelect = 'auto';
+            });
+
+            categoriesNav.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - categoriesNav.offsetLeft;
+                const walk = (x - startX) * 1.5; // Scroll speed multiplier
+                categoriesNav.scrollLeft = scrollLeft - walk;
+            });
+
+            // Mouse wheel horizontal scroll
+            categoriesNav.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    categoriesNav.scrollLeft += e.deltaY;
+                }
+            });
+
+            // Set initial cursor
+            categoriesNav.style.cursor = 'grab';
+        }
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
