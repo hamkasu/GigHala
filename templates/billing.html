@@ -418,6 +418,11 @@
         <div class="wallet-card-amount" id="heldBalance">MYR 0.00</div>
         <div class="wallet-card-currency">Pending payouts</div>
     </div>
+    <div class="wallet-card info" id="socsoCard" style="display: none; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+        <div class="wallet-card-label">SOCSO Contributions</div>
+        <div class="wallet-card-amount" id="totalSocso">MYR 0.00</div>
+        <div class="wallet-card-currency">Mandatory 1.25% deductions</div>
+    </div>
     <div class="wallet-card info">
         <div class="wallet-card-label">Total Spent</div>
         <div class="wallet-card-amount" id="totalSpent">MYR 0.00</div>
@@ -430,6 +435,7 @@
         <button class="tab active" onclick="switchTab('transactions')">Transactions</button>
         <button class="tab" onclick="switchTab('invoices')">Invoices</button>
         <button class="tab" onclick="switchTab('payouts')">Payouts</button>
+        <button class="tab" id="socsoTab" onclick="switchTab('socso')" style="display: none;">SOCSO Contributions</button>
     </div>
 
     <div id="transactions-tab" class="tab-content active">
@@ -543,6 +549,62 @@
             <button class="btn btn-primary" onclick="openPayoutModal()" style="margin-top: 16px;">Request Payout</button>
         </div>
     </div>
+
+    <div id="socso-tab" class="tab-content">
+        <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 18px;">SOCSO Compliance - Gig Workers Bill 2025</h3>
+            <p style="margin: 0; font-size: 14px; opacity: 0.95;">
+                As a registered gig worker, 1.25% of your net earnings (after platform fees) is automatically deducted
+                and contributed to SOCSO for your social security protection. These contributions provide you with
+                employment injury, invalidity, and other benefits under the Self-Employment Social Security Scheme (SESKSO).
+            </p>
+        </div>
+
+        <div id="socsoLoading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading SOCSO contributions...</p>
+        </div>
+
+        <div id="socsoContent" style="display: none;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="background: var(--bg-light); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; color: var(--text-gray); margin-bottom: 6px;">Total Contributions</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="socsoTotalAmount">MYR 0.00</div>
+                </div>
+                <div style="background: var(--bg-light); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; color: var(--text-gray); margin-bottom: 6px;">Total Net Earnings</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text);" id="socsoTotalEarnings">MYR 0.00</div>
+                </div>
+                <div style="background: var(--bg-light); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="font-size: 13px; color: var(--text-gray); margin-bottom: 6px;">Total Transactions</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text);" id="socsoTotalCount">0</div>
+                </div>
+            </div>
+
+            <table id="socsoTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Gross Amount</th>
+                        <th>Platform Fee</th>
+                        <th>Net Earnings</th>
+                        <th>SOCSO (1.25%)</th>
+                        <th>Final Payout</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="socsoBody"></tbody>
+            </table>
+            <div id="socsoPagination" class="pagination"></div>
+        </div>
+
+        <div id="socsoEmpty" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">🏥</div>
+            <h3>No SOCSO Contributions Yet</h3>
+            <p>Your SOCSO contribution history will appear here as you complete gigs and receive payouts.</p>
+        </div>
+    </div>
 </div>
 
 <div id="payoutModal" class="modal">
@@ -627,6 +689,24 @@
                 document.getElementById('totalEarned').textContent = `MYR ${walletData.total_earned.toFixed(2)}`;
                 document.getElementById('heldBalance').textContent = `MYR ${(walletData.held_balance || 0).toFixed(2)}`;
                 document.getElementById('totalSpent').textContent = `MYR ${(walletData.total_spent || 0).toFixed(2)}`;
+
+                // Load and display SOCSO data for freelancers
+                if (walletData.user_type === 'freelancer' || walletData.user_type === 'both') {
+                    try {
+                        const socsoResponse = await fetch('/api/billing/socso-contributions');
+                        if (socsoResponse.ok) {
+                            const socsoData = await socsoResponse.json();
+                            const totalSocso = socsoData.totals?.total_socso || 0;
+
+                            // Show SOCSO card and tab
+                            document.getElementById('socsoCard').style.display = 'block';
+                            document.getElementById('socsoTab').style.display = 'block';
+                            document.getElementById('totalSocso').textContent = `MYR ${totalSocso.toFixed(2)}`;
+                        }
+                    } catch (error) {
+                        console.error('Error loading SOCSO data:', error);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error loading wallet:', error);
@@ -642,6 +722,7 @@
         if (tabName === 'transactions') loadTransactions();
         else if (tabName === 'invoices') loadInvoices();
         else if (tabName === 'payouts') loadPayouts();
+        else if (tabName === 'socso') loadSocso();
     }
 
     async function loadTransactions() {
@@ -809,6 +890,71 @@
             console.error('Error loading payouts:', error);
             loading.style.display = 'none';
             empty.querySelector('h3').textContent = 'Error Loading Payouts';
+            empty.querySelector('p').textContent = error.message || 'An unexpected error occurred';
+            empty.style.display = 'block';
+        }
+    }
+
+    async function loadSocso() {
+        const loading = document.getElementById('socsoLoading');
+        const content = document.getElementById('socsoContent');
+        const empty = document.getElementById('socsoEmpty');
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+        empty.style.display = 'none';
+
+        try {
+            const url = '/api/billing/socso-contributions';
+            console.log('Fetching SOCSO contributions from:', url);
+            const response = await fetch(url);
+            console.log('SOCSO response status:', response.status);
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('SOCSO API error:', response.status, error);
+                loading.style.display = 'none';
+                empty.querySelector('h3').textContent = 'Error Loading SOCSO Contributions';
+                empty.querySelector('p').textContent = `Error ${response.status}: ${error.error || 'Failed to load SOCSO contributions'}`;
+                empty.style.display = 'block';
+                return;
+            }
+
+            const data = await response.json();
+            console.log('SOCSO data received:', data);
+            loading.style.display = 'none';
+
+            if (!data.contributions || data.contributions.length === 0) {
+                empty.querySelector('h3').textContent = 'No SOCSO Contributions Yet';
+                empty.querySelector('p').textContent = 'Your SOCSO contribution history will appear here as you complete gigs and receive payouts.';
+                empty.style.display = 'block';
+            } else {
+                content.style.display = 'block';
+
+                // Update summary stats
+                document.getElementById('socsoTotalAmount').textContent = `MYR ${(data.totals?.total_socso || 0).toFixed(2)}`;
+                document.getElementById('socsoTotalEarnings').textContent = `MYR ${(data.totals?.total_net_earnings || 0).toFixed(2)}`;
+                document.getElementById('socsoTotalCount').textContent = data.totals?.transaction_count || 0;
+
+                // Populate table
+                const tbody = document.getElementById('socsoBody');
+                tbody.innerHTML = data.contributions.map(c => `
+                    <tr>
+                        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td><span class="badge">${c.contribution_type}</span></td>
+                        <td>MYR ${c.gross_amount.toFixed(2)}</td>
+                        <td>MYR ${c.platform_commission.toFixed(2)}</td>
+                        <td>MYR ${c.net_earnings.toFixed(2)}</td>
+                        <td style="color: var(--primary); font-weight: 600;">MYR ${c.socso_amount.toFixed(2)}</td>
+                        <td style="font-weight: 600;">MYR ${c.final_payout.toFixed(2)}</td>
+                        <td><span class="badge ${c.remitted_to_socso ? 'success' : 'warning'}">${c.remitted_to_socso ? 'Remitted' : 'Pending'}</span></td>
+                    </tr>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error loading SOCSO contributions:', error);
+            loading.style.display = 'none';
+            empty.querySelector('h3').textContent = 'Error Loading SOCSO Contributions';
             empty.querySelector('p').textContent = error.message || 'An unexpected error occurred';
             empty.style.display = 'block';
         }
