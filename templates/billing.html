@@ -703,19 +703,24 @@
 
                 // Load and display SOCSO data for freelancers
                 if (walletData.user_type === 'freelancer' || walletData.user_type === 'both') {
+                    // Always show SOCSO card and tab for freelancers (transparency & compliance)
+                    document.getElementById('socsoCard').style.display = 'block';
+                    document.getElementById('socsoTab').style.display = 'block';
+
                     try {
                         const socsoResponse = await fetch('/api/billing/socso-contributions');
                         if (socsoResponse.ok) {
                             const socsoData = await socsoResponse.json();
                             const totalSocso = socsoData.totals?.total_socso || 0;
-
-                            // Show SOCSO card and tab
-                            document.getElementById('socsoCard').style.display = 'block';
-                            document.getElementById('socsoTab').style.display = 'block';
                             document.getElementById('totalSocso').textContent = `MYR ${totalSocso.toFixed(2)}`;
+                        } else {
+                            // Show MYR 0.00 if API fails or no data
+                            document.getElementById('totalSocso').textContent = 'MYR 0.00';
                         }
                     } catch (error) {
                         console.error('Error loading SOCSO data:', error);
+                        // Still show MYR 0.00 even on error
+                        document.getElementById('totalSocso').textContent = 'MYR 0.00';
                     }
                 }
             }
@@ -935,20 +940,27 @@
             console.log('SOCSO data received:', data);
             loading.style.display = 'none';
 
+            // Always show content for transparency (even with zero contributions)
+            content.style.display = 'block';
+
+            // Update summary stats
+            document.getElementById('socsoTotalAmount').textContent = `MYR ${(data.totals?.total_socso || 0).toFixed(2)}`;
+            document.getElementById('socsoTotalEarnings').textContent = `MYR ${(data.totals?.total_net_earnings || 0).toFixed(2)}`;
+            document.getElementById('socsoTotalCount').textContent = data.totals?.transaction_count || 0;
+
+            // Populate table
+            const tbody = document.getElementById('socsoBody');
             if (!data.contributions || data.contributions.length === 0) {
-                empty.querySelector('h3').textContent = 'No SOCSO Contributions Yet';
-                empty.querySelector('p').textContent = 'Your SOCSO contribution history will appear here as you complete gigs and receive payouts.';
-                empty.style.display = 'block';
+                // Show informative message in table when no contributions yet
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No SOCSO Contributions Yet</div>
+                            <div style="font-size: 14px;">Your SOCSO contribution history will appear here as you complete gigs and receive payouts.</div>
+                        </td>
+                    </tr>
+                `;
             } else {
-                content.style.display = 'block';
-
-                // Update summary stats
-                document.getElementById('socsoTotalAmount').textContent = `MYR ${(data.totals?.total_socso || 0).toFixed(2)}`;
-                document.getElementById('socsoTotalEarnings').textContent = `MYR ${(data.totals?.total_net_earnings || 0).toFixed(2)}`;
-                document.getElementById('socsoTotalCount').textContent = data.totals?.transaction_count || 0;
-
-                // Populate table
-                const tbody = document.getElementById('socsoBody');
                 tbody.innerHTML = data.contributions.map(c => `
                     <tr>
                         <td>${new Date(c.created_at).toLocaleDateString()}</td>
@@ -965,9 +977,22 @@
         } catch (error) {
             console.error('Error loading SOCSO contributions:', error);
             loading.style.display = 'none';
-            empty.querySelector('h3').textContent = 'Error Loading SOCSO Contributions';
-            empty.querySelector('p').textContent = error.message || 'An unexpected error occurred';
-            empty.style.display = 'block';
+
+            // Still show content with zero values on error (transparency)
+            content.style.display = 'block';
+            document.getElementById('socsoTotalAmount').textContent = 'MYR 0.00';
+            document.getElementById('socsoTotalEarnings').textContent = 'MYR 0.00';
+            document.getElementById('socsoTotalCount').textContent = '0';
+
+            const tbody = document.getElementById('socsoBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--error);">Error Loading SOCSO Contributions</div>
+                        <div style="font-size: 14px;">${error.message || 'An unexpected error occurred. Please try again later.'}</div>
+                    </td>
+                </tr>
+            `;
         }
     }
 
