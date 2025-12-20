@@ -1174,13 +1174,12 @@
             let isDown = false;
             let startX;
             let scrollLeft;
+            let hasMoved = false;
 
             // Drag to scroll
             categoriesNav.addEventListener('mousedown', (e) => {
-                // Only enable drag on the nav container, not on links
-                if (e.target.closest('.category-link')) return;
-
                 isDown = true;
+                hasMoved = false;
                 categoriesNav.style.cursor = 'grabbing';
                 categoriesNav.style.userSelect = 'none';
                 startX = e.pageX - categoriesNav.offsetLeft;
@@ -1201,18 +1200,25 @@
             categoriesNav.addEventListener('mousemove', (e) => {
                 if (!isDown) return;
                 e.preventDefault();
+                hasMoved = true;
                 const x = e.pageX - categoriesNav.offsetLeft;
-                const walk = (x - startX) * 1.5; // Scroll speed multiplier
+                const walk = (x - startX) * 2; // Scroll speed multiplier
                 categoriesNav.scrollLeft = scrollLeft - walk;
             });
 
-            // Mouse wheel horizontal scroll
-            categoriesNav.addEventListener('wheel', (e) => {
-                if (e.deltaY !== 0) {
+            // Prevent link click when dragging
+            categoriesNav.addEventListener('click', (e) => {
+                if (hasMoved) {
                     e.preventDefault();
-                    categoriesNav.scrollLeft += e.deltaY;
+                    e.stopPropagation();
                 }
-            });
+            }, true);
+
+            // Mouse wheel horizontal scroll (with passive: false to allow preventDefault)
+            categoriesNav.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                categoriesNav.scrollLeft += e.deltaY;
+            }, { passive: false });
 
             // Set initial cursor
             categoriesNav.style.cursor = 'grab';
