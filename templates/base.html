@@ -301,108 +301,26 @@
         .header-categories {
             background: var(--bg-white);
             border-bottom: 1px solid var(--border);
-            overflow: hidden;
             position: relative;
         }
 
         .categories-nav {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             padding: 12px 16px;
             max-width: 1400px;
             margin: 0 auto;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            -webkit-overflow-scrolling: touch;
-            cursor: grab;
-            scroll-behavior: smooth;
+            max-height: none;
         }
 
         .categories-nav::-webkit-scrollbar {
             display: none;
         }
 
-        .categories-nav.dragging {
-            cursor: grabbing;
-            scroll-behavior: auto;
-        }
-
-        /* Gradient indicators for scrollable content */
-        .header-categories::before,
-        .header-categories::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 40px;
-            pointer-events: none;
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .header-categories::before {
-            left: 0;
-            background: linear-gradient(to right, var(--bg-white), transparent);
-        }
-
-        .header-categories::after {
-            right: 0;
-            background: linear-gradient(to left, var(--bg-white), transparent);
-        }
-
-        .header-categories.show-left-gradient::before {
-            opacity: 1;
-        }
-
-        .header-categories.show-right-gradient::after {
-            opacity: 1;
-        }
-
+        /* Hide scroll buttons for multi-line layout */
         .category-scroll-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 20;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            opacity: 0;
-            visibility: hidden;
-            color: var(--text-dark);
-        }
-
-        .category-scroll-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(29, 191, 115, 0.3);
-        }
-
-        .category-scroll-btn:active {
-            transform: translateY(-50%) scale(0.95);
-        }
-
-        .category-scroll-btn.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .category-scroll-left {
-            left: 8px;
-        }
-
-        .category-scroll-right {
-            right: 8px;
+            display: none;
         }
 
         .category-link {
@@ -564,7 +482,7 @@
             }
 
             .categories-nav {
-                gap: 16px 24px;
+                gap: 8px;
                 padding: 12px 16px;
             }
 
@@ -1051,11 +969,6 @@
         
         {% if active_page == 'gigs' %}
         <div class="header-categories">
-            <button class="category-scroll-btn category-scroll-left" id="scrollLeftBtn">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
             <nav class="categories-nav">
                 <a href="/gigs" class="category-link {% if not request.args.get('category') %}active{% endif %}"><span class="cat-icon">🔥</span>{{ t('all_categories') if t('all_categories') != 'all_categories' else 'Semua' }}</a>
                 <a href="/gigs?category=design" class="category-link {% if request.args.get('category') == 'design' %}active{% endif %}"><span class="cat-icon">🎨</span>{{ t('cat_design') }}</a>
@@ -1075,11 +988,6 @@
                 <a href="/gigs?category=photography" class="category-link {% if request.args.get('category') == 'photography' %}active{% endif %}"><span class="cat-icon">📷</span>{{ t('cat_photography') }}</a>
                 <a href="/gigs?category=creative-other" class="category-link {% if request.args.get('category') == 'creative-other' %}active{% endif %}"><span class="cat-icon">✨</span>{{ t('cat_creative_other') }}</a>
             </nav>
-            <button class="category-scroll-btn category-scroll-right" id="scrollRightBtn">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
         </div>
         {% endif %}
     </header>
@@ -1262,118 +1170,8 @@
             deferredPrompt = null;
         });
 
-        // Enable horizontal scrolling for category navigation
-        const categoriesNav = document.querySelector('.categories-nav');
-        const headerCategories = document.querySelector('.header-categories');
-        const scrollLeftBtn = document.getElementById('scrollLeftBtn');
-        const scrollRightBtn = document.getElementById('scrollRightBtn');
-
-        if (categoriesNav && headerCategories) {
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-            let hasMoved = false;
-
-            // Update gradient indicators and button visibility based on scroll position
-            function updateGradients() {
-                const isAtStart = categoriesNav.scrollLeft <= 5;
-                const isAtEnd = categoriesNav.scrollLeft >= (categoriesNav.scrollWidth - categoriesNav.clientWidth - 5);
-                const hasScroll = categoriesNav.scrollWidth > categoriesNav.clientWidth;
-
-                headerCategories.classList.toggle('show-left-gradient', !isAtStart);
-                headerCategories.classList.toggle('show-right-gradient', !isAtEnd);
-
-                // Show/hide arrow buttons
-                if (scrollLeftBtn) {
-                    scrollLeftBtn.classList.toggle('visible', hasScroll && !isAtStart);
-                }
-                if (scrollRightBtn) {
-                    scrollRightBtn.classList.toggle('visible', hasScroll && !isAtEnd);
-                }
-            }
-
-            // Scroll by a fixed amount
-            function scrollBy(amount) {
-                categoriesNav.scrollBy({
-                    left: amount,
-                    behavior: 'smooth'
-                });
-            }
-
-            // Arrow button click handlers
-            if (scrollLeftBtn) {
-                scrollLeftBtn.addEventListener('click', () => scrollBy(-300));
-            }
-            if (scrollRightBtn) {
-                scrollRightBtn.addEventListener('click', () => scrollBy(300));
-            }
-
-            // Drag to scroll
-            categoriesNav.addEventListener('mousedown', (e) => {
-                isDown = true;
-                hasMoved = false;
-                categoriesNav.classList.add('dragging');
-                startX = e.pageX - categoriesNav.offsetLeft;
-                scrollLeft = categoriesNav.scrollLeft;
-            });
-
-            categoriesNav.addEventListener('mouseleave', () => {
-                isDown = false;
-                categoriesNav.classList.remove('dragging');
-            });
-
-            categoriesNav.addEventListener('mouseup', (e) => {
-                isDown = false;
-                categoriesNav.classList.remove('dragging');
-
-                // If user dragged, prevent link click
-                if (hasMoved) {
-                    e.preventDefault();
-                    hasMoved = false;
-                }
-            });
-
-            categoriesNav.addEventListener('mousemove', (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-
-                const x = e.pageX - categoriesNav.offsetLeft;
-                const walk = (x - startX) * 2; // Scroll speed multiplier
-
-                // If moved more than 5px, consider it a drag
-                if (Math.abs(walk) > 5) {
-                    hasMoved = true;
-                }
-
-                categoriesNav.scrollLeft = scrollLeft - walk;
-            });
-
-            // Prevent click on links if dragging
-            categoriesNav.addEventListener('click', (e) => {
-                if (hasMoved) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    hasMoved = false;
-                }
-            }, true);
-
-            // Mouse wheel horizontal scroll
-            categoriesNav.addEventListener('wheel', (e) => {
-                if (e.deltaY !== 0) {
-                    e.preventDefault();
-                    categoriesNav.scrollLeft += e.deltaY;
-                }
-            }, { passive: false });
-
-            // Update gradients on scroll
-            categoriesNav.addEventListener('scroll', updateGradients);
-
-            // Initial gradient update
-            updateGradients();
-
-            // Update gradients on window resize
-            window.addEventListener('resize', updateGradients);
-        }
+        // Category navigation - now uses wrapping layout instead of horizontal scrolling
+        // No additional JavaScript needed for multi-line display
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
