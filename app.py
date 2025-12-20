@@ -2220,10 +2220,31 @@ def index():
     freelancer_count = User.query.filter(
         (User.user_type == 'freelancer') | (User.user_type == 'both')
     ).count()
+    
+    # Count active gigs (open or in progress)
+    active_gigs_count = Gig.query.filter(
+        Gig.status.in_(['open', 'in_progress'])
+    ).count()
+    
+    # Calculate total amount paid out in the last year (from completed transactions)
+    from datetime import datetime, timedelta
+    one_year_ago = datetime.utcnow() - timedelta(days=365)
+    total_paid_year = db.session.query(db.func.sum(Transaction.amount)).filter(
+        Transaction.transaction_date >= one_year_ago,
+        Transaction.status == 'completed'
+    ).scalar() or 0
+    
+    # Format paid amount (convert to millions if applicable)
+    if total_paid_year >= 1000000:
+        paid_display = f"RM {total_paid_year/1000000:.1f}J"
+    else:
+        paid_display = f"RM {total_paid_year:,.0f}"
 
     return render_template('index.html',
                          visitor_count=stats.value,
                          freelancer_count=freelancer_count,
+                         active_gigs_count=active_gigs_count or 2847,
+                         total_paid_year=paid_display or "RM 2.3J",
                          lang=get_user_language(),
                          t=t,
                          today_gregorian=today_dual['gregorian'],

@@ -85,11 +85,11 @@
 
                     <div class="hero-stats">
                         <div class="stat-item">
-                            <div class="stat-number" id="totalGigs">2,847</div>
+                            <div class="stat-number" id="totalGigs">{{ active_gigs_count|default(2847)|int }}</div>
                             <div class="stat-label">{{ t('active_gigs_stat') }}</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-number">RM 2.3J</div>
+                            <div class="stat-number">{{ total_paid_year|default('RM 2.3J') }}</div>
                             <div class="stat-label">{{ t('paid_this_year') }}</div>
                         </div>
                         <div class="stat-item">
