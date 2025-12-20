@@ -1019,9 +1019,10 @@ def t(key, **kwargs):
     return translation
 
 # Islamic (Hijri) month names in Malay and English
+# Malay names follow Malaysia's official JAKIM (Jabatan Agama Islam Malaysia) standards
 HIJRI_MONTHS = {
-    'ms': ['Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir', 'Jamadil Awal', 'Jamadil Akhir',
-           'Rejab', 'Syaaban', 'Ramadan', 'Syawal', 'Zulkaedah', 'Zulhijah'],
+    'ms': ['Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir', 'Jumadil Awal', 'Jumadil Akhir',
+           'Rajab', 'Syaaban', 'Ramadan', 'Syawal', 'Zulkaidah', 'Zulhijah'],
     'en': ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Awwal', 'Jumada al-Thani',
            'Rajab', 'Shaban', 'Ramadan', 'Shawwal', 'Dhul Qadah', 'Dhul Hijjah']
 }
