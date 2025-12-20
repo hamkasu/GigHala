@@ -445,7 +445,7 @@ TRANSLATIONS = {
         'register_free': 'Daftar Percuma',
 
         # Homepage - Hero Section
-        'active_freelancers': '50,000+ Freelancers Aktif',
+        'active_freelancers': '{} Freelancers Aktif',  # Format with actual count
         'earn_income': 'Jana Pendapatan',
         'halal_blessed': 'Halal & Berkah',
         'from_home': 'dari Rumah',
@@ -2216,8 +2216,14 @@ def index():
     # Get dual date
     today_dual = get_dual_date()
 
+    # Count active freelancers (users with user_type 'freelancer' or 'both')
+    freelancer_count = User.query.filter(
+        (User.user_type == 'freelancer') | (User.user_type == 'both')
+    ).count()
+
     return render_template('index.html',
                          visitor_count=stats.value,
+                         freelancer_count=freelancer_count,
                          lang=get_user_language(),
                          t=t,
                          today_gregorian=today_dual['gregorian'],
