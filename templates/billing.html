@@ -430,6 +430,7 @@
         <button class="tab active" onclick="switchTab('transactions')">Transactions</button>
         <button class="tab" onclick="switchTab('invoices')">Invoices</button>
         <button class="tab" onclick="switchTab('payouts')">Payouts</button>
+        <button class="tab" onclick="switchTab('socso')">SOCSO Contributions</button>
     </div>
 
     <div id="transactions-tab" class="tab-content active">
@@ -543,6 +544,50 @@
             <button class="btn btn-primary" onclick="openPayoutModal()" style="margin-top: 16px;">Request Payout</button>
         </div>
     </div>
+
+    <div id="socso-tab" class="tab-content">
+        <div style="margin-bottom: 20px;">
+            <h3>SOCSO Contribution History</h3>
+            <p style="color: var(--text-gray); font-size: 13px;">Track your mandatory SOCSO contributions under Gig Workers Bill 2025</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Year</label>
+                <select id="socsoYear" onchange="loadSocsoContributions()">
+                    <option value="">All Years</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Month</label>
+                <select id="socsoMonth" onchange="loadSocsoContributions()">
+                    <option value="">All Months</option>
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                    <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="socsoLoading" class="loading"><div class="spinner"></div><p>Loading SOCSO contributions...</p></div>
+        <div id="socsoContent" style="display: none;">
+            <div style="background: var(--bg-light); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                    <div><strong>Total Contributed:</strong> <span id="totalSOCSO" style="color: var(--primary); font-weight: 700;">RM 0.00</span></div>
+                    <div><strong>Net Earnings:</strong> <span id="totalNetEarnings" style="color: var(--text-dark);">RM 0.00</span></div>
+                    <div><strong>Final Payout:</strong> <span id="totalFinalPayout" style="color: var(--text-dark);">RM 0.00</span></div>
+                    <div><strong>Transactions:</strong> <span id="transactionCount" style="color: var(--text-dark);">0</span></div>
+                </div>
+            </div>
+            <table>
+                <thead><tr><th>Date</th><th>Gross Amount</th><th>Commission</th><th>Net Earnings</th><th>SOCSO (1.25%)</th><th>Final Payout</th><th>Status</th></tr></thead>
+                <tbody id="socsoBody"></tbody>
+            </table>
+            <div id="soscoPagination" class="pagination"></div>
+        </div>
+        <div id="socsoEmpty" class="empty-state" style="display: none;"><div class="empty-state-icon">📊</div><h3>No SOCSO Contributions Yet</h3><p>Your SOCSO contributions will appear here</p></div>
+    </div>
 </div>
 
 <div id="payoutModal" class="modal">
@@ -642,6 +687,57 @@
         if (tabName === 'transactions') loadTransactions();
         else if (tabName === 'invoices') loadInvoices();
         else if (tabName === 'payouts') loadPayouts();
+        else if (tabName === 'socso') loadSocsoContributions();
+    }
+
+    async function loadSocsoContributions() {
+        const loading = document.getElementById('socsoLoading');
+        const content = document.getElementById('socsoContent');
+        const empty = document.getElementById('socsoEmpty');
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+        empty.style.display = 'none';
+
+        try {
+            const year = document.getElementById('socsoYear').value;
+            const month = document.getElementById('socsoMonth').value;
+            let url = '/api/billing/socso-contributions?page=1&per_page=50';
+            if (year) url += `&year=${year}`;
+            if (month) url += `&month=${month}`;
+
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to load SOCSO data');
+
+            const data = await response.json();
+            if (!data.contributions || data.contributions.length === 0) {
+                empty.style.display = 'block';
+            } else {
+                document.getElementById('totalSOCSO').textContent = `RM ${(data.summary.total_socso_contributed || 0).toFixed(2)}`;
+                document.getElementById('totalNetEarnings').textContent = `RM ${(data.summary.total_net_earnings || 0).toFixed(2)}`;
+                document.getElementById('totalFinalPayout').textContent = `RM ${(data.summary.total_final_payout || 0).toFixed(2)}`;
+                document.getElementById('transactionCount').textContent = data.summary.transaction_count || 0;
+
+                const tbody = document.getElementById('socsoBody');
+                tbody.innerHTML = '';
+                data.contributions.forEach(c => {
+                    tbody.innerHTML += `<tr>
+                        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td>RM ${c.gross_amount.toFixed(2)}</td>
+                        <td>RM ${c.platform_commission.toFixed(2)}</td>
+                        <td>RM ${c.net_earnings.toFixed(2)}</td>
+                        <td style="color: var(--primary); font-weight: 600;">RM ${c.socso_amount.toFixed(2)}</td>
+                        <td>RM ${c.final_payout.toFixed(2)}</td>
+                        <td><span class="badge ${c.remitted_to_socso ? 'completed' : 'pending'}">${c.remitted_to_socso ? 'Remitted' : 'Pending'}</span></td>
+                    </tr>`;
+                });
+                content.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('SOCSO error:', error);
+            empty.style.display = 'block';
+        }
+        loading.style.display = 'none';
     }
 
     async function loadTransactions() {

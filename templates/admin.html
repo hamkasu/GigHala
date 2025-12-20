@@ -474,6 +474,7 @@
     <button class="tab-btn" onclick="switchTab('gigs')">Gigs</button>
     <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
     <button class="tab-btn" onclick="switchTab('reports')">Financial Reports</button>
+    <button class="tab-btn" onclick="switchTab('socso')">SOCSO Compliance</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
     <a href="/admin/feedback" class="tab-btn" style="text-decoration:none;">Feedback</a>
     <button class="tab-btn" onclick="switchTab('reset')" style="color: #dc2626;">Reset Data</button>
@@ -649,6 +650,62 @@
                 <tbody id="payouts-tbody"></tbody>
             </table>
             <div class="pagination" id="payouts-pagination"></div>
+        </div>
+    </div>
+
+    <div id="socso-tab" class="tab-content">
+        <h3 class="section-title">SOCSO Compliance Management (Gig Workers Bill 2025)</h3>
+        <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <p style="color: #166534; font-size: 13px; margin: 0;">Track and manage mandatory SOCSO contributions from freelancer earnings. Export data for ASSIST Portal bulk upload.</p>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom: 24px;">
+            <div class="stat-card">
+                <h3>Total Collected</h3>
+                <div class="value" id="stat-socso-collected">RM 0</div>
+                <div class="label">Total SOCSO collected this month</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Remittance</h3>
+                <div class="value" id="stat-socso-pending">RM 0</div>
+                <div class="label">Awaiting ASSIST Portal upload</div>
+            </div>
+            <div class="stat-card">
+                <h3>Registered Freelancers</h3>
+                <div class="value" id="stat-freelancers-socso">0</div>
+                <div class="label">With SOCSO consent</div>
+            </div>
+            <div class="stat-card">
+                <h3>Compliance Rate</h3>
+                <div class="value" id="stat-socso-compliance">0%</div>
+                <div class="label">Freelancers with complete data</div>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <div class="table-header">
+                <h2>Monthly SOCSO Report</h2>
+                <div style="display: flex; gap: 10px;">
+                    <select id="socsoReportYear" onchange="loadSocsoReport()">
+                        <option value="">Select Year</option>
+                    </select>
+                    <select id="socsoReportMonth" onchange="loadSocsoReport()">
+                        <option value="">All Months</option>
+                        <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                        <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    </select>
+                    <button class="btn-sm btn-view" onclick="exportSOCSO()">Export CSV</button>
+                </div>
+            </div>
+            <div id="socsoReportLoading" class="loading">Loading report...</div>
+            <div id="socsoReportContent" style="display: none;">
+                <table>
+                    <thead>
+                        <tr><th>Month</th><th>Freelancer</th><th>IC Number</th><th>Email</th><th>Transactions</th><th>Net Earnings</th><th>SOCSO</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="socsoReportBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -1208,6 +1265,7 @@
         else if (tabName === 'gigs') loadGigs(1);
         else if (tabName === 'payouts') loadPayouts();
         else if (tabName === 'reports') initReports();
+        else if (tabName === 'socso') loadSocsoReport();
         else if (tabName === 'settings') loadSettings();
     }
 
@@ -1294,6 +1352,50 @@
             console.error('Error saving settings:', error);
             showError('Failed to save settings');
         }
+    }
+
+    async function loadSocsoReport() {
+        const loading = document.getElementById('socsoReportLoading');
+        const content = document.getElementById('socsoReportContent');
+        loading.style.display = 'block';
+        content.style.display = 'none';
+        try {
+            const year = document.getElementById('socsoReportYear').value || new Date().getFullYear();
+            const month = document.getElementById('socsoReportMonth').value;
+            let url = `/api/admin/socso/monthly-report?year=${year}`;
+            if (month) url += `&month=${month}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.report && data.report.length > 0) {
+                const tbody = document.getElementById('socsoReportBody');
+                tbody.innerHTML = '';
+                data.report.forEach(row => {
+                    tbody.innerHTML += `<tr>
+                        <td>${row.contribution_month}</td>
+                        <td>${row.full_name}</td>
+                        <td>${row.ic_number}</td>
+                        <td>${row.email}</td>
+                        <td>${row.transaction_count}</td>
+                        <td>RM ${row.total_net_earnings.toFixed(2)}</td>
+                        <td style="font-weight: 600; color: var(--primary);">RM ${row.total_socso_amount.toFixed(2)}</td>
+                        <td><span class="badge ${row.all_remitted ? 'completed' : 'pending'}">${row.all_remitted ? 'Remitted' : 'Pending'}</span></td>
+                    </tr>`;
+                });
+                content.style.display = 'block';
+            }
+            loading.style.display = 'none';
+        } catch (error) {
+            console.error('SOCSO report error:', error);
+            loading.style.display = 'none';
+        }
+    }
+
+    function exportSOCSO() {
+        const year = document.getElementById('socsoReportYear').value || new Date().getFullYear();
+        const month = document.getElementById('socsoReportMonth').value;
+        let url = `/api/admin/socso/monthly-report?year=${year}&format=csv`;
+        if (month) url += `&month=${month}`;
+        window.location.href = url;
     }
 
     async function loadDashboard() {
