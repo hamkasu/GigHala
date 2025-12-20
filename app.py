@@ -5428,9 +5428,9 @@ def release_escrow(gig_id):
                 'status': invoice.status
             } if invoice else None,
             'receipt': {
-                'id': receipt.id if receipt else existing_receipt.id,
-                'receipt_number': receipt.receipt_number if receipt else existing_receipt.receipt_number
-            } if receipt or existing_receipt else None
+                'id': client_receipt.id if client_receipt else existing_client_receipt.id,
+                'receipt_number': client_receipt.receipt_number if client_receipt else existing_client_receipt.receipt_number
+            } if client_receipt or existing_client_receipt else None
         }), 200
 
     except Exception as e:
