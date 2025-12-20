@@ -1185,6 +1185,97 @@ def calculate_commission(amount):
     else:
         return round(amount * 0.05, 2)  # 5%
 
+def calculate_socso(net_earnings):
+    """
+    Calculate SOCSO contribution as per Gig Workers Bill 2025
+
+    SOCSO Rate: 1.25% of net earnings (after platform commission)
+    Required by Self-Employment Social Security Scheme (SESKSO/SKSPS)
+
+    Args:
+        net_earnings (float): Net earnings after platform commission in MYR
+
+    Returns:
+        float: SOCSO contribution amount rounded to 2 decimal places (sen)
+    """
+    if net_earnings <= 0:
+        return 0.0
+    return round(net_earnings * 0.0125, 2)  # 1.25%
+
+def create_socso_contribution(freelancer_id, gross_amount, platform_commission, net_earnings,
+                               contribution_type='escrow_release', gig_id=None,
+                               transaction_id=None, payout_id=None):
+    """
+    Create a SOCSO contribution record for compliance tracking
+
+    Args:
+        freelancer_id (int): ID of the freelancer
+        gross_amount (float): Original gig/transaction amount
+        platform_commission (float): Platform fee deducted
+        net_earnings (float): Amount after commission, before SOCSO
+        contribution_type (str): Type of contribution ('escrow_release', 'payout', 'transaction')
+        gig_id (int, optional): Related gig ID
+        transaction_id (int, optional): Related transaction ID
+        payout_id (int, optional): Related payout ID
+
+    Returns:
+        SocsoContribution: The created contribution record
+    """
+    socso_amount = calculate_socso(net_earnings)
+    final_payout = round(net_earnings - socso_amount, 2)
+
+    # Get current month and year for reporting
+    now = datetime.utcnow()
+    contribution_month = now.strftime('%Y-%m')
+    contribution_year = now.year
+
+    contribution = SocsoContribution(
+        freelancer_id=freelancer_id,
+        transaction_id=transaction_id,
+        payout_id=payout_id,
+        gig_id=gig_id,
+        gross_amount=gross_amount,
+        platform_commission=platform_commission,
+        net_earnings=net_earnings,
+        socso_amount=socso_amount,
+        final_payout=final_payout,
+        contribution_month=contribution_month,
+        contribution_year=contribution_year,
+        contribution_type=contribution_type
+    )
+
+    db.session.add(contribution)
+    return contribution
+
+def check_socso_compliance(user):
+    """
+    Check if a user is compliant with SOCSO requirements
+
+    Args:
+        user (User): User object to check
+
+    Returns:
+        tuple: (is_compliant: bool, reason: str)
+    """
+    # Only freelancers need SOCSO compliance
+    if user.user_type not in ['freelancer', 'both']:
+        return (True, 'Not a freelancer')
+
+    # Check if IC number is provided
+    if not user.ic_number or user.ic_number.strip() == '':
+        return (False, 'IC number is required for SOCSO registration')
+
+    # Check if SOCSO consent has been given
+    if not user.socso_consent:
+        return (False, 'SOCSO consent is required')
+
+    # Mark as data complete if all checks pass
+    if not user.socso_data_complete:
+        user.socso_data_complete = True
+        db.session.commit()
+
+    return (True, 'SOCSO compliant')
+
 def generate_receipt_number(receipt_type='RCP'):
     """Generate a unique receipt number with collision resistance"""
     import uuid
@@ -1342,6 +1433,11 @@ class User(db.Model):
     # OAuth fields for social login
     oauth_provider = db.Column(db.String(20))  # google, apple, microsoft, or null for regular
     oauth_id = db.Column(db.String(255))  # User ID from OAuth provider
+    # SOCSO compliance fields (Gig Workers Bill 2025)
+    socso_registered = db.Column(db.Boolean, default=False)  # Whether freelancer is registered with SOCSO
+    socso_consent = db.Column(db.Boolean, default=False)  # User consent to SOCSO deductions
+    socso_consent_date = db.Column(db.DateTime)  # When consent was given
+    socso_data_complete = db.Column(db.Boolean, default=False)  # IC number and required data available
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1399,6 +1495,7 @@ class Transaction(db.Model):
     amount = db.Column(db.Float, nullable=False)
     commission = db.Column(db.Float, default=0.0)
     net_amount = db.Column(db.Float, nullable=False)
+    socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution (1.25% of net_amount)
     payment_method = db.Column(db.String(50))  # ipay88, bank_transfer, touch_n_go
     status = db.Column(db.String(20), default='pending')  # pending, completed, failed
     transaction_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -1521,6 +1618,7 @@ class Payout(db.Model):
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     fee = db.Column(db.Float, default=0.0)
+    socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution (1.25% of amount)
     net_amount = db.Column(db.Float, nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)  # bank_transfer, fpx, touch_n_go, grab_pay, boost
     account_number = db.Column(db.String(100))
@@ -1539,8 +1637,9 @@ class PaymentHistory(db.Model):
     transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'))
     payout_id = db.Column(db.Integer, db.ForeignKey('payout.id'))
-    type = db.Column(db.String(30), nullable=False)  # deposit, withdrawal, payment, refund, commission, payout, hold, release
+    type = db.Column(db.String(30), nullable=False)  # deposit, withdrawal, payment, refund, commission, payout, hold, release, socso
     amount = db.Column(db.Float, nullable=False)
+    socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution amount
     balance_before = db.Column(db.Float, nullable=False)
     balance_after = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
@@ -1966,6 +2065,69 @@ class PlatformFeedback(db.Model):
             'status': self.status,
             'admin_response': self.admin_response,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class SocsoContribution(db.Model):
+    """
+    Model for tracking SOCSO (Social Security Organization) contributions
+    Required by Gig Workers Bill 2025 - Self-Employment Social Security Scheme (SESKSO/SKSPS)
+    Platform must deduct 1.25% of net earnings and remit to SOCSO via ASSIST Portal
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Worker identification
+    freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # Source transaction references (one will be populated)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
+    payout_id = db.Column(db.Integer, db.ForeignKey('payout.id'))
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'))
+
+    # Financial details
+    gross_amount = db.Column(db.Float, nullable=False)  # Original gig amount
+    platform_commission = db.Column(db.Float, nullable=False)  # Platform fee deducted
+    net_earnings = db.Column(db.Float, nullable=False)  # Amount after commission, before SOCSO
+    socso_amount = db.Column(db.Float, nullable=False)  # 1.25% of net_earnings
+    final_payout = db.Column(db.Float, nullable=False)  # Amount after SOCSO deduction
+
+    # Contribution metadata
+    contribution_month = db.Column(db.String(7), nullable=False)  # YYYY-MM format
+    contribution_year = db.Column(db.Integer, nullable=False)
+    contribution_type = db.Column(db.String(20), nullable=False)  # 'escrow_release', 'payout', 'transaction'
+
+    # ASSIST Portal remittance tracking
+    remitted_to_socso = db.Column(db.Boolean, default=False)
+    remittance_date = db.Column(db.DateTime)
+    remittance_reference = db.Column(db.String(100))  # ASSIST Portal reference number
+    remittance_batch_id = db.Column(db.String(100))  # Batch upload identifier
+
+    # Audit trail
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    notes = db.Column(db.Text)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'freelancer_id': self.freelancer_id,
+            'transaction_id': self.transaction_id,
+            'payout_id': self.payout_id,
+            'gig_id': self.gig_id,
+            'gross_amount': self.gross_amount,
+            'platform_commission': self.platform_commission,
+            'net_earnings': self.net_earnings,
+            'socso_amount': self.socso_amount,
+            'final_payout': self.final_payout,
+            'contribution_month': self.contribution_month,
+            'contribution_year': self.contribution_year,
+            'contribution_type': self.contribution_type,
+            'remitted_to_socso': self.remitted_to_socso,
+            'remittance_date': self.remittance_date.isoformat() if self.remittance_date else None,
+            'remittance_reference': self.remittance_reference,
+            'remittance_batch_id': self.remittance_batch_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'notes': self.notes
         }
 
 # Routes
@@ -3150,6 +3312,20 @@ def register():
         if not data.get('privacy_consent'):
             return jsonify({'error': 'You must agree to the Privacy Policy to register'}), 400
 
+        # Validate user_type early to check SOCSO requirements
+        user_type = data.get('user_type', 'freelancer')
+        if user_type not in ['freelancer', 'client', 'both']:
+            user_type = 'freelancer'
+
+        # Validate SOCSO consent (Gig Workers Bill 2025 - mandatory for freelancers)
+        socso_consent = data.get('socso_consent', False)
+        if user_type in ['freelancer', 'both']:
+            if not socso_consent:
+                return jsonify({
+                    'error': 'You must agree to mandatory SOCSO deductions (1.25%) as required by the Gig Workers Bill 2025',
+                    'socso_required': True
+                }), 400
+
         # Validate email format
         try:
             email_info = validate_email(data['email'], check_deliverability=False)
@@ -3184,11 +3360,8 @@ def register():
         full_name = sanitize_input(data.get('full_name', ''), max_length=120)
         location = sanitize_input(data.get('location', ''), max_length=100)
 
-        # Validate user_type
-        user_type = data.get('user_type', 'freelancer')
-        if user_type not in ['freelancer', 'client', 'both']:
-            user_type = 'freelancer'
-
+        # user_type already validated above
+        # Create new user with SOCSO compliance fields
         new_user = User(
             username=data['username'],
             email=email,
@@ -3197,7 +3370,10 @@ def register():
             full_name=full_name,
             user_type=user_type,
             location=location,
-            ic_number=ic_number_clean
+            ic_number=ic_number_clean,
+            socso_consent=socso_consent if user_type in ['freelancer', 'both'] else False,
+            socso_consent_date=datetime.utcnow() if socso_consent else None,
+            socso_data_complete=(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False
         )
 
         db.session.add(new_user)
@@ -5082,7 +5258,18 @@ def release_escrow(gig_id):
         escrow.status = 'released'
         escrow.released_at = datetime.utcnow()
 
-        # Create or update transaction record to track commission
+        # Calculate SOCSO contribution (1.25% of net amount after platform commission)
+        # Per Gig Workers Bill 2025: SOCSO is calculated on net earnings
+        freelancer = User.query.get(gig.freelancer_id)
+        socso_amount = 0.0
+
+        if freelancer and freelancer.user_type in ['freelancer', 'both']:
+            socso_amount = calculate_socso(escrow.net_amount)
+
+        # Final amount to freelancer after SOCSO deduction
+        final_payout_amount = round(escrow.net_amount - socso_amount, 2)
+
+        # Create or update transaction record to track commission and SOCSO
         transaction = Transaction.query.filter_by(gig_id=gig_id).first()
         if not transaction:
             transaction = Transaction(
@@ -5092,6 +5279,7 @@ def release_escrow(gig_id):
                 amount=escrow.amount,
                 commission=escrow.platform_fee,
                 net_amount=escrow.net_amount,
+                socso_amount=socso_amount,
                 payment_method='escrow',
                 status='completed'
             )
@@ -5099,7 +5287,22 @@ def release_escrow(gig_id):
         else:
             # Update existing transaction
             transaction.commission = escrow.platform_fee
+            transaction.socso_amount = socso_amount
             transaction.status = 'completed'
+
+        db.session.flush()  # Get transaction ID
+
+        # Create SOCSO contribution record
+        if socso_amount > 0:
+            create_socso_contribution(
+                freelancer_id=gig.freelancer_id,
+                gross_amount=escrow.amount,
+                platform_commission=escrow.platform_fee,
+                net_earnings=escrow.net_amount,
+                contribution_type='escrow_release',
+                gig_id=gig_id,
+                transaction_id=transaction.id
+            )
 
         # Update wallets
         client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
@@ -5113,17 +5316,19 @@ def release_escrow(gig_id):
             freelancer_wallet = Wallet(user_id=gig.freelancer_id)
             db.session.add(freelancer_wallet)
 
-        freelancer_wallet.balance += escrow.net_amount
-        freelancer_wallet.total_earned += escrow.net_amount
+        # Credit freelancer wallet with final amount after SOCSO deduction
+        freelancer_wallet.balance += final_payout_amount
+        freelancer_wallet.total_earned += final_payout_amount
 
-        # Record payment history
+        # Record payment history with SOCSO details
         payment_history = PaymentHistory(
             user_id=gig.freelancer_id,
             type='release',
-            amount=escrow.net_amount,
-            balance_before=freelancer_wallet.balance - escrow.net_amount,
+            amount=final_payout_amount,
+            socso_amount=socso_amount,
+            balance_before=freelancer_wallet.balance - final_payout_amount,
             balance_after=freelancer_wallet.balance,
-            description=f"Escrow released for gig: {gig.title}",
+            description=f"Escrow released for gig: {gig.title} (SOCSO: MYR {socso_amount:.2f})",
             reference_number=escrow.payment_reference
         )
         db.session.add(payment_history)
@@ -6561,6 +6766,29 @@ def admin_stats():
             Escrow.status == 'funded'
         ).scalar() or 0
 
+        # SOCSO statistics (Gig Workers Bill 2025 compliance)
+        total_socso_collected = db.session.query(
+            db.func.sum(SocsoContribution.socso_amount)
+        ).scalar() or 0
+
+        total_socso_remitted = db.session.query(
+            db.func.sum(SocsoContribution.socso_amount)
+        ).filter(SocsoContribution.remitted_to_socso == True).scalar() or 0
+
+        total_socso_pending = float(total_socso_collected) - float(total_socso_remitted)
+
+        # SOCSO registered freelancers
+        socso_registered_freelancers = User.query.filter(
+            User.socso_consent == True,
+            User.user_type.in_(['freelancer', 'both'])
+        ).count()
+
+        # Current month SOCSO
+        current_month = datetime.utcnow().strftime('%Y-%m')
+        current_month_socso = db.session.query(
+            db.func.sum(SocsoContribution.socso_amount)
+        ).filter(SocsoContribution.contribution_month == current_month).scalar() or 0
+
         # Recent users (last 7 days)
         week_ago = datetime.utcnow() - timedelta(days=7)
         recent_users = User.query.filter(User.created_at >= week_ago).count()
@@ -6595,6 +6823,14 @@ def admin_stats():
                 'total_payout': float(total_payout),
                 'commission': float(total_commission),
                 'escrow': float(total_escrow)
+            },
+            'socso': {
+                'total_collected': float(total_socso_collected),
+                'total_remitted': float(total_socso_remitted),
+                'pending_remittance': float(total_socso_pending),
+                'current_month_collection': float(current_month_socso),
+                'registered_freelancers': socso_registered_freelancers,
+                'compliance_rate': round((socso_registered_freelancers / total_freelancers * 100), 2) if total_freelancers > 0 else 0
             }
         }), 200
     except Exception as e:
@@ -7130,7 +7366,7 @@ def get_payouts():
 @app.route('/api/billing/payouts', methods=['POST'])
 @login_required
 def request_payout():
-    """Request a payout"""
+    """Request a payout with SOCSO compliance (Gig Workers Bill 2025)"""
     try:
         user_id = session['user_id']
         data = request.get_json()
@@ -7148,14 +7384,34 @@ def request_payout():
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
 
+        # Get user and check SOCSO compliance
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # SOCSO compliance check for freelancers
+        if user.user_type in ['freelancer', 'both']:
+            is_compliant, reason = check_socso_compliance(user)
+            if not is_compliant:
+                return jsonify({
+                    'error': 'SOCSO compliance required',
+                    'reason': reason,
+                    'socso_required': True
+                }), 400
+
         # Check wallet balance
         wallet = Wallet.query.filter_by(user_id=user_id).first()
         if not wallet or wallet.balance < amount:
             return jsonify({'error': 'Insufficient balance'}), 400
 
+        # Calculate SOCSO contribution (1.25% of payout amount before fees)
+        socso_amount = calculate_socso(amount) if user.user_type in ['freelancer', 'both'] else 0.0
+
         # Calculate fee (2% platform fee)
-        fee = amount * 0.02
-        net_amount = amount - fee
+        fee = round(amount * 0.02, 2)
+
+        # Net amount after SOCSO and fee deductions
+        net_amount = round(amount - fee - socso_amount, 2)
 
         # Generate payout number
         import random
@@ -7167,6 +7423,7 @@ def request_payout():
             freelancer_id=user_id,
             amount=amount,
             fee=fee,
+            socso_amount=socso_amount,
             net_amount=net_amount,
             payment_method=payment_method,
             account_number=account_number,
@@ -7175,29 +7432,53 @@ def request_payout():
             status='pending'
         )
 
+        db.session.add(payout)
+        db.session.flush()  # Get payout ID
+
+        # Create SOCSO contribution record if applicable
+        if socso_amount > 0:
+            create_socso_contribution(
+                freelancer_id=user_id,
+                gross_amount=amount,
+                platform_commission=fee,
+                net_earnings=amount - fee,  # Net before SOCSO
+                contribution_type='payout',
+                payout_id=payout.id
+            )
+
         # Hold the balance
         wallet.balance -= amount
         wallet.held_balance += amount
 
-        # Create payment history
+        # Create payment history for hold
         history = PaymentHistory(
             user_id=user_id,
             payout_id=payout.id,
             type='hold',
             amount=amount,
+            socso_amount=socso_amount,
             balance_before=wallet.balance + amount,
             balance_after=wallet.balance,
-            description=f'Payout request {payout_number}'
+            description=f'Payout request {payout_number} (includes MYR {socso_amount:.2f} SOCSO)'
         )
 
-        db.session.add(payout)
         db.session.add(history)
         db.session.commit()
 
         return jsonify({
             'message': 'Payout request submitted successfully',
             'payout_number': payout_number,
-            'status': 'pending'
+            'status': 'pending',
+            'amount': amount,
+            'fee': fee,
+            'socso_amount': socso_amount,
+            'net_amount': net_amount,
+            'breakdown': {
+                'gross_amount': amount,
+                'platform_fee': fee,
+                'socso_contribution': socso_amount,
+                'final_payout': net_amount
+            }
         }), 201
     except Exception as e:
         db.session.rollback()
@@ -7239,6 +7520,296 @@ def get_payment_history():
     except Exception as e:
         app.logger.error(f"Get payment history error: {str(e)}")
         return jsonify({'error': 'Failed to get payment history'}), 500
+
+@app.route('/api/billing/socso-contributions', methods=['GET'])
+@login_required
+def get_socso_contributions():
+    """Get freelancer's SOCSO contribution history (Gig Workers Bill 2025)"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user or user.user_type not in ['freelancer', 'both']:
+            return jsonify({'error': 'Only freelancers can view SOCSO contributions'}), 403
+
+        # Get query parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+
+        # Build query
+        query = SocsoContribution.query.filter_by(freelancer_id=user_id)
+
+        # Filter by year/month if provided
+        if year:
+            query = query.filter_by(contribution_year=year)
+        if month and year:
+            contribution_month = f"{year}-{month:02d}"
+            query = query.filter_by(contribution_month=contribution_month)
+
+        # Order by most recent first
+        query = query.order_by(SocsoContribution.created_at.desc())
+
+        # Paginate
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+        # Format contributions
+        contributions = []
+        for contrib in pagination.items:
+            contributions.append({
+                'id': contrib.id,
+                'gig_id': contrib.gig_id,
+                'gross_amount': contrib.gross_amount,
+                'platform_commission': contrib.platform_commission,
+                'net_earnings': contrib.net_earnings,
+                'socso_amount': contrib.socso_amount,
+                'final_payout': contrib.final_payout,
+                'contribution_month': contrib.contribution_month,
+                'contribution_year': contrib.contribution_year,
+                'contribution_type': contrib.contribution_type,
+                'remitted_to_socso': contrib.remitted_to_socso,
+                'remittance_date': contrib.remittance_date.isoformat() if contrib.remittance_date else None,
+                'created_at': contrib.created_at.isoformat() if contrib.created_at else None
+            })
+
+        # Calculate totals
+        total_query = SocsoContribution.query.filter_by(freelancer_id=user_id)
+        if year:
+            total_query = total_query.filter_by(contribution_year=year)
+        if month and year:
+            contribution_month = f"{year}-{month:02d}"
+            total_query = total_query.filter_by(contribution_month=contribution_month)
+
+        totals = db.session.query(
+            db.func.sum(SocsoContribution.socso_amount).label('total_socso'),
+            db.func.sum(SocsoContribution.net_earnings).label('total_net_earnings'),
+            db.func.sum(SocsoContribution.final_payout).label('total_final_payout'),
+            db.func.count(SocsoContribution.id).label('transaction_count')
+        ).filter(SocsoContribution.freelancer_id == user_id)
+
+        if year:
+            totals = totals.filter(SocsoContribution.contribution_year == year)
+        if month and year:
+            totals = totals.filter(SocsoContribution.contribution_month == contribution_month)
+
+        totals_result = totals.first()
+
+        return jsonify({
+            'contributions': contributions,
+            'pagination': {
+                'total': pagination.total,
+                'pages': pagination.pages,
+                'current_page': pagination.page,
+                'per_page': pagination.per_page
+            },
+            'summary': {
+                'total_socso_contributed': float(totals_result.total_socso or 0),
+                'total_net_earnings': float(totals_result.total_net_earnings or 0),
+                'total_final_payout': float(totals_result.total_final_payout or 0),
+                'transaction_count': totals_result.transaction_count or 0
+            },
+            'user_info': {
+                'socso_consent': user.socso_consent,
+                'socso_consent_date': user.socso_consent_date.isoformat() if user.socso_consent_date else None,
+                'ic_number': user.ic_number
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get SOCSO contributions error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to get SOCSO contributions'}), 500
+
+@app.route('/api/admin/socso/monthly-report', methods=['GET'])
+@admin_required
+def admin_socso_monthly_report():
+    """
+    Admin endpoint: Generate monthly SOCSO report for ASSIST Portal bulk upload
+    Supports CSV export for SOCSO remittance compliance (Gig Workers Bill 2025)
+    """
+    try:
+        # Get query parameters
+        year = request.args.get('year', datetime.utcnow().year, type=int)
+        month = request.args.get('month', type=int)  # Optional
+        export_format = request.args.get('format', 'json')  # json or csv
+
+        # Build query
+        query = db.session.query(
+            SocsoContribution.contribution_month,
+            SocsoContribution.contribution_year,
+            User.id.label('freelancer_id'),
+            User.full_name,
+            User.ic_number,
+            User.email,
+            User.phone,
+            db.func.count(SocsoContribution.id).label('transaction_count'),
+            db.func.sum(SocsoContribution.net_earnings).label('total_net_earnings'),
+            db.func.sum(SocsoContribution.socso_amount).label('total_socso_amount'),
+            db.func.sum(SocsoContribution.final_payout).label('total_final_payout'),
+            db.func.bool_and(SocsoContribution.remitted_to_socso).label('all_remitted'),
+            db.func.max(SocsoContribution.remittance_date).label('last_remittance_date')
+        ).join(User, SocsoContribution.freelancer_id == User.id)\
+         .filter(SocsoContribution.contribution_year == year)
+
+        if month:
+            contribution_month = f"{year}-{month:02d}"
+            query = query.filter(SocsoContribution.contribution_month == contribution_month)
+
+        query = query.group_by(
+            SocsoContribution.contribution_month,
+            SocsoContribution.contribution_year,
+            User.id,
+            User.full_name,
+            User.ic_number,
+            User.email,
+            User.phone
+        ).order_by(
+            SocsoContribution.contribution_year.desc(),
+            SocsoContribution.contribution_month.desc(),
+            User.full_name
+        )
+
+        results = query.all()
+
+        # Format results
+        report_data = []
+        for row in results:
+            report_data.append({
+                'contribution_month': row.contribution_month,
+                'contribution_year': row.contribution_year,
+                'freelancer_id': row.freelancer_id,
+                'full_name': row.full_name,
+                'ic_number': row.ic_number,
+                'email': row.email,
+                'phone': row.phone,
+                'transaction_count': row.transaction_count,
+                'total_net_earnings': float(row.total_net_earnings or 0),
+                'total_socso_amount': float(row.total_socso_amount or 0),
+                'total_final_payout': float(row.total_final_payout or 0),
+                'all_remitted': row.all_remitted or False,
+                'last_remittance_date': row.last_remittance_date.isoformat() if row.last_remittance_date else None
+            })
+
+        # Calculate grand totals
+        grand_totals = {
+            'total_freelancers': len(report_data),
+            'total_transactions': sum(r['transaction_count'] for r in report_data),
+            'total_net_earnings': sum(r['total_net_earnings'] for r in report_data),
+            'total_socso_amount': sum(r['total_socso_amount'] for r in report_data),
+            'total_final_payout': sum(r['total_final_payout'] for r in report_data)
+        }
+
+        # Export as CSV if requested
+        if export_format == 'csv':
+            import io
+            import csv
+            from flask import make_response
+
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # CSV Headers for ASSIST Portal bulk upload
+            writer.writerow([
+                'Month',
+                'Year',
+                'IC Number',
+                'Full Name',
+                'Email',
+                'Phone',
+                'Transaction Count',
+                'Total Net Earnings (MYR)',
+                'SOCSO Contribution (MYR)',
+                'Final Payout (MYR)',
+                'Remitted to SOCSO'
+            ])
+
+            # Data rows
+            for row in report_data:
+                writer.writerow([
+                    row['contribution_month'],
+                    row['contribution_year'],
+                    row['ic_number'],
+                    row['full_name'],
+                    row['email'],
+                    row['phone'],
+                    row['transaction_count'],
+                    f"{row['total_net_earnings']:.2f}",
+                    f"{row['total_socso_amount']:.2f}",
+                    f"{row['total_final_payout']:.2f}",
+                    'Yes' if row['all_remitted'] else 'No'
+                ])
+
+            # Add summary row
+            writer.writerow([])
+            writer.writerow(['SUMMARY'])
+            writer.writerow(['Total Freelancers', grand_totals['total_freelancers']])
+            writer.writerow(['Total Transactions', grand_totals['total_transactions']])
+            writer.writerow(['Total SOCSO Collected (MYR)', f"{grand_totals['total_socso_amount']:.2f}"])
+
+            # Create response
+            csv_output = output.getvalue()
+            response = make_response(csv_output)
+            filename = f"socso_report_{year}"
+            if month:
+                filename += f"_{month:02d}"
+            filename += ".csv"
+
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'text/csv'
+            return response
+
+        # Return JSON
+        return jsonify({
+            'report': report_data,
+            'totals': grand_totals,
+            'filters': {
+                'year': year,
+                'month': month
+            }
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Admin SOCSO monthly report error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to generate SOCSO report'}), 500
+
+@app.route('/api/admin/socso/mark-remitted', methods=['POST'])
+@admin_required
+def admin_mark_socso_remitted():
+    """Admin endpoint: Mark SOCSO contributions as remitted to ASSIST Portal"""
+    try:
+        data = request.get_json()
+        contribution_ids = data.get('contribution_ids', [])
+        remittance_reference = data.get('remittance_reference')
+        remittance_batch_id = data.get('remittance_batch_id')
+
+        if not contribution_ids:
+            return jsonify({'error': 'No contribution IDs provided'}), 400
+
+        # Update contributions
+        updated_count = 0
+        for contrib_id in contribution_ids:
+            contrib = SocsoContribution.query.get(contrib_id)
+            if contrib:
+                contrib.remitted_to_socso = True
+                contrib.remittance_date = datetime.utcnow()
+                contrib.remittance_reference = remittance_reference
+                contrib.remittance_batch_id = remittance_batch_id
+                updated_count += 1
+
+        db.session.commit()
+
+        return jsonify({
+            'message': f'Marked {updated_count} contributions as remitted',
+            'updated_count': updated_count
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Mark SOCSO remitted error: {str(e)}")
+        return jsonify({'error': 'Failed to mark contributions as remitted'}), 500
 
 @app.route('/api/billing/complete-gig/<int:gig_id>', methods=['POST'])
 @login_required
