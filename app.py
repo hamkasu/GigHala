@@ -1470,6 +1470,7 @@ class Gig(db.Model):
     is_brand_partnership = db.Column(db.Boolean, default=False)
     skills_required = db.Column(db.Text)  # JSON string
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deadline = db.Column(db.DateTime)
     views = db.Column(db.Integer, default=0)
     applications = db.Column(db.Integer, default=0)
