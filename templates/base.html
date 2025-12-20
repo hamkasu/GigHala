@@ -360,6 +360,51 @@
             opacity: 1;
         }
 
+        .category-scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            color: var(--text-dark);
+        }
+
+        .category-scroll-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(29, 191, 115, 0.3);
+        }
+
+        .category-scroll-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .category-scroll-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .category-scroll-left {
+            left: 8px;
+        }
+
+        .category-scroll-right {
+            right: 8px;
+        }
+
         .category-link {
             display: inline-flex;
             align-items: center;
@@ -1006,6 +1051,11 @@
         
         {% if active_page == 'gigs' %}
         <div class="header-categories">
+            <button class="category-scroll-btn category-scroll-left" id="scrollLeftBtn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
             <nav class="categories-nav">
                 <a href="/gigs" class="category-link {% if not request.args.get('category') %}active{% endif %}"><span class="cat-icon">🔥</span>{{ t('all_categories') if t('all_categories') != 'all_categories' else 'Semua' }}</a>
                 <a href="/gigs?category=design" class="category-link {% if request.args.get('category') == 'design' %}active{% endif %}"><span class="cat-icon">🎨</span>{{ t('cat_design') }}</a>
@@ -1025,6 +1075,11 @@
                 <a href="/gigs?category=photography" class="category-link {% if request.args.get('category') == 'photography' %}active{% endif %}"><span class="cat-icon">📷</span>{{ t('cat_photography') }}</a>
                 <a href="/gigs?category=creative-other" class="category-link {% if request.args.get('category') == 'creative-other' %}active{% endif %}"><span class="cat-icon">✨</span>{{ t('cat_creative_other') }}</a>
             </nav>
+            <button class="category-scroll-btn category-scroll-right" id="scrollRightBtn">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </div>
         {% endif %}
     </header>
@@ -1210,6 +1265,8 @@
         // Enable horizontal scrolling for category navigation
         const categoriesNav = document.querySelector('.categories-nav');
         const headerCategories = document.querySelector('.header-categories');
+        const scrollLeftBtn = document.getElementById('scrollLeftBtn');
+        const scrollRightBtn = document.getElementById('scrollRightBtn');
 
         if (categoriesNav && headerCategories) {
             let isDown = false;
@@ -1217,13 +1274,38 @@
             let scrollLeft;
             let hasMoved = false;
 
-            // Update gradient indicators based on scroll position
+            // Update gradient indicators and button visibility based on scroll position
             function updateGradients() {
                 const isAtStart = categoriesNav.scrollLeft <= 5;
                 const isAtEnd = categoriesNav.scrollLeft >= (categoriesNav.scrollWidth - categoriesNav.clientWidth - 5);
+                const hasScroll = categoriesNav.scrollWidth > categoriesNav.clientWidth;
 
                 headerCategories.classList.toggle('show-left-gradient', !isAtStart);
                 headerCategories.classList.toggle('show-right-gradient', !isAtEnd);
+
+                // Show/hide arrow buttons
+                if (scrollLeftBtn) {
+                    scrollLeftBtn.classList.toggle('visible', hasScroll && !isAtStart);
+                }
+                if (scrollRightBtn) {
+                    scrollRightBtn.classList.toggle('visible', hasScroll && !isAtEnd);
+                }
+            }
+
+            // Scroll by a fixed amount
+            function scrollBy(amount) {
+                categoriesNav.scrollBy({
+                    left: amount,
+                    behavior: 'smooth'
+                });
+            }
+
+            // Arrow button click handlers
+            if (scrollLeftBtn) {
+                scrollLeftBtn.addEventListener('click', () => scrollBy(-300));
+            }
+            if (scrollRightBtn) {
+                scrollRightBtn.addEventListener('click', () => scrollBy(300));
             }
 
             // Drag to scroll
