@@ -9393,36 +9393,83 @@ def init_database():
         
         # Add default categories if they don't exist
         default_categories = [
-            Category(name='Design', slug='design', description='Logo design, graphic design, UI/UX', icon='palette'),
-            Category(name='Writing & Translation', slug='writing', description='Content writing, translation, copywriting', icon='edit'),
-            Category(name='Video & Animation', slug='video', description='Video editing, animation, motion graphics', icon='video'),
-            Category(name='Tutoring & Education', slug='tutoring', description='Online tutoring, teaching, coaching', icon='book'),
-            Category(name='Content Creation', slug='content', description='Social media content, TikTok, Instagram Reels', icon='camera'),
-            Category(name='Web Development', slug='web', description='Website development, web apps', icon='code'),
-            Category(name='Digital Marketing', slug='marketing', description='SEO, social media marketing, ads', icon='trending-up'),
-            Category(name='Admin & Virtual Assistant', slug='admin', description='Data entry, virtual assistance, admin tasks', icon='clipboard'),
-            Category(name='General Works', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
-            Category(name='Programming & Tech', slug='programming', description='IT support, coding, app fixes, software development', icon='code-square'),
-            Category(name='Business Consulting', slug='consulting', description='Career advice, business strategy, executive consulting', icon='trending-up'),
-            Category(name='Engineering Services', slug='engineering', description='CAD, repairs, technical consulting, 3D design', icon='tool'),
-            Category(name='Music & Audio', slug='music', description='Music lessons, audio editing, voiceovers, production', icon='music'),
-            Category(name='Photography', slug='photography', description='Photo shoots, photo editing, retouching', icon='camera-alt'),
-            Category(name='Finance & Bookkeeping', slug='finance', description='Budgeting, basic accounting advice, bookkeeping', icon='dollar-sign'),
-            Category(name='Crafts & Handmade', slug='crafts', description='Custom handmade items, craft tutorials, DIY', icon='package'),
-            Category(name='Home & Garden', slug='garden', description='Home repairs, organization advice, gardening', icon='home'),
-            Category(name='Life Coaching', slug='coaching', description='Wellness coaching, mentoring, life advice', icon='heart'),
-            Category(name='Data Analysis', slug='data', description='Spreadsheets, research tasks, data entry', icon='bar-chart-2'),
-            Category(name='Pet Services', slug='pets', description='Pet sitting, dog walking, pet training', icon='award'),
-            Category(name='Handyman & Repairs', slug='handyman', description='Small home fixes, assembly, maintenance', icon='wrench'),
-            Category(name='Tour Guiding', slug='tours', description='Local and virtual tours, travel guiding', icon='map-pin'),
-            Category(name='Event Planning', slug='events', description='Small events, weddings, party planning', icon='calendar'),
-            Category(name='Online Selling', slug='online-selling', description='Handmade goods, crafts, online products', icon='shopping-cart'),
+            # Design & Creative
+            Category(name='Graphic Design', slug='graphic-design', description='Logo design, graphic design, branding', icon='palette'),
+            Category(name='UI/UX Design', slug='ui-ux', description='User interface, user experience, web design', icon='layers'),
+            Category(name='Illustration & Art', slug='illustration', description='Digital art, illustration, custom artwork', icon='pen-tool'),
+            Category(name='Logo Design', slug='logo-design', description='Custom logo creation, brand identity', icon='flag'),
+            Category(name='Fashion Design', slug='fashion', description='Fashion design, clothing design, style consultation', icon='shopping-bag'),
+            Category(name='Interior Design', slug='interior-design', description='Room design, furniture layout, space planning', icon='home'),
+            
+            # Writing & Content
+            Category(name='Content Writing', slug='content-writing', description='Blog posts, website content, copywriting', icon='edit'),
+            Category(name='Translation Services', slug='translation', description='Document translation, language translation, localization', icon='globe'),
+            Category(name='Proofreading & Editing', slug='proofreading', description='Copy editing, proofreading, grammar checking', icon='check-square'),
+            Category(name='Resume & Cover Letter', slug='resume', description='Resume writing, cover letters, CV optimization', icon='file-text'),
+            Category(name='Email & Newsletter', slug='email-marketing', description='Email marketing, newsletter design, campaign copy', icon='mail'),
+            Category(name='Social Media Copy', slug='social-copy', description='Social media captions, post writing, hashtag strategy', icon='message-square'),
+            
+            # Video & Media
+            Category(name='Video Editing', slug='video-editing', description='Video editing, video production, post-production', icon='video'),
+            Category(name='Animation', slug='animation', description='Animation, motion graphics, explainer videos', icon='video'),
+            Category(name='Voiceover & Voice Acting', slug='voiceover', description='Professional voiceovers, audio narration, voice acting', icon='mic'),
+            Category(name='Podcast Production', slug='podcast', description='Podcast editing, audio production, music production', icon='headphones'),
+            Category(name='Photography', slug='photography', description='Photo shoots, photo editing, photo retouching', icon='camera'),
+            
+            # Web & App Development
+            Category(name='Web Development', slug='web-development', description='Website development, web apps, e-commerce sites', icon='code'),
+            Category(name='App Development', slug='app-development', description='Mobile apps, iOS/Android, app design', icon='smartphone'),
+            Category(name='E-commerce Solutions', slug='ecommerce', description='Online store setup, Shopify, WooCommerce', icon='shopping-cart'),
+            
+            # Marketing & Business
+            Category(name='Digital Marketing', slug='digital-marketing', description='SEO, social media marketing, Google Ads', icon='trending-up'),
+            Category(name='Social Media Management', slug='social-media', description='Content management, community engagement, posting schedule', icon='instagram'),
+            Category(name='Business Consulting', slug='business-consulting', description='Business strategy, startup advice, mentoring', icon='briefcase'),
+            Category(name='Data Analysis', slug='data-analysis', description='Spreadsheets, research, analytics, data entry', icon='bar-chart-2'),
+            
+            # Education & Tutoring
+            Category(name='Tutoring & Lessons', slug='tutoring', description='Online tutoring, language lessons, academic coaching', icon='book'),
+            Category(name='Language Teaching', slug='language-teaching', description='English, Malay, Arabic, Chinese language lessons', icon='globe'),
+            
+            # Technical & Engineering
+            Category(name='Programming & Development', slug='programming', description='Coding, bug fixes, software development, IT support', icon='code-square'),
+            Category(name='Engineering & CAD', slug='engineering', description='CAD design, 3D design, technical drawings', icon='tool'),
+            
+            # Admin & Support
+            Category(name='Virtual Assistance', slug='virtual-assistant', description='Administrative tasks, email management, scheduling', icon='clipboard'),
+            Category(name='Transcription', slug='transcription', description='Audio transcription, video transcription, captioning', icon='type'),
+            Category(name='Data Entry', slug='data-entry', description='Data input, database management, spreadsheet work', icon='database'),
+            
+            # Finance & Legal
+            Category(name='Bookkeeping & Accounting', slug='bookkeeping', description='Bookkeeping, basic accounting, tax preparation', icon='dollar-sign'),
+            Category(name='Legal Document Services', slug='legal', description='Document review, contract analysis, legal assistance', icon='file'),
+            
+            # Lifestyle & Personal
+            Category(name='Life & Wellness Coaching', slug='wellness-coaching', description='Health coaching, fitness guidance, wellness consulting', icon='heart'),
+            Category(name='Personal Styling', slug='personal-styling', description='Personal styling, wardrobe advice, image consulting', icon='user-check'),
+            Category(name='Pet Services', slug='pet-services', description='Pet sitting, dog walking, pet training, grooming', icon='award'),
+            
+            # Home & Handyman
+            Category(name='Home Repairs & Handyman', slug='home-repair', description='Minor repairs, assembly, maintenance, installation', icon='wrench'),
+            Category(name='Cleaning Services', slug='cleaning', description='House cleaning, office cleaning, deep cleaning', icon='trash-2'),
+            Category(name='Gardening & Landscaping', slug='gardening', description='Gardening, landscaping, plant care', icon='leaf'),
+            
+            # Specialized Services
+            Category(name='Crafts & Handmade Items', slug='crafts', description='Custom handmade products, DIY tutorials, craft services', icon='package'),
+            Category(name='Music & Audio Production', slug='music-production', description='Music composition, beat production, audio mastering', icon='music'),
+            Category(name='Event Planning & Coordination', slug='event-planning', description='Event planning, party coordination, wedding planning', icon='calendar'),
+            Category(name='Travel Guide & Tours', slug='tours', description='Local guides, virtual tours, travel planning', icon='map-pin'),
+            
+            # General
+            Category(name='General Services', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
         ]
         
         # Add all categories that don't exist (support for existing databases)
         added_count = 0
         for cat in default_categories:
-            if not Category.query.filter_by(slug=cat.slug).first():
+            # Check if category exists by slug or name
+            existing = Category.query.filter((Category.slug == cat.slug) | (Category.name == cat.name)).first()
+            if not existing:
                 db.session.add(cat)
                 added_count += 1
         
