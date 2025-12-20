@@ -4449,9 +4449,11 @@ def accept_application(application_id):
         # Accept this application
         application.status = 'accepted'
 
-        # Assign freelancer to gig
+        # Assign freelancer to gig and set agreed amount
         gig.freelancer_id = application.freelancer_id
         gig.status = 'in_progress'
+        # Store the freelancer's proposed price as the agreed amount
+        gig.agreed_amount = application.proposed_price if application.proposed_price else gig.budget_min
 
         # Reject all other pending applications for this gig
         other_applications = Application.query.filter(
@@ -5121,8 +5123,8 @@ def create_escrow():
         gig_id = data.get('gig_id')
         amount = float(data.get('amount', 0))
         
-        if not gig_id or amount <= 0:
-            return jsonify({'error': 'Invalid gig_id or amount'}), 400
+        if not gig_id:
+            return jsonify({'error': 'Invalid gig_id'}), 400
         
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
@@ -5134,6 +5136,15 @@ def create_escrow():
         # Gig must have an assigned freelancer
         if not gig.freelancer_id:
             return jsonify({'error': 'Gig must have an assigned freelancer'}), 400
+        
+        # If no amount provided, use the agreed amount from the accepted application
+        if amount <= 0:
+            if gig.agreed_amount and gig.agreed_amount > 0:
+                amount = gig.agreed_amount
+            elif gig.budget_min and gig.budget_min > 0:
+                amount = gig.budget_min
+            else:
+                return jsonify({'error': 'No valid amount found for escrow. Please specify an amount.'}), 400
         
         # Check if escrow already exists
         existing = Escrow.query.filter_by(gig_id=gig_id).first()
