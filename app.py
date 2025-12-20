@@ -1504,6 +1504,7 @@ class User(db.Model):
     socso_consent = db.Column(db.Boolean, default=False)  # User consent to SOCSO deductions
     socso_consent_date = db.Column(db.DateTime)  # When consent was given
     socso_data_complete = db.Column(db.Boolean, default=False)  # IC number and required data available
+    socso_membership_number = db.Column(db.String(20))  # SOCSO membership number
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -3154,14 +3155,20 @@ def update_profile_settings():
         user.user_type = request.form.get('user_type', 'freelancer')
         user.language = request.form.get('language', 'ms')
         user.bio = request.form.get('bio', '').strip()
-        
+
         ic_number = request.form.get('ic_number', '').strip()
         if ic_number:
             if not re.match(r'^\d{12}$', ic_number):
                 flash('No. IC mestilah 12 digit nombor sahaja.', 'error')
                 return redirect('/settings')
             user.ic_number = ic_number
-        
+
+        socso_membership_number = request.form.get('socso_membership_number', '').strip()
+        if socso_membership_number:
+            user.socso_membership_number = socso_membership_number
+        else:
+            user.socso_membership_number = None
+
         db.session.commit()
         flash('Maklumat profil berjaya dikemaskini!', 'success')
     except Exception as e:
@@ -7767,6 +7774,7 @@ def admin_socso_monthly_report():
             User.id.label('freelancer_id'),
             User.full_name,
             User.ic_number,
+            User.socso_membership_number,
             User.email,
             User.phone,
             db.func.count(SocsoContribution.id).label('transaction_count'),
@@ -7788,6 +7796,7 @@ def admin_socso_monthly_report():
             User.id,
             User.full_name,
             User.ic_number,
+            User.socso_membership_number,
             User.email,
             User.phone
         ).order_by(
@@ -7807,6 +7816,7 @@ def admin_socso_monthly_report():
                 'freelancer_id': row.freelancer_id,
                 'full_name': row.full_name,
                 'ic_number': row.ic_number,
+                'socso_membership_number': row.socso_membership_number,
                 'email': row.email,
                 'phone': row.phone,
                 'transaction_count': row.transaction_count,
@@ -7840,6 +7850,7 @@ def admin_socso_monthly_report():
                 'Month',
                 'Year',
                 'IC Number',
+                'SOCSO Membership Number',
                 'Full Name',
                 'Email',
                 'Phone',
@@ -7856,6 +7867,7 @@ def admin_socso_monthly_report():
                     row['contribution_month'],
                     row['contribution_year'],
                     row['ic_number'],
+                    row['socso_membership_number'] or '',
                     row['full_name'],
                     row['email'],
                     row['phone'],

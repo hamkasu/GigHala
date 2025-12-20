@@ -366,6 +366,12 @@
                 <p class="form-hint">12 digit tanpa sengkang (-). Diperlukan untuk pengesahan identiti.</p>
             </div>
 
+            <div class="form-group">
+                <label class="form-label">No. Ahli SOCSO</label>
+                <input type="text" name="socso_membership_number" class="form-input" value="{{ user.socso_membership_number or '' }}" placeholder="Contoh: 1234567890" maxlength="20">
+                <p class="form-hint">Nombor keahlian SOCSO anda (jika ada).</p>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
             </div>

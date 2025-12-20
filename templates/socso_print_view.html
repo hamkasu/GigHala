@@ -272,6 +272,9 @@
                     {% if user.ic_number %}
                     <div>{{ 'No. MyKad' if lang == 'ms' else 'IC Number' }}: {{ user.ic_number }}</div>
                     {% endif %}
+                    {% if user.socso_membership_number %}
+                    <div>{{ 'No. Ahli SOCSO' if lang == 'ms' else 'SOCSO Membership Number' }}: {{ user.socso_membership_number }}</div>
+                    {% endif %}
                 </div>
             </div>
 
