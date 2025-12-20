@@ -889,19 +889,19 @@
             
             <nav class="header-nav">
                 {% if user %}
-                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">Cari</a>
+                    <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
                     {% if user.user_type in ['client', 'both'] %}
-                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">Hantar</a>
+                    <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">{{ t('nav_submit') }}</a>
                     {% endif %}
                     <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">
-                        Mesej
+                        {{ t('nav_messages') }}
                         {% if unread_message_count > 0 %}
                         <span class="nav-badge">{{ unread_message_count }}</span>
                         {% endif %}
                     </a>
-                    <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">Dompet</a>
+                    <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">{{ t('nav_wallet') }}</a>
                     {% if user.is_admin %}
-                    <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">Admin</a>
+                    <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
                     <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
                         <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
@@ -909,19 +909,19 @@
                     <div class="user-menu">
                         <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
                         <div class="user-dropdown" id="userDropdown">
-                            <a href="/dashboard" class="dropdown-item">Dashboard</a>
-                            <a href="/messages" class="dropdown-item">{{ 'Mesej' if lang == 'ms' else 'Messages' }}</a>
-                            <a href="/accepted-gigs" class="dropdown-item">{{ 'Gig Diterima' if lang == 'ms' else 'Accepted Gigs' }}</a>
-                            <a href="/escrow" class="dropdown-item">Escrow</a>
-                            <a href="/documents" class="dropdown-item">{{ 'Dokumen' if lang == 'ms' else 'Documents' }}</a>
-                            <a href="/settings" class="dropdown-item">Tetapan Akaun</a>
+                            <a href="/dashboard" class="dropdown-item">{{ t('nav_dashboard') }}</a>
+                            <a href="/messages" class="dropdown-item">{{ t('nav_messages') }}</a>
+                            <a href="/accepted-gigs" class="dropdown-item">{{ t('nav_accepted_gigs') }}</a>
+                            <a href="/escrow" class="dropdown-item">{{ t('nav_escrow') }}</a>
+                            <a href="/documents" class="dropdown-item">{{ t('nav_documents') }}</a>
+                            <a href="/settings" class="dropdown-item">{{ t('nav_settings') }}</a>
                             <div class="dropdown-divider"></div>
-                            <a href="/api/logout" class="dropdown-item">Log Keluar</a>
+                            <a href="/api/logout" class="dropdown-item">{{ t('logout') }}</a>
                         </div>
                     </div>
                 {% else %}
-                    <a href="#" class="nav-link" onclick="app.showLogin()">Log Masuk</a>
-                    <button class="btn btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+                    <a href="#" class="nav-link" onclick="app.showLogin()">{{ t('login') }}</a>
+                    <button class="btn btn-primary" onclick="app.showRegister()">{{ t('register_free') }}</button>
                 {% endif %}
             </nav>
         </div>
@@ -1004,32 +1004,32 @@
         <div class="mobile-nav-items">
             <a href="/dashboard" class="mobile-nav-item {% if active_page == 'dashboard' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                <span>Home</span>
+                <span>{{ t('nav_home') }}</span>
             </a>
             <a href="/gigs" class="mobile-nav-item {% if active_page == 'gigs' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <span>Cari</span>
+                <span>{{ t('nav_search') }}</span>
             </a>
             {% if user.user_type in ['client', 'both'] %}
             <a href="/post-gig" class="mobile-nav-item {% if active_page == 'post-gig' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
-                <span>Post</span>
+                <span>{{ t('nav_post') }}</span>
             </a>
             {% endif %}
             <a href="/messages" class="mobile-nav-item {% if active_page == 'messages' %}active{% endif %}" style="position: relative;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Mesej</span>
+                <span>{{ t('nav_messages') }}</span>
                 {% if unread_message_count > 0 %}
                 <span class="mobile-nav-badge">{{ unread_message_count }}</span>
                 {% endif %}
             </a>
             <a href="/documents" class="mobile-nav-item {% if active_page == 'documents' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-                <span>Dokumen</span>
+                <span>{{ t('nav_documents') }}</span>
             </a>
             <a href="/settings" class="mobile-nav-item {% if active_page == 'settings' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Tetapan</span>
+                <span>{{ t('nav_settings') }}</span>
             </a>
         </div>
     </nav>
