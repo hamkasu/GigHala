@@ -1,0 +1,48 @@
+no socso seen anywhere. is the soco created? You are an expert full-stack developer and compliance specialist for Malaysian gig economy platforms. Our platform (similar to GigHala) is a digital intermediary connecting freelance gig workers (Malaysian citizens/permanent residents) with clients for services like design, translation, video editing, etc. We facilitate gigs but do not directly employ workers.
+
+Under the Gig Workers Bill 2025 (fully enforced in 2026), as a platform provider, we have mandatory obligations for SOCSO under the Self-Employment Social Security Scheme (SESKSO/SKSPS):
+
+Register all eligible gig workers with SOCSO.
+Automatically deduct SOCSO contributions from workers' earnings.
+Remit contributions to SOCSO on their behalf.
+Provide workers access to contribution records via our digital system.
+Deduction rate: 1.25% of the worker's net earnings (after platform commission/fees but including tips, calculated per transaction/gig payout).
+Key details:
+
+Deduction is worker-funded (100% from freelancer's payout).
+Apply per payout (e.g., when releasing funds to freelancer).
+Use the ASSIST Portal (assist.perkeso.gov.my) for registration and monthly remittances (manual/bulk upload for now; no public API yet).
+Non-compliance risks fines up to RM50,000 or more.
+Task: Implement or update the following features in our platform's backend (Node.js/Python/Django/Laravel – assume [specify your stack if needed]), database, and user flows:
+
+Freelancer Onboarding/Registration:
+
+Require Malaysian IC number, full name, contact details for SOCSO compliance.
+Automatically register new/updated freelancers with SOCSO via integration prep (e.g., collect data for bulk export to ASSIST Portal).
+Add checkbox/consent: "I agree to mandatory SOCSO deductions (1.25%) as per Gig Workers Bill 2025."
+Earnings Calculation & Payout Processing:
+
+When calculating freelancer payout for a completed gig:
+Gross gig amount (client payment).
+Minus platform fee/commission.
+Net earnings = amount before SOCSO.
+SOCSO deduction = 1.25% of net earnings (round appropriately, e.g., to nearest sen).
+Final payout to freelancer = net earnings minus SOCSO deduction.
+Store SOCSO amount separately for remittance.
+Transparent Breakdown:
+
+In payout statements/invoices shown to freelancers:
+Show clear breakdown: Gross, Platform Fee, Net Earnings, SOCSO Deduction (1.25%), Final Payout.
+Include note: "Mandatory SOCSO contribution under Gig Workers Bill 2025 for your social security protection."
+Admin/Platform Dashboard:
+
+Monthly report generator: List all freelancers, their total net earnings, calculated SOCSO amounts, for bulk upload/remittance to ASSIST Portal.
+Track total SOCSO collected for remittance.
+Export CSV/Excel compatible with SOCSO bulk requirements.
+Worker Access:
+
+Freelancer dashboard: View history of SOCSO deductions and total contributions (for their records).
+Compliance Safeguards:
+
+Block payouts if SOCSO data incomplete.
+Legal disclaimer in terms & conditions about mandatory deductions
