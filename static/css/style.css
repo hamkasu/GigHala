@@ -497,6 +497,48 @@ body {
     animation-delay: 1s;
 }
 
+.gig-4 {
+    top: 120px;
+    left: 20px;
+    animation-name: floatCard4;
+    animation-delay: 1.5s;
+}
+
+.gig-5 {
+    top: 320px;
+    right: 20px;
+    animation-name: floatCard5;
+    animation-delay: 2s;
+}
+
+.gig-6 {
+    bottom: 200px;
+    right: 120px;
+    animation-name: floatCard6;
+    animation-delay: 0.3s;
+}
+
+.gig-7 {
+    top: 450px;
+    left: 180px;
+    animation-name: floatCard7;
+    animation-delay: 2.5s;
+}
+
+.gig-8 {
+    top: 20px;
+    right: 180px;
+    animation-name: floatCard8;
+    animation-delay: 1.8s;
+}
+
+.gig-9 {
+    bottom: 50px;
+    right: 40px;
+    animation-name: floatCard9;
+    animation-delay: 0.8s;
+}
+
 @keyframes floatCard1 {
     0%, 100% { transform: translateY(0) rotate(-2deg); }
     50% { transform: translateY(-20px) rotate(2deg); }
@@ -510,6 +552,36 @@ body {
 @keyframes floatCard3 {
     0%, 100% { transform: translateY(0) rotate(-3deg); }
     50% { transform: translateY(-15px) rotate(3deg); }
+}
+
+@keyframes floatCard4 {
+    0%, 100% { transform: translateY(0) rotate(1deg); }
+    50% { transform: translateY(-18px) rotate(-3deg); }
+}
+
+@keyframes floatCard5 {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-22px) rotate(2deg); }
+}
+
+@keyframes floatCard6 {
+    0%, 100% { transform: translateY(0) rotate(3deg); }
+    50% { transform: translateY(-16px) rotate(-2deg); }
+}
+
+@keyframes floatCard7 {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-19px) rotate(3deg); }
+}
+
+@keyframes floatCard8 {
+    0%, 100% { transform: translateY(0) rotate(2deg); }
+    50% { transform: translateY(-24px) rotate(-1deg); }
+}
+
+@keyframes floatCard9 {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-17px) rotate(2deg); }
 }
 
 .gig-card-mini {
@@ -562,6 +634,46 @@ body {
 .brand-mini {
     margin-left: auto;
     background: linear-gradient(135deg, var(--primary-gold), #FFD700);
+    color: var(--dark-navy);
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.popular-mini {
+    margin-left: auto;
+    background: linear-gradient(135deg, #EF4444, #F97316);
+    color: white;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.trending-mini {
+    margin-left: auto;
+    background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+    color: white;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.new-mini {
+    margin-left: auto;
+    background: linear-gradient(135deg, #06B6D4, #22D3EE);
+    color: white;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.toprated-mini {
+    margin-left: auto;
+    background: linear-gradient(135deg, #F59E0B, #FBBF24);
     color: var(--dark-navy);
     font-size: 10px;
     padding: 4px 8px;
