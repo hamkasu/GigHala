@@ -105,6 +105,14 @@
     .badge.pending_review { background: #dbeafe; color: #1e40af; }
     .badge.completed { background: #d1fae5; color: #065f46; }
     .badge.cancelled { background: #fee2e2; color: #991b1b; }
+    .badge.pending_release { background: #fde047; color: #854d0e; }
+    .badge.paid { background: #86efac; color: #15803d; }
+    
+    .status-with-payment {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
 
     .date-cell {
         font-size: 13px;
@@ -231,21 +239,28 @@
                         MYR {% if item.gig.approved_budget %}{{ "%.2f"|format(item.gig.approved_budget) }}{% else %}{{ "%.2f"|format(item.gig.budget_min) }} - {{ "%.2f"|format(item.gig.budget_max) }}{% endif %}
                     </td>
                     <td>
-                        <span class="badge {{ item.gig.status }}">
-                            {% if item.gig.status == 'open' %}
-                                {{ 'Terbuka' if lang == 'ms' else 'Open' }}
-                            {% elif item.gig.status == 'in_progress' %}
-                                {{ 'Dalam Proses' if lang == 'ms' else 'In Progress' }}
-                            {% elif item.gig.status == 'pending_review' %}
-                                {{ 'Menunggu Semakan' if lang == 'ms' else 'Pending Review' }}
-                            {% elif item.gig.status == 'completed' %}
-                                {{ 'Selesai' if lang == 'ms' else 'Completed' }}
-                            {% elif item.gig.status == 'cancelled' %}
-                                {{ 'Dibatalkan' if lang == 'ms' else 'Cancelled' }}
-                            {% else %}
-                                {{ item.gig.status|capitalize }}
+                        <div class="status-with-payment">
+                            <span class="badge {{ item.gig.status }}">
+                                {% if item.gig.status == 'open' %}
+                                    {{ 'Terbuka' if lang == 'ms' else 'Open' }}
+                                {% elif item.gig.status == 'in_progress' %}
+                                    {{ 'Dalam Proses' if lang == 'ms' else 'In Progress' }}
+                                {% elif item.gig.status == 'pending_review' %}
+                                    {{ 'Menunggu Semakan' if lang == 'ms' else 'Pending Review' }}
+                                {% elif item.gig.status == 'completed' %}
+                                    {{ 'Selesai' if lang == 'ms' else 'Completed' }}
+                                {% elif item.gig.status == 'cancelled' %}
+                                    {{ 'Dibatalkan' if lang == 'ms' else 'Cancelled' }}
+                                {% else %}
+                                    {{ item.gig.status|capitalize }}
+                                {% endif %}
+                            </span>
+                            {% if item.payment_status == 'pending_release' %}
+                                <span class="badge pending_release">{{ 'Menunggu Lepas Bayaran' if lang == 'ms' else 'Awaiting Payment Release' }}</span>
+                            {% elif item.payment_status == 'paid' %}
+                                <span class="badge paid">{{ 'Bayaran Dilepas' if lang == 'ms' else 'Payment Released' }}</span>
                             {% endif %}
-                        </span>
+                        </div>
                     </td>
                     <td>
                         <span class="count-badge">{{ item.application_count }}</span>

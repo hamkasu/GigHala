@@ -2934,9 +2934,19 @@ def my_gigs():
         for gig in gigs:
             # Get application count for each gig
             app_count = Application.query.filter_by(gig_id=gig.id).count()
+            # Check escrow status for payment indicator
+            escrow = Escrow.query.filter_by(gig_id=gig.id).first()
+            payment_status = None
+            if gig.status == 'completed':
+                if escrow and escrow.status == 'released':
+                    payment_status = 'paid'
+                elif escrow and escrow.status == 'funded':
+                    payment_status = 'pending_release'
             gigs_list.append({
                 'gig': gig,
-                'application_count': app_count
+                'application_count': app_count,
+                'payment_status': payment_status,
+                'escrow': escrow
             })
 
     return render_template('my_gigs.html',
