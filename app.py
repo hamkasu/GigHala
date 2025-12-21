@@ -477,8 +477,8 @@ TRANSLATIONS = {
         'step_2_desc': 'Pilih dari 2000+ gig halal mengikut skill, lokasi dan budget anda.',
         'step_3_title': 'Apply & Kerja',
         'step_3_desc': 'Submit proposal anda atau buat video pitch 30 saat untuk menonjol.',
-        'step_4_title': 'Terima Bayaran',
-        'step_4_desc': 'Instant payout dalam 24 jam ke Touch \'n Go atau bank anda.',
+        'step_4_title': 'Terima Bayaran Selamat',
+        'step_4_desc': 'Client deposit dana ke escrow sebelum kerja bermula. Bayaran hanya dilepaskan selepas anda hantar kerja & client puas hati. Instant payout 24 jam ke Touch \'n Go/bank – tiada risiko tak dibayar!',
 
         # Homepage - Testimonials
         'success_stories': 'Kisah Kejayaan',
@@ -808,8 +808,8 @@ TRANSLATIONS = {
         'step_2_desc': 'Choose from 2000+ halal gigs based on your skills, location and budget.',
         'step_3_title': 'Apply & Work',
         'step_3_desc': 'Submit your proposal or create a 30-second video pitch to stand out.',
-        'step_4_title': 'Receive Payment',
-        'step_4_desc': 'Instant payout within 24 hours to your Touch \'n Go or bank account.',
+        'step_4_title': 'Receive Secure Payment',
+        'step_4_desc': 'Client deposits funds into escrow before work begins. Payment only released after you deliver work & client is satisfied. Instant payout within 24 hours to Touch \'n Go/bank – no risk of non-payment!',
 
         # Homepage - Testimonials
         'success_stories': 'Success Stories',
