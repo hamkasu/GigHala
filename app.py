@@ -1143,6 +1143,70 @@ def validate_phone(phone):
         return True, "Phone is valid"
     return False, "Invalid Malaysian phone number format"
 
+def validate_ic_number(ic_number):
+    """
+    Validate Malaysian IC/MyKad or passport number.
+    MyKad format: 12 digits with check digit validation
+    Passport: Flexible alphanumeric, minimum 6 characters
+    Returns (is_valid, error_message)
+    """
+    if not ic_number:
+        return False, "IC/Passport number is required"
+    
+    # Clean input: remove dashes, spaces, hyphens
+    ic_clean = re.sub(r'[-\s]', '', ic_number.strip())
+    
+    # Check minimum length
+    if len(ic_clean) < 6:
+        return False, "IC/Passport number must be at least 6 characters"
+    
+    if len(ic_clean) > 20:
+        return False, "IC/Passport number must not exceed 20 characters"
+    
+    # MyKad validation (12 digits)
+    if re.match(r'^\d{12}$', ic_clean):
+        # Validate MyKad check digit
+        if not validate_mykad_checkdigit(ic_clean):
+            return False, "Invalid MyKad number (check digit validation failed). Please verify your IC number is correct."
+        return True, ""
+    
+    # Passport validation (6-20 alphanumeric, at least 2 letters)
+    if re.match(r'^[A-Z0-9]{6,20}$', ic_clean):
+        # Ensure passport has at least some letters (not all numbers)
+        if ic_clean.isdigit():
+            return False, "Please enter a valid MyKad (12 digits) or Passport number (letters and numbers)"
+        return True, ""
+    
+    # Reject invalid formats
+    return False, "Invalid IC/Passport number format. Use 12-digit MyKad or alphanumeric passport number."
+
+def validate_mykad_checkdigit(mykad):
+    """
+    Validate Malaysian MyKad check digit.
+    Algorithm: Weights are [2,7,6,5,4,3,2,7,6,5,4,3]
+    Check digit = 11 - (sum % 11), with special cases for 10->0 and 11->1
+    """
+    if not mykad or len(mykad) != 12 or not mykad.isdigit():
+        return False
+    
+    try:
+        weights = [2, 7, 6, 5, 4, 3, 2, 7, 6, 5, 4, 3]
+        total = sum(int(mykad[i]) * weights[i] for i in range(11))
+        
+        remainder = total % 11
+        expected_check = 11 - remainder
+        
+        # Handle special cases
+        if expected_check == 10:
+            expected_check = 0
+        elif expected_check == 11:
+            expected_check = 1
+        
+        actual_check = int(mykad[11])
+        return expected_check == actual_check
+    except (ValueError, IndexError):
+        return False
+
 def sanitize_input(text, max_length=1000):
     """Sanitize text input to prevent injection attacks"""
     if not text:
@@ -3448,15 +3512,14 @@ def register():
         if not data or not data.get('email') or not data.get('username') or not data.get('password'):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Validate IC/Passport number (mandatory)
+        # Validate IC/Passport number (mandatory) with MyKad check digit validation
         ic_number = data.get('ic_number', '').strip()
-        if not ic_number:
-            return jsonify({'error': 'IC/Passport number is required'}), 400
+        is_valid, error_msg = validate_ic_number(ic_number)
+        if not is_valid:
+            return jsonify({'error': error_msg}), 400
         
-        # Validate IC format (12 digits for MyKad) or alphanumeric for passport
-        ic_number_clean = re.sub(r'[-\s]', '', ic_number)  # Remove dashes and spaces
-        if not re.match(r'^[A-Za-z0-9]{6,20}$', ic_number_clean):
-            return jsonify({'error': 'Invalid IC/Passport number format (6-20 alphanumeric characters)'}), 400
+        # Clean the IC number for storage
+        ic_number_clean = re.sub(r'[-\s]', '', ic_number)
 
         # Validate privacy consent (PDPA 2010 requirement)
         if not data.get('privacy_consent'):
