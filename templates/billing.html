@@ -581,6 +581,14 @@
                 </div>
             </div>
 
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 14px; color: var(--text-dark);">Monthly Breakdown</h3>
+                <div id="monthlyBreakdownContainer" style="margin-bottom: 20px;"></div>
+                <div id="monthlyEmpty" style="display: none; text-align: center; padding: 20px; color: var(--text-gray);">
+                    No monthly data available yet
+                </div>
+            </div>
+
             <div style="margin-bottom: 20px; text-align: right;">
                 <a href="/billing/socso-statement" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -919,12 +927,53 @@
         const loading = document.getElementById('socsoLoading');
         const content = document.getElementById('socsoContent');
         const empty = document.getElementById('socsoEmpty');
+        const monthlyContainer = document.getElementById('monthlyBreakdownContainer');
+        const monthlyEmpty = document.getElementById('monthlyEmpty');
 
         loading.style.display = 'block';
         content.style.display = 'none';
         empty.style.display = 'none';
 
         try {
+            // Load monthly breakdown
+            const monthlyResponse = await fetch('/api/billing/socso-monthly-breakdown');
+            if (monthlyResponse.ok) {
+                const monthlyData = await monthlyResponse.json();
+                if (monthlyData.monthly_breakdown && monthlyData.monthly_breakdown.length > 0) {
+                    const html = monthlyData.monthly_breakdown.map(m => `
+                        <div style="background: var(--bg-light); padding: 14px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px;">Month</div>
+                                    <div style="font-size: 15px; font-weight: 600;">${m.month}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px;">Transactions</div>
+                                    <div style="font-size: 15px; font-weight: 600;">${m.transaction_count}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px;">Net Earnings</div>
+                                    <div style="font-size: 15px; font-weight: 600;">MYR ${m.total_net.toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px;">SOCSO (1.25%)</div>
+                                    <div style="font-size: 15px; font-weight: 600; color: var(--primary);">MYR ${m.total_socso.toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 4px;">Final Payout</div>
+                                    <div style="font-size: 15px; font-weight: 600;">MYR ${m.total_payout.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    monthlyContainer.innerHTML = html;
+                    monthlyEmpty.style.display = 'none';
+                } else {
+                    monthlyEmpty.style.display = 'block';
+                    monthlyContainer.innerHTML = '';
+                }
+            }
+
             const url = '/api/billing/socso-contributions';
             console.log('Fetching SOCSO contributions from:', url);
             const response = await fetch(url);

@@ -7874,6 +7874,45 @@ def get_socso_contributions():
         app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Failed to get SOCSO contributions'}), 500
 
+@app.route('/api/billing/socso-monthly-breakdown', methods=['GET'])
+@login_required
+def get_socso_monthly_breakdown():
+    """Get worker's monthly SOCSO contribution breakdown"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        
+        if not user or user.user_type not in ['freelancer', 'both']:
+            return jsonify({'error': 'Only freelancers can view SOCSO contributions'}), 403
+        
+        # Get last 12 months of SOCSO data grouped by month
+        monthly_data = db.session.query(
+            SocsoContribution.contribution_month,
+            db.func.count(SocsoContribution.id).label('transaction_count'),
+            db.func.sum(SocsoContribution.gross_amount).label('total_gross'),
+            db.func.sum(SocsoContribution.net_earnings).label('total_net'),
+            db.func.sum(SocsoContribution.socso_amount).label('total_socso'),
+            db.func.sum(SocsoContribution.final_payout).label('total_payout')
+        ).filter(SocsoContribution.freelancer_id == user_id).group_by(
+            SocsoContribution.contribution_month
+        ).order_by(SocsoContribution.contribution_month.desc()).limit(12).all()
+        
+        breakdown = []
+        for month_data in monthly_data:
+            breakdown.append({
+                'month': month_data.contribution_month,
+                'transaction_count': month_data.transaction_count,
+                'total_gross': float(month_data.total_gross or 0),
+                'total_net': float(month_data.total_net or 0),
+                'total_socso': float(month_data.total_socso or 0),
+                'total_payout': float(month_data.total_payout or 0)
+            })
+        
+        return jsonify({'monthly_breakdown': breakdown}), 200
+    except Exception as e:
+        app.logger.error(f"Get monthly SOCSO breakdown error: {str(e)}")
+        return jsonify({'error': 'Failed to get monthly breakdown'}), 500
+
 @app.route('/api/admin/socso/monthly-report', methods=['GET'])
 @admin_required
 def admin_socso_monthly_report():
