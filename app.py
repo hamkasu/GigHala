@@ -7913,6 +7913,49 @@ def get_socso_monthly_breakdown():
         app.logger.error(f"Get monthly SOCSO breakdown error: {str(e)}")
         return jsonify({'error': 'Failed to get monthly breakdown'}), 500
 
+@app.route('/api/dashboard/socso-deductions', methods=['GET'])
+@login_required
+def get_dashboard_socso_deductions():
+    """Get recent SOCSO deductions for dashboard (when client releases escrow)"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        
+        if not user or user.user_type not in ['freelancer', 'both']:
+            return jsonify({'error': 'Only freelancers can view SOCSO deductions'}), 403
+        
+        # Get last 5 SOCSO deductions from escrow releases
+        deductions = db.session.query(
+            SocsoContribution.id,
+            SocsoContribution.gig_id,
+            SocsoContribution.socso_amount,
+            SocsoContribution.net_earnings,
+            SocsoContribution.final_payout,
+            SocsoContribution.created_at,
+            Gig.title.label('gig_title')
+        ).outerjoin(Gig, SocsoContribution.gig_id == Gig.id)\
+         .filter(
+             SocsoContribution.freelancer_id == user_id,
+             SocsoContribution.contribution_type == 'escrow_release'
+         ).order_by(SocsoContribution.created_at.desc()).limit(5).all()
+        
+        items = []
+        for deduction in deductions:
+            items.append({
+                'id': deduction.id,
+                'gig_id': deduction.gig_id,
+                'gig_title': deduction.gig_title or 'Unknown Gig',
+                'socso_amount': float(deduction.socso_amount),
+                'net_earnings': float(deduction.net_earnings),
+                'final_payout': float(deduction.final_payout),
+                'created_at': deduction.created_at.isoformat()
+            })
+        
+        return jsonify({'socso_deductions': items}), 200
+    except Exception as e:
+        app.logger.error(f"Get dashboard SOCSO deductions error: {str(e)}")
+        return jsonify({'error': 'Failed to get SOCSO deductions'}), 500
+
 @app.route('/api/admin/socso/monthly-report', methods=['GET'])
 @admin_required
 def admin_socso_monthly_report():

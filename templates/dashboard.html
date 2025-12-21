@@ -664,6 +664,22 @@
         {% endif %}
     </div>
 
+    {% if user.user_type in ['freelancer', 'both'] %}
+    <div class="section">
+        <div class="section-header">
+            <h2 class="section-title">SOCSO Deductions (Gig Workers Bill 2025)</h2>
+            <a href="/billing" class="view-all">View All</a>
+        </div>
+
+        <div id="socsoDeductionsContainer">
+            <div class="empty-state">
+                <div class="empty-state-icon">🏥</div>
+                <p>No SOCSO deductions yet</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="section">
         <div class="section-header">
             <h2 class="section-title">{{ t('recent_invoices') if t('recent_invoices') != 'recent_invoices' else 'Recent Invoices' }}</h2>
@@ -1070,6 +1086,51 @@
             console.error('Error submitting payout:', error);
             alert('Error submitting payout request. Please try again.');
         }
+    }
+
+    // Load SOCSO deductions on page load
+    async function loadSocsoDeductions() {
+        try {
+            const response = await fetch('/api/dashboard/socso-deductions');
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            const container = document.getElementById('socsoDeductionsContainer');
+            
+            if (!data.socso_deductions || data.socso_deductions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏥</div>
+                        <p>No SOCSO deductions yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = data.socso_deductions.map(d => `
+                <div class="transaction-item">
+                    <div class="gig-title">
+                        SOCSO Deduction: ${d.gig_title}
+                    </div>
+                    <div class="gig-meta">
+                        <span style="color: #ef4444; font-weight: 600;">-MYR ${d.socso_amount.toFixed(2)}</span>
+                        <span>Net: MYR ${d.net_earnings.toFixed(2)}</span>
+                        <span>${new Date(d.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading SOCSO deductions:', error);
+        }
+    }
+    
+    // Load SOCSO deductions when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadSocsoDeductions);
+    } else {
+        loadSocsoDeductions();
     }
 
     // Close modals on outside click
