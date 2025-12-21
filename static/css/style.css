@@ -1848,6 +1848,69 @@ body {
         margin-bottom: 8px;
     }
     
+    /* Mobile modal fixes */
+    .modal-content {
+        padding: 20px;
+        margin: 12px;
+        width: calc(100% - 24px);
+        max-height: calc(100vh - 24px);
+        border-radius: 16px;
+    }
+    
+    .modal-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 14px 12px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    
+    .form-group small {
+        font-size: 11px;
+    }
+    
+    .btn-modal-primary {
+        padding: 13px;
+        font-size: 14px;
+        margin-top: 6px;
+    }
+    
+    .social-login-buttons {
+        gap: 10px;
+        margin-top: 12px;
+    }
+    
+    .btn-social {
+        padding: 10px 12px;
+        font-size: 13px;
+        gap: 8px;
+    }
+    
+    .modal-footer-text {
+        font-size: 12px;
+        margin-top: 16px;
+    }
+    
+    .modal-close {
+        top: 16px;
+        right: 16px;
+        font-size: 28px;
+    }
+    
     .category-name {
         font-size: 12px;
     }
