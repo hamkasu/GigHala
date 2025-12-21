@@ -732,6 +732,7 @@
         <a href="/gigs" class="btn btn-primary">{{ t('browse_gigs') }}</a>
         <a href="/messages" class="btn btn-outline">{{ 'Mesej' if lang == 'ms' else 'Messages' }}</a>
         <a href="/billing" class="btn btn-outline">{{ t('view_wallet') }}</a>
+        <button onclick="openPayoutModal()" class="btn btn-outline" style="background: var(--primary-green); color: white; border-color: var(--primary-green);">💰 Request Payout</button>
         {% if user.user_type in ['client', 'both'] %}
         <a href="/post-gig" class="btn btn-outline">{{ t('post_gig') }}</a>
         {% endif %}
@@ -741,6 +742,87 @@
         <button onclick="logout()" class="btn btn-outline btn-logout" style="background: transparent; border-color: #dc2626; color: #dc2626;">
             {{ t('logout') }}
         </button>
+    </div>
+</div>
+
+<!-- Payout Modal -->
+<div id="payoutModal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3 class="modal-title">Request Payout</h3>
+            <button onclick="closePayoutModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Amount (MYR)</label>
+            <input type="number" id="payoutAmount" placeholder="Enter amount" min="10" step="0.01" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);"/>
+            <small style="color: var(--text-gray);">Minimum payout: MYR 10.00</small>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Payout Method</label>
+            <select id="payoutMethod" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);">
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Touch n Go">Touch n Go</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Bank Name</label>
+            <select id="bankName" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);">
+                <option value="">Select your bank</option>
+                <option value="Maybank">Maybank</option>
+                <option value="CIMB">CIMB Bank</option>
+                <option value="Public Bank">Public Bank</option>
+                <option value="RHB">RHB Bank</option>
+                <option value="Hong Leong">Hong Leong Bank</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Account Number</label>
+            <input type="text" id="accountNumber" placeholder="Your account number" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);"/>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Account Name</label>
+            <input type="text" id="accountName" placeholder="Your full name" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);"/>
+        </div>
+
+        <div style="background: var(--soft-cream); padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Payout Amount</span>
+                <span id="summaryAmount">MYR 0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>Processing Fee (2%)</span>
+                <span id="summaryFee">MYR 0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 8px; font-weight: 700;">
+                <span>You Will Receive</span>
+                <span id="summaryNet" style="color: var(--primary-green);">MYR 0.00</span>
+            </div>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="btn btn-outline" onclick="closePayoutModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitPayoutRequest()" style="background: var(--primary-green); border-color: var(--primary-green);">Submit Payout Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Released Confirmation -->
+<div id="paymentReleasedModal" class="modal">
+    <div class="modal-content" style="text-align: center; max-width: 400px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+        <h3 class="modal-title" style="font-size: 24px;">Payment Released!</h3>
+        <p style="color: var(--text-gray); margin-bottom: 16px;">Your payout request has been submitted successfully.</p>
+        <div style="background: var(--soft-cream); padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <p style="color: var(--text-gray); font-size: 14px; margin: 0;">Payout Number: <strong id="confirmPayoutNumber">-</strong></p>
+            <p style="color: var(--text-gray); font-size: 14px; margin: 8px 0 0;">Amount: <strong id="confirmAmount">MYR 0.00</strong></p>
+        </div>
+        <p style="color: var(--text-dark); font-size: 14px; margin-bottom: 24px;">Your balance has been updated. You will receive the funds within 24-48 hours.</p>
+        <button class="btn btn-primary" onclick="closePaymentReleasedModal()" style="background: var(--primary-green); border-color: var(--primary-green); width: 100%;">Got it</button>
     </div>
 </div>
 
@@ -887,5 +969,102 @@
             });
         }
     }
+
+    // Payout functionality
+    function openPayoutModal() {
+        document.getElementById('payoutModal').classList.add('active');
+        document.getElementById('payoutAmount').value = '';
+        document.getElementById('payoutAmount').focus();
+    }
+
+    function closePayoutModal() {
+        document.getElementById('payoutModal').classList.remove('active');
+    }
+
+    function closePaymentReleasedModal() {
+        document.getElementById('paymentReleasedModal').classList.remove('active');
+        location.reload(); // Refresh to update balance
+    }
+
+    // Update summary when amount changes
+    document.getElementById('payoutAmount').addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        const fee = Math.round(amount * 0.02 * 100) / 100;
+        const net = Math.round((amount - fee) * 100) / 100;
+        
+        document.getElementById('summaryAmount').textContent = 'MYR ' + amount.toFixed(2);
+        document.getElementById('summaryFee').textContent = 'MYR ' + fee.toFixed(2);
+        document.getElementById('summaryNet').textContent = 'MYR ' + net.toFixed(2);
+    });
+
+    async function submitPayoutRequest() {
+        const amount = parseFloat(document.getElementById('payoutAmount').value);
+        const method = document.getElementById('payoutMethod').value;
+        const bankName = document.getElementById('bankName').value;
+        const accountNumber = document.getElementById('accountNumber').value;
+        const accountName = document.getElementById('accountName').value;
+
+        if (!amount || amount <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+        if (amount < 10) {
+            alert('Minimum payout amount is MYR 10.00');
+            return;
+        }
+        if (!bankName) {
+            alert('Please select a bank');
+            return;
+        }
+        if (!accountNumber || !accountName) {
+            alert('Please enter account details');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/billing/payouts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    payment_method: method,
+                    bank_name: bankName,
+                    account_number: accountNumber,
+                    account_name: accountName
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Show payment released confirmation
+                document.getElementById('confirmPayoutNumber').textContent = data.payout_number;
+                document.getElementById('confirmAmount').textContent = 'MYR ' + data.amount.toFixed(2);
+                
+                closePayoutModal();
+                document.getElementById('paymentReleasedModal').classList.add('active');
+            } else {
+                alert(data.error || 'Failed to request payout');
+            }
+        } catch (error) {
+            console.error('Error submitting payout:', error);
+            alert('Error submitting payout request. Please try again.');
+        }
+    }
+
+    // Close modals on outside click
+    document.getElementById('payoutModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePayoutModal();
+        }
+    });
+
+    document.getElementById('paymentReleasedModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePaymentReleasedModal();
+        }
+    });
 </script>
 {% endblock %}
