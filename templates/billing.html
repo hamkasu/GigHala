@@ -665,7 +665,11 @@
             </div>
             <div class="form-group">
                 <label>Account Number</label>
-                <input type="text" id="accountNumber" placeholder="Your account number">
+                <input type="text" id="accountNumber" placeholder="Your account number" required>
+            </div>
+            <div class="form-group">
+                <label>Account Name</label>
+                <input type="text" id="accountName" placeholder="Name on the account" required>
             </div>
             <div class="payout-summary">
                 <div class="payout-summary-row">
@@ -1019,9 +1023,10 @@
 
         const data = {
             amount: parseFloat(document.getElementById('payoutAmount').value),
-            payout_method: document.getElementById('payoutMethod').value,
+            payment_method: document.getElementById('payoutMethod').value,
             bank_name: document.getElementById('bankName').value,
-            account_number: document.getElementById('accountNumber').value
+            account_number: document.getElementById('accountNumber').value,
+            account_name: document.getElementById('accountName').value
         };
 
         try {
