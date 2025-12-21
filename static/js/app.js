@@ -323,6 +323,33 @@ const app = {
     showRegister() {
         const modal = document.getElementById('registerModal');
         modal.classList.add('active');
+        // Setup SOCSO consent field visibility based on user type
+        this.setupSOCSOConsentListener();
+    },
+
+    // Setup SOCSO consent field visibility listener
+    setupSOCSOConsentListener() {
+        const userTypeSelect = document.querySelector('select[name="user_type"]');
+        const socsoConsentGroup = document.getElementById('socsoConsentGroup');
+        const socsoConsent = document.getElementById('socsoConsent');
+        
+        if (userTypeSelect && socsoConsentGroup && socsoConsent) {
+            const updateSOCSOVisibility = () => {
+                const userType = userTypeSelect.value;
+                if (userType === 'freelancer' || userType === 'both') {
+                    socsoConsentGroup.style.display = 'block';
+                    socsoConsent.required = true;
+                } else {
+                    socsoConsentGroup.style.display = 'none';
+                    socsoConsent.required = false;
+                    socsoConsent.checked = false;
+                }
+            };
+            
+            userTypeSelect.addEventListener('change', updateSOCSOVisibility);
+            // Initialize on load
+            updateSOCSOVisibility();
+        }
     },
     
     // Close modal
@@ -403,6 +430,15 @@ const app = {
             return;
         }
 
+        const userType = formData.get('user_type');
+        const socsoConsent = document.getElementById('socsoConsent');
+        
+        // Validate SOCSO consent for freelancers
+        if ((userType === 'freelancer' || userType === 'both') && (!socsoConsent || !socsoConsent.checked)) {
+            alert('You must agree to mandatory SOCSO deductions (1.25%) as required by the Gig Workers Bill 2025 to register as a freelancer.');
+            return;
+        }
+
         const data = {
             username: formData.get('username'),
             email: formData.get('email'),
@@ -411,8 +447,9 @@ const app = {
             phone: formData.get('phone'),
             ic_number: formData.get('ic_number'),
             location: formData.get('location'),
-            user_type: formData.get('user_type'),
-            privacy_consent: true
+            user_type: userType,
+            privacy_consent: true,
+            socso_consent: socsoConsent && socsoConsent.checked ? true : false
         };
 
         try {
