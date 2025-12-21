@@ -106,14 +106,20 @@
                                 {{ 'Client pays first – work without worry' if lang == 'en' else 'Client bayar dulu – kerja tanpa risau' }}
                             </div>
                         </div>
-                        <div class="stat-item">
+                        <div class="stat-item socso-card" style="position: relative; cursor: help;">
                             <div class="stat-number" style="color: var(--primary-green); font-size: 28px; margin-bottom: 12px;">📋</div>
-                            <div class="stat-label" style="font-weight: 700; color: var(--primary-green); font-size: 16px; margin-bottom: 8px;">Perlindungan SOCSO Terintegrasi</div>
-                            <div style="color: var(--text-gray); font-size: 12px; line-height: 1.5; margin-bottom: 12px;">
-                                GigHala potong &amp; bayar caruman SOCSO terus dari pendapatan anda – automatik &amp; mudah. Dapatkan faedah penuh: rawatan perubatan, elaun kecacatan, pencen invaliditi &amp; perlindungan kemalangan kerja. Patuh Gig Workers Bill 2025!
-                            </div>
-                            <div style="padding-top: 8px; border-top: 1px solid rgba(13, 124, 102, 0.2); color: var(--primary-green); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center; line-height: 1.3;">
-                                ✨ Freelancer lain kena urus sendiri – di GigHala, kami tanggung untuk anda.
+                            <div class="stat-label" style="font-weight: 700; color: var(--primary-green); font-size: 16px;">Perlindungan SOCSO Terintegrasi</div>
+                            
+                            <!-- Hover Tooltip -->
+                            <div class="socso-tooltip" style="display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: white; border: 2px solid var(--primary-green); border-radius: 12px; padding: 16px; width: 280px; box-shadow: 0 8px 24px rgba(13, 124, 102, 0.15); z-index: 1000; margin-bottom: 12px;">
+                                <div style="color: var(--text-gray); font-size: 13px; line-height: 1.6; margin-bottom: 12px;">
+                                    GigHala potong &amp; bayar caruman SOCSO terus dari pendapatan anda – automatik &amp; mudah. Dapatkan faedah penuh: rawatan perubatan, elaun kecacatan, pencen invaliditi &amp; perlindungan kemalangan kerja. Patuh Gig Workers Bill 2025!
+                                </div>
+                                <div style="padding-top: 12px; border-top: 1px solid rgba(13, 124, 102, 0.2); color: var(--primary-green); font-size: 12px; font-weight: 600; text-align: center; line-height: 1.4;">
+                                    ✨ Freelancer lain kena urus sendiri – di GigHala, kami tanggung untuk anda.
+                                </div>
+                                <!-- Tooltip Arrow -->
+                                <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid white;"></div>
                             </div>
                         </div>
                     </div>

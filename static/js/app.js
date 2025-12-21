@@ -11,7 +11,24 @@ const app = {
         await this.loadGigs();
         await this.loadStats();
         this.setupEventListeners();
+        this.setupSOCSOCardHover();
         this.checkAuth();
+    },
+
+    // Setup SOCSO card hover tooltip
+    setupSOCSOCardHover() {
+        const socsoCard = document.querySelector('.socso-card');
+        if (socsoCard) {
+            const tooltip = socsoCard.querySelector('.socso-tooltip');
+            if (tooltip) {
+                socsoCard.addEventListener('mouseenter', () => {
+                    tooltip.style.display = 'block';
+                });
+                socsoCard.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+            }
+        }
     },
     
     // Check if user is logged in
