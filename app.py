@@ -56,38 +56,47 @@ CORS(app,
 # OAuth Configuration
 oauth = OAuth(app)
 
-# Google OAuth
-google = oauth.register(
-    name='google',
-    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
-    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
-)
+# Google OAuth - only register if credentials are provided
+if os.environ.get('GOOGLE_CLIENT_ID') and os.environ.get('GOOGLE_CLIENT_SECRET'):
+    google = oauth.register(
+        name='google',
+        client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+        client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
+else:
+    google = None
 
-# Microsoft OAuth
-microsoft = oauth.register(
-    name='microsoft',
-    client_id=os.environ.get('MICROSOFT_CLIENT_ID'),
-    client_secret=os.environ.get('MICROSOFT_CLIENT_SECRET'),
-    server_metadata_url='https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
-)
+# Microsoft OAuth - only register if credentials are provided
+if os.environ.get('MICROSOFT_CLIENT_ID') and os.environ.get('MICROSOFT_CLIENT_SECRET'):
+    microsoft = oauth.register(
+        name='microsoft',
+        client_id=os.environ.get('MICROSOFT_CLIENT_ID'),
+        client_secret=os.environ.get('MICROSOFT_CLIENT_SECRET'),
+        server_metadata_url='https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
+else:
+    microsoft = None
 
-# Apple OAuth
-apple = oauth.register(
-    name='apple',
-    client_id=os.environ.get('APPLE_CLIENT_ID'),
-    client_secret=os.environ.get('APPLE_CLIENT_SECRET'),
-    server_metadata_url='https://appleid.apple.com/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'name email'
-    }
-)
+# Apple OAuth - only register if credentials are provided
+if os.environ.get('APPLE_CLIENT_ID') and os.environ.get('APPLE_CLIENT_SECRET'):
+    apple = oauth.register(
+        name='apple',
+        client_id=os.environ.get('APPLE_CLIENT_ID'),
+        client_secret=os.environ.get('APPLE_CLIENT_SECRET'),
+        server_metadata_url='https://appleid.apple.com/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'name email'
+        }
+    )
+else:
+    apple = None
 
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
