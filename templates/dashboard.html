@@ -522,6 +522,24 @@
             </div>
         </div>
     </a>
+
+    {% if user.user_type in ['freelancer', 'both'] and socso_data.membership_number %}
+    <a href="/billing" class="stat-card-link">
+        <div class="stat-card" style="border-left-color: #8b5cf6;">
+            <div class="stat-label">NO. AHLI SOCSO</div>
+            <div class="stat-value" style="font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ socso_data.membership_number }}</div>
+            <div class="stat-description">Nombor keahlian SOCSO</div>
+        </div>
+    </a>
+
+    <a href="/billing" class="stat-card-link">
+        <div class="stat-card" style="border-left-color: #ec4899;">
+            <div class="stat-label">SUMBANGAN SOCSO</div>
+            <div class="stat-value">MYR {{ "%.2f"|format(socso_data.total_contribution) }}</div>
+            <div class="stat-description">Jumlah keseluruhan sumbangan</div>
+        </div>
+    </a>
+    {% endif %}
 </div>
 
 <div class="dashboard-grid">

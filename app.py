@@ -2845,6 +2845,27 @@ def dashboard():
             'gig_id': inv.gig_id
         })
 
+    # Get SOCSO information for freelancers
+    socso_data = {
+        'membership_number': user.socso_membership_number if user.user_type in ['freelancer', 'both'] else None,
+        'total_contribution': 0.0,
+        'contributions_by_gig': []
+    }
+    
+    if user.user_type in ['freelancer', 'both']:
+        # Get total SOCSO contributions
+        socso_contributions = SocsoContribution.query.filter_by(freelancer_id=user_id).all()
+        if socso_contributions:
+            socso_data['total_contribution'] = sum(c.socso_amount for c in socso_contributions)
+            # Get contributions per gig (last 5)
+            for contribution in socso_contributions[-5:]:
+                gig = Gig.query.get(contribution.gig_id) if contribution.gig_id else None
+                socso_data['contributions_by_gig'].append({
+                    'gig_title': gig.title if gig else 'Unknown Gig',
+                    'amount': contribution.socso_amount,
+                    'date': contribution.created_at
+                })
+
     return render_template('dashboard.html',
                          user=user,
                          wallet=wallet,
@@ -2859,6 +2880,7 @@ def dashboard():
                          gigs_to_review=gigs_to_review,
                          recent_reviews=recent_reviews,
                          recent_invoices=invoices_with_gigs,
+                         socso_data=socso_data,
                          lang=get_user_language(),
                          t=t)
 
