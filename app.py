@@ -7619,7 +7619,7 @@ def get_payouts():
 @app.route('/api/billing/payouts', methods=['POST'])
 @login_required
 def request_payout():
-    """Request a payout with SOCSO compliance (Gig Workers Bill 2025)"""
+    """Request a payout withdrawal from wallet balance (NO SOCSO deduction on payout - SOCSO deducted on escrow release)"""
     try:
         user_id = session['user_id']
         data = request.get_json()
@@ -7637,34 +7637,22 @@ def request_payout():
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
 
-        # Get user and check SOCSO compliance
+        # Get user
         user = User.query.get(user_id)
         if not user:
             return jsonify({'error': 'User not found'}), 404
-
-        # SOCSO compliance check for freelancers
-        if user.user_type in ['freelancer', 'both']:
-            is_compliant, reason = check_socso_compliance(user)
-            if not is_compliant:
-                return jsonify({
-                    'error': 'SOCSO compliance required',
-                    'reason': reason,
-                    'socso_required': True
-                }), 400
 
         # Check wallet balance
         wallet = Wallet.query.filter_by(user_id=user_id).first()
         if not wallet or wallet.balance < amount:
             return jsonify({'error': 'Insufficient balance'}), 400
 
-        # Calculate SOCSO contribution (1.25% of payout amount before fees)
-        socso_amount = calculate_socso(amount) if user.user_type in ['freelancer', 'both'] else 0.0
-
-        # Calculate fee (2% platform fee)
+        # Calculate fee (2% platform fee only - NO SOCSO deduction here)
+        # SOCSO is deducted only when client releases escrow, not on payout withdrawal
         fee = round(amount * 0.02, 2)
 
-        # Net amount after SOCSO and fee deductions
-        net_amount = round(amount - fee - socso_amount, 2)
+        # Net amount after fee deduction only (SOCSO already deducted at escrow release)
+        net_amount = round(amount - fee, 2)
 
         # Generate payout number
         import random
@@ -7676,7 +7664,7 @@ def request_payout():
             freelancer_id=user_id,
             amount=amount,
             fee=fee,
-            socso_amount=socso_amount,
+            socso_amount=0.0,  # NO SOCSO deduction on payout - already deducted at escrow release
             net_amount=net_amount,
             payment_method=payment_method,
             account_number=account_number,
@@ -7688,17 +7676,6 @@ def request_payout():
         db.session.add(payout)
         db.session.flush()  # Get payout ID
 
-        # Create SOCSO contribution record if applicable
-        if socso_amount > 0:
-            create_socso_contribution(
-                freelancer_id=user_id,
-                gross_amount=amount,
-                platform_commission=fee,
-                net_earnings=amount - fee,  # Net before SOCSO
-                contribution_type='payout',
-                payout_id=payout.id
-            )
-
         # Hold the balance
         wallet.balance -= amount
         wallet.held_balance += amount
@@ -7709,10 +7686,10 @@ def request_payout():
             payout_id=payout.id,
             type='hold',
             amount=amount,
-            socso_amount=socso_amount,
+            socso_amount=0.0,  # NO SOCSO on payout
             balance_before=wallet.balance + amount,
             balance_after=wallet.balance,
-            description=f'Payout request {payout_number} (includes MYR {socso_amount:.2f} SOCSO)'
+            description=f'Payout request {payout_number} (SOCSO already deducted at escrow release)'
         )
 
         db.session.add(history)
@@ -7724,12 +7701,12 @@ def request_payout():
             'status': 'pending',
             'amount': amount,
             'fee': fee,
-            'socso_amount': socso_amount,
+            'socso_amount': 0.0,
             'net_amount': net_amount,
             'breakdown': {
                 'gross_amount': amount,
                 'platform_fee': fee,
-                'socso_contribution': socso_amount,
+                'socso_contribution': 0.0,
                 'final_payout': net_amount
             }
         }), 201
