@@ -1911,6 +1911,27 @@ body {
         font-size: 28px;
     }
     
+    /* Checkbox label styling on mobile */
+    .form-group label[style*="display: flex"] {
+        gap: 6px !important;
+        font-size: 13px !important;
+        align-items: flex-start !important;
+    }
+    
+    .form-group input[type="checkbox"] {
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
+        margin-top: 3px !important;
+        flex-shrink: 0;
+    }
+    
+    .form-group label[style*="display: flex"] span {
+        flex: 1;
+        line-height: 1.4;
+    }
+    
     .category-name {
         font-size: 12px;
     }
