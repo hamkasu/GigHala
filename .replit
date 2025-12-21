@@ -37,3 +37,8 @@ externalPort = 80
 [deployment]
 deploymentTarget = "autoscale"
 run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+
+[userenv]
+
+[userenv.production]
+ALLOWED_ORIGINS = "https://gighala.calmic.com.my,https://www.gighala.calmic.com.my"
