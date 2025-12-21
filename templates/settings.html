@@ -372,6 +372,18 @@
                 <p class="form-hint">Nombor keahlian SOCSO anda (jika ada).</p>
             </div>
 
+            <div class="form-group" style="padding: 16px; background: var(--bg-light); border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0;">
+                    <input type="checkbox" name="socso_consent" value="1" {% if user.socso_consent %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                    <span>
+                        <strong>Saya Bersetuju dengan Potongan SOCSO</strong>
+                        <p style="font-size: 13px; color: var(--text-gray); margin: 4px 0 0 0; font-weight: normal;">
+                            Saya memahami dan bersetuju untuk memotong sumbangan SOCSO sebanyak 1.25% daripada pendapatan saya untuk perlindungan sosial.
+                        </p>
+                    </span>
+                </label>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
             </div>

@@ -1046,7 +1046,17 @@
                     loadWalletData();
                 }, 2000);
             } else {
-                alertDiv.innerHTML = `<div class="alert error">${result.error || 'Failed to submit payout'}</div>`;
+                // Handle SOCSO compliance errors specially
+                if (result.socso_required) {
+                    let message = '<div class="alert error">';
+                    message += '<strong>SOCSO Compliance Required</strong><br>';
+                    message += (result.reason || 'Please complete your SOCSO profile setup');
+                    message += '<br><br><a href="/settings" style="color: inherit; text-decoration: underline; font-weight: 600;">Go to Settings →</a>';
+                    message += '</div>';
+                    alertDiv.innerHTML = message;
+                } else {
+                    alertDiv.innerHTML = `<div class="alert error">${result.error || 'Failed to submit payout'}</div>`;
+                }
             }
         } catch (error) {
             alertDiv.innerHTML = '<div class="alert error">An error occurred. Please try again.</div>';

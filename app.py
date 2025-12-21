@@ -3197,6 +3197,13 @@ def update_profile_settings():
         else:
             user.socso_membership_number = None
 
+        socso_consent = request.form.get('socso_consent') == '1'
+        if socso_consent and not user.socso_consent:
+            user.socso_consent = True
+            user.socso_consent_date = datetime.utcnow()
+        elif not socso_consent:
+            user.socso_consent = False
+
         db.session.commit()
         flash('Maklumat profil berjaya dikemaskini!', 'success')
     except Exception as e:
