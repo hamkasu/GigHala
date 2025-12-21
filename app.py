@@ -6879,7 +6879,7 @@ def get_categories():
     categories = Category.query.all()
     result = [{
         'id': cat.slug,
-        'name': t(f'category_{cat.slug}'),  # Use translated name
+        'name': cat.name,  # Use actual category name, not translation key
         'icon': emoji_map.get(cat.slug, '📋')
     } for cat in categories]
 
