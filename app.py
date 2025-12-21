@@ -507,7 +507,7 @@ TRANSLATIONS = {
 
         # Homepage - CTA
         'ready_to_earn': 'Siap untuk mula jana pendapatan halal?',
-        'join_freelancers': 'Join 50,000+ freelancers yang dah berjaya. Daftar percuma sekarang!',
+        'join_freelancers': 'Join freelancers yang dah berjaya. Daftar percuma sekarang!',
         'register_now_free': 'Daftar Sekarang - 100% Percuma',
         'cta_benefits': '✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Halal verified',
 
@@ -785,7 +785,7 @@ TRANSLATIONS = {
         'register_free': 'Sign Up Free',
 
         # Homepage - Hero Section
-        'active_freelancers': '50,000+ Active Freelancers',
+        'active_freelancers': 'Active Freelancers',
         'earn_income': 'Earn Income',
         'halal_blessed': 'Halal & Blessed',
         'from_home': 'from Home',
@@ -838,7 +838,7 @@ TRANSLATIONS = {
 
         # Homepage - CTA
         'ready_to_earn': 'Ready to start earning halal income?',
-        'join_freelancers': "Join 50,000+ freelancers who've already succeeded. Sign up free now!",
+        'join_freelancers': "Join freelancers who've already succeeded. Sign up free now!",
         'register_now_free': 'Sign Up Now - 100% Free',
         'cta_benefits': '✓ No hidden fees  •  ✓ Instant payments  •  ✓ Halal verified',
 
@@ -9936,7 +9936,7 @@ def pricing():
                 <ul class="pricing-features">
                     <li>Pendaftaran percuma</li>
                     <li>Siarkan unlimited gigs</li>
-                    <li>Akses ke 50,000+ freelancers</li>
+                    <li>Akses ke freelancers</li>
                     <li>3% yuran pemprosesan</li>
                     <li>Sistem escrow selamat</li>
                     <li>Resolusi pertikaian</li>
