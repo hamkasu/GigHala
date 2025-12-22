@@ -1201,7 +1201,7 @@ def validate_phone(phone):
 def validate_ic_number(ic_number):
     """
     Validate Malaysian IC/MyKad or passport number.
-    MyKad format: 12 digits with check digit validation
+    MyKad format: 12 digits
     Passport: Flexible alphanumeric, minimum 6 characters
     Returns (is_valid, error_message)
     """
@@ -1220,9 +1220,7 @@ def validate_ic_number(ic_number):
     
     # MyKad validation (12 digits)
     if re.match(r'^\d{12}$', ic_clean):
-        # Validate MyKad check digit
-        if not validate_mykad_checkdigit(ic_clean):
-            return False, "Invalid MyKad number (check digit validation failed). Please verify your IC number is correct."
+        # Validation simplified for heavy beta test
         return True, ""
     
     # Passport validation (6-20 alphanumeric, at least 2 letters)
