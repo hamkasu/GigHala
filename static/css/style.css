@@ -105,10 +105,19 @@ body {
     align-items: center;
     gap: 24px;
     margin-left: auto;
+    flex: 1;
 }
 
 .nav-links .btn-primary {
     margin-left: 8px;
+}
+
+.nav-links .partner-badge {
+    margin-left: 24px !important;
+}
+
+.nav-links .nav-auth-buttons {
+    margin-left: 12px;
 }
 
 .nav-link {
@@ -2032,9 +2041,10 @@ html, body {
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
+        position: relative;
     }
     
-    /* Show GigHala and partner badge on same line */
+    /* Show GigHala on first line */
     .navbar-top > div:first-child {
         display: flex !important;
         align-items: center !important;
@@ -2042,18 +2052,17 @@ html, body {
         width: 100%;
     }
     
-    /* Hide desktop nav elements on mobile */
+    /* Hide desktop nav links on mobile */
     .nav-links {
         display: none !important;
     }
     
-    /* Show partner badge inline with logo */
-    .header-right {
+    /* Show partner badge and buttons on second line */
+    .nav-links {
         display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
+        flex-direction: row !important;
         width: 100%;
-        margin: 0 !important;
+        gap: 8px !important;
     }
     
     .partner-badge {
@@ -2064,6 +2073,8 @@ html, body {
         padding: 4px 10px !important;
         border-radius: 6px !important;
         border: 1px solid #e2e8f0 !important;
+        margin-left: 0 !important;
+        order: 1;
     }
     
     .partner-badge span {
@@ -2077,21 +2088,20 @@ html, body {
     .nav-auth-buttons {
         display: flex !important;
         gap: 10px !important;
-        width: 100%;
+        order: 2;
     }
     
     .nav-auth-buttons .btn-nav,
     .nav-auth-buttons .btn-primary {
-        flex: 1;
-        padding: 10px 16px !important;
-        font-size: 13px !important;
+        padding: 10px 14px !important;
+        font-size: 12px !important;
     }
     
     /* Show mobile menu button */
     .mobile-menu-btn {
         display: flex !important;
         position: absolute !important;
-        right: 16px !important;
+        right: 0 !important;
         top: 12px !important;
     }
     
