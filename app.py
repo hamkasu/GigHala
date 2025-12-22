@@ -3552,14 +3552,18 @@ def register():
         if not data or not data.get('email') or not data.get('username') or not data.get('password'):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Validate IC/Passport number (mandatory) with MyKad check digit validation
-        ic_number = data.get('ic_number', '').strip()
+        # Validate IC/Passport number (optional for beta test)
+        ic_number = data.get('ic_number', '')
+        if ic_number is None:
+            ic_number = ''
+        ic_number = ic_number.strip()
+        
         is_valid, error_msg = validate_ic_number(ic_number)
         if not is_valid:
             return jsonify({'error': error_msg}), 400
         
         # Clean the IC number for storage
-        ic_number_clean = re.sub(r'[-\s]', '', ic_number)
+        ic_number_clean = re.sub(r'[-\s]', '', ic_number) if ic_number else ""
 
         # Validate privacy consent (PDPA 2010 requirement)
         if not data.get('privacy_consent'):
