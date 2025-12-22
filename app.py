@@ -7757,6 +7757,7 @@ def request_payout():
 
         # ALLOW multiple pending payouts - removing restriction if it existed
         # Based on user feedback "stuck with one payout", I'll ensure we don't block additional requests
+        app.logger.info(f"User {user_id} requesting payout of {amount}. Current balance: {wallet.balance}")
         
         # Calculate fee (2% platform fee only - NO SOCSO deduction here)
         # SOCSO is deducted only when client releases escrow, not on payout withdrawal

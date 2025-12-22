@@ -872,6 +872,11 @@
         const content = document.getElementById('payoutsContent');
         const empty = document.getElementById('payoutsEmpty');
 
+        if (!loading || !content || !empty) {
+            console.error('Required elements not found in billing.html');
+            return;
+        }
+
         loading.style.display = 'block';
         content.style.display = 'none';
         empty.style.display = 'none';
@@ -894,7 +899,6 @@
 
             const data = await response.json();
             console.log('Payout data received:', data);
-            console.log('Is array:', Array.isArray(data), 'Length:', data.length);
             loading.style.display = 'none';
 
             if (!Array.isArray(data) || data.length === 0) {
