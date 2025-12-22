@@ -470,6 +470,7 @@
 
 <div class="admin-tabs">
     <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
     <button class="tab-btn" onclick="switchTab('users')">Users</button>
     <button class="tab-btn" onclick="switchTab('gigs')">Gigs</button>
     <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
@@ -577,6 +578,57 @@
                 <div class="label">This month's SOCSO deductions</div>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="analytics-tab" class="tab-content">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Visits</h3>
+            <div class="value" id="analytic-total-visits">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Recent (30d)</h3>
+            <div class="value" id="analytic-recent-visits">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Unique Visitors</h3>
+            <div class="value" id="analytic-unique-visitors">0</div>
+        </div>
+    </div>
+
+    <div class="data-table" style="margin-bottom: 24px;">
+        <div class="table-header">
+            <h2>Top Pages</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Page Path</th>
+                    <th>Visits</th>
+                </tr>
+            </thead>
+            <tbody id="top-pages-tbody">
+                <tr><td colspan="2" style="text-align:center;">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Daily Visits (Last 7 Days)</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Visits</th>
+                </tr>
+            </thead>
+            <tbody id="daily-visits-tbody">
+                <tr><td colspan="2" style="text-align:center;">Loading...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -1295,6 +1347,37 @@
 
 {% block extra_scripts %}
 <script>
+    async function loadAnalytics() {
+        try {
+            const response = await fetch('/api/admin/analytics');
+            const data = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('analytic-total-visits').textContent = data.total_visits;
+                document.getElementById('analytic-recent-visits').textContent = data.recent_visits;
+                document.getElementById('analytic-unique-visitors').textContent = data.unique_visitors;
+                
+                const topPagesBody = document.getElementById('top-pages-tbody');
+                topPagesBody.innerHTML = data.top_pages.map(p => `
+                    <tr>
+                        <td>${p.path}</td>
+                        <td>${p.count}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="2" style="text-align:center;">No data</td></tr>';
+                
+                const dailyVisitsBody = document.getElementById('daily-visits-tbody');
+                dailyVisitsBody.innerHTML = data.daily_visits.map(d => `
+                    <tr>
+                        <td>${d.date}</td>
+                        <td>${d.count}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="2" style="text-align:center;">No data</td></tr>';
+            }
+        } catch (error) {
+            console.error('Error loading analytics:', error);
+        }
+    }
+
     let currentEditUserId = null;
     let currentEditGigId = null;
     let usersCurrentPage = 1;
@@ -1329,6 +1412,7 @@
         document.getElementById(`${tabName}-tab`).classList.add('active');
 
         if (tabName === 'dashboard') loadDashboard();
+        else if (tabName === 'analytics') loadAnalytics();
         else if (tabName === 'users') loadUsers(1);
         else if (tabName === 'gigs') loadGigs(1);
         else if (tabName === 'payouts') loadPayouts();

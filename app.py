@@ -365,12 +365,28 @@ def cleanup_rate_limits():
 
 @app.before_request
 def before_request_handler():
-    """Run periodic cleanup on rate limit storage"""
+    """Run periodic cleanup on rate limit storage and log visitor"""
     global _last_cleanup
     current_time = datetime.utcnow()
     # Run cleanup every 5 minutes
     if (current_time - _last_cleanup).total_seconds() > 300:
         cleanup_rate_limits()
+
+    # Log visitor (excluding static and API calls for cleaner analytics)
+    if not request.path.startswith('/static') and not request.path.startswith('/api'):
+        try:
+            visitor = VisitorLog(
+                ip_address=request.remote_addr,
+                user_agent=request.headers.get('User-Agent'),
+                path=request.path,
+                user_id=session.get('user_id'),
+                referrer=request.referrer
+            )
+            db.session.add(visitor)
+            db.session.commit()
+        except Exception as e:
+            app.logger.error(f"Error logging visitor: {str(e)}")
+            db.session.rollback()
 
 # Translation dictionaries for bilingual support (Malay/English)
 TRANSLATIONS = {
@@ -1700,6 +1716,15 @@ class Referral(db.Model):
     reward_amount = db.Column(db.Float, default=10.0)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class VisitorLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.String(255))
+    path = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    referrer = db.Column(db.String(255))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 class SiteStats(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -7020,6 +7045,49 @@ def get_categories():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+@app.route('/api/admin/analytics')
+def get_admin_analytics():
+    """Get visitor analytics for admin panel"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        # Last 30 days analytics
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        
+        # Total visits
+        total_visits = VisitorLog.query.count()
+        recent_visits = VisitorLog.query.filter(VisitorLog.timestamp >= thirty_days_ago).count()
+        
+        # Unique visitors (by IP)
+        unique_visitors = db.session.query(VisitorLog.ip_address).distinct().count()
+        
+        # Visits by path
+        path_stats = db.session.query(
+            VisitorLog.path, db.func.count(VisitorLog.id)
+        ).group_by(VisitorLog.path).order_by(db.func.count(VisitorLog.id).desc()).limit(10).all()
+        
+        # Visits by day (last 7 days)
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        daily_stats = db.session.query(
+            db.func.date(VisitorLog.timestamp), db.func.count(VisitorLog.id)
+        ).filter(VisitorLog.timestamp >= seven_days_ago).group_by(db.func.date(VisitorLog.timestamp)).all()
+
+        return jsonify({
+            'total_visits': total_visits,
+            'recent_visits': recent_visits,
+            'unique_visitors': unique_visitors,
+            'top_pages': [{'path': p[0], 'count': p[1]} for p in path_stats],
+            'daily_visits': [{'date': str(d[0]), 'count': d[1]} for d in daily_stats]
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Analytics error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch analytics'}), 500
 
 # Admin Routes
 @app.route('/admin')
