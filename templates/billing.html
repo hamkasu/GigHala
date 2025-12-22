@@ -9,12 +9,20 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 24px;
+        gap: 16px;
+        flex-wrap: nowrap;
     }
 
     .page-title {
         font-size: 26px;
         font-weight: 700;
         color: var(--text-dark);
+        flex-shrink: 0;
+    }
+    
+    .page-header .btn {
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     .wallet-cards {
