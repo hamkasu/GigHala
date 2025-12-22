@@ -2018,13 +2018,28 @@ html, body {
 
 /* Mobile responsive - Hide navigation elements and improve layout */
 @media (max-width: 768px) {
-    .navbar .container {
-        flex-direction: row;
-        padding: 0;
-    }
-    
     .navbar {
         padding: 12px 16px;
+    }
+    
+    .navbar-container {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+    }
+    
+    .navbar-top {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    
+    /* Show GigHala and partner badge on same line */
+    .navbar-top > div:first-child {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100%;
     }
     
     /* Hide desktop nav elements on mobile */
@@ -2032,30 +2047,67 @@ html, body {
         display: none !important;
     }
     
+    /* Show partner badge inline with logo */
     .header-right {
-        display: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100%;
+        margin: 0 !important;
     }
     
     .partner-badge {
-        display: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        background: #f8fafc !important;
+        padding: 4px 10px !important;
+        border-radius: 6px !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    
+    .partner-badge span {
+        font-size: 10px !important;
+    }
+    
+    .partner-badge img {
+        height: 16px !important;
+    }
+    
+    .nav-auth-buttons {
+        display: flex !important;
+        gap: 10px !important;
+        width: 100%;
+    }
+    
+    .nav-auth-buttons .btn-nav,
+    .nav-auth-buttons .btn-primary {
+        flex: 1;
+        padding: 10px 16px !important;
+        font-size: 13px !important;
     }
     
     /* Show mobile menu button */
     .mobile-menu-btn {
         display: flex !important;
+        position: absolute !important;
+        right: 16px !important;
+        top: 12px !important;
     }
     
     /* Logo sizing for mobile */
     .nav-brand {
-        gap: 8px;
+        gap: 6px;
+        flex-shrink: 0;
     }
     
     .nav-brand img {
-        height: 32px;
+        height: 28px;
     }
     
     .nav-brand span {
-        font-size: 18px;
+        font-size: 16px;
+        white-space: nowrap;
     }
     
     /* Improve date bar on mobile */
@@ -2075,12 +2127,34 @@ html, body {
         padding: 10px 12px;
     }
     
+    .navbar-top > div:first-child {
+        gap: 8px !important;
+    }
+    
     .nav-brand span {
-        font-size: 16px;
+        font-size: 14px;
     }
     
     .nav-brand img {
-        height: 28px;
+        height: 24px;
+    }
+    
+    .partner-badge {
+        padding: 3px 8px !important;
+    }
+    
+    .partner-badge span {
+        font-size: 9px !important;
+    }
+    
+    .partner-badge img {
+        height: 14px !important;
+    }
+    
+    .nav-auth-buttons .btn-nav,
+    .nav-auth-buttons .btn-primary {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
     }
     
     .date-bar {
