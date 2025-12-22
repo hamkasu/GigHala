@@ -17,12 +17,17 @@ import math
 import requests
 from hijri_converter import Hijri, Gregorian
 from authlib.integrations.flask_client import OAuth
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
+
+# Add ProxyFix middleware to handle Railway's proxy headers (X-Forwarded-For, X-Forwarded-Proto, etc.)
+# This is essential for OAuth to work correctly when behind a proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1, x_port=1, x_prefix=1)
 
 # Set secret key - CRITICAL for OAuth state management
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("SECRET_KEY")
@@ -3700,9 +3705,10 @@ def logout():
 # OAuth Login Routes
 @app.route('/api/auth/google')
 def google_login():
-    # Let Authlib handle redirect URI - it properly manages state for CSRF protection
-    # Authlib will use the app's request context to determine the correct callback URL
-    return google.authorize_redirect(url_for('google_callback', _external=True, _scheme='https'))
+    # Explicitly set redirect URI for Railway and Replit compatibility
+    # ProxyFix middleware ensures request.host_url has correct scheme and host
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/google/callback'
+    return google.authorize_redirect(redirect_uri)
 
 @app.route('/api/auth/google/callback')
 def google_callback():

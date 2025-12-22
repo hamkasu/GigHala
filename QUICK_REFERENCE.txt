@@ -1,0 +1,55 @@
+╔════════════════════════════════════════════════════════════════╗
+║           GIGHALA GOOGLE SIGN-IN - RAILWAY SETUP              ║
+║                     QUICK REFERENCE                            ║
+╚════════════════════════════════════════════════════════════════╝
+
+📋 RAILWAY ENVIRONMENT VARIABLES (Add These Now)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GOOGLE_OAUTH_CLIENT_ID=your_client_id_from_google
+GOOGLE_OAUTH_CLIENT_SECRET=your_client_secret_from_google
+SESSION_SECRET=c08242c7a60a7938bb6bf5fc469be12533fa78255810284603a09335ff2a64ad
+DATABASE_URL=your_postgresql_url
+
+
+🔐 GOOGLE CLOUD CONSOLE (Add This Redirect URL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Authorized Redirect URI:
+https://gighala-production.up.railway.app/api/auth/google/callback
+
+⚠️  Replace "gighala-production" with your actual Railway app name
+
+
+📱 OAUTH ROUTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Login:    /api/auth/google
+Callback: /api/auth/google/callback
+
+
+🎯 TEST CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ Environment variables set on Railway
+□ Google Cloud Console redirect URL updated
+□ App deployed on Railway
+□ Visit app homepage
+□ Click "Sign up with Google"
+□ Complete Google authentication
+□ Verify account created in database
+□ Check user can access dashboard
+
+
+⚡ COMMON ERRORS & FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Error 400: redirect_uri_mismatch
+→ Fix: Update Google Cloud Console with correct redirect URL
+
+CSRF state mismatch
+→ Fix: Add SESSION_SECRET to Railway environment variables
+
+Blank page after Google button
+→ Fix: Restart Railway app after adding environment variables
+
