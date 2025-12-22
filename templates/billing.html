@@ -5,9 +5,9 @@
 {% block extra_styles %}
 <style>
     .page-header {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        grid-auto-flow: column;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
         align-items: center;
         margin-bottom: 24px;
         gap: 16px;
@@ -16,7 +16,8 @@
 
     .page-header h1 {
         margin: 0;
-        grid-column: 1;
+        flex: 0 0 auto;
+        display: inline;
     }
 
     .page-title {
@@ -24,13 +25,14 @@
         font-weight: 700;
         color: var(--text-dark);
         margin: 0;
+        display: inline;
     }
     
     .page-header .btn {
         white-space: nowrap;
         margin: 0;
-        grid-column: 2;
-        justify-self: start;
+        flex: 0 0 auto;
+        display: inline-block;
     }
 
     .wallet-cards {
