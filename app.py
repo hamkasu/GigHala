@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash
+from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
@@ -24,13 +24,13 @@ PROCESSING_FEE_FIXED = 1.00
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 
-# Set secret key with fallback
+# Set secret key - CRITICAL for OAuth state management
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("SECRET_KEY")
 if not app.secret_key:
     # Generate a random secret key for development if none is set
-    # In production, always set SESSION_SECRET or SECRET_KEY environment variable
+    # In production, ALWAYS set SESSION_SECRET - OAuth won't work without it!
     app.secret_key = secrets.token_hex(32)
-    print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET or SECRET_KEY environment variable in production!")
+    print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET environment variable in production!")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///gighala.db')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
@@ -39,11 +39,20 @@ elif app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgresql://', 'postgresql+psycopg2://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Secure session configuration
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'
+# Secure session configuration for OAuth
+# For Railway/Production: use X-Forwarded-Proto header to detect HTTPS through proxy
+# For local: detect HTTPS based on request scheme
+is_https = (
+    os.environ.get('FLASK_ENV') == 'production' or 
+    os.environ.get('RAILWAY_ENVIRONMENT') is not None or
+    os.environ.get('RAILWAY_STATIC_URL') is not None
+)
+app.config['SESSION_COOKIE_SECURE'] = is_https  # CRITICAL for OAuth over HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+# Enable session updates on every request to preserve state during OAuth flow
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 
 db = SQLAlchemy(app)
 
@@ -3691,13 +3700,9 @@ def logout():
 # OAuth Login Routes
 @app.route('/api/auth/google')
 def google_login():
-    # Build redirect URI - works for Replit, Railway, and other deployments
-    # Force HTTPS for security (OAuth requires HTTPS)
-    host_url = request.host_url.rstrip('/')
-    if host_url.startswith('http://'):
-        host_url = host_url.replace('http://', 'https://', 1)
-    redirect_uri = host_url + '/api/auth/google/callback'
-    return google.authorize_redirect(redirect_uri)
+    # Let Authlib handle redirect URI - it properly manages state for CSRF protection
+    # Authlib will use the app's request context to determine the correct callback URL
+    return google.authorize_redirect(url_for('google_callback', _external=True, _scheme='https'))
 
 @app.route('/api/auth/google/callback')
 def google_callback():
