@@ -10,9 +10,9 @@
 </head>
 <body>
     <!-- Islamic/Western Date Bar -->
-    <div class="date-bar" style="background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%); text-align: center; padding: 8px 16px; font-size: 13px; color: rgba(255,255,255,0.9); border-bottom: 1px solid rgba(0,200,83,0.2);">
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-right: 24px;">
-            <span style="color: #00C853; font-weight: 600;">{{ today_hijri }}</span>
+    <div class="date-bar" style="background: #06402B; text-align: right; padding: 10px 24px; font-size: 14px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+            <span style="color: #4ade80; font-weight: 600;">{{ today_hijri }}</span>
             <span style="color: rgba(255,255,255,0.4);">|</span>
             <span style="color: rgba(255,255,255,0.8);">{{ today_gregorian }}</span>
         </div>
@@ -28,15 +28,15 @@
                 </div>
                 
                 <div class="nav-links">
-                    <a href="/about" class="nav-link">{{ t('about_us') }}</a>
-                    <a href="#cari-gig" class="nav-link">{{ t('find_gigs') }}</a>
-                    <a href="#kategori" class="nav-link">{{ t('categories') }}</a>
-                    <a href="#cara-kerja" class="nav-link">{{ t('how_it_works') }}</a>
-                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; margin-right: 12px;">
-                        <span>🌐</span> <span>{{ 'EN' if lang == 'ms' else 'MS' }}</span>
+                    <a href="/about" class="nav-link">Tentang Kami</a>
+                    <a href="#cari-gig" class="nav-link">Cari Gig</a>
+                    <a href="#kategori" class="nav-link">Kategori</a>
+                    <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
+                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px;">
+                        <span>🌐</span>
                     </button>
-                    <button class="btn-nav" onclick="app.showLogin()">{{ t('login') }}</button>
-                    <button class="btn-primary" onclick="app.showRegister()">{{ t('register_free') }}</button>
+                    <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
+                    <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
                 </div>
                 
                 <div class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
@@ -74,13 +74,24 @@
             <div class="hero-decoration"></div>
             <div class="container">
                 <div class="hero-content">
-                    <div class="hero-badge">
-                        <span>🔥</span> {{ freelancer_count }}+ Freelancers Aktif
+                    <div style="background: #F46C22; border-radius: 4px; padding: 24px; margin-bottom: 32px; color: white; text-align: center; position: relative;">
+                        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px;">10% KOMISEN SELAMANYA! ☀️</h2>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Untuk Early Adopters yang daftar sehingga 31 Disember 2025</div>
+                        <div style="font-size: 14px; opacity: 0.9;">🚀 Jangan lepaskan peluang lock in kadar rendah forever.</div>
+                        <div style="font-size: 11px; margin-top: 12px; opacity: 0.8; font-style: italic;">
+                            GigHala sedang dalam Heavy Beta Test<br>
+                            (Semua sistem berfungsi - join sekarang & test platform halal kami!)<br>
+                            Pembayaran selamat via PayHalal | Dimiliki Calmic Sdn Bhd
+                        </div>
                     </div>
-                    <h1 class="hero-title">
-                        {{ t('earn_income') }}<br>
-                        <span class="highlight">{{ t('halal_blessed') }}</span><br>
-                        {{ t('from_home') }}
+
+                    <div class="hero-badge" style="background: white; border: 1px solid #eee; padding: 8px 16px; border-radius: 100px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px;">
+                        <span>🔥</span> 2+ Freelancers Aktif
+                    </div>
+                    <h1 class="hero-title" style="font-size: 72px; font-weight: 800; line-height: 1.1; color: #06402B;">
+                        Jana Pendapatan<br>
+                        <span style="color: #2D9B7B;">Halal & Berkah</span><br>
+                        dari Rumah
                     </h1>
                     <p class="hero-description">
                         {{ t('hero_description') }}
