@@ -23,3 +23,4 @@ pillow
 requests
 stripe
 flask-login
+oauthlib

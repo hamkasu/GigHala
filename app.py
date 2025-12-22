@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -58,6 +58,11 @@ CORS(app,
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
+
+@login_manager.user_loader
+def load_user(user_id):
+    from models import User
+    return User.query.get(int(user_id))
 
 # OAuth Configuration
 oauth = OAuth(app)
@@ -1547,7 +1552,7 @@ def admin_required(f):
     return decorated_function
 
 # Database Models
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -11725,6 +11730,10 @@ def approve_milestone(milestone_id):
 
 with app.app_context():
     init_database()
+
+# Setup Google OAuth if credentials are available
+from google_auth import setup_google_oauth
+setup_google_oauth(app, db)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

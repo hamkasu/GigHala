@@ -1,17 +1,20 @@
 import json
 import os
 import requests
-from app import db, app
 from flask import Blueprint, redirect, request, url_for
 from flask_login import login_user, logout_user
-from models import User
 from oauthlib.oauth2 import WebApplicationClient
 
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
-GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-
-if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+def setup_google_oauth(app, db):
+    """Setup Google OAuth blueprint. Call this from main app after app is initialized."""
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+    GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+    
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        print("⚠️  Google OAuth credentials not configured. Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in secrets.")
+        return None
+    
     DEV_REDIRECT_URL = f'https://{os.environ.get("REPLIT_DEV_DOMAIN")}/google_login/callback'
     print(f"""
 ✅ Google Authentication Setup Instructions:
@@ -25,10 +28,10 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
 For detailed instructions:
 https://docs.replit.com/additional-resources/google-auth-in-flask#set-up-your-oauth-app--client
 """)
-
+    
     client = WebApplicationClient(GOOGLE_CLIENT_ID)
     google_auth = Blueprint("google_auth", __name__)
-
+    
     @google_auth.route("/google_login")
     def login():
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -40,13 +43,14 @@ https://docs.replit.com/additional-resources/google-auth-in-flask#set-up-your-oa
             scope=["openid", "email", "profile"],
         )
         return redirect(request_uri)
-
+    
     @google_auth.route("/google_login/callback")
     def callback():
+        from app import User
         code = request.args.get("code")
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         token_endpoint = google_provider_cfg["token_endpoint"]
-
+        
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
             authorization_response=request.url.replace("http://", "https://"),
@@ -59,32 +63,32 @@ https://docs.replit.com/additional-resources/google-auth-in-flask#set-up-your-oa
             data=body,
             auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
         )
-
+        
         client.parse_request_body_response(json.dumps(token_response.json()))
         userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
         uri, headers, body = client.add_token(userinfo_endpoint)
         userinfo_response = requests.get(uri, headers=headers, data=body)
-
+        
         userinfo = userinfo_response.json()
         if userinfo.get("email_verified"):
             users_email = userinfo["email"]
             users_name = userinfo.get("given_name", userinfo.get("name", "User"))
         else:
             return "User email not available or not verified by Google.", 400
-
+        
         user = User.query.filter_by(email=users_email).first()
         if not user:
-            user = User(username=users_name, email=users_email)
+            user = User(username=users_name, email=users_email, oauth_provider='google', oauth_id=userinfo['sub'])
             db.session.add(user)
             db.session.commit()
-
+        
         login_user(user)
         return redirect(url_for("index"))
-
+    
     @google_auth.route("/logout")
     def logout():
         logout_user()
         return redirect(url_for("index"))
-else:
-    google_auth = None
-    print("⚠️  Google OAuth credentials not configured. Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in secrets.")
+    
+    app.register_blueprint(google_auth)
+    return google_auth
