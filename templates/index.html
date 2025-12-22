@@ -793,6 +793,11 @@
 
     <script src="/static/js/app.js"></script>
     <script>
+        // Initialize the app when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            app.init();
+        });
+        
         // Mobile Menu Functions
         function toggleMobileMenu() {
             const btn = document.getElementById('mobileMenuBtn');
