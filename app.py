@@ -3628,9 +3628,9 @@ def register():
             user_type=user_type,
             location=location,
             ic_number=ic_number_clean,
-            socso_consent=socso_consent if user_type in ['freelancer', 'both'] else False,
+            socso_consent=bool(socso_consent) if user_type in ['freelancer', 'both'] else False,
             socso_consent_date=datetime.utcnow() if socso_consent else None,
-            socso_data_complete=(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False
+            socso_data_complete=bool(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False
         )
 
         db.session.add(new_user)
