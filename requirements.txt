@@ -22,3 +22,4 @@ hijri-converter
 pillow
 requests
 stripe
+flask-login

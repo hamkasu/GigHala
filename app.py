@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -52,6 +53,11 @@ CORS(app,
      origins=allowed_origins,
      supports_credentials=True,
      max_age=3600)
+
+# Flask-Login Configuration
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'index'
 
 # OAuth Configuration
 oauth = OAuth(app)
