@@ -1014,8 +1014,8 @@
                         </div>
                     </div>
                 {% else %}
-                    <a href="#" class="nav-link" onclick="app.showLogin()">{{ t('login') }}</a>
-                    <button class="btn btn-primary" onclick="app.showRegister()">{{ t('register_free') }}</button>
+                    <a href="#" class="nav-link" onclick="app.showLogin(); return false;">{{ t('login') }}</a>
+                    <button class="btn btn-primary" onclick="app.showRegister(); return false;">{{ t('register_free') }}</button>
                 {% endif %}
             </nav>
         </div>
