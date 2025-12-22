@@ -1626,12 +1626,46 @@ body {
 }
 
 @media (max-width: 768px) {
+    .navbar-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+    
     .nav-links {
         display: none;
     }
     
+    .partner-badge {
+        display: none !important;
+    }
+    
     .mobile-menu-btn {
         display: flex;
+    }
+    
+    .nav-brand {
+        gap: 8px;
+    }
+    
+    .nav-brand span {
+        font-size: 18px;
+    }
+    
+    .nav-brand img {
+        height: 32px;
+    }
+    
+    #countdownContainer {
+        font-size: 20px !important;
+        min-width: auto !important;
+        width: 90% !important;
+        max-width: 280px !important;
+    }
+    
+    #countdownTimer {
+        font-size: 24px !important;
     }
     
     .hero {
@@ -1835,6 +1869,37 @@ body {
     
     .hero-description {
         font-size: 14px;
+    }
+    
+    /* Promotional banner mobile optimization */
+    [style*="background: #F46C22"] h2 {
+        font-size: 24px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    [style*="background: #F46C22"] > div > div > div:nth-child(2) {
+        font-size: 18px !important;
+    }
+    
+    [style*="background: #F46C22"] > div > div > div:nth-child(3) {
+        font-size: 16px !important;
+    }
+    
+    [style*="background: #F46C22"] #countdownContainer {
+        font-size: 16px !important;
+        padding: 12px !important;
+        margin: 12px 0 !important;
+        min-width: auto !important;
+        width: 100% !important;
+    }
+    
+    [style*="background: #F46C22"] #countdownTimer {
+        font-size: 20px !important;
+        letter-spacing: 1px !important;
+    }
+    
+    [style*="background: #F46C22"] > div > div > div:last-child {
+        font-size: 13px !important;
     }
     
     .categories-grid {
