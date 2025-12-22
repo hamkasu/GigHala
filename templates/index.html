@@ -21,22 +21,33 @@
     <div id="app">
         <!-- Navigation -->
         <nav class="navbar">
-            <div class="container">
-                <div class="nav-brand">
-                    <img src="/static/logo.png" alt="GigHala">
-                    <span>GigHala</span>
+            <div class="container" style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div class="nav-brand">
+                        <img src="/static/logo.png" alt="GigHala">
+                        <span>GigHala</span>
+                    </div>
+                    
+                    <div class="nav-links">
+                        <a href="/about" class="nav-link">Tentang Kami</a>
+                        <a href="#cari-gig" class="nav-link">Cari Gig</a>
+                        <a href="#kategori" class="nav-link">Kategori</a>
+                        <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
+                        <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px;">
+                            <span>🌐</span>
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="nav-links">
-                    <a href="/about" class="nav-link">Tentang Kami</a>
-                    <a href="#cari-gig" class="nav-link">Cari Gig</a>
-                    <a href="#kategori" class="nav-link">Kategori</a>
-                    <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
-                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px;">
-                        <span>🌐</span>
-                    </button>
-                    <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
-                    <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap;">OFFICIAL PARTNER:</span>
+                        <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 20px; width: auto; object-fit: contain;">
+                    </div>
+                    <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px;">
+                        <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
+                        <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+                    </div>
                 </div>
                 
                 <div class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
