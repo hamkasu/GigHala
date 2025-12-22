@@ -1207,8 +1207,16 @@
     </nav>
     {% endif %}
 
+    <script src="/static/js/app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script>
+        // Initialize the app when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof app !== 'undefined' && app.init) {
+                app.init();
+            }
+        });
+        
         feather.replace();
 
         function toggleUserDropdown() {
