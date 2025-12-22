@@ -383,6 +383,12 @@ def before_request_handler():
                 referrer=request.referrer
             )
             db.session.add(visitor)
+            
+            # Increment legacy counter for the footer
+            stats = SiteStats.query.filter_by(key='visitor_count').first()
+            if stats:
+                stats.value += 1
+            
             db.session.commit()
         except Exception as e:
             app.logger.error(f"Error logging visitor: {str(e)}")
@@ -2334,11 +2340,16 @@ def index():
         return redirect('/dashboard')
 
     # Show public homepage for visitors
+    # Sync with VisitorLog count
+    total_visits = VisitorLog.query.count()
+    
+    # Update SiteStats for historical compatibility if needed, but use VisitorLog as source of truth
     stats = SiteStats.query.filter_by(key='visitor_count').first()
     if not stats:
-        stats = SiteStats(key='visitor_count', value=0)
+        stats = SiteStats(key='visitor_count', value=total_visits)
         db.session.add(stats)
-    stats.value += 1
+    else:
+        stats.value = total_visits
     db.session.commit()
 
     # Get dual date
