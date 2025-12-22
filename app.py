@@ -2354,9 +2354,12 @@ def index():
     else:
         paid_display = f"RM {total_paid_year:,.0f}"
 
+    # Pass stats to index
+    user_count = User.query.count()
     return render_template('index.html',
                          visitor_count=stats.value,
                          freelancer_count=freelancer_count,
+                         user_count=user_count,
                          active_gigs_count=active_gigs_count or 2847,
                          total_paid_year=paid_display or "RM 2.3J",
                          lang=get_user_language(),
