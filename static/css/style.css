@@ -2015,3 +2015,23 @@ html, body {
         padding-bottom: calc(24px + env(safe-area-inset-bottom));
     }
 }
+
+/* Mobile responsive header - PayHala underneath GigHala */
+@media (max-width: 768px) {
+    .header-right {
+        flex-direction: column !important;
+        width: 100%;
+        gap: 12px !important;
+    }
+    
+    .partner-badge {
+        width: 100%;
+        justify-content: center;
+        order: -1;
+    }
+    
+    .nav-auth-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+}
