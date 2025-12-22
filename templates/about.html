@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - GigHala{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .about-section {
+        padding: 80px 0;
+        background: #fff;
+    }
+    .about-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+    .about-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    .about-header h1 {
+        font-size: 42px;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 20px;
+    }
+    .about-header p {
+        font-size: 18px;
+        color: #666;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .about-content {
+        line-height: 1.8;
+        color: #444;
+        font-size: 17px;
+    }
+    .about-content h2 {
+        font-size: 28px;
+        color: #1a1a1a;
+        margin: 40px 0 20px;
+        font-weight: 700;
+    }
+    .platform-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+    .platform-card {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 16px;
+        border: 1px solid #eee;
+        transition: transform 0.3s ease;
+    }
+    .platform-card:hover {
+        transform: translateY(-5px);
+        border-color: #00C853;
+    }
+    .platform-card h3 {
+        color: #00C853;
+        margin-bottom: 15px;
+        font-size: 22px;
+    }
+    .platform-link {
+        display: inline-block;
+        margin-top: 15px;
+        color: #00C853;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .mission-box {
+        background: linear-gradient(135deg, #1a3a2a 0%, #0d2818 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin: 60px 0;
+        text-align: center;
+    }
+    .mission-box h2 {
+        color: #00C853 !important;
+    }
+    @media (max-width: 768px) {
+        .about-header h1 { font-size: 32px; }
+        .about-section { padding: 40px 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="about-section">
+    <div class="about-container">
+        <div class="about-header">
+            <h1>About Us</h1>
+            <p>Blending cutting-edge engineering with digital innovation to create lasting value for our communities.</p>
+        </div>
+
+        <div class="about-content">
+            <p><strong>Calmic Sdn Bhd</strong>, established in 2022 and headquartered in Kuala Lumpur, Malaysia, is a dynamic engineering consultancy and solutions provider dedicated to delivering innovative, high-quality services across multiple sectors.</p>
+            
+            <p>With a team of licensed professional engineers and certified technicians, we specialize in water treatment (including desalination plants and marine desludging), security systems (CCTV and drone surveillance), telecommunications (fiber optic networks), and integrated infrastructure solutions.</p>
+
+            <div class="mission-box">
+                <h2>Our PASSION</h2>
+                <p>Beyond core engineering, Calmic is passionate about leveraging technology for societal impact. We develop and host innovative digital platforms that empower communities and preserve heritage.</p>
+            </div>
+
+            <h2>Our Digital Ecosystem</h2>
+            <div class="platform-grid">
+                <div class="platform-card">
+                    <h3>MyParliament</h3>
+                    <p>A free, transparent dashboard tracking Malaysian MPs' performance, attendance, allowances, and accountability to promote good governance.</p>
+                    <a href="https://myparliament.calmic.com.my" class="platform-link" target="_blank">Visit MyParliament →</a>
+                </div>
+                <div class="platform-card">
+                    <h3>StoryKeep</h3>
+                    <p>An AI-powered service for restoring family photos, recording stories, and securely preserving memories for future generations.</p>
+                    <a href="https://storykeep.calmic.com.my" class="platform-link" target="_blank">Visit StoryKeep →</a>
+                </div>
+                <div class="platform-card">
+                    <h3>GigHala</h3>
+                    <p>Malaysia's leading halal gig economy platform, offering flexible, secure side hustles with escrow protection and quick payouts.</p>
+                    <a href="https://gighala.calmic.com.my" class="platform-link" target="_blank">Visit GigHala →</a>
+                </div>
+            </div>
+
+            <h2>Our Commitment</h2>
+            <p>At Calmic, we blend cutting-edge engineering with digital innovation to create lasting value—for our clients, communities, and the nation. Whether advancing infrastructure, fueling industries, or building tools for transparency and connection, we are committed to sustainable progress and meaningful partnerships.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

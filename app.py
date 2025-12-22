@@ -564,6 +564,7 @@ TRANSLATIONS = {
 
         # Homepage - Footer
         'footer_description': 'Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah.',
+        'about_us': 'Tentang Kami',
         'platform': 'Platform',
         'pricing': 'Pricing',
         'resources': 'Resources',
@@ -895,6 +896,7 @@ TRANSLATIONS = {
 
         # Homepage - Footer
         'footer_description': "Malaysia's #1 halal gig economy platform. Earn blessed income from home.",
+        'about_us': 'About Us',
         'platform': 'Platform',
         'pricing': 'Pricing',
         'resources': 'Resources',
@@ -7056,6 +7058,11 @@ def get_categories():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
+@app.route('/about')
+def about():
+    """Serve the About Us page"""
+    return render_template('about.html', lang=get_user_language(), t=t)
 
 @app.route('/api/admin/analytics')
 def get_admin_analytics():
