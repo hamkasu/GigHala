@@ -646,7 +646,8 @@
                     </div>
                     <div class="form-group">
                         <label>{{ t('ic_passport_no') }}</label>
-                        <input type="text" name="ic_number" required placeholder="No. MyKad/Passport" maxlength="20">
+                        <input type="text" name="ic_number" required placeholder="No. MyKad/Passport" maxlength="20" disabled style="background-color: #e9ecef; cursor: not-allowed; color: #6c757d; border-color: #dee2e6;">
+                        <small style="display: block; margin-top: 4px; color: #6c757d; font-style: italic;">Sistem verifikasi IC/Pasport akan dikendalikan secara berasingan.</small>
                         <small style="color: #666; font-size: 12px;">{{ t('ic_passport_hint') }}</small>
                     </div>
                     <div class="form-group">
