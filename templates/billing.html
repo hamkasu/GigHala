@@ -94,6 +94,13 @@
         display: flex;
         background: var(--bg-light);
         border-bottom: 1px solid var(--border);
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 24px;
+    }
+
+    .tabs-nav {
+        display: flex;
     }
 
     .tab {
@@ -419,7 +426,6 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">Wallet & Billing</h1>
-    <button class="btn btn-primary" onclick="openPayoutModal()">💰 Request Payout</button>
 </div>
 
 <div class="wallet-cards" id="walletCards">
@@ -452,10 +458,13 @@
 
 <div class="main-content-area">
     <div class="tabs">
-        <button class="tab active" onclick="switchTab('transactions')">Transactions</button>
-        <button class="tab" onclick="switchTab('invoices')">Invoices</button>
-        <button class="tab" onclick="switchTab('payouts')">Payouts</button>
-        <button class="tab" id="socsoTab" onclick="switchTab('socso')" style="display: none;">SOCSO Contributions</button>
+        <div class="tabs-nav">
+            <button class="tab active" onclick="switchTab('transactions')">Transactions</button>
+            <button class="tab" onclick="switchTab('invoices')">Invoices</button>
+            <button class="tab" onclick="switchTab('payouts')">Payouts</button>
+            <button class="tab" id="socsoTab" onclick="switchTab('socso')" style="display: none;">SOCSO Contributions</button>
+        </div>
+        <button class="btn btn-primary" onclick="openPayoutModal()">💰 Request Payout</button>
     </div>
 
     <div id="transactions-tab" class="tab-content active">
