@@ -7,26 +7,32 @@ from oauthlib.oauth2 import WebApplicationClient
 
 def setup_google_oauth(app, db):
     """Setup Google OAuth blueprint. Call this from main app after app is initialized."""
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+    # Support both GOOGLE_OAUTH_* and GOOGLE_CLIENT_* environment variable names
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or os.environ.get("GOOGLE_CLIENT_SECRET")
     GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
     
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         print("⚠️  Google OAuth credentials not configured. Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in secrets.")
         return None
     
-    DEV_REDIRECT_URL = f'https://{os.environ.get("REPLIT_DEV_DOMAIN")}/google_login/callback'
-    print(f"""
+    # Determine redirect URL based on environment
+    if os.environ.get("REPLIT_DEV_DOMAIN"):
+        # Replit environment
+        REDIRECT_URL = f'https://{os.environ.get("REPLIT_DEV_DOMAIN")}/google_login/callback'
+    else:
+        # Railway or other production environment - will be determined from request
+        REDIRECT_URL = None
+    
+    if REDIRECT_URL:
+        print(f"""
 ✅ Google Authentication Setup Instructions:
 1. Go to https://console.cloud.google.com/apis/credentials
 2. Create a new OAuth 2.0 Client ID (Web application)
 3. Add this redirect URL to Authorized redirect URIs:
-   {DEV_REDIRECT_URL}
-4. Copy your Client ID and Client Secret to Replit secrets
+   {REDIRECT_URL}
+4. Copy your Client ID and Client Secret to environment secrets
 5. Restart your app after adding secrets
-
-For detailed instructions:
-https://docs.replit.com/additional-resources/google-auth-in-flask#set-up-your-oauth-app--client
 """)
     
     client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -37,9 +43,14 @@ https://docs.replit.com/additional-resources/google-auth-in-flask#set-up-your-oa
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
         
+        # Build callback URL - works for both Replit and Railway
+        callback_url = request.url_root.rstrip('/') + '/google_login/callback'
+        if request.url_root.startswith('http://'):
+            callback_url = callback_url.replace('http://', 'https://', 1)
+        
         request_uri = client.prepare_request_uri(
             authorization_endpoint,
-            redirect_uri=request.base_url.replace("http://", "https://") + "/callback",
+            redirect_uri=callback_url,
             scope=["openid", "email", "profile"],
         )
         return redirect(request_uri)
@@ -51,10 +62,15 @@ https://docs.replit.com/additional-resources/google-auth-in-flask#set-up-your-oa
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         token_endpoint = google_provider_cfg["token_endpoint"]
         
+        # Build callback URL - works for both Replit and Railway
+        callback_url = request.url_root.rstrip('/') + '/google_login/callback'
+        if request.url_root.startswith('http://'):
+            callback_url = callback_url.replace('http://', 'https://', 1)
+        
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
             authorization_response=request.url.replace("http://", "https://"),
-            redirect_url=request.base_url.replace("http://", "https://"),
+            redirect_url=callback_url,
             code=code,
         )
         token_response = requests.post(

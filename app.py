@@ -68,11 +68,15 @@ def load_user(user_id):
 oauth = OAuth(app)
 
 # Google OAuth - only register if credentials are provided
-if os.environ.get('GOOGLE_CLIENT_ID') and os.environ.get('GOOGLE_CLIENT_SECRET'):
+# Support both GOOGLE_OAUTH_* and GOOGLE_CLIENT_* environment variable names
+google_client_id = os.environ.get('GOOGLE_OAUTH_CLIENT_ID') or os.environ.get('GOOGLE_CLIENT_ID')
+google_client_secret = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET') or os.environ.get('GOOGLE_CLIENT_SECRET')
+
+if google_client_id and google_client_secret:
     google = oauth.register(
         name='google',
-        client_id=os.environ.get('GOOGLE_CLIENT_ID'),
-        client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+        client_id=google_client_id,
+        client_secret=google_client_secret,
         server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
         client_kwargs={
             'scope': 'openid email profile'
