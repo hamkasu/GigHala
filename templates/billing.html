@@ -5,24 +5,32 @@
 {% block extra_styles %}
 <style>
     .page-header {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-auto-flow: column;
         align-items: center;
         margin-bottom: 24px;
         gap: 16px;
-        flex-wrap: nowrap;
+        width: 100%;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        grid-column: 1;
     }
 
     .page-title {
         font-size: 26px;
         font-weight: 700;
         color: var(--text-dark);
-        flex-shrink: 0;
+        margin: 0;
     }
     
     .page-header .btn {
-        flex-shrink: 0;
         white-space: nowrap;
+        margin: 0;
+        grid-column: 2;
+        justify-self: start;
     }
 
     .wallet-cards {
