@@ -97,7 +97,8 @@
         }
 
         .logo span {
-            color: var(--primary);
+            color: white;
+            white-space: nowrap;
         }
 
         .halal-badge-nav {
@@ -941,6 +942,7 @@
         <div class="header-top">
             <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
                 <img src="/static/logo.png" alt="GigHala" style="height: 40px; width: auto;">
+                <span>GigHala</span>
             </a>
 
             {% if user %}
