@@ -330,9 +330,106 @@
                     <label class="form-label">Lokasi</label>
                     <select name="location" class="form-select">
                         <option value="">Pilih lokasi</option>
-                        {% for loc in ['Johor', 'Kedah', 'Kelantan', 'Kuala Lumpur', 'Labuan', 'Melaka', 'Negeri Sembilan', 'Pahang', 'Penang', 'Perak', 'Perlis', 'Putrajaya', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu'] %}
-                            <option value="{{ loc }}" {{ 'selected' if user.location == loc else '' }}>{{ loc }}</option>
-                        {% endfor %}
+                        <!-- Kuala Lumpur -->
+                        <optgroup label="Kuala Lumpur">
+                            <option value="Kuala Lumpur" {{ 'selected' if user.location == 'Kuala Lumpur' else '' }}>Kuala Lumpur</option>
+                            <option value="Cheras, KL" {{ 'selected' if user.location == 'Cheras, KL' else '' }}>Cheras</option>
+                            <option value="Kepong, KL" {{ 'selected' if user.location == 'Kepong, KL' else '' }}>Kepong</option>
+                            <option value="Bangsar, KL" {{ 'selected' if user.location == 'Bangsar, KL' else '' }}>Bangsar</option>
+                        </optgroup>
+                        <!-- Johor -->
+                        <optgroup label="Johor">
+                            <option value="Johor Bahru, Johor" {{ 'selected' if user.location == 'Johor Bahru, Johor' else '' }}>Johor Bahru</option>
+                            <option value="Skudai, Johor" {{ 'selected' if user.location == 'Skudai, Johor' else '' }}>Skudai</option>
+                            <option value="Kulai, Johor" {{ 'selected' if user.location == 'Kulai, Johor' else '' }}>Kulai</option>
+                            <option value="Kluang, Johor" {{ 'selected' if user.location == 'Kluang, Johor' else '' }}>Kluang</option>
+                            <option value="Muar, Johor" {{ 'selected' if user.location == 'Muar, Johor' else '' }}>Muar</option>
+                            <option value="Batu Pahat, Johor" {{ 'selected' if user.location == 'Batu Pahat, Johor' else '' }}>Batu Pahat</option>
+                            <option value="Segamat, Johor" {{ 'selected' if user.location == 'Segamat, Johor' else '' }}>Segamat</option>
+                        </optgroup>
+                        <!-- Penang -->
+                        <optgroup label="Penang">
+                            <option value="George Town, Penang" {{ 'selected' if user.location == 'George Town, Penang' else '' }}>George Town</option>
+                            <option value="Butterworth, Penang" {{ 'selected' if user.location == 'Butterworth, Penang' else '' }}>Butterworth</option>
+                            <option value="Bayan Lepas, Penang" {{ 'selected' if user.location == 'Bayan Lepas, Penang' else '' }}>Bayan Lepas</option>
+                            <option value="Seberang Jaya, Penang" {{ 'selected' if user.location == 'Seberang Jaya, Penang' else '' }}>Seberang Jaya</option>
+                            <option value="Sungai Petani, Penang" {{ 'selected' if user.location == 'Sungai Petani, Penang' else '' }}>Sungai Petani</option>
+                        </optgroup>
+                        <!-- Selangor -->
+                        <optgroup label="Selangor">
+                            <option value="Petaling Jaya, Selangor" {{ 'selected' if user.location == 'Petaling Jaya, Selangor' else '' }}>Petaling Jaya</option>
+                            <option value="Shah Alam, Selangor" {{ 'selected' if user.location == 'Shah Alam, Selangor' else '' }}>Shah Alam</option>
+                            <option value="Subang Jaya, Selangor" {{ 'selected' if user.location == 'Subang Jaya, Selangor' else '' }}>Subang Jaya</option>
+                            <option value="Klang, Selangor" {{ 'selected' if user.location == 'Klang, Selangor' else '' }}>Klang</option>
+                            <option value="Ampang, Selangor" {{ 'selected' if user.location == 'Ampang, Selangor' else '' }}>Ampang</option>
+                            <option value="Kajang, Selangor" {{ 'selected' if user.location == 'Kajang, Selangor' else '' }}>Kajang</option>
+                            <option value="Rawang, Selangor" {{ 'selected' if user.location == 'Rawang, Selangor' else '' }}>Rawang</option>
+                            <option value="Sepang, Selangor" {{ 'selected' if user.location == 'Sepang, Selangor' else '' }}>Sepang</option>
+                            <option value="Serdang, Selangor" {{ 'selected' if user.location == 'Serdang, Selangor' else '' }}>Serdang</option>
+                        </optgroup>
+                        <!-- Perak -->
+                        <optgroup label="Perak">
+                            <option value="Ipoh, Perak" {{ 'selected' if user.location == 'Ipoh, Perak' else '' }}>Ipoh</option>
+                            <option value="Taiping, Perak" {{ 'selected' if user.location == 'Taiping, Perak' else '' }}>Taiping</option>
+                            <option value="Teluk Intan, Perak" {{ 'selected' if user.location == 'Teluk Intan, Perak' else '' }}>Teluk Intan</option>
+                            <option value="Kuala Lumpur, Perak" {{ 'selected' if user.location == 'Kuala Lumpur, Perak' else '' }}>Kuala Lumpur (Perak)</option>
+                        </optgroup>
+                        <!-- Kedah -->
+                        <optgroup label="Kedah">
+                            <option value="Alor Setar, Kedah" {{ 'selected' if user.location == 'Alor Setar, Kedah' else '' }}>Alor Setar</option>
+                            <option value="Sungai Petani, Kedah" {{ 'selected' if user.location == 'Sungai Petani, Kedah' else '' }}>Sungai Petani</option>
+                            <option value="Kulim, Kedah" {{ 'selected' if user.location == 'Kulim, Kedah' else '' }}>Kulim</option>
+                        </optgroup>
+                        <!-- Kelantan -->
+                        <optgroup label="Kelantan">
+                            <option value="Kota Bharu, Kelantan" {{ 'selected' if user.location == 'Kota Bharu, Kelantan' else '' }}>Kota Bharu</option>
+                            <option value="Kuantan, Kelantan" {{ 'selected' if user.location == 'Kuantan, Kelantan' else '' }}>Kuantan</option>
+                        </optgroup>
+                        <!-- Terengganu -->
+                        <optgroup label="Terengganu">
+                            <option value="Kuala Terengganu, Terengganu" {{ 'selected' if user.location == 'Kuala Terengganu, Terengganu' else '' }}>Kuala Terengganu</option>
+                            <option value="Kuantan, Terengganu" {{ 'selected' if user.location == 'Kuantan, Terengganu' else '' }}>Kuantan</option>
+                        </optgroup>
+                        <!-- Pahang -->
+                        <optgroup label="Pahang">
+                            <option value="Kuantan, Pahang" {{ 'selected' if user.location == 'Kuantan, Pahang' else '' }}>Kuantan</option>
+                            <option value="Temerloh, Pahang" {{ 'selected' if user.location == 'Temerloh, Pahang' else '' }}>Temerloh</option>
+                            <option value="Pekan, Pahang" {{ 'selected' if user.location == 'Pekan, Pahang' else '' }}>Pekan</option>
+                        </optgroup>
+                        <!-- Melaka -->
+                        <optgroup label="Melaka">
+                            <option value="Melaka City, Melaka" {{ 'selected' if user.location == 'Melaka City, Melaka' else '' }}>Melaka City</option>
+                            <option value="Alor Gajah, Melaka" {{ 'selected' if user.location == 'Alor Gajah, Melaka' else '' }}>Alor Gajah</option>
+                        </optgroup>
+                        <!-- Negeri Sembilan -->
+                        <optgroup label="Negeri Sembilan">
+                            <option value="Seremban, Negeri Sembilan" {{ 'selected' if user.location == 'Seremban, Negeri Sembilan' else '' }}>Seremban</option>
+                            <option value="Nilai, Negeri Sembilan" {{ 'selected' if user.location == 'Nilai, Negeri Sembilan' else '' }}>Nilai</option>
+                        </optgroup>
+                        <!-- Sabah -->
+                        <optgroup label="Sabah">
+                            <option value="Kota Kinabalu, Sabah" {{ 'selected' if user.location == 'Kota Kinabalu, Sabah' else '' }}>Kota Kinabalu</option>
+                            <option value="Sandakan, Sabah" {{ 'selected' if user.location == 'Sandakan, Sabah' else '' }}>Sandakan</option>
+                            <option value="Tawau, Sabah" {{ 'selected' if user.location == 'Tawau, Sabah' else '' }}>Tawau</option>
+                            <option value="Lahad Datu, Sabah" {{ 'selected' if user.location == 'Lahad Datu, Sabah' else '' }}>Lahad Datu</option>
+                        </optgroup>
+                        <!-- Sarawak -->
+                        <optgroup label="Sarawak">
+                            <option value="Kuching, Sarawak" {{ 'selected' if user.location == 'Kuching, Sarawak' else '' }}>Kuching</option>
+                            <option value="Miri, Sarawak" {{ 'selected' if user.location == 'Miri, Sarawak' else '' }}>Miri</option>
+                            <option value="Sibu, Sarawak" {{ 'selected' if user.location == 'Sibu, Sarawak' else '' }}>Sibu</option>
+                            <option value="Bintulu, Sarawak" {{ 'selected' if user.location == 'Bintulu, Sarawak' else '' }}>Bintulu</option>
+                        </optgroup>
+                        <!-- Perlis -->
+                        <optgroup label="Perlis">
+                            <option value="Kangar, Perlis" {{ 'selected' if user.location == 'Kangar, Perlis' else '' }}>Kangar</option>
+                        </optgroup>
+                        <!-- Putrajaya & Labuan -->
+                        <optgroup label="Federal Territories">
+                            <option value="Putrajaya, Putrajaya" {{ 'selected' if user.location == 'Putrajaya, Putrajaya' else '' }}>Putrajaya</option>
+                            <option value="Labuan, Labuan" {{ 'selected' if user.location == 'Labuan, Labuan' else '' }}>Labuan</option>
+                        </optgroup>
+                        <option value="Lain-lain" {{ 'selected' if user.location == 'Lain-lain' else '' }}>Lain-lain</option>
                     </select>
                 </div>
             </div>
