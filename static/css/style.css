@@ -67,7 +67,17 @@ body {
     gap: 12px;
     font-size: 24px;
     font-weight: 800;
-    color: var(--primary-green);
+}
+
+.nav-brand img {
+    height: 40px;
+    width: auto;
+}
+
+.nav-brand span {
+    color: var(--text-dark);
+    font-weight: 800;
+    font-size: 24px;
 }
 
 .logo-icon {
