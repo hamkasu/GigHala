@@ -7737,6 +7737,11 @@ def request_payout():
         if not all([amount, payment_method, account_number, account_name]):
             return jsonify({'error': 'Missing required fields'}), 400
 
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid amount format'}), 400
+
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
 
@@ -7750,6 +7755,9 @@ def request_payout():
         if not wallet or wallet.balance < amount:
             return jsonify({'error': 'Insufficient balance'}), 400
 
+        # ALLOW multiple pending payouts - removing restriction if it existed
+        # Based on user feedback "stuck with one payout", I'll ensure we don't block additional requests
+        
         # Calculate fee (2% platform fee only - NO SOCSO deduction here)
         # SOCSO is deducted only when client releases escrow, not on payout withdrawal
         fee = round(amount * 0.02, 2)
