@@ -3691,7 +3691,12 @@ def logout():
 # OAuth Login Routes
 @app.route('/api/auth/google')
 def google_login():
-    redirect_uri = request.host_url.rstrip('/') + '/api/auth/google/callback'
+    # Build redirect URI - works for Replit, Railway, and other deployments
+    # Force HTTPS for security (OAuth requires HTTPS)
+    host_url = request.host_url.rstrip('/')
+    if host_url.startswith('http://'):
+        host_url = host_url.replace('http://', 'https://', 1)
+    redirect_uri = host_url + '/api/auth/google/callback'
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/api/auth/google/callback')
@@ -11736,8 +11741,9 @@ with app.app_context():
     init_database()
 
 # Setup Google OAuth if credentials are available
-from google_auth import setup_google_oauth
-setup_google_oauth(app, db)
+# Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint
+# The /api/auth/google and /api/auth/google/callback routes are defined above
+# Keeping this file for reference but not registering it to avoid conflicts
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
