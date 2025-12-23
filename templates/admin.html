@@ -1477,6 +1477,30 @@
     let gigsCurrentPage = 1;
     let usersSortAscending = true;
 
+    function showError(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.style.color = '#dc2626';
+            element.textContent = message;
+            element.style.padding = '12px';
+            element.style.backgroundColor = '#fee2e2';
+            element.style.borderRadius = '8px';
+            element.style.marginTop = '16px';
+        }
+    }
+
+    function showSuccess(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.style.color = '#059669';
+            element.textContent = message;
+            element.style.padding = '12px';
+            element.style.backgroundColor = '#d1fae5';
+            element.style.borderRadius = '8px';
+            element.style.marginTop = '16px';
+        }
+    }
+
     async function checkAdminAccess() {
         try {
             const response = await fetch('/api/admin/check');
