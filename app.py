@@ -18,10 +18,19 @@ import requests
 from hijri_converter import Hijri, Gregorian
 from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
+from twilio.rest import Client
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
+
+# Twilio SMS Configuration
+twilio_account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+twilio_auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+twilio_phone_number = os.environ.get('TWILIO_PHONE_NUMBER')
+twilio_client = None
+if twilio_account_sid and twilio_auth_token:
+    twilio_client = Client(twilio_account_sid, twilio_auth_token)
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 
@@ -7405,6 +7414,61 @@ def admin_delete_user(user_id):
         db.session.rollback()
         app.logger.error(f"Admin delete user error: {str(e)}")
         return jsonify({'error': 'Failed to delete user'}), 500
+
+@app.route('/api/admin/send-sms', methods=['POST'])
+@admin_required
+def admin_send_sms():
+    """Send SMS message to all users"""
+    try:
+        if not twilio_client or not twilio_phone_number:
+            return jsonify({'error': 'SMS service not configured'}), 500
+        
+        data = request.get_json()
+        message = data.get('message', '').strip()
+        
+        if not message:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        if len(message) > 160:
+            return jsonify({'error': 'Message must be 160 characters or less'}), 400
+        
+        # Get all users with phone numbers
+        users = User.query.filter(User.phone != None).filter(User.phone != '').all()
+        
+        if not users:
+            return jsonify({'error': 'No users with phone numbers found'}), 400
+        
+        sent_count = 0
+        failed_count = 0
+        failed_users = []
+        
+        for user in users:
+            try:
+                twilio_client.messages.create(
+                    body=message,
+                    from_=twilio_phone_number,
+                    to=user.phone
+                )
+                sent_count += 1
+            except Exception as e:
+                failed_count += 1
+                failed_users.append({
+                    'username': user.username,
+                    'phone': user.phone,
+                    'error': str(e)
+                })
+                app.logger.warning(f"Failed to send SMS to {user.username} ({user.phone}): {str(e)}")
+        
+        return jsonify({
+            'message': 'SMS broadcast completed',
+            'sent': sent_count,
+            'failed': failed_count,
+            'total_users': len(users),
+            'failed_users': failed_users if failed_count > 0 else []
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin send SMS error: {str(e)}")
+        return jsonify({'error': 'Failed to send SMS broadcast'}), 500
 
 @app.route('/api/admin/gigs', methods=['GET'])
 @admin_required

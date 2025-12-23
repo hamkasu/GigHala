@@ -476,6 +476,7 @@
     <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
     <button class="tab-btn" onclick="switchTab('reports')">Financial Reports</button>
     <button class="tab-btn" onclick="switchTab('socso')">SOCSO Compliance</button>
+    <button class="tab-btn" onclick="switchTab('messaging')">SMS Messaging</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
     <a href="/admin/feedback" class="tab-btn" style="text-decoration:none;">Feedback</a>
     <button class="tab-btn" onclick="switchTab('reset')" style="color: #dc2626;">Reset Data</button>
@@ -792,6 +793,34 @@
                 <h3>No SOCSO Data Available</h3>
                 <p>No SOCSO contributions recorded for the selected period</p>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="messaging-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Send SMS to All Users</h2>
+        </div>
+        <div style="padding: 24px;">
+            <form id="sms-broadcast-form" onsubmit="sendSMSBroadcast(event)">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Message</label>
+                    <textarea id="sms-message" name="message" placeholder="Enter your message (max 160 characters)" maxlength="160" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; resize: vertical; min-height: 100px; font-family: inherit;" required></textarea>
+                    <div id="sms-char-count" style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">0 / 160 characters</div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="sms-send-btn" style="width: 100%; padding: 12px;">Send SMS to All Users</button>
+            </form>
+            <div id="sms-status" style="margin-top: 16px;"></div>
+        </div>
+    </div>
+
+    <div class="data-table" style="margin-top: 24px;">
+        <div class="table-header">
+            <h2>SMS Broadcast History</h2>
+        </div>
+        <div id="sms-history" style="padding: 24px; color: var(--text-gray);">
+            <p>Broadcasts will be logged here</p>
         </div>
     </div>
 </div>
@@ -1418,7 +1447,74 @@
         else if (tabName === 'payouts') loadPayouts();
         else if (tabName === 'reports') initReports();
         else if (tabName === 'socso') loadSocsoReport();
+        else if (tabName === 'messaging') initMessaging();
         else if (tabName === 'settings') loadSettings();
+    }
+
+    function initMessaging() {
+        const textarea = document.getElementById('sms-message');
+        textarea.addEventListener('input', updateCharCount);
+        updateCharCount();
+    }
+
+    function updateCharCount() {
+        const textarea = document.getElementById('sms-message');
+        const count = textarea.value.length;
+        document.getElementById('sms-char-count').textContent = `${count} / 160 characters`;
+    }
+
+    async function sendSMSBroadcast(event) {
+        event.preventDefault();
+        const message = document.getElementById('sms-message').value.trim();
+        const btn = document.getElementById('sms-send-btn');
+        const statusDiv = document.getElementById('sms-status');
+
+        if (!message) {
+            statusDiv.innerHTML = '<div style="padding: 12px; background: #FEE2E2; color: #DC2626; border-radius: 8px; border: 1px solid #FCA5A5;">Message cannot be empty</div>';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        statusDiv.innerHTML = '<div style="padding: 12px; background: #E0E7FF; color: #3730A3; border-radius: 8px;">Sending SMS to all users...</div>';
+
+        try {
+            const response = await fetch('/api/admin/send-sms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                statusDiv.innerHTML = `<div style="padding: 16px; background: #DCFCE7; color: #15803D; border-radius: 8px; border: 1px solid #BBF7D0;">
+                    <strong>✅ SMS Broadcast Sent Successfully!</strong><br>
+                    <div style="margin-top: 8px; font-size: 14px;">
+                        <div>📱 Sent to: <strong>${data.sent}</strong> users</div>
+                        ${data.failed > 0 ? `<div>⚠️ Failed: <strong>${data.failed}</strong> users</div>` : ''}
+                    </div>
+                </div>`;
+                document.getElementById('sms-message').value = '';
+                updateCharCount();
+
+                if (data.failed_users && data.failed_users.length > 0) {
+                    let failedHTML = '<div style="margin-top: 12px; padding: 12px; background: #FEE2E2; border-radius: 8px; color: #991B1B;"><strong>Failed deliveries:</strong><ul style="margin: 6px 0; padding-left: 20px;">';
+                    data.failed_users.forEach(u => {
+                        failedHTML += `<li>${u.username} (${u.phone}): ${u.error}</li>`;
+                    });
+                    failedHTML += '</ul></div>';
+                    statusDiv.innerHTML += failedHTML;
+                }
+            } else {
+                statusDiv.innerHTML = `<div style="padding: 12px; background: #FEE2E2; color: #DC2626; border-radius: 8px; border: 1px solid #FCA5A5;"><strong>Error:</strong> ${data.error}</div>`;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `<div style="padding: 12px; background: #FEE2E2; color: #DC2626; border-radius: 8px; border: 1px solid #FCA5A5;"><strong>Error:</strong> ${error.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send SMS to All Users';
+        }
     }
 
     let selectedGateway = 'stripe';

@@ -130,3 +130,4 @@ psycopg2-binary
 python-dotenv
 sqlalchemy
 werkzeug
+twilio
