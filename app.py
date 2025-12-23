@@ -1626,6 +1626,7 @@ class EmailHistory(db.Model):
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    gig_code = db.Column(db.String(20), unique=True, nullable=True)  # Unique readable ID like GIG-00001
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(50), nullable=False)
@@ -2657,6 +2658,10 @@ def post_gig():
             )
             
             db.session.add(new_gig)
+            db.session.flush()  # Flush to get the ID without committing
+            
+            # Generate unique gig code
+            new_gig.gig_code = f"GIG-{new_gig.id:05d}"
             db.session.commit()
             
             # Handle photo uploads
