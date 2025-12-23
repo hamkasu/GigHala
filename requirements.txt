@@ -137,3 +137,16 @@ flask-sqlalchemy
 gunicorn
 psycopg2-binary
 sendgrid
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-cors
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+python-dotenv
+werkzeug

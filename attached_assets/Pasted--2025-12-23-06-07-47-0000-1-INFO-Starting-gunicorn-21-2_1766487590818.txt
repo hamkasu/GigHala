@@ -1,0 +1,103 @@
+[2025-12-23 06:07:47 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-12-23 06:07:47 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+[2025-12-23 06:07:47 +0000] [1] [INFO] Using worker: sync
+[2025-12-23 06:07:47 +0000] [4] [INFO] Booting worker with pid: 4
+[2025-12-23 06:14:14,962] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:15:31,706] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:19:52,000] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:22:29,767] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:22:40,248] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:25:00,527] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:29:26,722] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+         ^^^^^^^^^^^^^^^^^^^^^^^
+[2025-12-23 06:29:58,635] ERROR in app: Exception on /api/auth/apple [GET]
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 852, in dispatch_request
+Traceback (most recent call last):
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/app/app.py", line 3882, in apple_login
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 1455, in wsgi_app
+    return apple.authorize_redirect(redirect_uri)
+    response = self.full_dispatch_request()
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 867, in full_dispatch_request
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    rv = self.dispatch_request()
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 869, in full_dispatch_request
+AttributeError: 'NoneType' object has no attribute 'authorize_redirect'
+[2025-12-23 06:33:15,355] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 06:34:29,120] ERROR in email_service: Error sending email: HTTP Error 403: Forbidden
+[2025-12-23 07:14:23,102] ERROR in app: Google OAuth error: (psycopg2.errors.NotNullViolation) null value in column "password_hash" of relation "user" violates not-null constraint
+DETAIL:  Failing row contains (87, amirjailani22_7dc42e20, amirjailani22@gmail.com, null, null, Amir Jamal, both, null, null, null, 0, 0, 0, null, 2025-12-23 07:14:23.100014, t, f, f, 0, ms, null, null, null, null, f, null, basic, google, 115842657287247561675, null, null, f, f, null, f, null).
+[SQL: INSERT INTO "user" (username, email, password_hash, phone, full_name, user_type, location, latitude, longitude, skills, bio, rating, review_count, total_earnings, completed_gigs, profile_video, language, created_at, is_verified, halal_verified, is_admin, ic_number, bank_name, bank_account_number, bank_account_holder, oauth_provider, oauth_id, socso_registered, socso_consent, socso_consent_date, socso_data_complete, socso_membership_number) VALUES (%(username)s, %(email)s, %(password_hash)s, %(phone)s, %(full_name)s, %(user_type)s, %(location)s, %(latitude)s, %(longitude)s, %(skills)s, %(bio)s, %(rating)s, %(review_count)s, %(total_earnings)s, %(completed_gigs)s, %(profile_video)s, %(language)s, %(created_at)s, %(is_verified)s, %(halal_verified)s, %(is_admin)s, %(ic_number)s, %(bank_name)s, %(bank_account_number)s, %(bank_account_holder)s, %(oauth_provider)s, %(oauth_id)s, %(socso_registered)s, %(socso_consent)s, %(socso_consent_date)s, %(socso_data_complete)s, %(socso_membership_number)s) RETURNING "user".id]
+[parameters: {'username': 'amirjailani22_7dc42e20', 'email': 'amirjailani22@gmail.com', 'password_hash': None, 'phone': None, 'full_name': 'Amir Jamal', 'user_type': 'both', 'location': None, 'latitude': None, 'longitude': None, 'skills': None, 'bio': None, 'rating': 0.0, 'review_count': 0, 'total_earnings': 0.0, 'completed_gigs': 0, 'profile_video': None, 'language': 'ms', 'created_at': datetime.datetime(2025, 12, 23, 7, 14, 23, 100014), 'is_verified': True, 'halal_verified': False, 'is_admin': False, 'ic_number': None, 'bank_name': None, 'bank_account_number': None, 'bank_account_holder': None, 'oauth_provider': 'google', 'oauth_id': '115842657287247561675', 'socso_registered': False, 'socso_consent': False, 'socso_consent_date': None, 'socso_data_complete': False, 'socso_membership_number': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2025-12-23 07:14:23,103] ERROR in app: Google OAuth error: mismatching_state: CSRF Warning! State not equal in request and response.
+[2025-12-23 07:14:35,088] ERROR in app: Google OAuth error: (psycopg2.errors.NotNullViolation) null value in column "password_hash" of relation "user" violates not-null constraint
+DETAIL:  Failing row contains (88, amirjailani22_f371929d, amirjailani22@gmail.com, null, null, Amir Jamal, both, null, null, null, 0, 0, 0, null, 2025-12-23 07:14:35.086604, t, f, f, 0, ms, null, null, null, null, f, null, basic, google, 115842657287247561675, null, null, f, f, null, f, null).
+[SQL: INSERT INTO "user" (username, email, password_hash, phone, full_name, user_type, location, latitude, longitude, skills, bio, rating, review_count, total_earnings, completed_gigs, profile_video, language, created_at, is_verified, halal_verified, is_admin, ic_number, bank_name, bank_account_number, bank_account_holder, oauth_provider, oauth_id, socso_registered, socso_consent, socso_consent_date, socso_data_complete, socso_membership_number) VALUES (%(username)s, %(email)s, %(password_hash)s, %(phone)s, %(full_name)s, %(user_type)s, %(location)s, %(latitude)s, %(longitude)s, %(skills)s, %(bio)s, %(rating)s, %(review_count)s, %(total_earnings)s, %(completed_gigs)s, %(profile_video)s, %(language)s, %(created_at)s, %(is_verified)s, %(halal_verified)s, %(is_admin)s, %(ic_number)s, %(bank_name)s, %(bank_account_number)s, %(bank_account_holder)s, %(oauth_provider)s, %(oauth_id)s, %(socso_registered)s, %(socso_consent)s, %(socso_consent_date)s, %(socso_data_complete)s, %(socso_membership_number)s) RETURNING "user".id]
+[parameters: {'username': 'amirjailani22_f371929d', 'email': 'amirjailani22@gmail.com', 'password_hash': None, 'phone': None, 'full_name': 'Amir Jamal', 'user_type': 'both', 'location': None, 'latitude': None, 'longitude': None, 'skills': None, 'bio': None, 'rating': 0.0, 'review_count': 0, 'total_earnings': 0.0, 'completed_gigs': 0, 'profile_video': None, 'language': 'ms', 'created_at': datetime.datetime(2025, 12, 23, 7, 14, 35, 86604), 'is_verified': True, 'halal_verified': False, 'is_admin': False, 'ic_number': None, 'bank_name': None, 'bank_account_number': None, 'bank_account_holder': None, 'oauth_provider': 'google', 'oauth_id': '115842657287247561675', 'socso_registered': False, 'socso_consent': False, 'socso_consent_date': None, 'socso_data_complete': False, 'socso_membership_number': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2025-12-23 07:14:45,837] ERROR in app: Google OAuth error: (psycopg2.errors.NotNullViolation) null value in column "password_hash" of relation "user" violates not-null constraint
+DETAIL:  Failing row contains (89, amirjailani22_f7b0127e, amirjailani22@gmail.com, null, null, Amir Jamal, both, null, null, null, 0, 0, 0, null, 2025-12-23 07:14:45.835602, t, f, f, 0, ms, null, null, null, null, f, null, basic, google, 115842657287247561675, null, null, f, f, null, f, null).
+[SQL: INSERT INTO "user" (username, email, password_hash, phone, full_name, user_type, location, latitude, longitude, skills, bio, rating, review_count, total_earnings, completed_gigs, profile_video, language, created_at, is_verified, halal_verified, is_admin, ic_number, bank_name, bank_account_number, bank_account_holder, oauth_provider, oauth_id, socso_registered, socso_consent, socso_consent_date, socso_data_complete, socso_membership_number) VALUES (%(username)s, %(email)s, %(password_hash)s, %(phone)s, %(full_name)s, %(user_type)s, %(location)s, %(latitude)s, %(longitude)s, %(skills)s, %(bio)s, %(rating)s, %(review_count)s, %(total_earnings)s, %(completed_gigs)s, %(profile_video)s, %(language)s, %(created_at)s, %(is_verified)s, %(halal_verified)s, %(is_admin)s, %(ic_number)s, %(bank_name)s, %(bank_account_number)s, %(bank_account_holder)s, %(oauth_provider)s, %(oauth_id)s, %(socso_registered)s, %(socso_consent)s, %(socso_consent_date)s, %(socso_data_complete)s, %(socso_membership_number)s) RETURNING "user".id]
+[parameters: {'username': 'amirjailani22_f7b0127e', 'email': 'amirjailani22@gmail.com', 'password_hash': None, 'phone': None, 'full_name': 'Amir Jamal', 'user_type': 'both', 'location': None, 'latitude': None, 'longitude': None, 'skills': None, 'bio': None, 'rating': 0.0, 'review_count': 0, 'total_earnings': 0.0, 'completed_gigs': 0, 'profile_video': None, 'language': 'ms', 'created_at': datetime.datetime(2025, 12, 23, 7, 14, 45, 835602), 'is_verified': True, 'halal_verified': False, 'is_admin': False, 'ic_number': None, 'bank_name': None, 'bank_account_number': None, 'bank_account_holder': None, 'oauth_provider': 'google', 'oauth_id': '115842657287247561675', 'socso_registered': False, 'socso_consent': False, 'socso_consent_date': None, 'socso_data_complete': False, 'socso_membership_number': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2025-12-23 07:16:01,554] ERROR in app: Google OAuth error: (psycopg2.errors.NotNullViolation) null value in column "password_hash" of relation "user" violates not-null constraint
+DETAIL:  Failing row contains (90, kwanhualun_7a34831f, kwanhualun@gmail.com, null, null, Kwan Hua Lun, both, null, null, null, 0, 0, 0, null, 2025-12-23 07:16:01.551496, t, f, f, 0, ms, null, null, null, null, f, null, basic, google, 107824482304175375638, null, null, f, f, null, f, null).
+[SQL: INSERT INTO "user" (username, email, password_hash, phone, full_name, user_type, location, latitude, longitude, skills, bio, rating, review_count, total_earnings, completed_gigs, profile_video, language, created_at, is_verified, halal_verified, is_admin, ic_number, bank_name, bank_account_number, bank_account_holder, oauth_provider, oauth_id, socso_registered, socso_consent, socso_consent_date, socso_data_complete, socso_membership_number) VALUES (%(username)s, %(email)s, %(password_hash)s, %(phone)s, %(full_name)s, %(user_type)s, %(location)s, %(latitude)s, %(longitude)s, %(skills)s, %(bio)s, %(rating)s, %(review_count)s, %(total_earnings)s, %(completed_gigs)s, %(profile_video)s, %(language)s, %(created_at)s, %(is_verified)s, %(halal_verified)s, %(is_admin)s, %(ic_number)s, %(bank_name)s, %(bank_account_number)s, %(bank_account_holder)s, %(oauth_provider)s, %(oauth_id)s, %(socso_registered)s, %(socso_consent)s, %(socso_consent_date)s, %(socso_data_complete)s, %(socso_membership_number)s) RETURNING "user".id]
+[parameters: {'username': 'kwanhualun_7a34831f', 'email': 'kwanhualun@gmail.com', 'password_hash': None, 'phone': None, 'full_name': 'Kwan Hua Lun', 'user_type': 'both', 'location': None, 'latitude': None, 'longitude': None, 'skills': None, 'bio': None, 'rating': 0.0, 'review_count': 0, 'total_earnings': 0.0, 'completed_gigs': 0, 'profile_video': None, 'language': 'ms', 'created_at': datetime.datetime(2025, 12, 23, 7, 16, 1, 551496), 'is_verified': True, 'halal_verified': False, 'is_admin': False, 'ic_number': None, 'bank_name': None, 'bank_account_number': None, 'bank_account_holder': None, 'oauth_provider': 'google', 'oauth_id': '107824482304175375638', 'socso_registered': False, 'socso_consent': False, 'socso_consent_date': None, 'socso_data_complete': False, 'socso_membership_number': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2025-12-23 07:17:10,285] ERROR in app: Google OAuth error: mismatching_state: CSRF Warning! State not equal in request and response.
+[2025-12-23 08:01:35,954] ERROR in app: Exception on /api/auth/microsoft [GET]
+                                                ^^^^^^^^^^^^^^^^^^
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 867, in full_dispatch_request
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 1455, in wsgi_app
+    response = self.full_dispatch_request()
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 869, in full_dispatch_request
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 852, in dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+  File "/app/app.py", line 3824, in microsoft_login
+    return microsoft.authorize_redirect(redirect_uri)
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'authorize_redirect'
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+[2025-12-23 08:01:38,753] ERROR in app: Exception on /api/auth/apple [GET]
+Traceback (most recent call last):
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 1455, in wsgi_app
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 867, in full_dispatch_request
+    response = self.full_dispatch_request()
+    rv = self.dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 869, in full_dispatch_request
+  File "/opt/venv/lib/python3.12/site-packages/flask/app.py", line 852, in dispatch_request
+    rv = self.handle_user_exception(e)
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+  File "/app/app.py", line 3882, in apple_login
+    return apple.authorize_redirect(redirect_uri)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'authorize_redirect'
+[2025-12-23 10:51:47,261] ERROR in app: Google OAuth error: (psycopg2.errors.NotNullViolation) null value in column "password_hash" of relation "user" violates not-null constraint
+DETAIL:  Failing row contains (93, krishma.k.s.13_6cedb398, krishma.k.s.13@gmail.com, null, null, Krishma Kaur Sohol, both, null, null, null, 0, 0, 0, null, 2025-12-23 10:51:47.259765, t, f, f, 0, ms, null, null, null, null, f, null, basic, google, 112845067337928042378, null, null, f, f, null, f, null).
+[SQL: INSERT INTO "user" (username, email, password_hash, phone, full_name, user_type, location, latitude, longitude, skills, bio, rating, review_count, total_earnings, completed_gigs, profile_video, language, created_at, is_verified, halal_verified, is_admin, ic_number, bank_name, bank_account_number, bank_account_holder, oauth_provider, oauth_id, socso_registered, socso_consent, socso_consent_date, socso_data_complete, socso_membership_number) VALUES (%(username)s, %(email)s, %(password_hash)s, %(phone)s, %(full_name)s, %(user_type)s, %(location)s, %(latitude)s, %(longitude)s, %(skills)s, %(bio)s, %(rating)s, %(review_count)s, %(total_earnings)s, %(completed_gigs)s, %(profile_video)s, %(language)s, %(created_at)s, %(is_verified)s, %(halal_verified)s, %(is_admin)s, %(ic_number)s, %(bank_name)s, %(bank_account_number)s, %(bank_account_holder)s, %(oauth_provider)s, %(oauth_id)s, %(socso_registered)s, %(socso_consent)s, %(socso_consent_date)s, %(socso_data_complete)s, %(socso_membership_number)s) RETURNING "user".id]
+[parameters: {'username': 'krishma.k.s.13_6cedb398', 'email': 'krishma.k.s.13@gmail.com', 'password_hash': None, 'phone': None, 'full_name': 'Krishma Kaur Sohol', 'user_type': 'both', 'location': None, 'latitude': None, 'longitude': None, 'skills': None, 'bio': None, 'rating': 0.0, 'review_count': 0, 'total_earnings': 0.0, 'completed_gigs': 0, 'profile_video': None, 'language': 'ms', 'created_at': datetime.datetime(2025, 12, 23, 10, 51, 47, 259765), 'is_verified': True, 'halal_verified': False, 'is_admin': False, 'ic_number': None, 'bank_name': None, 'bank_account_number': None, 'bank_account_holder': None, 'oauth_provider': 'google', 'oauth_id': '112845067337928042378', 'socso_registered': False, 'socso_consent': False, 'socso_consent_date': None, 'socso_data_complete': False, 'socso_membership_number': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
