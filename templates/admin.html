@@ -1865,7 +1865,7 @@
         content.style.display = 'none';
 
         try {
-            const response = await fetch(`/api/admin/users?page=${page}&search=${search}`);
+            const response = await fetch(`/api/admin/users?limit=10000&search=${search}`);
             const data = await response.json();
 
             const tbody = document.getElementById('users-tbody');
