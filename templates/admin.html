@@ -645,7 +645,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th style="cursor: pointer; user-select: none;" onclick="toggleUserSort()" id="users-id-header">ID <span id="users-sort-indicator"></span></th>
                         <th>Username</th>
                         <th>Email</th>
                         <th>Type</th>
@@ -1475,6 +1475,7 @@
     let currentEditGigId = null;
     let usersCurrentPage = 1;
     let gigsCurrentPage = 1;
+    let usersSortAscending = true;
 
     async function checkAdminAccess() {
         try {
@@ -1868,8 +1869,15 @@
             const response = await fetch(`/api/admin/users?limit=10000&search=${search}`);
             const data = await response.json();
 
+            let users = data.users;
+            if (usersSortAscending) {
+                users.sort((a, b) => a.id - b.id);
+            } else {
+                users.sort((a, b) => b.id - a.id);
+            }
+
             const tbody = document.getElementById('users-tbody');
-            tbody.innerHTML = data.users.map(user => `
+            tbody.innerHTML = users.map(user => `
                 <tr>
                     <td>${user.id}</td>
                     <td>${user.username}</td>
@@ -1885,12 +1893,23 @@
                 </tr>
             `).join('');
 
+            updateUserSortIndicator();
             loading.style.display = 'none';
             content.style.display = 'block';
         } catch (error) {
             console.error('Error loading users:', error);
             loading.textContent = 'Error loading users';
         }
+    }
+
+    function toggleUserSort() {
+        usersSortAscending = !usersSortAscending;
+        loadUsers(1);
+    }
+
+    function updateUserSortIndicator() {
+        const indicator = document.getElementById('users-sort-indicator');
+        indicator.textContent = usersSortAscending ? '↑' : '↓';
     }
 
     async function loadGigs(page) {
