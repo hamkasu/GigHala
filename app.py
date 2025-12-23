@@ -11265,6 +11265,43 @@ def start_conversation():
         app.logger.error(f"Start conversation error: {str(e)}")
         return jsonify({'error': 'Failed to start conversation'}), 500
 
+@app.route('/api/messages/message-admin', methods=['POST'])
+@login_required
+def message_admin():
+    """Start a conversation with the first admin"""
+    try:
+        user_id = session['user_id']
+        
+        # Find the first admin user
+        admin = User.query.filter_by(is_admin=True).first()
+        if not admin:
+            return jsonify({'error': 'No admin available'}), 404
+        
+        if admin.id == user_id:
+            return jsonify({'error': 'You are an admin'}), 400
+        
+        # Check if conversation already exists
+        existing = Conversation.query.filter(
+            ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == admin.id)) |
+            ((Conversation.participant_1_id == admin.id) & (Conversation.participant_2_id == user_id))
+        ).first()
+        
+        if existing:
+            return jsonify({'success': True, 'conversation_id': existing.id}), 200
+        
+        # Create new conversation
+        conv = Conversation(
+            participant_1_id=user_id,
+            participant_2_id=admin.id
+        )
+        db.session.add(conv)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'conversation_id': conv.id}), 201
+    except Exception as e:
+        app.logger.error(f"Message admin error: {str(e)}")
+        return jsonify({'error': 'Failed to start conversation'}), 500
+
 @app.route('/api/messages/poll/<int:conversation_id>')
 @login_required
 def poll_messages(conversation_id):

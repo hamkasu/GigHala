@@ -766,6 +766,7 @@
         <a href="/gigs" class="btn btn-primary">{{ t('browse_gigs') }}</a>
         <a href="/messages" class="btn btn-outline">{{ 'Mesej' if lang == 'ms' else 'Messages' }}</a>
         <a href="/billing" class="btn btn-outline">{{ t('view_wallet') }}</a>
+        <button onclick="messageAdmin()" class="btn btn-outline" style="background: #0ea5e9; color: white; border-color: #0ea5e9;">💬 Message Admin</button>
         <button onclick="openPayoutModal()" class="btn btn-outline" style="background: var(--primary-green); color: white; border-color: var(--primary-green);">💰 Request Payout</button>
         {% if user.user_type in ['client', 'both'] %}
         <a href="/post-gig" class="btn btn-outline">{{ t('post_gig') }}</a>
@@ -1001,6 +1002,25 @@
             }).then(() => {
                 window.location.href = '/';
             });
+        }
+    }
+
+    // Message admin functionality
+    async function messageAdmin() {
+        try {
+            const response = await fetch('/api/messages/message-admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = `/messages/${data.conversation_id}`;
+            } else {
+                alert(data.error || 'Failed to start conversation with admin');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to contact admin. Please try again.');
         }
     }
 
