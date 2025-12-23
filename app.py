@@ -19,6 +19,7 @@ from hijri_converter import Hijri, Gregorian
 from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
 from twilio.rest import Client
+from email_service import email_service
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -7469,6 +7470,68 @@ def admin_send_sms():
     except Exception as e:
         app.logger.error(f"Admin send SMS error: {str(e)}")
         return jsonify({'error': 'Failed to send SMS broadcast'}), 500
+
+@app.route('/api/admin/send-email', methods=['POST'])
+@admin_required
+def admin_send_email():
+    """Send email to selected users or all users"""
+    try:
+        data = request.get_json()
+        subject = data.get('subject', '').strip()
+        html_content = data.get('html_content', '').strip()
+        text_content = data.get('text_content', '').strip()
+        recipient_type = data.get('recipient_type', 'all')  # 'all', 'freelancers', 'clients', 'selected'
+        selected_user_ids = data.get('selected_user_ids', [])
+        
+        # Validation
+        if not subject:
+            return jsonify({'error': 'Email subject cannot be empty'}), 400
+        if not html_content:
+            return jsonify({'error': 'Email content cannot be empty'}), 400
+        
+        # Build recipient list
+        if recipient_type == 'all':
+            users = User.query.all()
+        elif recipient_type == 'freelancers':
+            users = User.query.filter(User.user_type.in_(['freelancer', 'both'])).all()
+        elif recipient_type == 'clients':
+            users = User.query.filter(User.user_type.in_(['client', 'both'])).all()
+        elif recipient_type == 'selected':
+            if not selected_user_ids:
+                return jsonify({'error': 'No users selected'}), 400
+            users = User.query.filter(User.id.in_(selected_user_ids)).all()
+        else:
+            return jsonify({'error': 'Invalid recipient type'}), 400
+        
+        if not users:
+            return jsonify({'error': 'No matching users found'}), 400
+        
+        # Prepare email list
+        to_emails = [(user.email, user.full_name or user.username) for user in users]
+        
+        # Send email
+        success, message, status_code = email_service.send_bulk_email(
+            to_emails=to_emails,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content or None
+        )
+        
+        if success:
+            # Log the email action
+            app.logger.info(f"Admin sent email to {len(users)} users. Subject: {subject}")
+            return jsonify({
+                'message': message,
+                'recipients_count': len(users),
+                'recipient_type': recipient_type
+            }), 200
+        else:
+            return jsonify({'error': message}), 500
+            
+    except Exception as e:
+        app.logger.error(f"Admin send email error: {str(e)}")
+        return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
+
 
 @app.route('/api/admin/send-whatsapp', methods=['POST'])
 @admin_required
