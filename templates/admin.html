@@ -1861,6 +1861,7 @@
         const loading = document.getElementById('users-loading');
         const content = document.getElementById('users-content');
         const search = document.getElementById('user-search').value;
+        const usersPerPage = 50;
 
         loading.style.display = 'block';
         content.style.display = 'none';
@@ -1876,8 +1877,13 @@
                 users.sort((a, b) => b.id - a.id);
             }
 
+            const totalPages = Math.ceil(users.length / usersPerPage);
+            const start = (page - 1) * usersPerPage;
+            const end = start + usersPerPage;
+            const pageUsers = users.slice(start, end);
+
             const tbody = document.getElementById('users-tbody');
-            tbody.innerHTML = users.map(user => `
+            tbody.innerHTML = pageUsers.map(user => `
                 <tr>
                     <td>${user.id}</td>
                     <td>${user.username}</td>
@@ -1893,6 +1899,14 @@
                 </tr>
             `).join('');
 
+            const pagination = document.getElementById('users-pagination');
+            let paginationHTML = '';
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHTML += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadUsers(${i})">${i}</button>`;
+            }
+            pagination.innerHTML = paginationHTML;
+
+            usersCurrentPage = page;
             updateUserSortIndicator();
             loading.style.display = 'none';
             content.style.display = 'block';
