@@ -11,6 +11,7 @@ I want iterative development. Ask before making major changes. I prefer detailed
 - Added SMS support via Twilio integration with `sms_service.py`
 - Added WhatsApp messaging support via Twilio
 - Added "About Us" link (https://gighala.calmic.com.my/about) to all pages navigation
+- **Fixed language switcher** - Added `/api/language` endpoint to handle language switching between Malay (ms) and English (en). Language preference is stored in user session and database (if logged in)
 
 ## System Architecture
 The application uses a Flask backend with PostgreSQL as the database, managed by Replit. SQLAlchemy is used as the ORM. The frontend is built with Vanilla JavaScript and CSS.

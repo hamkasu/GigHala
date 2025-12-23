@@ -3721,6 +3721,32 @@ def logout():
     # For POST requests (JavaScript calls), return JSON
     return jsonify({'message': 'Logged out successfully'}), 200
 
+@app.route('/api/language', methods=['POST'])
+def set_language():
+    """Set user's language preference"""
+    try:
+        data = request.json
+        language = data.get('language', 'ms')
+        
+        # Validate language (only allow 'ms' and 'en')
+        if language not in ['ms', 'en']:
+            return jsonify({'error': 'Invalid language'}), 400
+        
+        # Store in session
+        session['language'] = language
+        
+        # If user is logged in, also update database
+        if 'user_id' in session:
+            user = User.query.get(session['user_id'])
+            if user:
+                user.language = language
+                db.session.commit()
+        
+        return jsonify({'message': 'Language updated successfully', 'language': language}), 200
+    except Exception as e:
+        app.logger.error(f"Error setting language: {str(e)}")
+        return jsonify({'error': 'Failed to set language'}), 500
+
 # OAuth Login Routes
 @app.route('/api/auth/google')
 def google_login():
