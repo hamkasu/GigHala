@@ -978,7 +978,7 @@
                 <a href="/billing" class="dashboard-stat" style="text-decoration: none;">
                     <div class="dashboard-stat-label">{{ t('wallet') if t('wallet') != 'wallet' else 'Wallet' }}</div>
                     <div class="dashboard-stat-value">
-                        <span class="currency">MYR</span>{{ "%.2f"|format(wallet.balance if wallet else 0) }}
+                        <span class="currency" style="margin-right: 8px;">MYR</span>{{ "%.2f"|format(wallet.balance if wallet else 0) }}
                     </div>
                 </a>
 
