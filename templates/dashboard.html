@@ -553,6 +553,7 @@
         {% if active_gigs %}
             {% for gig in active_gigs %}
             <div class="gig-item">
+                <div style="font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 4px;">{{ gig.gig_code or 'GIG-' + gig.id|string }}</div>
                 <div class="gig-title">{{ gig.title }}</div>
                 <div class="gig-meta">
                     <span><span class="badge {{ gig.status }}">{{ gig.status }}</span></span>
@@ -578,6 +579,7 @@
         {% if applications %}
             {% for app in applications %}
             <a href="/gig/{{ app.gig_id }}" class="gig-item" style="display: block; text-decoration: none; color: inherit;">
+                <div style="font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 4px;">{{ app.gig_code or 'GIG-' + app.gig_id|string }}</div>
                 <div class="gig-title">{{ app.gig_title or 'Gig #' ~ app.gig_id }}</div>
                 <div class="gig-meta">
                     <span>
@@ -614,6 +616,7 @@
         {% if posted_gigs %}
             {% for gig in posted_gigs %}
             <a href="/gig/{{ gig.id }}" class="gig-item" style="display: block; text-decoration: none; color: inherit;">
+                <div style="font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 4px;">{{ gig.gig_code or 'GIG-' + gig.id|string }}</div>
                 <div class="gig-title">{{ gig.title }}</div>
                 <div class="gig-meta">
                     <span><span class="badge {{ gig.status }}">{{ gig.status }}</span></span>
