@@ -4,6 +4,44 @@ const app = {
     gigs: [],
     categories: [],
     
+    // Category name translations (English -> Malay)
+    categoryTranslations: {
+        'Design & Creative': 'Design & Kreatif',
+        'Writing & Translation': 'Penulisan & Terjemahan',
+        'Video & Animation': 'Video & Animasi',
+        'Web Development': 'Pembangunan Web',
+        'Digital Marketing': 'Pemasaran Digital',
+        'Tutoring & Education': 'Tunjuk Ajar',
+        'Content Creation': 'Penciptaan Kandungan',
+        'Admin Support': 'Sokongan Admin & Pentadbiran Maya',
+        'General Works': 'Kerja Am',
+        'Virtual Assistant': 'Pembantu Maya',
+        'Delivery & Logistics': 'Penghantaran & Logistik',
+        'Micro-Tasks & Daily': 'Micro-Tasks & Tugasan',
+        'Event Management': 'Pengurusan Acara',
+        'Caregiving & Services': 'Penjagaan & Perkhidmatan',
+        'Photography & Videography': 'Fotografi, Videografi & Animasi',
+        'Other Creative': 'Lain-lain Kreatif',
+        'Programming & Tech': 'Pengaturcaraan & Teknologi',
+        'Business Consulting': 'Konsultasi Perniagaan',
+        'Engineering Services': 'Perkhidmatan Kejuruteraan',
+        'Music & Audio': 'Muzik & Audio',
+        'Finance & Bookkeeping': 'Kewangan & Simpan Kira',
+        'Crafts & Handmade': 'Kerajinan & Buatan Tangan',
+        'Home & Garden': 'Rumah & Taman',
+        'Life Coaching': 'Bimbingan Hidup',
+        'Data Analysis': 'Analisis Data',
+        'Pet Services': 'Perkhidmatan Haiwan Peliharaan',
+        'Handyman & Repairs': 'Handyman & Pembaikan',
+        'Tour Guiding': 'Panduan Lawatan',
+        'Event Planning': 'Perancangan Acara',
+        'Online Selling': 'Penjualan Dalam Talian'
+    },
+    
+    translateCategoryName(name) {
+        return this.categoryTranslations[name] || name;
+    },
+    
     // Initialize app
     async init() {
         console.log('Initializing GigHala App...');
@@ -69,7 +107,7 @@ const app = {
         grid.innerHTML = this.categories.map(cat => `
             <div class="category-card" onclick="app.filterByCategory('${cat.id}')">
                 <span class="category-icon">${cat.icon}</span>
-                <div class="category-name">${cat.name}</div>
+                <div class="category-name">${this.translateCategoryName(cat.name)}</div>
             </div>
         `).join('');
     },
@@ -81,7 +119,7 @@ const app = {
         
         select.innerHTML = '<option value="">Semua Kategori</option>' +
             this.categories.map(cat => 
-                `<option value="${cat.id}">${cat.name}</option>`
+                `<option value="${cat.id}">${this.translateCategoryName(cat.name)}</option>`
             ).join('');
     },
     
