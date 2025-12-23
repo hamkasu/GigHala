@@ -36,10 +36,23 @@ The platform features a consistent dark-themed navigation bar (`#1F2937`) with a
 - **Payment Gateways**:
     - Stripe (for `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`)
     - PayHalal (Malaysian Shariah-compliant payment gateway)
+- **SMS Service**:
+    - Twilio (for `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`)
 - **Python Libraries**:
     - Flask
     - SQLAlchemy
     - `psycopg` (for PostgreSQL connectivity)
     - `hijri-converter` (for dual date display)
+    - `twilio` (for SMS support)
 - **Frontend Libraries**: None explicitly mentioned beyond Vanilla JS and CSS.
+
+## SMS Integration
+SMS support is configured via Twilio. Use `sms_service.py` for sending SMS messages:
+- `send_sms(to_phone, message)` - Send custom SMS
+- `send_verification_sms(to_phone, code)` - Send verification code
+- `send_notification_sms(to_phone, subject, message_text)` - Send notifications
+
+Example: `from sms_service import send_verification_sms; send_verification_sms('+60123456789', '123456')`
+
+Credentials stored securely in environment variables: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
 ```
