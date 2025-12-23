@@ -6,6 +6,12 @@ GigHala is a Malaysian halal gig economy platform built with Flask. Its main pur
 ## User Preferences
 I want iterative development. Ask before making major changes. I prefer detailed explanations. Do not make changes to the folder `files/`.
 
+## Recent Changes (December 23, 2025)
+- Removed redundant navigation items from header (Tentang Kami, Cari Gig, Kategori, Cara Kerja) as they were duplicates of dropdown menu items
+- Added SMS support via Twilio integration with `sms_service.py`
+- Added WhatsApp messaging support via Twilio
+- Added "About Us" link (https://gighala.calmic.com.my/about) to all pages navigation
+
 ## System Architecture
 The application uses a Flask backend with PostgreSQL as the database, managed by Replit. SQLAlchemy is used as the ORM. The frontend is built with Vanilla JavaScript and CSS.
 

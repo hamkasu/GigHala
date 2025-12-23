@@ -997,6 +997,7 @@
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
+                    <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank">Tentang Kami</a>
                     <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
                         <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
@@ -1014,6 +1015,7 @@
                         </div>
                     </div>
                 {% else %}
+                    <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank">Tentang Kami</a>
                     <a href="#" class="nav-link" onclick="app.showLogin(); return false;">{{ t('login') }}</a>
                     <button class="btn btn-primary" onclick="app.showRegister(); return false;">{{ t('register_free') }}</button>
                 {% endif %}
