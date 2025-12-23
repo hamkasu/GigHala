@@ -114,8 +114,8 @@
 {% block content %}
 <div class="messages-container">
     <div class="page-header">
-        <h1>Messages</h1>
-        <p style="color: var(--text-gray); margin-top: 4px;">Communicate with clients and freelancers</p>
+        <h1>{{ t('messages_page_title') }}</h1>
+        <p style="color: var(--text-gray); margin-top: 4px;">{{ t('messages_page_subtitle') }}</p>
     </div>
 
     <div class="conversation-list">
@@ -153,8 +153,8 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">💬</div>
-                <h3>No Conversations Yet</h3>
-                <p>Start a conversation by applying to a gig or accepting an application</p>
+                <h3>{{ t('no_conversations_yet') }}</h3>
+                <p>{{ t('start_conversation_hint') }}</p>
             </div>
         {% endif %}
     </div>

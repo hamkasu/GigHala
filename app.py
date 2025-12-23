@@ -738,6 +738,17 @@ TRANSLATIONS = {
         'max_5_photos': 'Maksimum 5 gambar sahaja dibenarkan',
         'only_image_formats': 'Hanya fail PNG, JPG atau WEBP dibenarkan',
         'max_file_size_5mb': 'Saiz fail mesti kurang daripada 5MB',
+        
+        # Messages & Chat
+        'messages_page_title': 'Mesej',
+        'messages_page_subtitle': 'Berkomunikasi dengan klien dan freelancer',
+        'no_conversations_yet': 'Tiada Perbualan Lagi',
+        'start_conversation_hint': 'Mulakan perbualan dengan memohon ke gig atau menerima permohonan',
+        'no_messages_yet': 'Tiada mesej lagi',
+        'send_message': 'Hantar Mesej',
+        'message_placeholder': 'Taip mesej anda di sini...',
+        'type_message': 'Taip mesej...',
+        'gig_reference': 'Rujuk:',
     },
     'en': {
         # Dashboard
@@ -1073,6 +1084,17 @@ TRANSLATIONS = {
         'max_5_photos': 'Maximum 5 photos allowed',
         'only_image_formats': 'Only PNG, JPG or WEBP files allowed',
         'max_file_size_5mb': 'File size must be less than 5MB',
+        
+        # Messages & Chat
+        'messages_page_title': 'Messages',
+        'messages_page_subtitle': 'Communicate with clients and freelancers',
+        'no_conversations_yet': 'No Conversations Yet',
+        'start_conversation_hint': 'Start a conversation by applying to a gig or accepting an application',
+        'no_messages_yet': 'No messages yet',
+        'send_message': 'Send Message',
+        'message_placeholder': 'Type your message here...',
+        'type_message': 'Type a message...',
+        'gig_reference': 'Reference:',
     }
 }
 

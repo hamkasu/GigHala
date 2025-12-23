@@ -324,15 +324,15 @@
             {% endfor %}
         {% else %}
             <div class="empty-messages">
-                <p>No messages yet. Start the conversation!</p>
+                <p>{{ t('no_messages_yet') }}</p>
             </div>
         {% endif %}
     </div>
 
     <form class="chat-input-area" id="messageForm">
         <div id="messageError" class="message-error" style="display: none;"></div>
-        <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." autocomplete="off">
-        <button type="submit" class="send-btn" id="sendBtn">Send</button>
+        <input type="text" class="chat-input" id="messageInput" placeholder="{{ t('type_message') }}" autocomplete="off">
+        <button type="submit" class="send-btn" id="sendBtn">{{ t('send_message') }}</button>
     </form>
 </div>
 
