@@ -567,7 +567,11 @@
             }
 
             .nav-link {
-                display: none;
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             .lang-switcher {
@@ -652,13 +656,16 @@
             }
 
             .nav-link {
-                font-size: 0;
-                width: 0;
-                display: none;
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                min-height: 0 !important;
             }
 
             .lang-switcher span#langText {
-                display: none;
+                display: none !important;
             }
 
             .lang-switcher {
@@ -696,7 +703,11 @@
 
         /* Touch device optimizations */
         @media (hover: none) and (pointer: coarse) {
-            .nav-link, .category-link, .lang-switcher {
+            .nav-link {
+                display: none !important;
+            }
+            
+            .category-link, .lang-switcher {
                 min-height: 44px;
                 display: flex;
                 align-items: center;
