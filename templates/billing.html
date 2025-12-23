@@ -880,7 +880,7 @@
                 tbody.innerHTML = data.map(inv => `
                     <tr>
                         <td>#${inv.invoice_number}</td>
-                        <td>${inv.gig_title || 'Gig #' + inv.gig_id}</td>
+                        <td><strong style="color: var(--primary);">${inv.gig_code || 'GIG-' + inv.gig_id}</strong> - ${inv.gig_title || 'Gig #' + inv.gig_id}</td>
                         <td>MYR ${inv.total_amount.toFixed(2)}</td>
                         <td><span class="badge ${inv.status}">${inv.status}</span></td>
                         <td>${new Date(inv.issue_date || inv.created_at).toLocaleDateString()}</td>

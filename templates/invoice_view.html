@@ -288,6 +288,7 @@
             {% if gig %}
             <div class="gig-section">
                 <h4>{{ 'Gig' if lang == 'ms' else 'Gig' }}</h4>
+                <div style="font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 8px;">{{ gig.gig_code or 'GIG-' + gig.id|string }}</div>
                 <div class="gig-title">{{ gig.title }}</div>
             </div>
             {% endif %}

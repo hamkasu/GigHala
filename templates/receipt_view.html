@@ -259,6 +259,10 @@
             <div class="receipt-details">
                 {% if gig %}
                 <div class="detail-row">
+                    <span class="detail-label">{{ 'Gig Code' if lang == 'ms' else 'Gig Code' }}</span>
+                    <span class="detail-value">{{ gig.gig_code or 'GIG-' + gig.id|string }}</span>
+                </div>
+                <div class="detail-row">
                     <span class="detail-label">{{ 'Gig' if lang == 'ms' else 'Gig' }}</span>
                     <span class="detail-value">{{ gig.title }}</span>
                 </div>
