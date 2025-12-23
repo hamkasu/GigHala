@@ -142,7 +142,7 @@
                         {% endif %}
                     </div>
                     {% if conv.gig %}
-                    <div class="conversation-gig">Re: {{ conv.gig.title }}</div>
+                    <div class="conversation-gig">Re: {{ conv.gig.gig_code or 'GIG' }} - {{ conv.gig.title }}</div>
                     {% endif %}
                 </div>
                 {% if conv.unread_count > 0 %}

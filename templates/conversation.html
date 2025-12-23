@@ -310,7 +310,7 @@
             <p>@{{ other_user.username }}</p>
         </div>
         {% if gig %}
-        <a href="/gig/{{ gig.id }}" class="chat-gig-badge">{{ gig.title[:30] }}{% if gig.title|length > 30 %}...{% endif %}</a>
+        <a href="/gig/{{ gig.id }}" class="chat-gig-badge">{{ gig.gig_code or 'GIG' }} - {{ gig.title[:25] }}{% if gig.title|length > 25 %}...{% endif %}</a>
         {% endif %}
     </div>
 
