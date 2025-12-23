@@ -12,6 +12,11 @@ I want iterative development. Ask before making major changes. I prefer detailed
 - Added WhatsApp messaging support via Twilio
 - Added "About Us" link (https://gighala.calmic.com.my/about) to all pages navigation
 - **Fixed language switcher** - Added `/api/language` endpoint to handle language switching between Malay (ms) and English (en). Language preference is stored in user session and database (if logged in)
+- **Fixed mobile header layout** - Improved CSS for mobile phones:
+  - Changed header-nav flex-shrink from 0 to 1 to prevent overlapping
+  - Hidden nav links on mobile to save space for logo, language switcher, and user menu
+  - Added proper alignment and spacing for responsive header at 480px and 768px breakpoints
+  - Partner logo and dropdown menu now display cleanly without overlapping on mobile phones
 
 ## System Architecture
 The application uses a Flask backend with PostgreSQL as the database, managed by Replit. SQLAlchemy is used as the ORM. The frontend is built with Vanilla JavaScript and CSS.
