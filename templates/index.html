@@ -23,24 +23,22 @@
         <nav class="navbar">
             <div class="container navbar-container">
                 <div class="navbar-top">
-                    <div style="display: flex; align-items: center; gap: 24px; flex: 1;">
-                        <div class="nav-brand">
-                            <img src="/static/logo.png" alt="GigHala">
-                            <span>GigHala</span>
+                    <div class="nav-brand">
+                        <img src="/static/logo.png" alt="GigHala">
+                        <span>GigHala</span>
+                    </div>
+                    
+                    <div class="nav-links">
+                        <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank" style="color: #404145; text-decoration: none; font-weight: 500;">Tentang Kami</a>
+                        <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px;">
+                        </button>
+                        <div class="partner-badge" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap;">OFFICIAL PARTNER:</span>
+                            <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 20px; width: auto; object-fit: contain;">
                         </div>
-                        
-                        <div class="nav-links">
-                            <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank" style="color: #404145; text-decoration: none; font-weight: 500;">Tentang Kami</a>
-                            <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px;">
-                            </button>
-                            <div class="partner-badge" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-left: auto;">
-                                <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap;">OFFICIAL PARTNER:</span>
-                                <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 20px; width: auto; object-fit: contain;">
-                            </div>
-                            <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px;">
-                                <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
-                                <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
-                            </div>
+                        <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px;">
+                            <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
+                            <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
                         </div>
                     </div>
                     
