@@ -131,3 +131,8 @@ python-dotenv
 sqlalchemy
 werkzeug
 twilio
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
