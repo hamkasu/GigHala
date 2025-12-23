@@ -1422,7 +1422,7 @@ body {
 
 .modal-content {
     background: white;
-    padding: 40px;
+    padding: 50px;
     border-radius: 24px;
     max-width: 500px;
     width: 90%;
@@ -1466,31 +1466,31 @@ body {
 
 .modal-title {
     font-family: var(--font-display);
-    font-size: 32px;
+    font-size: 40px;
     color: var(--dark-navy);
-    margin-bottom: 24px;
+    margin-bottom: 30px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .form-group label {
     display: block;
     font-weight: 600;
     color: var(--text-dark);
-    margin-bottom: 8px;
-    font-size: 14px;
+    margin-bottom: 10px;
+    font-size: 17.5px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 14px 16px;
+    padding: 17.5px 20px;
     border: 2px solid var(--border-light);
     border-radius: 12px;
-    font-size: 15px;
+    font-size: 18.75px;
     font-family: var(--font-primary);
     transition: all 0.3s ease;
 }
@@ -1508,14 +1508,14 @@ body {
     background: linear-gradient(135deg, var(--primary-green), var(--accent-teal));
     color: white;
     border: none;
-    padding: 16px;
+    padding: 20px;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     cursor: pointer;
     box-shadow: var(--shadow-md);
     transition: all 0.3s ease;
-    margin-top: 8px;
+    margin-top: 10px;
 }
 
 .btn-modal-primary:hover {
@@ -1525,8 +1525,8 @@ body {
 
 .modal-footer-text {
     text-align: center;
-    margin-top: 20px;
-    font-size: 14px;
+    margin-top: 25px;
+    font-size: 17.5px;
     color: var(--text-gray);
 }
 
