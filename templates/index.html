@@ -22,21 +22,21 @@
         <!-- Navigation -->
         <nav class="navbar">
             <div class="container navbar-container">
-                <div class="navbar-top">
-                    <div class="nav-brand">
+                <div class="navbar-top" style="display: flex; align-items: center; gap: 24px; flex-wrap: nowrap;">
+                    <div class="nav-brand" style="flex-shrink: 0;">
                         <img src="/static/logo.png" alt="GigHala">
                         <span>GigHala</span>
                     </div>
                     
-                    <div class="nav-links">
-                        <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank" style="color: #404145; text-decoration: none; font-weight: 500;">Tentang Kami</a>
-                        <div class="partner-badge" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div class="nav-links" style="display: flex; align-items: center; gap: 20px; flex-wrap: nowrap;">
+                        <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank" style="color: #404145; text-decoration: none; font-weight: 500; white-space: nowrap;">Tentang Kami</a>
+                        <div class="partner-badge" style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0; flex-shrink: 0;">
                             <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap;">OFFICIAL PARTNER:</span>
-                            <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 20px; width: auto; object-fit: contain;">
+                            <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 20px; width: auto; object-fit: contain; flex-shrink: 0;">
                         </div>
-                        <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px;">
+                        <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px; flex-shrink: 0;">
                         </button>
-                        <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px;">
+                        <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
                             <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
                             <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
                         </div>
