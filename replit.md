@@ -46,13 +46,22 @@ The platform features a consistent dark-themed navigation bar (`#1F2937`) with a
     - `twilio` (for SMS support)
 - **Frontend Libraries**: None explicitly mentioned beyond Vanilla JS and CSS.
 
-## SMS Integration
-SMS support is configured via Twilio. Use `sms_service.py` for sending SMS messages:
+## SMS & WhatsApp Integration
+SMS and WhatsApp support configured via Twilio. Use `sms_service.py` for both:
+
+**SMS Functions:**
 - `send_sms(to_phone, message)` - Send custom SMS
 - `send_verification_sms(to_phone, code)` - Send verification code
 - `send_notification_sms(to_phone, subject, message_text)` - Send notifications
 
-Example: `from sms_service import send_verification_sms; send_verification_sms('+60123456789', '123456')`
+**WhatsApp Functions:**
+- `send_whatsapp(to_whatsapp, message)` - Send custom WhatsApp message
+- `send_verification_whatsapp(to_whatsapp, code)` - Send verification code via WhatsApp
+- `send_notification_whatsapp(to_whatsapp, subject, message_text)` - Send notifications via WhatsApp
+
+Examples:
+- `from sms_service import send_verification_sms; send_verification_sms('+60123456789', '123456')`
+- `from sms_service import send_verification_whatsapp; send_verification_whatsapp('+60123456789', '123456')`
 
 Credentials stored securely in environment variables: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
 ```
