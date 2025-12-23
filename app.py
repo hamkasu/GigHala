@@ -7470,6 +7470,65 @@ def admin_send_sms():
         app.logger.error(f"Admin send SMS error: {str(e)}")
         return jsonify({'error': 'Failed to send SMS broadcast'}), 500
 
+@app.route('/api/admin/send-whatsapp', methods=['POST'])
+@admin_required
+def admin_send_whatsapp():
+    """Send WhatsApp message to all users"""
+    try:
+        if not twilio_client or not twilio_phone_number:
+            return jsonify({'error': 'WhatsApp service not configured'}), 500
+        
+        data = request.get_json()
+        message = data.get('message', '').strip()
+        
+        if not message:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        if len(message) > 1024:
+            return jsonify({'error': 'Message must be 1024 characters or less'}), 400
+        
+        # Get all users with phone numbers
+        users = User.query.filter(User.phone != None).filter(User.phone != '').all()
+        
+        if not users:
+            return jsonify({'error': 'No users with phone numbers found'}), 400
+        
+        sent_count = 0
+        failed_count = 0
+        failed_users = []
+        
+        # WhatsApp format: whatsapp:+[phone number]
+        whatsapp_from = f"whatsapp:{twilio_phone_number}"
+        
+        for user in users:
+            try:
+                whatsapp_to = f"whatsapp:{user.phone}"
+                twilio_client.messages.create(
+                    body=message,
+                    from_=whatsapp_from,
+                    to=whatsapp_to
+                )
+                sent_count += 1
+            except Exception as e:
+                failed_count += 1
+                failed_users.append({
+                    'username': user.username,
+                    'phone': user.phone,
+                    'error': str(e)
+                })
+                app.logger.warning(f"Failed to send WhatsApp to {user.username} ({user.phone}): {str(e)}")
+        
+        return jsonify({
+            'message': 'WhatsApp broadcast completed',
+            'sent': sent_count,
+            'failed': failed_count,
+            'total_users': len(users),
+            'failed_users': failed_users if failed_count > 0 else []
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin send WhatsApp error: {str(e)}")
+        return jsonify({'error': 'Failed to send WhatsApp broadcast'}), 500
+
 @app.route('/api/admin/gigs', methods=['GET'])
 @admin_required
 def admin_get_gigs():

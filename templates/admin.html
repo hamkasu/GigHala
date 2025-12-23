@@ -476,7 +476,7 @@
     <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
     <button class="tab-btn" onclick="switchTab('reports')">Financial Reports</button>
     <button class="tab-btn" onclick="switchTab('socso')">SOCSO Compliance</button>
-    <button class="tab-btn" onclick="switchTab('messaging')">SMS Messaging</button>
+    <button class="tab-btn" onclick="switchTab('messaging')">SMS & WhatsApp</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
     <a href="/admin/feedback" class="tab-btn" style="text-decoration:none;">Feedback</a>
     <button class="tab-btn" onclick="switchTab('reset')" style="color: #dc2626;">Reset Data</button>
@@ -798,9 +798,10 @@
 </div>
 
 <div id="messaging-tab" class="tab-content">
+    <!-- SMS Section -->
     <div class="data-table">
         <div class="table-header">
-            <h2>Send SMS to All Users</h2>
+            <h2>📱 Send SMS to All Users</h2>
         </div>
         <div style="padding: 24px;">
             <form id="sms-broadcast-form" onsubmit="sendSMSBroadcast(event)">
@@ -815,12 +816,31 @@
         </div>
     </div>
 
+    <!-- WhatsApp Section -->
     <div class="data-table" style="margin-top: 24px;">
         <div class="table-header">
-            <h2>SMS Broadcast History</h2>
+            <h2>💬 Send WhatsApp Message to All Users</h2>
         </div>
-        <div id="sms-history" style="padding: 24px; color: var(--text-gray);">
-            <p>Broadcasts will be logged here</p>
+        <div style="padding: 24px;">
+            <form id="whatsapp-broadcast-form" onsubmit="sendWhatsAppBroadcast(event)">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Message</label>
+                    <textarea id="whatsapp-message" name="message" placeholder="Enter your message (max 1024 characters)" maxlength="1024" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; resize: vertical; min-height: 100px; font-family: inherit;" required></textarea>
+                    <div id="whatsapp-char-count" style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">0 / 1024 characters</div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="whatsapp-send-btn" style="width: 100%; padding: 12px; background: #25D366;">Send WhatsApp to All Users</button>
+            </form>
+            <div id="whatsapp-status" style="margin-top: 16px;"></div>
+        </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="data-table" style="margin-top: 24px;">
+        <div class="table-header">
+            <h2>📋 Broadcast History</h2>
+        </div>
+        <div id="messaging-history" style="padding: 24px; color: var(--text-gray);">
+            <p>Messages will be logged here</p>
         </div>
     </div>
 </div>
@@ -1452,15 +1472,24 @@
     }
 
     function initMessaging() {
-        const textarea = document.getElementById('sms-message');
-        textarea.addEventListener('input', updateCharCount);
-        updateCharCount();
+        const smsTextarea = document.getElementById('sms-message');
+        const whatsappTextarea = document.getElementById('whatsapp-message');
+        smsTextarea.addEventListener('input', updateSMSCharCount);
+        whatsappTextarea.addEventListener('input', updateWhatsAppCharCount);
+        updateSMSCharCount();
+        updateWhatsAppCharCount();
     }
 
-    function updateCharCount() {
+    function updateSMSCharCount() {
         const textarea = document.getElementById('sms-message');
         const count = textarea.value.length;
         document.getElementById('sms-char-count').textContent = `${count} / 160 characters`;
+    }
+
+    function updateWhatsAppCharCount() {
+        const textarea = document.getElementById('whatsapp-message');
+        const count = textarea.value.length;
+        document.getElementById('whatsapp-char-count').textContent = `${count} / 1024 characters`;
     }
 
     async function sendSMSBroadcast(event) {
@@ -1496,7 +1525,7 @@
                     </div>
                 </div>`;
                 document.getElementById('sms-message').value = '';
-                updateCharCount();
+                updateSMSCharCount();
 
                 if (data.failed_users && data.failed_users.length > 0) {
                     let failedHTML = '<div style="margin-top: 12px; padding: 12px; background: #FEE2E2; border-radius: 8px; color: #991B1B;"><strong>Failed deliveries:</strong><ul style="margin: 6px 0; padding-left: 20px;">';
@@ -1514,6 +1543,60 @@
         } finally {
             btn.disabled = false;
             btn.textContent = 'Send SMS to All Users';
+        }
+    }
+
+    async function sendWhatsAppBroadcast(event) {
+        event.preventDefault();
+        const message = document.getElementById('whatsapp-message').value.trim();
+        const btn = document.getElementById('whatsapp-send-btn');
+        const statusDiv = document.getElementById('whatsapp-status');
+
+        if (!message) {
+            statusDiv.innerHTML = '<div style="padding: 12px; background: #FEE2E2; color: #DC2626; border-radius: 8px; border: 1px solid #FCA5A5;">Message cannot be empty</div>';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        statusDiv.innerHTML = '<div style="padding: 12px; background: #D1FAE5; color: #065F46; border-radius: 8px;">Sending WhatsApp to all users...</div>';
+
+        try {
+            const response = await fetch('/api/admin/send-whatsapp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                statusDiv.innerHTML = `<div style="padding: 16px; background: #DCFCE7; color: #15803D; border-radius: 8px; border: 1px solid #BBF7D0;">
+                    <strong>✅ WhatsApp Broadcast Sent Successfully!</strong><br>
+                    <div style="margin-top: 8px; font-size: 14px;">
+                        <div>💬 Sent to: <strong>${data.sent}</strong> users</div>
+                        ${data.failed > 0 ? `<div>⚠️ Failed: <strong>${data.failed}</strong> users</div>` : ''}
+                    </div>
+                </div>`;
+                document.getElementById('whatsapp-message').value = '';
+                updateWhatsAppCharCount();
+
+                if (data.failed_users && data.failed_users.length > 0) {
+                    let failedHTML = '<div style="margin-top: 12px; padding: 12px; background: #FEE2E2; border-radius: 8px; color: #991B1B;"><strong>Failed deliveries:</strong><ul style="margin: 6px 0; padding-left: 20px;">';
+                    data.failed_users.forEach(u => {
+                        failedHTML += `<li>${u.username} (${u.phone}): ${u.error}</li>`;
+                    });
+                    failedHTML += '</ul></div>';
+                    statusDiv.innerHTML += failedHTML;
+                }
+            } else {
+                statusDiv.innerHTML = `<div style="padding: 12px; background: #FEE2E2; color: #DC2626; border-radius: 8px; border: 1px solid #FCA5A5;"><strong>Error:</strong> ${data.error}</div>`;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `<div style="padding: 12px; background: #FEE2E2; color: #DC2626; border-radius: 8px; border: 1px solid #FCA5A5;"><strong>Error:</strong> ${error.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send WhatsApp to All Users';
         }
     }
 
