@@ -1140,9 +1140,7 @@
             <nav class="header-nav">
                 {% if user %}
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
-                    {% if user.user_type in ['client', 'both'] %}
                     <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">{{ t('nav_submit') }}</a>
-                    {% endif %}
                     <a href="/messages" class="nav-link {% if active_page == 'messages' %}active{% endif %}">
                         {{ t('nav_messages') }}
                         {% if unread_message_count > 0 %}
@@ -1355,12 +1353,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <span>{{ t('nav_search') }}</span>
             </a>
-            {% if user.user_type in ['client', 'both'] %}
             <a href="/post-gig" class="mobile-nav-item {% if active_page == 'post-gig' %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
                 <span>{{ t('nav_post') }}</span>
             </a>
-            {% endif %}
             <a href="/messages" class="mobile-nav-item {% if active_page == 'messages' %}active{% endif %}" style="position: relative;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span>{{ t('nav_messages') }}</span>
