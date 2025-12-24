@@ -1,0 +1,753 @@
+{% extends "base.html" %}
+
+{% block title %}Security Audit Logs - Admin{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        color: white;
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+    }
+
+    .admin-header h1 {
+        margin: 0 0 6px 0;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .admin-header p {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+    }
+
+    .stat-card.critical {
+        border-left: 4px solid #dc2626;
+    }
+
+    .stat-card.high {
+        border-left: 4px solid #ea580c;
+    }
+
+    .stat-card.medium {
+        border-left: 4px solid #f59e0b;
+    }
+
+    .stat-card.low {
+        border-left: 4px solid #10b981;
+    }
+
+    .stat-card h3 {
+        margin: 0 0 6px 0;
+        color: var(--text-gray);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .stat-card.critical .value { color: #dc2626; }
+    .stat-card.high .value { color: #ea580c; }
+    .stat-card.medium .value { color: #f59e0b; }
+    .stat-card.low .value { color: #10b981; }
+
+    .filters {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+    }
+
+    .filters h3 {
+        margin: 0 0 16px 0;
+        font-size: 16px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-gray);
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+
+    .logs-table {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .logs-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .logs-table th {
+        background: var(--bg-light);
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-gray);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .logs-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    .logs-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .logs-table tbody tr:hover {
+        background: var(--bg-light);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge.critical { background: #fecaca; color: #991b1b; }
+    .badge.high { background: #fed7aa; color: #9a3412; }
+    .badge.medium { background: #fef3c7; color: #92400e; }
+    .badge.low { background: #d1fae5; color: #065f46; }
+
+    .badge.success { background: #d1fae5; color: #065f46; }
+    .badge.failure { background: #fecaca; color: #991b1b; }
+    .badge.blocked { background: #fed7aa; color: #9a3412; }
+
+    .badge.authentication { background: #dbeafe; color: #1e40af; }
+    .badge.authorization { background: #fef3c7; color: #92400e; }
+    .badge.admin { background: #e9d5ff; color: #6b21a8; }
+    .badge.financial { background: #d1fae5; color: #065f46; }
+    .badge.data_access { background: #fed7aa; color: #9a3412; }
+    .badge.system { background: #e5e7eb; color: #374151; }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 24px;
+    }
+
+    .pagination button {
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        background: var(--bg-white);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .pagination button:hover:not(:disabled) {
+        background: var(--bg-light);
+    }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination .page-info {
+        padding: 8px 16px;
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+        background: var(--bg-light);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-white);
+    }
+
+    .log-detail-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .log-detail-modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        max-width: 700px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-content h2 {
+        margin: 0 0 20px 0;
+    }
+
+    .detail-grid {
+        display: grid;
+        gap: 16px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-item label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-gray);
+        text-transform: uppercase;
+    }
+
+    .detail-item .value {
+        font-size: 14px;
+        padding: 8px 12px;
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        font-family: 'Courier New', monospace;
+    }
+
+    .close-modal {
+        margin-top: 20px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1400px;">
+    <!-- Back to Admin -->
+    <div style="margin-bottom: 16px;">
+        <a href="/admin" style="color: var(--primary); text-decoration: none; font-size: 14px;">
+            ← Back to Admin Dashboard
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="admin-header">
+        <h1>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Security Audit Logs
+        </h1>
+        <p>Monitor and investigate security events across the platform</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card low">
+            <h3>Total Logs</h3>
+            <div class="value" id="statTotalLogs">-</div>
+        </div>
+        <div class="stat-card critical">
+            <h3>Critical Events (7d)</h3>
+            <div class="value" id="statCritical">-</div>
+        </div>
+        <div class="stat-card high">
+            <h3>Failed Auth (24h)</h3>
+            <div class="value" id="statFailedAuth">-</div>
+        </div>
+        <div class="stat-card medium">
+            <h3>Access Denied (24h)</h3>
+            <div class="value" id="statAccessDenied">-</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button class="btn btn-primary" onclick="loadLogs()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+            Refresh
+        </button>
+        <button class="btn btn-secondary" onclick="exportLogs()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export JSON
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <h3>Filters</h3>
+        <div class="filter-grid">
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="filterCategory">
+                    <option value="">All Categories</option>
+                    <option value="authentication">Authentication</option>
+                    <option value="authorization">Authorization</option>
+                    <option value="admin">Admin</option>
+                    <option value="financial">Financial</option>
+                    <option value="data_access">Data Access</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Severity</label>
+                <select id="filterSeverity">
+                    <option value="">All Severities</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="filterStatus">
+                    <option value="">All Statuses</option>
+                    <option value="success">Success</option>
+                    <option value="failure">Failure</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Start Date</label>
+                <input type="date" id="filterStartDate">
+            </div>
+            <div class="filter-group">
+                <label>End Date</label>
+                <input type="date" id="filterEndDate">
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="filterSearch" placeholder="Username, action, message...">
+            </div>
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 12px;">
+            <button class="btn btn-primary" onclick="loadLogs()">Apply Filters</button>
+            <button class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="logs-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Category</th>
+                    <th>Severity</th>
+                    <th>User</th>
+                    <th>IP Address</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody id="logsTableBody">
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px;">
+                        Loading...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <button id="btnPrevPage" onclick="prevPage()" disabled>Previous</button>
+        <span class="page-info" id="pageInfo">Page 1 of 1</span>
+        <button id="btnNextPage" onclick="nextPage()" disabled>Next</button>
+    </div>
+</div>
+
+<!-- Log Detail Modal -->
+<div class="log-detail-modal" id="logDetailModal">
+    <div class="modal-content">
+        <h2>Audit Log Details</h2>
+        <div class="detail-grid" id="logDetailContent">
+            <!-- Details will be populated here -->
+        </div>
+        <button class="btn btn-secondary close-modal" onclick="closeLogDetail()">Close</button>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+let totalPages = 1;
+
+// Load statistics
+async function loadStats() {
+    try {
+        const response = await fetch('/api/admin/audit-logs/stats');
+        const data = await response.json();
+
+        document.getElementById('statTotalLogs').textContent = data.total_logs.toLocaleString();
+        document.getElementById('statCritical').textContent = data.critical_events_7d;
+        document.getElementById('statFailedAuth').textContent = data.failed_auth_24h;
+        document.getElementById('statAccessDenied').textContent = data.permission_denied_24h;
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+// Load logs
+async function loadLogs() {
+    const category = document.getElementById('filterCategory').value;
+    const severity = document.getElementById('filterSeverity').value;
+    const status = document.getElementById('filterStatus').value;
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    const search = document.getElementById('filterSearch').value;
+
+    const params = new URLSearchParams({
+        page: currentPage,
+        per_page: 50
+    });
+
+    if (category) params.append('category', category);
+    if (severity) params.append('severity', severity);
+    if (status) params.append('status', status);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    if (search) params.append('search', search);
+
+    try {
+        const response = await fetch(`/api/admin/audit-logs?${params}`);
+        const data = await response.json();
+
+        displayLogs(data.logs);
+        totalPages = data.pages;
+        updatePagination();
+    } catch (error) {
+        console.error('Error loading logs:', error);
+        document.getElementById('logsTableBody').innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 40px; color: #dc2626;">
+                    Error loading logs. Please try again.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Display logs in table
+function displayLogs(logs) {
+    const tbody = document.getElementById('logsTableBody');
+
+    if (logs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-gray);">
+                    No logs found matching the filters.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = logs.map(log => `
+        <tr style="cursor: pointer;" onclick="viewLogDetail(${log.id})">
+            <td>${formatTimestamp(log.created_at)}</td>
+            <td><span class="badge ${log.event_category}">${log.event_category}</span></td>
+            <td><span class="badge ${log.severity}">${log.severity}</span></td>
+            <td>${log.username || '<em>N/A</em>'}</td>
+            <td>${log.ip_address || '<em>N/A</em>'}</td>
+            <td>${truncate(log.action, 50)}</td>
+            <td><span class="badge ${log.status}">${log.status}</span></td>
+            <td>
+                <button onclick="event.stopPropagation(); viewLogDetail(${log.id})"
+                        style="padding: 4px 12px; font-size: 12px; border: 1px solid var(--border); background: var(--bg-white); border-radius: 4px; cursor: pointer;">
+                    View
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// View log detail
+async function viewLogDetail(logId) {
+    try {
+        const response = await fetch(`/api/admin/audit-logs/${logId}`);
+        const log = await response.json();
+
+        const detailContent = document.getElementById('logDetailContent');
+        detailContent.innerHTML = `
+            <div class="detail-item">
+                <label>ID</label>
+                <div class="value">${log.id}</div>
+            </div>
+            <div class="detail-item">
+                <label>Timestamp</label>
+                <div class="value">${formatTimestamp(log.created_at)}</div>
+            </div>
+            <div class="detail-item">
+                <label>Category</label>
+                <div class="value"><span class="badge ${log.event_category}">${log.event_category}</span></div>
+            </div>
+            <div class="detail-item">
+                <label>Event Type</label>
+                <div class="value">${log.event_type}</div>
+            </div>
+            <div class="detail-item">
+                <label>Severity</label>
+                <div class="value"><span class="badge ${log.severity}">${log.severity}</span></div>
+            </div>
+            <div class="detail-item">
+                <label>User</label>
+                <div class="value">${log.username || 'N/A'} (ID: ${log.user_id || 'N/A'})</div>
+            </div>
+            <div class="detail-item">
+                <label>IP Address</label>
+                <div class="value">${log.ip_address || 'N/A'}</div>
+            </div>
+            <div class="detail-item">
+                <label>User Agent</label>
+                <div class="value" style="word-break: break-all;">${log.user_agent || 'N/A'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Action</label>
+                <div class="value">${log.action}</div>
+            </div>
+            <div class="detail-item">
+                <label>Resource</label>
+                <div class="value">${log.resource_type || 'N/A'}: ${log.resource_id || 'N/A'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Status</label>
+                <div class="value"><span class="badge ${log.status}">${log.status}</span></div>
+            </div>
+            <div class="detail-item">
+                <label>Message</label>
+                <div class="value">${log.message || 'N/A'}</div>
+            </div>
+            <div class="detail-item">
+                <label>Request</label>
+                <div class="value">${log.request_method || 'N/A'} ${log.request_path || 'N/A'}</div>
+            </div>
+            ${log.details ? `
+            <div class="detail-item">
+                <label>Details (JSON)</label>
+                <div class="value" style="max-height: 200px; overflow-y: auto;">${JSON.stringify(log.details, null, 2)}</div>
+            </div>
+            ` : ''}
+            ${log.old_value ? `
+            <div class="detail-item">
+                <label>Old Value</label>
+                <div class="value" style="max-height: 200px; overflow-y: auto;">${JSON.stringify(log.old_value, null, 2)}</div>
+            </div>
+            ` : ''}
+            ${log.new_value ? `
+            <div class="detail-item">
+                <label>New Value</label>
+                <div class="value" style="max-height: 200px; overflow-y: auto;">${JSON.stringify(log.new_value, null, 2)}</div>
+            </div>
+            ` : ''}
+        `;
+
+        document.getElementById('logDetailModal').classList.add('active');
+    } catch (error) {
+        console.error('Error loading log detail:', error);
+        alert('Error loading log details');
+    }
+}
+
+// Close log detail modal
+function closeLogDetail() {
+    document.getElementById('logDetailModal').classList.remove('active');
+}
+
+// Export logs
+async function exportLogs() {
+    const category = document.getElementById('filterCategory').value;
+    const severity = document.getElementById('filterSeverity').value;
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (severity) params.append('severity', severity);
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+
+    try {
+        const response = await fetch(`/api/admin/audit-logs/export?${params}`);
+        const data = await response.json();
+
+        // Download as JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error exporting logs:', error);
+        alert('Error exporting logs');
+    }
+}
+
+// Pagination
+function updatePagination() {
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById('btnPrevPage').disabled = currentPage === 1;
+    document.getElementById('btnNextPage').disabled = currentPage === totalPages;
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        loadLogs();
+    }
+}
+
+function nextPage() {
+    if (currentPage < totalPages) {
+        currentPage++;
+        loadLogs();
+    }
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterSeverity').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+    document.getElementById('filterSearch').value = '';
+    currentPage = 1;
+    loadLogs();
+}
+
+// Helper functions
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'N/A';
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-MY', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+function truncate(str, maxLength) {
+    if (!str) return 'N/A';
+    return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    loadLogs();
+
+    // Set default date range (last 7 days)
+    const today = new Date();
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    document.getElementById('filterEndDate').value = today.toISOString().split('T')[0];
+    document.getElementById('filterStartDate').value = weekAgo.toISOString().split('T')[0];
+});
+
+// Close modal when clicking outside
+document.getElementById('logDetailModal').addEventListener('click', (e) => {
+    if (e.target.id === 'logDetailModal') {
+        closeLogDetail();
+    }
+});
+</script>
+{% endblock %}
