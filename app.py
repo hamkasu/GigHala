@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, session, send_from_d
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -70,6 +71,14 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 
 db = SQLAlchemy(app)
+
+# Initialize CSRF Protection
+csrf = CSRFProtect(app)
+
+# Configure CSRF settings
+app.config['WTF_CSRF_TIME_LIMIT'] = None  # CSRF tokens don't expire (use session lifetime instead)
+app.config['WTF_CSRF_SSL_STRICT'] = is_https  # Match session cookie security
+app.config['WTF_CSRF_ENABLED'] = True
 
 # Secure CORS configuration - restrict to specific origins in production
 allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
@@ -1213,7 +1222,8 @@ def inject_translations():
         today_hijri=today_dual['hijri'],
         today_dual=today_dual['full'],
         format_date_dual=format_date_dual,
-        unread_message_count=unread_message_count
+        unread_message_count=unread_message_count,
+        csrf_token=generate_csrf
     )
 
 # Security headers middleware
@@ -3786,6 +3796,12 @@ def logout():
     # For POST requests (JavaScript calls), return JSON
     return jsonify({'message': 'Logged out successfully'}), 200
 
+@app.route('/api/csrf-token', methods=['GET'])
+def get_csrf_token():
+    """Get CSRF token for JavaScript requests"""
+    token = generate_csrf()
+    return jsonify({'csrf_token': token}), 200
+
 @app.route('/api/language', methods=['POST'])
 def set_language():
     """Set user's language preference"""
@@ -6140,6 +6156,7 @@ def test_fund_escrow(gig_id):
 
 
 @app.route('/api/payhalal/escrow-webhook', methods=['POST'])
+@csrf.exempt
 def payhalal_escrow_webhook():
     """Handle PayHalal payment webhook for escrow funding"""
     try:
@@ -6568,6 +6585,7 @@ def stripe_checkout_success():
 
 
 @app.route('/api/stripe/webhook', methods=['POST'])
+@csrf.exempt
 def stripe_webhook():
     """Handle Stripe webhook events"""
     payload = request.get_data(as_text=True)

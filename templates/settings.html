@@ -309,6 +309,7 @@
         <p class="section-description">Kemaskini maklumat profil anda. Maklumat ini akan dipaparkan kepada klien dan pekerja lain.</p>
 
         <form action="/settings/profile" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Nama Penuh</label>
@@ -531,6 +532,7 @@
         </div>
 
         <form action="/settings/verification" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">IC/Pasport (Depan) *</label>
@@ -554,6 +556,7 @@
         </div>
         
         <form action="/settings/verification" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--text-dark);">Muat Naik Semula (Jika Diperlukan)</h3>
             <div class="form-row">
                 <div class="form-group">
@@ -583,6 +586,7 @@
         </div>
 
         <form action="/settings/email" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--text-dark);">Tukar Emel</h3>
             <div class="form-row">
                 <div class="form-group">
@@ -604,6 +608,7 @@
 
         <!-- Change Password -->
         <form action="/settings/password" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--text-dark);">Tukar Kata Laluan</h3>
             <div class="form-group">
                 <label class="form-label">Kata Laluan Semasa</label>
@@ -639,6 +644,7 @@
         </div>
 
         <form action="/settings/bank" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 <label class="form-label">Nama Bank</label>
                 <select name="bank_name" class="form-select">

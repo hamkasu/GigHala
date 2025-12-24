@@ -369,6 +369,7 @@
         <div id="alertContainer"></div>
 
         <form id="postGigForm" method="POST" action="{% if edit_mode %}/edit-gig/{{ gig.id }}{% else %}/post-gig{% endif %}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="file-text" width="18"></i>

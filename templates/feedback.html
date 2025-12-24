@@ -262,6 +262,7 @@
 
     <div class="feedback-form-card">
         <form method="POST" action="/feedback">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 <label for="feedback_type">{{ 'Jenis Maklum Balas' if lang == 'ms' else 'Feedback Type' }}</label>
                 <select id="feedback_type" name="feedback_type" required>
