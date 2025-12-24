@@ -37,12 +37,6 @@
                             <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
                         </div>
                     </div>
-                    
-                    <div class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
                 </div>
             </div>
         </nav>
@@ -66,23 +60,6 @@
                     GigHala sedang dalam Heavy Beta Test (Semua sistem berfungsi kecuali billing system - join sekarang & test platform kami!). Target Live Date 01/01/2026.<br>
                     Pembayaran selamat via PayHalal | Dimiliki Calmic Sdn Bhd
                 </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu Overlay -->
-        <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="closeMobileMenu()"></div>
-
-        <!-- Mobile Menu -->
-        <div class="mobile-menu" id="mobileMenu">
-            <div class="mobile-menu-links">
-            </div>
-            <div class="mobile-menu-divider"></div>
-            <div class="mobile-menu-buttons">
-                <button class="btn-nav" onclick="closeMobileMenu(); app.showLogin()">{{ t('login') }}</button>
-                <button class="btn-primary" onclick="closeMobileMenu(); app.showRegister()">{{ t('register_free') }}</button>
-            </div>
-            <div class="mobile-lang-switcher" onclick="toggleLanguage()">
-                <span>{{ 'Switch to English' if lang == 'ms' else 'Tukar ke Bahasa Melayu' }}</span>
             </div>
         </div>
 
@@ -786,49 +763,6 @@
             app.init();
         });
         
-        // Mobile Menu Functions
-        function toggleMobileMenu() {
-            const btn = document.getElementById('mobileMenuBtn');
-            const menu = document.getElementById('mobileMenu');
-            const overlay = document.getElementById('mobileMenuOverlay');
-            
-            btn.classList.toggle('active');
-            menu.classList.toggle('active');
-            overlay.classList.toggle('active');
-            
-            // Prevent body scroll when menu is open
-            if (menu.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
-        }
-        
-        function closeMobileMenu() {
-            const btn = document.getElementById('mobileMenuBtn');
-            const menu = document.getElementById('mobileMenu');
-            const overlay = document.getElementById('mobileMenuOverlay');
-            
-            btn.classList.remove('active');
-            menu.classList.remove('active');
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        
-        // Close mobile menu on window resize (if switching to desktop)
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                closeMobileMenu();
-            }
-        });
-        
-        // Close mobile menu on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeMobileMenu();
-            }
-        });
-
         async function toggleLanguage() {
             const currentLang = '{{ lang }}';
             const newLang = currentLang === 'ms' ? 'en' : 'ms';
