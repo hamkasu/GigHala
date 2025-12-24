@@ -1627,10 +1627,30 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
+            # Log unauthorized access attempt
+            from security_logger import security_logger
+            if security_logger:
+                security_logger.log_authorization(
+                    resource_type='admin_endpoint',
+                    resource_id=f.__name__,
+                    action=f'Attempted to access admin endpoint: {f.__name__}',
+                    status='blocked',
+                    message='Unauthorized - not logged in'
+                )
             return jsonify({'error': 'Unauthorized - Please login'}), 401
 
         user = User.query.get(session['user_id'])
         if not user or not user.is_admin:
+            # Log permission denied
+            from security_logger import security_logger
+            if security_logger:
+                security_logger.log_authorization(
+                    resource_type='admin_endpoint',
+                    resource_id=f.__name__,
+                    action=f'Non-admin user attempted to access admin endpoint: {f.__name__}',
+                    status='blocked',
+                    message=f'Forbidden - User {user.username if user else "unknown"} is not an admin'
+                )
             return jsonify({'error': 'Forbidden - Admin access required'}), 403
 
         return f(*args, **kwargs)
@@ -2377,6 +2397,103 @@ class SocsoContribution(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'notes': self.notes
         }
+
+class AuditLog(db.Model):
+    """
+    Model for security event logging and audit trail
+    Tracks authentication, authorization, admin operations, financial transactions, and data changes
+    """
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Event classification
+    event_category = db.Column(db.String(50), nullable=False, index=True)  # authentication, authorization, admin, financial, data_access, system
+    event_type = db.Column(db.String(100), nullable=False, index=True)  # login_success, login_failure, permission_denied, etc.
+    severity = db.Column(db.String(20), nullable=False, index=True)  # low, medium, high, critical
+
+    # Actor information (who performed the action)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
+    username = db.Column(db.String(80))
+    ip_address = db.Column(db.String(45), index=True)
+    user_agent = db.Column(db.Text)
+
+    # Action details (what was done)
+    action = db.Column(db.String(200), nullable=False)
+    resource_type = db.Column(db.String(50))  # user, gig, transaction, escrow, payout, etc.
+    resource_id = db.Column(db.String(100))  # ID of affected resource
+
+    # Result and details
+    status = db.Column(db.String(20), nullable=False)  # success, failure, blocked
+    message = db.Column(db.Text)
+    details = db.Column(db.Text)  # JSON string with additional context
+
+    # Data change tracking (for sensitive operations)
+    old_value = db.Column(db.Text)  # JSON string
+    new_value = db.Column(db.Text)  # JSON string
+
+    # Request context
+    request_method = db.Column(db.String(10))  # GET, POST, PUT, DELETE
+    request_path = db.Column(db.String(500))
+    request_id = db.Column(db.String(100))  # Correlation ID for tracing
+
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    # SIEM integration fields
+    siem_forwarded = db.Column(db.Boolean, default=False)
+    siem_forwarded_at = db.Column(db.DateTime)
+
+    def to_dict(self):
+        """Convert audit log to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'event_category': self.event_category,
+            'event_type': self.event_type,
+            'severity': self.severity,
+            'user_id': self.user_id,
+            'username': self.username,
+            'ip_address': self.ip_address,
+            'action': self.action,
+            'resource_type': self.resource_type,
+            'resource_id': self.resource_id,
+            'status': self.status,
+            'message': self.message,
+            'request_method': self.request_method,
+            'request_path': self.request_path,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+    def to_siem_format(self):
+        """Convert to SIEM-friendly format (CEF - Common Event Format)"""
+        # CEF:Version|Device Vendor|Device Product|Device Version|Signature ID|Name|Severity|Extension
+        cef_severity = {
+            'low': 3,
+            'medium': 5,
+            'high': 8,
+            'critical': 10
+        }.get(self.severity, 5)
+
+        extensions = []
+        if self.user_id:
+            extensions.append(f"suser={self.username}")
+            extensions.append(f"suid={self.user_id}")
+        if self.ip_address:
+            extensions.append(f"src={self.ip_address}")
+        if self.resource_type:
+            extensions.append(f"cs1Label=ResourceType cs1={self.resource_type}")
+        if self.resource_id:
+            extensions.append(f"cs2Label=ResourceID cs2={self.resource_id}")
+        if self.status:
+            extensions.append(f"outcome={self.status}")
+        if self.request_path:
+            extensions.append(f"request={self.request_path}")
+
+        extension_str = ' '.join(extensions)
+
+        return f"CEF:0|GigHala|GigHala Platform|1.0|{self.event_type}|{self.action}|{cef_severity}|{extension_str}"
+
+# Initialize Security Logger after all models are defined
+from security_logger import init_security_logger
+security_logger = init_security_logger(app, db)
 
 # Routes
 @app.route('/')
@@ -3721,6 +3838,20 @@ def register():
         # Reset rate limit on successful registration
         reset_rate_limit(request.remote_addr)
 
+        # Log successful registration
+        security_logger.log_authentication(
+            event_type='registration_success',
+            username=new_user.username,
+            status='success',
+            message=f'New user {new_user.username} registered successfully',
+            user_id=new_user.id,
+            details={
+                'user_type': user_type,
+                'socso_consent': socso_consent,
+                'has_ic_number': bool(ic_number_clean)
+            }
+        )
+
         return jsonify({
             'message': 'Registration successful',
             'user': {
@@ -3757,6 +3888,14 @@ def login():
 
         # Check if user exists and has a password (not OAuth user)
         if not user or not user.password_hash:
+            # Log failed login attempt (user not found or OAuth user)
+            security_logger.log_authentication(
+                event_type='login_failure',
+                username=email,
+                status='failure',
+                message='User not found or OAuth-only user',
+                details={'reason': 'user_not_found' if not user else 'oauth_only_user'}
+            )
             return jsonify({'error': 'Invalid credentials'}), 401
 
         # Use constant-time comparison to prevent timing attacks
@@ -3766,6 +3905,15 @@ def login():
 
             # Reset rate limit on successful login
             reset_rate_limit(request.remote_addr)
+
+            # Log successful login
+            security_logger.log_authentication(
+                event_type='login_success',
+                username=user.username,
+                status='success',
+                message=f'User {user.username} logged in successfully',
+                user_id=user.id
+            )
 
             return jsonify({
                 'message': 'Login successful',
@@ -3780,6 +3928,15 @@ def login():
                 }
             }), 200
 
+        # Log failed login attempt
+        security_logger.log_authentication(
+            event_type='login_failure',
+            username=email,
+            status='failure',
+            message='Invalid password',
+            details={'reason': 'invalid_password'}
+        )
+
         # Generic error message to prevent user enumeration
         return jsonify({'error': 'Invalid credentials'}), 401
     except Exception as e:
@@ -3789,7 +3946,27 @@ def login():
 
 @app.route('/api/logout', methods=['GET', 'POST'])
 def logout():
+    user_id = session.get('user_id')
+    username = None
+
+    # Get username before clearing session
+    if user_id:
+        user = User.query.get(user_id)
+        if user:
+            username = user.username
+
     session.pop('user_id', None)
+
+    # Log logout event
+    if username:
+        security_logger.log_authentication(
+            event_type='logout',
+            username=username,
+            status='success',
+            message=f'User {username} logged out',
+            user_id=user_id
+        )
+
     # For GET requests (direct link clicks), redirect to homepage
     if request.method == 'GET':
         return redirect('/')
@@ -7331,6 +7508,201 @@ def admin_stats():
         app.logger.error(f"Admin stats error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve statistics'}), 500
 
+# ==================== SECURITY AUDIT LOG ROUTES ====================
+
+@app.route('/api/admin/audit-logs', methods=['GET'])
+@admin_required
+def admin_get_audit_logs():
+    """Get security audit logs with filtering options"""
+    try:
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 50))
+
+        # Filters
+        category = request.args.get('category')  # authentication, authorization, admin, financial, data_access, system
+        severity = request.args.get('severity')  # low, medium, high, critical
+        user_id = request.args.get('user_id', type=int)
+        event_type = request.args.get('event_type')
+        status = request.args.get('status')  # success, failure, blocked
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        search = request.args.get('search')
+
+        query = AuditLog.query
+
+        # Apply filters
+        if category:
+            query = query.filter(AuditLog.event_category == category)
+        if severity:
+            query = query.filter(AuditLog.severity == severity)
+        if user_id:
+            query = query.filter(AuditLog.user_id == user_id)
+        if event_type:
+            query = query.filter(AuditLog.event_type == event_type)
+        if status:
+            query = query.filter(AuditLog.status == status)
+        if start_date:
+            query = query.filter(AuditLog.created_at >= datetime.strptime(start_date, '%Y-%m-%d'))
+        if end_date:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(AuditLog.created_at <= end_dt)
+        if search:
+            search_pattern = f'%{search}%'
+            query = query.filter(
+                (AuditLog.username.ilike(search_pattern)) |
+                (AuditLog.action.ilike(search_pattern)) |
+                (AuditLog.message.ilike(search_pattern))
+            )
+
+        logs = query.order_by(AuditLog.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+
+        return jsonify({
+            'logs': [log.to_dict() for log in logs.items],
+            'total': logs.total,
+            'pages': logs.pages,
+            'current_page': logs.page
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get audit logs error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve audit logs'}), 500
+
+@app.route('/api/admin/audit-logs/<int:log_id>', methods=['GET'])
+@admin_required
+def admin_get_audit_log_detail(log_id):
+    """Get detailed information about a specific audit log entry"""
+    try:
+        log = AuditLog.query.get_or_404(log_id)
+
+        log_detail = log.to_dict()
+
+        # Parse JSON fields
+        if log.details:
+            try:
+                log_detail['details'] = json.loads(log.details)
+            except:
+                log_detail['details'] = log.details
+
+        if log.old_value:
+            try:
+                log_detail['old_value'] = json.loads(log.old_value)
+            except:
+                log_detail['old_value'] = log.old_value
+
+        if log.new_value:
+            try:
+                log_detail['new_value'] = json.loads(log.new_value)
+            except:
+                log_detail['new_value'] = log.new_value
+
+        return jsonify(log_detail), 200
+    except Exception as e:
+        app.logger.error(f"Admin get audit log detail error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve audit log detail'}), 500
+
+@app.route('/api/admin/audit-logs/stats', methods=['GET'])
+@admin_required
+def admin_audit_log_stats():
+    """Get statistics about audit logs"""
+    try:
+        # Total logs
+        total_logs = AuditLog.query.count()
+
+        # Logs by category
+        category_stats = db.session.query(
+            AuditLog.event_category,
+            db.func.count(AuditLog.id)
+        ).group_by(AuditLog.event_category).all()
+
+        # Logs by severity
+        severity_stats = db.session.query(
+            AuditLog.severity,
+            db.func.count(AuditLog.id)
+        ).group_by(AuditLog.severity).all()
+
+        # Failed authentication attempts (last 24 hours)
+        day_ago = datetime.utcnow() - timedelta(days=1)
+        failed_auth_24h = AuditLog.query.filter(
+            AuditLog.event_category == 'authentication',
+            AuditLog.status == 'failure',
+            AuditLog.created_at >= day_ago
+        ).count()
+
+        # Permission denials (last 24 hours)
+        permission_denied_24h = AuditLog.query.filter(
+            AuditLog.event_category == 'authorization',
+            AuditLog.status == 'blocked',
+            AuditLog.created_at >= day_ago
+        ).count()
+
+        # Critical events (last 7 days)
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        critical_events_7d = AuditLog.query.filter(
+            AuditLog.severity == 'critical',
+            AuditLog.created_at >= week_ago
+        ).count()
+
+        # Top users by activity (last 7 days)
+        top_users = db.session.query(
+            AuditLog.username,
+            db.func.count(AuditLog.id).label('count')
+        ).filter(
+            AuditLog.created_at >= week_ago,
+            AuditLog.username.isnot(None)
+        ).group_by(AuditLog.username).order_by(db.desc('count')).limit(10).all()
+
+        return jsonify({
+            'total_logs': total_logs,
+            'by_category': {cat: count for cat, count in category_stats},
+            'by_severity': {sev: count for sev, count in severity_stats},
+            'failed_auth_24h': failed_auth_24h,
+            'permission_denied_24h': permission_denied_24h,
+            'critical_events_7d': critical_events_7d,
+            'top_users_7d': [{'username': u, 'count': c} for u, c in top_users]
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin audit log stats error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve audit log statistics'}), 500
+
+@app.route('/api/admin/audit-logs/export', methods=['GET'])
+@admin_required
+def admin_export_audit_logs():
+    """Export audit logs as JSON for external SIEM systems"""
+    try:
+        # Get filters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        category = request.args.get('category')
+        severity = request.args.get('severity')
+
+        query = AuditLog.query
+
+        if start_date:
+            query = query.filter(AuditLog.created_at >= datetime.strptime(start_date, '%Y-%m-%d'))
+        if end_date:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(AuditLog.created_at <= end_dt)
+        if category:
+            query = query.filter(AuditLog.event_category == category)
+        if severity:
+            query = query.filter(AuditLog.severity == severity)
+
+        # Limit to prevent excessive exports
+        logs = query.order_by(AuditLog.created_at.desc()).limit(10000).all()
+
+        # Export as JSON
+        export_data = {
+            'export_date': datetime.utcnow().isoformat(),
+            'total_records': len(logs),
+            'logs': [log.to_dict() for log in logs]
+        }
+
+        return jsonify(export_data), 200
+    except Exception as e:
+        app.logger.error(f"Admin export audit logs error: {str(e)}")
+        return jsonify({'error': 'Failed to export audit logs'}), 500
+
 @app.route('/api/admin/users', methods=['GET'])
 @admin_required
 def admin_get_users():
@@ -8158,6 +8530,24 @@ def request_payout():
 
         db.session.add(history)
         db.session.commit()
+
+        # Log financial operation
+        security_logger.log_financial(
+            event_type='payout_requested',
+            action=f'Payout request submitted by {user.username}',
+            amount=amount,
+            resource_type='payout',
+            resource_id=payout_number,
+            details={
+                'payout_number': payout_number,
+                'amount': amount,
+                'fee': fee,
+                'net_amount': net_amount,
+                'payment_method': payment_method,
+                'wallet_balance_before': wallet.balance + amount,
+                'wallet_balance_after': wallet.balance
+            }
+        )
 
         return jsonify({
             'message': 'Payout request submitted successfully',
@@ -9048,6 +9438,26 @@ def admin_update_payout(payout_id):
 
         db.session.commit()
 
+        # Log admin payout action
+        admin_user = User.query.get(session['user_id'])
+        security_logger.log_admin_action(
+            action=f'Admin updated payout status from {old_status} to {new_status}',
+            resource_type='payout',
+            resource_id=payout.payout_number,
+            details={
+                'payout_id': payout_id,
+                'payout_number': payout.payout_number,
+                'freelancer_id': payout.freelancer_id,
+                'amount': payout.amount,
+                'old_status': old_status,
+                'new_status': new_status,
+                'admin_notes': admin_notes,
+                'failure_reason': data.get('failure_reason'),
+                'admin_username': admin_user.username if admin_user else 'unknown'
+            },
+            severity='high'
+        )
+
         return jsonify({'message': 'Payout updated successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -9679,9 +10089,22 @@ def admin_master_reset():
         Wallet.query.update({Wallet.balance: 0, Wallet.held_balance: 0, Wallet.total_earned: 0, Wallet.total_spent: 0})
         
         db.session.commit()
-        
+
         app.logger.warning(f"MASTER RESET performed by admin user {user_id} ({admin_user.username}). Deleted {deleted_count} records.")
-        
+
+        # Log critical security event for master reset
+        security_logger.log_admin_action(
+            action='Master reset - deleted all platform data except users',
+            resource_type='system',
+            resource_id='master_reset',
+            details={
+                'deleted_count': deleted_count,
+                'performed_by': admin_user.username
+            },
+            severity='critical',
+            message=f'Admin {admin_user.username} performed master reset, deleting {deleted_count} records'
+        )
+
         return jsonify({
             'message': 'Master reset completed successfully',
             'deleted_count': deleted_count
