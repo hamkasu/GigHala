@@ -28,6 +28,7 @@ docker rm <container-name>
 docker run -d \
   --name gighala \
   -p 5000:5000 \
+  -e FLASK_ENV="production" \
   -e DATABASE_URL="your-database-url" \
   -e SESSION_SECRET="your-secret-key" \
   -e STRIPE_SECRET_KEY="your-stripe-key" \
@@ -35,7 +36,10 @@ docker run -d \
   gighala
 ```
 
-**Important**: Replace `https://yourdomain.com` with your actual domain(s) in production. For local testing, the default localhost origins in the Dockerfile will be used.
+**Important**:
+- Replace `https://yourdomain.com` with your actual domain(s) in production
+- Set `FLASK_ENV=production` for production deployments
+- For local testing, the container defaults to development mode with localhost origins
 
 ### 4. Verify the Migration
 
@@ -92,24 +96,37 @@ If something goes wrong, you can rollback by:
 
 The following environment variables must be set when deploying:
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `SESSION_SECRET` | Yes | Secret key for session encryption | Random 32+ character string |
-| `STRIPE_SECRET_KEY` | Yes | Stripe API secret key | `sk_live_...` |
-| `ALLOWED_ORIGINS` | Yes* | Comma-separated list of allowed CORS origins | `https://yourdomain.com,https://www.yourdomain.com` |
-| `FLASK_ENV` | No | Flask environment (`production` or `development`) | `production` (default) |
-| `PORT` | No | Port to run the server on | `5000` (default) |
+| Variable | Required | Description | Default | Example |
+|----------|----------|-------------|---------|---------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string | None | `postgresql://user:pass@host:5432/db` |
+| `SESSION_SECRET` | Yes | Secret key for session encryption | None | Random 32+ character string |
+| `STRIPE_SECRET_KEY` | Yes | Stripe API secret key | None | `sk_live_...` |
+| `FLASK_ENV` | **Production** | Flask environment | `development` | `production` |
+| `ALLOWED_ORIGINS` | **Production** | Comma-separated list of allowed CORS origins | localhost URLs | `https://yourdomain.com,https://www.yourdomain.com` |
+| `PORT` | No | Port to run the server on | `5000` | `8080` |
 
-\* `ALLOWED_ORIGINS` has a default value of `http://localhost:5000,http://127.0.0.1:5000` which is suitable for local development only. **In production, you MUST override this** with your actual domain(s).
+**Development Mode Defaults:**
+- `FLASK_ENV`: `development` (allows wildcard CORS for easier local development)
+- `ALLOWED_ORIGINS`: `http://localhost:5000,http://127.0.0.1:5000,https://localhost:5000,https://127.0.0.1:5000`
+
+**Production Requirements:**
+- Set `FLASK_ENV=production` to enable production mode
+- Set `ALLOWED_ORIGINS` to your actual domain(s) - never use wildcards in production
 
 ### ALLOWED_ORIGINS Security Note
 
-The application enforces strict CORS policies in production mode:
-- Wildcard (`*`) origins are **not allowed** in production
-- You must explicitly set allowed origins as a comma-separated list
+The application enforces strict CORS policies based on the `FLASK_ENV` setting:
+
+**Development Mode** (`FLASK_ENV=development` - default):
+- Allows wildcard (`*`) origins if `ALLOWED_ORIGINS` is not set
+- Default localhost origins are pre-configured for convenience
+- This mode is intended for local development only
+
+**Production Mode** (`FLASK_ENV=production`):
+- Wildcard (`*`) origins are **strictly prohibited**
+- `ALLOWED_ORIGINS` must be explicitly set to a comma-separated list of your actual domains
+- The application will refuse to start if ALLOWED_ORIGINS is not properly configured
 - Example: `ALLOWED_ORIGINS=https://gighala.com,https://www.gighala.com`
-- The default localhost origins are only for local development/testing
 
 ## Production Deployment Notes
 
@@ -117,4 +134,6 @@ The application enforces strict CORS policies in production mode:
 - Test migrations in a staging environment first
 - Monitor logs during deployment for any errors
 - Verify the application works after deployment
-- **Set ALLOWED_ORIGINS to your production domain(s)** - do not use the default localhost values in production
+- **Set `FLASK_ENV=production`** to enable production security checks
+- **Set `ALLOWED_ORIGINS` to your actual production domain(s)** - do not rely on defaults in production
+- Never use `FLASK_DEBUG=True` in production environments
