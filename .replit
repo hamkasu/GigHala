@@ -42,3 +42,6 @@ run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 
 [userenv.production]
 ALLOWED_ORIGINS = "https://gighala.calmic.com.my,https://www.gighala.calmic.com.my"
+
+[userenv.development]
+FLASK_ENV = "development"
