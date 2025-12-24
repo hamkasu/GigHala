@@ -28,6 +28,19 @@
                         <span>GigHala</span>
                     </div>
                     
+                    <div style="display: flex; align-items: center; gap: 16px; flex-shrink: 0; display: none;" id="payhalal-brand" onclick="window.open('https://www.payhalal.my', '_blank')">
+                        <div style="height: 24px; width: 1px; background: #ddd;"></div>
+                        <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 28px; width: auto; object-fit: contain; cursor: pointer;">
+                    </div>
+
+                    <style>
+                        @media (min-width: 769px) {
+                            #payhalal-brand {
+                                display: flex !important;
+                            }
+                        }
+                    </style>
+                    
                     <div class="nav-links" style="display: flex; align-items: center; gap: 20px; flex-wrap: nowrap;">
                         <a href="https://gighala.calmic.com.my/about" class="nav-link" target="_blank" style="color: #404145; text-decoration: none; font-weight: 500; white-space: nowrap;">Tentang Kami</a>
                         <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px; flex-shrink: 0;">
