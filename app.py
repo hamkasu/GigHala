@@ -21,6 +21,10 @@ from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
 from twilio.rest import Client
 from email_service import email_service
+import pyotp
+import qrcode
+import io
+import base64
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -81,7 +85,24 @@ app.config['WTF_CSRF_SSL_STRICT'] = is_https  # Match session cookie security
 app.config['WTF_CSRF_ENABLED'] = True
 
 # Secure CORS configuration - restrict to specific origins in production
-allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
+# SECURITY FIX: Fail-safe CORS - require explicit configuration in production
+# In development, allow all origins. In production, ALLOWED_ORIGINS must be set.
+is_development = os.environ.get('FLASK_ENV') == 'development'
+allowed_origins_env = os.environ.get('ALLOWED_ORIGINS', '')
+
+if is_development:
+    # Development mode: allow all origins if not specified
+    allowed_origins = allowed_origins_env.split(',') if allowed_origins_env else ['*']
+else:
+    # Production mode: require explicit ALLOWED_ORIGINS
+    if not allowed_origins_env or allowed_origins_env.strip() == '*':
+        raise ValueError(
+            "SECURITY ERROR: ALLOWED_ORIGINS must be explicitly set in production. "
+            "Wildcard (*) is not allowed in production mode. "
+            "Set ALLOWED_ORIGINS to a comma-separated list of allowed domains."
+        )
+    allowed_origins = [origin.strip() for origin in allowed_origins_env.split(',')]
+
 CORS(app,
      origins=allowed_origins,
      supports_credentials=True,
@@ -1695,6 +1716,10 @@ class User(UserMixin, db.Model):
     socso_consent_date = db.Column(db.DateTime)  # When consent was given
     socso_data_complete = db.Column(db.Boolean, default=False)  # IC number and required data available
     socso_membership_number = db.Column(db.String(20))  # SOCSO membership number
+    # Two-Factor Authentication (2FA) fields
+    totp_secret = db.Column(db.String(32))  # TOTP secret key for 2FA
+    totp_enabled = db.Column(db.Boolean, default=False)  # Whether 2FA is enabled
+    totp_enabled_at = db.Column(db.DateTime)  # When 2FA was enabled
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -3900,6 +3925,28 @@ def login():
 
         # Use constant-time comparison to prevent timing attacks
         if check_password_hash(user.password_hash, data['password']):
+            # Check if 2FA is enabled
+            if user.totp_enabled:
+                # Store temporary pre-auth session
+                session['pre_auth_user_id'] = user.id
+                session['pre_auth_timestamp'] = datetime.utcnow().isoformat()
+                session.permanent = False  # Don't make pre-auth session permanent
+
+                # Log 2FA challenge issued
+                security_logger.log_authentication(
+                    event_type='login_2fa_challenge',
+                    username=user.username,
+                    status='pending',
+                    message=f'2FA challenge issued for user {user.username}',
+                    user_id=user.id
+                )
+
+                return jsonify({
+                    'requires_2fa': True,
+                    'message': 'Please enter your 2FA code'
+                }), 200
+
+            # No 2FA - complete login
             session['user_id'] = user.id
             session.permanent = True
 
@@ -3924,7 +3971,8 @@ def login():
                     'user_type': user.user_type,
                     'total_earnings': user.total_earnings,
                     'rating': user.rating,
-                    'is_admin': user.is_admin
+                    'is_admin': user.is_admin,
+                    'totp_enabled': user.totp_enabled
                 }
             }), 200
 
@@ -3972,6 +4020,286 @@ def logout():
         return redirect('/')
     # For POST requests (JavaScript calls), return JSON
     return jsonify({'message': 'Logged out successfully'}), 200
+
+# ============================================================================
+# TWO-FACTOR AUTHENTICATION (2FA) ENDPOINTS
+# ============================================================================
+
+@app.route('/api/2fa/verify', methods=['POST'])
+@rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30)
+def verify_2fa_login():
+    """Verify 2FA code during login to complete authentication"""
+    try:
+        data = request.json
+        totp_code = data.get('code', '').strip()
+
+        # Validate that user is in pre-auth state
+        pre_auth_user_id = session.get('pre_auth_user_id')
+        pre_auth_timestamp = session.get('pre_auth_timestamp')
+
+        if not pre_auth_user_id or not pre_auth_timestamp:
+            return jsonify({'error': 'No pending 2FA verification'}), 400
+
+        # Check if pre-auth session has expired (5 minutes)
+        pre_auth_time = datetime.fromisoformat(pre_auth_timestamp)
+        if datetime.utcnow() - pre_auth_time > timedelta(minutes=5):
+            session.pop('pre_auth_user_id', None)
+            session.pop('pre_auth_timestamp', None)
+            return jsonify({'error': '2FA verification expired. Please login again.'}), 400
+
+        # Get user
+        user = User.query.get(pre_auth_user_id)
+        if not user or not user.totp_enabled or not user.totp_secret:
+            session.pop('pre_auth_user_id', None)
+            session.pop('pre_auth_timestamp', None)
+            return jsonify({'error': 'Invalid 2FA configuration'}), 400
+
+        # Verify TOTP code
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(totp_code, valid_window=1):  # Allow 1 step before/after for clock skew
+            security_logger.log_authentication(
+                event_type='login_2fa_failure',
+                username=user.username,
+                status='failure',
+                message=f'Invalid 2FA code for user {user.username}',
+                user_id=user.id
+            )
+            return jsonify({'error': 'Invalid 2FA code'}), 401
+
+        # 2FA verified - complete login
+        session.pop('pre_auth_user_id', None)
+        session.pop('pre_auth_timestamp', None)
+        session['user_id'] = user.id
+        session.permanent = True
+
+        # Reset rate limit on successful login
+        reset_rate_limit(request.remote_addr)
+
+        # Log successful login with 2FA
+        security_logger.log_authentication(
+            event_type='login_2fa_success',
+            username=user.username,
+            status='success',
+            message=f'User {user.username} logged in successfully with 2FA',
+            user_id=user.id
+        )
+
+        return jsonify({
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'user_type': user.user_type,
+                'total_earnings': user.total_earnings,
+                'rating': user.rating,
+                'is_admin': user.is_admin,
+                'totp_enabled': user.totp_enabled
+            }
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"2FA verification error: {str(e)}")
+        return jsonify({'error': 'Verification failed. Please try again.'}), 500
+
+
+@app.route('/api/2fa/setup/start', methods=['POST'])
+@login_required
+def setup_2fa_start():
+    """Start 2FA setup by generating a new TOTP secret"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.totp_enabled:
+            return jsonify({'error': '2FA is already enabled'}), 400
+
+        # Generate new TOTP secret
+        totp_secret = pyotp.random_base32()
+
+        # Store secret temporarily (not enabled yet until verified)
+        user.totp_secret = totp_secret
+        db.session.commit()
+
+        # Generate provisioning URI for QR code
+        totp = pyotp.TOTP(totp_secret)
+        provisioning_uri = totp.provisioning_uri(
+            name=user.email,
+            issuer_name='GigHala'
+        )
+
+        # Generate QR code as base64 image
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(provisioning_uri)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        # Convert to base64
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+        # Log 2FA setup initiated
+        security_logger.log_security_event(
+            event_type='2fa_setup_initiated',
+            username=user.username,
+            status='success',
+            message=f'User {user.username} initiated 2FA setup',
+            user_id=user.id
+        )
+
+        return jsonify({
+            'message': '2FA setup started. Scan the QR code with your authenticator app.',
+            'secret': totp_secret,  # Include for manual entry
+            'qr_code': f'data:image/png;base64,{qr_code_base64}',
+            'provisioning_uri': provisioning_uri
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"2FA setup start error: {str(e)}")
+        return jsonify({'error': 'Failed to start 2FA setup. Please try again.'}), 500
+
+
+@app.route('/api/2fa/setup/verify', methods=['POST'])
+@login_required
+def setup_2fa_verify():
+    """Verify 2FA setup by checking the TOTP code"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        data = request.json
+        totp_code = data.get('code', '').strip()
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.totp_enabled:
+            return jsonify({'error': '2FA is already enabled'}), 400
+
+        if not user.totp_secret:
+            return jsonify({'error': 'No 2FA setup in progress. Please start setup first.'}), 400
+
+        # Verify the code
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(totp_code, valid_window=1):
+            security_logger.log_security_event(
+                event_type='2fa_setup_verification_failed',
+                username=user.username,
+                status='failure',
+                message=f'Invalid 2FA code during setup for user {user.username}',
+                user_id=user.id
+            )
+            return jsonify({'error': 'Invalid 2FA code. Please try again.'}), 401
+
+        # Code is valid - enable 2FA
+        user.totp_enabled = True
+        user.totp_enabled_at = datetime.utcnow()
+        db.session.commit()
+
+        # Log 2FA enabled
+        security_logger.log_security_event(
+            event_type='2fa_enabled',
+            username=user.username,
+            status='success',
+            message=f'2FA enabled for user {user.username}',
+            user_id=user.id,
+            severity='medium'
+        )
+
+        return jsonify({
+            'message': '2FA enabled successfully',
+            'totp_enabled': True
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"2FA setup verify error: {str(e)}")
+        return jsonify({'error': 'Failed to verify 2FA setup. Please try again.'}), 500
+
+
+@app.route('/api/2fa/disable', methods=['POST'])
+@login_required
+def disable_2fa():
+    """Disable 2FA for the current user"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        data = request.json
+        password = data.get('password', '')
+        totp_code = data.get('code', '').strip()
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if not user.totp_enabled:
+            return jsonify({'error': '2FA is not enabled'}), 400
+
+        # Require password verification for disabling 2FA
+        if not password or not check_password_hash(user.password_hash, password):
+            return jsonify({'error': 'Invalid password'}), 401
+
+        # Require valid 2FA code to disable
+        if not totp_code:
+            return jsonify({'error': '2FA code required'}), 400
+
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(totp_code, valid_window=1):
+            return jsonify({'error': 'Invalid 2FA code'}), 401
+
+        # Disable 2FA
+        user.totp_enabled = False
+        user.totp_secret = None
+        user.totp_enabled_at = None
+        db.session.commit()
+
+        # Log 2FA disabled
+        security_logger.log_security_event(
+            event_type='2fa_disabled',
+            username=user.username,
+            status='success',
+            message=f'2FA disabled for user {user.username}',
+            user_id=user.id,
+            severity='high'  # High severity because it's a security downgrade
+        )
+
+        return jsonify({
+            'message': '2FA disabled successfully',
+            'totp_enabled': False
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"2FA disable error: {str(e)}")
+        return jsonify({'error': 'Failed to disable 2FA. Please try again.'}), 500
+
+
+@app.route('/api/2fa/status', methods=['GET'])
+@login_required
+def get_2fa_status():
+    """Get 2FA status for the current user"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        return jsonify({
+            'totp_enabled': user.totp_enabled,
+            'totp_enabled_at': user.totp_enabled_at.isoformat() if user.totp_enabled_at else None
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"2FA status error: {str(e)}")
+        return jsonify({'error': 'Failed to get 2FA status'}), 500
+
+# ============================================================================
+# END TWO-FACTOR AUTHENTICATION (2FA) ENDPOINTS
+# ============================================================================
 
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
@@ -6338,14 +6666,19 @@ def payhalal_escrow_webhook():
     """Handle PayHalal payment webhook for escrow funding"""
     try:
         from payhalal import get_payhalal_client
-        
+
         data = request.json or {}
         signature = request.headers.get('X-PayHalal-Signature', '')
-        
+
+        # SECURITY FIX: Mandatory webhook signature verification
+        if not signature:
+            app.logger.warning("Missing PayHalal webhook signature")
+            return jsonify({'error': 'Missing signature'}), 401
+
         client = get_payhalal_client()
-        
-        # Verify webhook signature if available
-        if signature and not client.verify_webhook_signature(data, signature):
+
+        # Always verify webhook signature
+        if not client.verify_webhook_signature(data, signature):
             app.logger.warning("Invalid PayHalal webhook signature")
             return jsonify({'error': 'Invalid signature'}), 401
         
@@ -6768,17 +7101,21 @@ def stripe_webhook():
     payload = request.get_data(as_text=True)
     sig_header = request.headers.get('Stripe-Signature')
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
-    
+
+    # SECURITY FIX: Mandatory webhook signature verification
+    if not webhook_secret:
+        app.logger.error("STRIPE_WEBHOOK_SECRET not configured - webhook rejected")
+        return jsonify({'error': 'Webhook verification not configured'}), 500
+
+    if not sig_header:
+        app.logger.warning("Missing Stripe-Signature header")
+        return jsonify({'error': 'Missing signature'}), 401
+
     try:
-        if webhook_secret:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, webhook_secret
-            )
-        else:
-            # Without webhook secret, parse the event directly (less secure)
-            event = stripe.Event.construct_from(
-                json.loads(payload), stripe.api_key
-            )
+        # Always verify webhook signature
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
         
         # Handle checkout.session.completed event
         if event['type'] == 'checkout.session.completed':
