@@ -7387,6 +7387,16 @@ def admin_page():
 
     return render_template('admin.html', user=user, lang=get_user_language(), t=t)
 
+@app.route('/admin/security-logs')
+@page_login_required
+def admin_security_logs_page():
+    """Serve admin security logs page"""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return redirect('/')
+
+    return render_template('admin_security_logs.html', user=user, lang=get_user_language(), t=t)
+
 @app.route('/api/admin/check', methods=['GET'])
 def check_admin():
     """Check if current user is admin"""
