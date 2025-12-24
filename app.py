@@ -12154,7 +12154,11 @@ def send_message():
         db.session.add(notification)
         db.session.commit()
         
-        return jsonify({'success': True, 'message': message.to_dict()}), 201
+        sender = User.query.get(message.sender_id)
+        msg_data = message.to_dict()
+        msg_data['sender_name'] = sender.full_name or sender.username if sender else 'Unknown'
+        msg_data['sender_username'] = sender.username if sender else 'unknown'
+        return jsonify({'success': True, 'message': msg_data}), 201
     except Exception as e:
         app.logger.error(f"Send message error: {str(e)}")
         return jsonify({'error': 'Failed to send message'}), 500

@@ -107,6 +107,29 @@
         color: var(--text-gray);
         margin-top: 4px;
     }
+    .message-sender {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        padding: 0 2px;
+    }
+    .message.received .message-sender {
+        color: var(--primary);
+    }
+    .message.sent .message-sender {
+        color: var(--text-gray);
+    }
+    .support-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary) 0%, #00b86a 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        margin-left: 6px;
+        letter-spacing: 0.5px;
+    }
     .chat-input-area {
         position: relative;
         background: var(--bg-white);
@@ -318,6 +341,9 @@
         {% if messages %}
             {% for msg in messages %}
             <div class="message {% if msg.sender_id == user.id %}sent{% else %}received{% endif %}" data-id="{{ msg.id }}">
+                {% if msg.sender_id != user.id %}
+                <div class="message-sender">{{ msg.sender.full_name or msg.sender.username }}{% if msg.sender.username == 'support' %}<span class="support-badge">SUPPORT</span>{% endif %}</div>
+                {% endif %}
                 <div class="message-bubble">{{ msg.content }}</div>
                 <span class="message-time">{{ msg.created_at.strftime('%b %d, %H:%M') }}</span>
             </div>
@@ -396,7 +422,14 @@ function appendMessage(msg, isSent) {
     const timeStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + 
                     date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     
+    let senderHtml = '';
+    if (!isSent && msg.sender_name) {
+        const supportBadge = msg.sender_username === 'support' ? '<span class="support-badge">SUPPORT</span>' : '';
+        senderHtml = `<div class="message-sender">${escapeHtml(msg.sender_name)}${supportBadge}</div>`;
+    }
+    
     msgEl.innerHTML = `
+        ${senderHtml}
         <div class="message-bubble">${escapeHtml(msg.content)}</div>
         <span class="message-time">${timeStr}</span>
     `;
