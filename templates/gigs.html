@@ -99,13 +99,31 @@
 
     .gigs-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 12px;
         margin-bottom: 32px;
     }
 
     .gig-card {
         display: none !important;
+    }
+
+    /* Support for gig-card-mini layout */
+    .gig-card-mini {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        transition: all 0.2s;
+        height: 80px;
+    }
+
+    .gig-card-mini:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
     }
 
     .gig-card:hover {
