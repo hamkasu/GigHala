@@ -12016,6 +12016,47 @@ def public_profile(username):
 # CHAT/MESSAGING ROUTES
 # ============================================
 
+@app.route('/support/message')
+@login_required
+def message_support():
+    """Start a conversation with support"""
+    try:
+        user_id = session['user_id']
+        
+        support_user = User.query.filter_by(username='support').first()
+        if not support_user:
+            support_user = User(
+                username='support',
+                email='support@gighala.local',
+                password_hash='disabled',
+                full_name='GigHala Support',
+                is_verified=True
+            )
+            db.session.add(support_user)
+            db.session.flush()
+        
+        existing = Conversation.query.filter(
+            ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == support_user.id)) |
+            ((Conversation.participant_1_id == support_user.id) & (Conversation.participant_2_id == user_id))
+        ).first()
+        
+        if existing:
+            conv_id = existing.id
+        else:
+            conv = Conversation(
+                participant_1_id=user_id,
+                participant_2_id=support_user.id
+            )
+            db.session.add(conv)
+            db.session.commit()
+            conv_id = conv.id
+        
+        db.session.commit()
+        return redirect(f'/messages/{conv_id}')
+    except Exception as e:
+        app.logger.error(f"Error starting support conversation: {str(e)}")
+        return redirect('/messages')
+
 @app.route('/messages')
 @page_login_required
 def messages():

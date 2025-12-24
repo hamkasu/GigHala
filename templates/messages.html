@@ -108,14 +108,45 @@
         font-size: 64px;
         margin-bottom: 16px;
     }
+    .page-header-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    .btn-support {
+        background: linear-gradient(135deg, var(--primary) 0%, #00b86a 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-support:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="messages-container">
     <div class="page-header">
-        <h1>{{ t('messages_page_title') }}</h1>
-        <p style="color: var(--text-gray); margin-top: 4px;">{{ t('messages_page_subtitle') }}</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1>{{ t('messages_page_title') }}</h1>
+                <p style="color: var(--text-gray); margin-top: 4px;">{{ t('messages_page_subtitle') }}</p>
+            </div>
+            <button class="btn-support" onclick="window.location.href='/support/message'">
+                <span>💬</span>
+                <span>Message Support</span>
+            </button>
+        </div>
     </div>
 
     <div class="conversation-list">
