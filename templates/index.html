@@ -628,10 +628,178 @@
                         <label>{{ t('location') }}</label>
                         <select name="location" required>
                             <option value="">{{ t('select_location') }}</option>
-                            <option value="Kuala Lumpur">Kuala Lumpur</option>
-                            <option value="Selangor">Selangor</option>
-                            <option value="Penang">Penang</option>
-                            <option value="Johor">Johor</option>
+                            <optgroup label="Kuala Lumpur">
+                                <option value="Kuala Lumpur">Kuala Lumpur</option>
+                                <option value="Cheras, KL">Cheras</option>
+                                <option value="Kepong, KL">Kepong</option>
+                                <option value="Bangsar, KL">Bangsar</option>
+                            </optgroup>
+                            <optgroup label="Johor">
+                                <option value="Batu Pahat, Johor">Batu Pahat</option>
+                                <option value="Johor Bahru, Johor">Johor Bahru</option>
+                                <option value="Kluang, Johor">Kluang</option>
+                                <option value="Kota Tinggi, Johor">Kota Tinggi</option>
+                                <option value="Kulai, Johor">Kulai</option>
+                                <option value="Mersing, Johor">Mersing</option>
+                                <option value="Muar, Johor">Muar</option>
+                                <option value="Pontian, Johor">Pontian</option>
+                                <option value="Segamat, Johor">Segamat</option>
+                                <option value="Tangkak, Johor">Tangkak</option>
+                            </optgroup>
+                            <optgroup label="Kedah">
+                                <option value="Alor Setar, Kedah">Alor Setar</option>
+                                <option value="Baling, Kedah">Baling</option>
+                                <option value="Bandar Baharu, Kedah">Bandar Baharu</option>
+                                <option value="Kota Setar, Kedah">Kota Setar</option>
+                                <option value="Kuala Muda, Kedah">Kuala Muda</option>
+                                <option value="Kubang Pasu, Kedah">Kubang Pasu</option>
+                                <option value="Kulim, Kedah">Kulim</option>
+                                <option value="Langkawi, Kedah">Langkawi</option>
+                                <option value="Padang Terap, Kedah">Padang Terap</option>
+                                <option value="Pendang, Kedah">Pendang</option>
+                                <option value="Pokok Sena, Kedah">Pokok Sena</option>
+                                <option value="Sik, Kedah">Sik</option>
+                                <option value="Yan, Kedah">Yan</option>
+                            </optgroup>
+                            <optgroup label="Kelantan">
+                                <option value="Bachok, Kelantan">Bachok</option>
+                                <option value="Gua Musang, Kelantan">Gua Musang</option>
+                                <option value="Jeli, Kelantan">Jeli</option>
+                                <option value="Kota Bharu, Kelantan">Kota Bharu</option>
+                                <option value="Kuala Krai, Kelantan">Kuala Krai</option>
+                                <option value="Machang, Kelantan">Machang</option>
+                                <option value="Pasir Mas, Kelantan">Pasir Mas</option>
+                                <option value="Pasir Puteh, Kelantan">Pasir Puteh</option>
+                                <option value="Tanah Merah, Kelantan">Tanah Merah</option>
+                                <option value="Tumpat, Kelantan">Tumpat</option>
+                            </optgroup>
+                            <optgroup label="Melaka">
+                                <option value="Alor Gajah, Melaka">Alor Gajah</option>
+                                <option value="Jasin, Melaka">Jasin</option>
+                                <option value="Melaka Tengah, Melaka">Melaka Tengah</option>
+                            </optgroup>
+                            <optgroup label="Negeri Sembilan">
+                                <option value="Jelebu, Negeri Sembilan">Jelebu</option>
+                                <option value="Jempol, Negeri Sembilan">Jempol</option>
+                                <option value="Kuala Pilah, Negeri Sembilan">Kuala Pilah</option>
+                                <option value="Port Dickson, Negeri Sembilan">Port Dickson</option>
+                                <option value="Rembau, Negeri Sembilan">Rembau</option>
+                                <option value="Seremban, Negeri Sembilan">Seremban</option>
+                                <option value="Tampin, Negeri Sembilan">Tampin</option>
+                            </optgroup>
+                            <optgroup label="Pahang">
+                                <option value="Bentong, Pahang">Bentong</option>
+                                <option value="Bera, Pahang">Bera</option>
+                                <option value="Cameron Highlands, Pahang">Cameron Highlands</option>
+                                <option value="Jerantut, Pahang">Jerantut</option>
+                                <option value="Kuantan, Pahang">Kuantan</option>
+                                <option value="Lipis, Pahang">Lipis</option>
+                                <option value="Maran, Pahang">Maran</option>
+                                <option value="Pekan, Pahang">Pekan</option>
+                                <option value="Raub, Pahang">Raub</option>
+                                <option value="Rompin, Pahang">Rompin</option>
+                                <option value="Temerloh, Pahang">Temerloh</option>
+                            </optgroup>
+                            <optgroup label="Penang">
+                                <option value="Barat Daya, Penang">Barat Daya</option>
+                                <option value="Seberang Perai Selatan, Penang">Seberang Perai Selatan</option>
+                                <option value="Seberang Perai Tengah, Penang">Seberang Perai Tengah</option>
+                                <option value="Seberang Perai Utara, Penang">Seberang Perai Utara</option>
+                                <option value="Timur Laut, Penang">Timur Laut</option>
+                            </optgroup>
+                            <optgroup label="Perak">
+                                <option value="Batang Padang, Perak">Batang Padang</option>
+                                <option value="Hilir Perak, Perak">Hilir Perak</option>
+                                <option value="Hulu Perak, Perak">Hulu Perak</option>
+                                <option value="Kampar, Perak">Kampar</option>
+                                <option value="Kerian, Perak">Kerian</option>
+                                <option value="Kinta, Perak">Kinta</option>
+                                <option value="Kuala Kangsar, Perak">Kuala Kangsar</option>
+                                <option value="Larut, Matang dan Selama, Perak">Larut, Matang dan Selama</option>
+                                <option value="Manjung, Perak">Manjung</option>
+                                <option value="Muallim, Perak">Muallim</option>
+                                <option value="Perak Tengah, Perak">Perak Tengah</option>
+                            </optgroup>
+                            <optgroup label="Perlis">
+                                <option value="Arau, Perlis">Arau</option>
+                                <option value="Kangar, Perlis">Kangar</option>
+                                <option value="Padang Besar, Perlis">Padang Besar</option>
+                            </optgroup>
+                            <optgroup label="Sabah">
+                                <option value="Beaufort, Sabah">Beaufort</option>
+                                <option value="Beluran, Sabah">Beluran</option>
+                                <option value="Keningau, Sabah">Keningau</option>
+                                <option value="Kinabatangan, Sabah">Kinabatangan</option>
+                                <option value="Kota Belud, Sabah">Kota Belud</option>
+                                <option value="Kota Kinabalu, Sabah">Kota Kinabalu</option>
+                                <option value="Kota Marudu, Sabah">Kota Marudu</option>
+                                <option value="Kuala Penyu, Sabah">Kuala Penyu</option>
+                                <option value="Kudat, Sabah">Kudat</option>
+                                <option value="Kunak, Sabah">Kunak</option>
+                                <option value="Lahad Datu, Sabah">Lahad Datu</option>
+                                <option value="Nabawan, Sabah">Nabawan</option>
+                                <option value="Papar, Sabah">Papar</option>
+                                <option value="Penampang, Sabah">Penampang</option>
+                                <option value="Pitas, Sabah">Pitas</option>
+                                <option value="Putatan, Sabah">Putatan</option>
+                                <option value="Ranau, Sabah">Ranau</option>
+                                <option value="Sandakan, Sabah">Sandakan</option>
+                                <option value="Semporna, Sabah">Semporna</option>
+                                <option value="Sipitang, Sabah">Sipitang</option>
+                                <option value="Tambunan, Sabah">Tambunan</option>
+                                <option value="Tawau, Sabah">Tawau</option>
+                                <option value="Tenom, Sabah">Tenom</option>
+                                <option value="Tuaran, Sabah">Tuaran</option>
+                            </optgroup>
+                            <optgroup label="Sarawak">
+                                <option value="Asajaya, Sarawak">Asajaya</option>
+                                <option value="Belaga, Sarawak">Belaga</option>
+                                <option value="Betong, Sarawak">Betong</option>
+                                <option value="Bintulu, Sarawak">Bintulu</option>
+                                <option value="Dalat, Sarawak">Dalat</option>
+                                <option value="Daro, Sarawak">Daro</option>
+                                <option value="Kapit, Sarawak">Kapit</option>
+                                <option value="Kuching, Sarawak">Kuching</option>
+                                <option value="Lawas, Sarawak">Lawas</option>
+                                <option value="Limbang, Sarawak">Limbang</option>
+                                <option value="Lubok Antu, Sarawak">Lubok Antu</option>
+                                <option value="Marudi, Sarawak">Marudi</option>
+                                <option value="Matu, Sarawak">Matu</option>
+                                <option value="Miri, Sarawak">Miri</option>
+                                <option value="Mukah, Sarawak">Mukah</option>
+                                <option value="Pakan, Sarawak">Pakan</option>
+                                <option value="Pusa, Sarawak">Pusa</option>
+                                <option value="Saratok, Sarawak">Saratok</option>
+                                <option value="Sarikei, Sarawak">Sarikei</option>
+                                <option value="Serian, Sarawak">Serian</option>
+                                <option value="Sibu, Sarawak">Sibu</option>
+                                <option value="Simunjan, Sarawak">Simunjan</option>
+                                <option value="Subis, Sarawak">Subis</option>
+                            </optgroup>
+                            <optgroup label="Selangor">
+                                <option value="Gombak, Selangor">Gombak</option>
+                                <option value="Hulu Langat, Selangor">Hulu Langat</option>
+                                <option value="Hulu Selangor, Selangor">Hulu Selangor</option>
+                                <option value="Klang, Selangor">Klang</option>
+                                <option value="Kuala Langat, Selangor">Kuala Langat</option>
+                                <option value="Kuala Selangor, Selangor">Kuala Selangor</option>
+                                <option value="Petaling, Selangor">Petaling</option>
+                                <option value="Sabak Bernam, Selangor">Sabak Bernam</option>
+                                <option value="Sepang, Selangor">Sepang</option>
+                            </optgroup>
+                            <optgroup label="Terengganu">
+                                <option value="Besut, Terengganu">Besut</option>
+                                <option value="Dungun, Terengganu">Dungun</option>
+                                <option value="Hulu Terengganu, Terengganu">Hulu Terengganu</option>
+                                <option value="Kemaman, Terengganu">Kemaman</option>
+                                <option value="Kuala Nerus, Terengganu">Kuala Nerus</option>
+                                <option value="Kuala Terengganu, Terengganu">Kuala Terengganu</option>
+                                <option value="Marang, Terengganu">Marang</option>
+                            </optgroup>
+                            <optgroup label="Federal Territories">
+                                <option value="Putrajaya, Putrajaya">Putrajaya</option>
+                                <option value="Labuan, Labuan">Labuan</option>
+                            </optgroup>
                             <option value="Other">Lain-lain</option>
                         </select>
                     </div>
