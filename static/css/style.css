@@ -1422,9 +1422,9 @@ body {
 
 .modal-content {
     background: white;
-    padding: 50px;
-    border-radius: 24px;
-    max-width: 500px;
+    padding: 38px;
+    border-radius: 18px;
+    max-width: 375px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -1445,16 +1445,16 @@ body {
 }
 
 .modal-large {
-    max-width: 800px;
+    max-width: 600px;
 }
 
 .modal-close {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 15px;
+    right: 15px;
     background: none;
     border: none;
-    font-size: 32px;
+    font-size: 24px;
     cursor: pointer;
     color: var(--text-gray);
     transition: color 0.3s ease;
@@ -1466,21 +1466,21 @@ body {
 
 .modal-title {
     font-family: var(--font-display);
-    font-size: 40px;
+    font-size: 30px;
     color: var(--dark-navy);
-    margin-bottom: 30px;
+    margin-bottom: 23px;
 }
 
 .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 19px;
 }
 
 .form-group label {
     display: block;
     font-weight: 600;
     color: var(--text-dark);
-    margin-bottom: 10px;
-    font-size: 17.5px;
+    margin-bottom: 8px;
+    font-size: 13px;
 }
 
 .form-group input,
