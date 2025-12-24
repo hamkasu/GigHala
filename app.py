@@ -21,6 +21,7 @@ from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
 from twilio.rest import Client
 from email_service import email_service
+import redis
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -33,6 +34,25 @@ twilio_phone_number = os.environ.get('TWILIO_PHONE_NUMBER')
 twilio_client = None
 if twilio_account_sid and twilio_auth_token:
     twilio_client = Client(twilio_account_sid, twilio_auth_token)
+
+# Redis Configuration for Rate Limiting
+redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+redis_client = None
+try:
+    redis_client = redis.from_url(
+        redis_url,
+        decode_responses=True,
+        socket_connect_timeout=5,
+        socket_timeout=5,
+        retry_on_timeout=True
+    )
+    # Test connection
+    redis_client.ping()
+    print("✓ Redis connected successfully for rate limiting")
+except (redis.ConnectionError, redis.TimeoutError) as e:
+    print(f"⚠️  WARNING: Redis connection failed: {e}")
+    print("⚠️  Rate limiting will fall back to in-memory storage (not recommended for production)")
+    redis_client = None
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 
@@ -319,41 +339,92 @@ def get_coordinates(location_string):
     # Try geocoding
     return geocode_location(location_string)
 
-# Rate limiting storage (in-memory, consider Redis for production)
-login_attempts = {}
-api_rate_limits = {}
+# Rate limiting storage - Redis-backed with in-memory fallback
+login_attempts = {}  # Fallback for when Redis is unavailable
+api_rate_limits = {}  # Fallback for when Redis is unavailable
+
+# Redis key prefixes
+REDIS_LOGIN_ATTEMPTS_PREFIX = "rate_limit:login:"
+REDIS_API_RATE_LIMIT_PREFIX = "rate_limit:api:"
 
 # General API rate limiting
 def api_rate_limit(requests_per_minute=60):
-    """Rate limit decorator for general API endpoints"""
+    """Rate limit decorator for general API endpoints with Redis backing"""
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
             identifier = f"{request.remote_addr}:{f.__name__}"
             current_time = datetime.utcnow()
-            
+
+            if redis_client:
+                try:
+                    # Redis-backed rate limiting
+                    redis_key = f"{REDIS_API_RATE_LIMIT_PREFIX}{identifier}"
+                    block_key = f"{redis_key}:blocked"
+
+                    # Check if blocked
+                    blocked_until = redis_client.get(block_key)
+                    if blocked_until:
+                        blocked_time = datetime.fromisoformat(blocked_until)
+                        if current_time < blocked_time:
+                            remaining = int((blocked_time - current_time).total_seconds())
+                            return jsonify({'error': f'Rate limit exceeded. Try again in {remaining} seconds'}), 429
+                        else:
+                            # Block expired, remove it
+                            redis_client.delete(block_key)
+
+                    # Use Redis sorted set to track requests with timestamps
+                    one_minute_ago = (current_time - timedelta(minutes=1)).timestamp()
+
+                    # Remove old requests
+                    redis_client.zremrangebyscore(redis_key, 0, one_minute_ago)
+
+                    # Count requests in current window
+                    request_count = redis_client.zcard(redis_key)
+
+                    # Check if rate limit exceeded
+                    if request_count >= requests_per_minute:
+                        blocked_until = current_time + timedelta(seconds=60)
+                        redis_client.setex(block_key, 60, blocked_until.isoformat())
+                        return jsonify({'error': 'Rate limit exceeded. Please wait a moment.'}), 429
+
+                    # Record this request with current timestamp as score and unique ID as value
+                    request_id = f"{current_time.timestamp()}:{uuid.uuid4()}"
+                    redis_client.zadd(redis_key, {request_id: current_time.timestamp()})
+
+                    # Set expiry on the sorted set (70 seconds to ensure cleanup)
+                    redis_client.expire(redis_key, 70)
+
+                except (redis.ConnectionError, redis.TimeoutError) as e:
+                    print(f"⚠️  Redis error in api_rate_limit: {e}, falling back to in-memory")
+                    # Fall through to in-memory implementation
+                else:
+                    # Redis operation successful, proceed with request
+                    return f(*args, **kwargs)
+
+            # In-memory fallback (original implementation)
             if identifier not in api_rate_limits:
                 api_rate_limits[identifier] = {'requests': [], 'blocked_until': None}
-            
+
             rate_data = api_rate_limits[identifier]
-            
+
             # Check if blocked
             if rate_data['blocked_until'] and current_time < rate_data['blocked_until']:
                 remaining = int((rate_data['blocked_until'] - current_time).total_seconds())
                 return jsonify({'error': f'Rate limit exceeded. Try again in {remaining} seconds'}), 429
-            
+
             # Remove old requests (older than 1 minute)
             one_minute_ago = current_time - timedelta(minutes=1)
             rate_data['requests'] = [t for t in rate_data['requests'] if t > one_minute_ago]
-            
+
             # Check if rate limit exceeded
             if len(rate_data['requests']) >= requests_per_minute:
                 rate_data['blocked_until'] = current_time + timedelta(seconds=60)
                 return jsonify({'error': 'Rate limit exceeded. Please wait a moment.'}), 429
-            
+
             # Record this request
             rate_data['requests'].append(current_time)
-            
+
             return f(*args, **kwargs)
         return wrapped
     return decorator
@@ -362,24 +433,28 @@ def api_rate_limit(requests_per_minute=60):
 _last_cleanup = datetime.utcnow()
 
 def cleanup_rate_limits():
-    """Remove stale rate limit entries older than 1 hour"""
+    """Remove stale rate limit entries - Redis uses TTL, this is for in-memory fallback only"""
     global _last_cleanup
     current_time = datetime.utcnow()
-    cutoff = current_time - timedelta(hours=1)
-    
-    # Cleanup login attempts
-    stale_logins = [k for k, v in login_attempts.items() 
-                    if v['first_attempt'] < cutoff and 
-                    (v['locked_until'] is None or v['locked_until'] < current_time)]
-    for k in stale_logins:
-        del login_attempts[k]
-    
-    # Cleanup API rate limits
-    stale_api = [k for k, v in api_rate_limits.items() 
-                 if not v['requests'] or max(v['requests']) < cutoff]
-    for k in stale_api:
-        del api_rate_limits[k]
-    
+
+    # With Redis, cleanup is automatic via TTL/EXPIRE
+    # This function only cleans up in-memory fallback storage
+    if not redis_client:
+        cutoff = current_time - timedelta(hours=1)
+
+        # Cleanup login attempts
+        stale_logins = [k for k, v in login_attempts.items()
+                        if v['first_attempt'] < cutoff and
+                        (v['locked_until'] is None or v['locked_until'] < current_time)]
+        for k in stale_logins:
+            del login_attempts[k]
+
+        # Cleanup API rate limits
+        stale_api = [k for k, v in api_rate_limits.items()
+                     if not v['requests'] or max(v['requests']) < cutoff]
+        for k in stale_api:
+            del api_rate_limits[k]
+
     _last_cleanup = current_time
 
 @app.before_request
@@ -1359,13 +1434,70 @@ def contains_blocked_contact_info(text):
 
 # Rate limiting decorator
 def rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30):
-    """Rate limit decorator to prevent brute force attacks"""
+    """Rate limit decorator to prevent brute force attacks with Redis backing"""
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
             identifier = request.remote_addr
             current_time = datetime.utcnow()
 
+            if redis_client:
+                try:
+                    # Redis-backed rate limiting
+                    redis_key = f"{REDIS_LOGIN_ATTEMPTS_PREFIX}{identifier}"
+                    count_key = f"{redis_key}:count"
+                    first_attempt_key = f"{redis_key}:first_attempt"
+                    locked_until_key = f"{redis_key}:locked_until"
+
+                    # Check if account is locked
+                    locked_until = redis_client.get(locked_until_key)
+                    if locked_until:
+                        locked_time = datetime.fromisoformat(locked_until)
+                        if current_time < locked_time:
+                            remaining = int((locked_time - current_time).total_seconds() / 60)
+                            return jsonify({'error': f'Too many failed attempts. Account locked for {remaining} more minutes'}), 429
+                        else:
+                            # Lock expired, clean up
+                            redis_client.delete(locked_until_key)
+
+                    # Get or initialize attempt data
+                    count = redis_client.get(count_key)
+                    first_attempt = redis_client.get(first_attempt_key)
+
+                    if count is None or first_attempt is None:
+                        # First attempt or expired data
+                        redis_client.setex(count_key, window_minutes * 60, "1")
+                        redis_client.setex(first_attempt_key, window_minutes * 60, current_time.isoformat())
+                        count = 1
+                    else:
+                        count = int(count)
+                        first_attempt_time = datetime.fromisoformat(first_attempt)
+
+                        # Reset if window has passed
+                        if (current_time - first_attempt_time).total_seconds() > window_minutes * 60:
+                            redis_client.setex(count_key, window_minutes * 60, "1")
+                            redis_client.setex(first_attempt_key, window_minutes * 60, current_time.isoformat())
+                            count = 1
+                        else:
+                            # Check if rate limit exceeded
+                            if count >= max_attempts:
+                                locked_until = current_time + timedelta(minutes=lockout_minutes)
+                                redis_client.setex(locked_until_key, lockout_minutes * 60, locked_until.isoformat())
+                                return jsonify({'error': f'Too many failed attempts. Account locked for {lockout_minutes} minutes'}), 429
+
+                            # Increment attempt counter
+                            redis_client.incr(count_key)
+                            # Refresh TTL
+                            redis_client.expire(count_key, window_minutes * 60)
+
+                except (redis.ConnectionError, redis.TimeoutError) as e:
+                    print(f"⚠️  Redis error in rate_limit: {e}, falling back to in-memory")
+                    # Fall through to in-memory implementation
+                else:
+                    # Redis operation successful, proceed with request
+                    return f(*args, **kwargs)
+
+            # In-memory fallback (original implementation)
             if identifier not in login_attempts:
                 login_attempts[identifier] = {'count': 0, 'first_attempt': current_time, 'locked_until': None}
 
@@ -1395,7 +1527,20 @@ def rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30):
     return decorator
 
 def reset_rate_limit(identifier):
-    """Reset rate limit for successful login"""
+    """Reset rate limit for successful login - works with both Redis and in-memory"""
+    if redis_client:
+        try:
+            # Reset Redis keys
+            redis_key = f"{REDIS_LOGIN_ATTEMPTS_PREFIX}{identifier}"
+            redis_client.delete(
+                f"{redis_key}:count",
+                f"{redis_key}:first_attempt",
+                f"{redis_key}:locked_until"
+            )
+        except (redis.ConnectionError, redis.TimeoutError) as e:
+            print(f"⚠️  Redis error in reset_rate_limit: {e}, falling back to in-memory")
+
+    # Also reset in-memory (for fallback or if Redis failed)
     if identifier in login_attempts:
         login_attempts[identifier] = {'count': 0, 'first_attempt': datetime.utcnow(), 'locked_until': None}
 
