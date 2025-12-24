@@ -99,20 +99,13 @@
 
     .gigs-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 16px;
         margin-bottom: 32px;
     }
 
     .gig-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        transition: all 0.2s;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
+        display: none !important;
     }
 
     .gig-card:hover {
@@ -695,30 +688,21 @@
             const gradient = categoryGradients[gig.category?.toLowerCase()] || '#667eea, #764ba2';
 
             return `
-                <div class="gig-card" onclick="viewGig(${gig.id})">
-                    <div class="gig-header" style="background: linear-gradient(135deg, ${gradient})">
-                        <span>${icon}</span>
-                        <div class="gig-badges">
-                            ${gig.halal_verified ? '<span class="badge badge-halal">HALAL</span>' : ''}
-                            ${gig.is_instant_payout ? '<span class="badge badge-instant">⚡ INSTANT</span>' : ''}
-                            ${gig.is_brand_partnership ? '<span class="badge badge-brand">🌟 BRAND</span>' : ''}
-                        </div>
-                    </div>
-                    <div class="gig-body">
-                        <div class="gig-title">${gig.title}</div>
-                        <div class="gig-meta">
+                <div class="gig-card-mini" onclick="viewGig(${gig.id})" style="cursor: pointer; margin-bottom: 12px; width: 100%; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);">
+                    <span class="gig-icon" style="font-size: 24px; background: linear-gradient(135deg, ${gradient}); padding: 12px; border-radius: 12px; color: white;">${icon}</span>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="gig-title-mini" style="font-size: 14px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${gig.title}</div>
+                        <div style="display: flex; gap: 8px; font-size: 11px; color: var(--text-gray); margin-top: 2px;">
                             ${gig.distance ? `<span>📍 ${gig.distance} km</span>` : ''}
                             <span>⏱ ${gig.duration || translations.flexible}</span>
                         </div>
-                        <div class="gig-footer">
-                            <div class="gig-rating">
-                                <span class="star">★</span> 4.8
-                            </div>
-                            <div class="gig-price">
-                                <div class="price-label">${translations.budget}</div>
-                                <div class="price-value">RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</div>
-                            </div>
-                        </div>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0;">
+                        <div style="font-size: 9px; color: var(--text-gray); text-transform: uppercase; font-weight: 600;">Budget</div>
+                        <div class="gig-price-mini" style="font-size: 15px; font-weight: 800; color: var(--primary-green);">RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</div>
+                    </div>
+                    <div style="display: flex; gap: 4px; margin-left: 8px;">
+                        ${gig.halal_verified ? '<span class="halal-mini" style="background: var(--primary-green); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700;">HALAL</span>' : ''}
                     </div>
                 </div>
             `;
