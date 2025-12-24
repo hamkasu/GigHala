@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GigHala{% endblock %} - Platform GigHala #1 Malaysia</title>
     <meta name="description" content="Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan.">
-    
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#00C853">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1383,13 +1384,37 @@
     <script src="/static/js/app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script>
+        // CSRF Token Helper
+        function getCSRFToken() {
+            const token = document.querySelector('meta[name="csrf-token"]');
+            return token ? token.getAttribute('content') : '';
+        }
+
+        // Enhance fetch to automatically include CSRF token
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            // Only add CSRF token to same-origin requests that modify data
+            if (!url.startsWith('http') || url.startsWith(window.location.origin)) {
+                const method = (options.method || 'GET').toUpperCase();
+                if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+                    options.headers = options.headers || {};
+                    if (typeof options.headers === 'object' && !(options.headers instanceof Headers)) {
+                        options.headers['X-CSRFToken'] = getCSRFToken();
+                    } else if (options.headers instanceof Headers) {
+                        options.headers.set('X-CSRFToken', getCSRFToken());
+                    }
+                }
+            }
+            return originalFetch(url, options);
+        };
+
         // Initialize the app when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof app !== 'undefined' && app.init) {
                 app.init();
             }
         });
-        
+
         feather.replace();
 
         function toggleUserDropdown() {
