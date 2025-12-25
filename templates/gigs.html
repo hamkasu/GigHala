@@ -324,35 +324,10 @@
 <div class="gigs-container">
     <!-- Filters Bar -->
     <div class="filters-bar">
-        <!-- Location Permission Banner -->
-        <div id="locationBanner" style="display: none; background: #e3f2fd; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; border-left: 4px solid #2196f3;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 24px;">📍</span>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; color: #1976d2; margin-bottom: 4px;" id="locationBannerTitle">Enable Location for Nearby Gigs</div>
-                    <div style="font-size: 13px; color: #455a64;" id="locationBannerText">Find gigs closest to you by enabling location access</div>
-                </div>
-                <button onclick="requestLocation()" id="enableLocationBtn" style="padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;">Enable</button>
-                <button onclick="dismissLocationBanner()" style="padding: 8px 12px; background: transparent; color: #757575; border: none; cursor: pointer;">✕</button>
-            </div>
-        </div>
-
         <div class="filters-row">
             <div class="filter-group">
                 <label class="filter-label">{{ t('search') }}</label>
                 <input type="text" class="filter-input" placeholder="{{ t('keywords_placeholder') }}" id="searchInput">
-            </div>
-
-            <div class="filter-group">
-                <label class="filter-label">📍 Distance</label>
-                <select class="filter-input" id="distanceFilter" onchange="filterGigs()" disabled>
-                    <option value="">All Locations</option>
-                    <option value="5">Within 5 km</option>
-                    <option value="10">Within 10 km</option>
-                    <option value="25">Within 25 km</option>
-                    <option value="50">Within 50 km</option>
-                    <option value="100">Within 100 km</option>
-                </select>
             </div>
 
             <div class="filter-group">
@@ -370,21 +345,14 @@
         </div>
 
         <!-- Map Toggle -->
-        <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;" id="mapToggleSection" hidden>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-gray);">
-                <input type="checkbox" id="showMapToggle" onchange="toggleMap()" style="cursor: pointer;">
-                <span>🗺️ Show Map View</span>
-            </label>
-            <span id="locationStatus" style="font-size: 13px; color: #00c853; display: none;">
-                <span style="display: inline-block; width: 8px; height: 8px; background: #00c853; border-radius: 50%; margin-right: 6px;"></span>
-                Location enabled
-            </span>
+        <div id="mapToggleSection" style="display: none;">
+            <input type="checkbox" id="showMapToggle">
         </div>
     </div>
 
     <!-- Map Container -->
-    <div id="mapContainer" style="display: none; background: white; border-radius: 12px; margin-bottom: 24px; overflow: hidden; border: 1px solid var(--border); height: 400px;">
-        <div id="map" style="width: 100%; height: 100%;"></div>
+    <div id="mapContainer" style="display: none;">
+        <div id="map"></div>
     </div>
 
     <!-- Results Header -->
@@ -396,7 +364,6 @@
             <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">{{ t('sort_by') }}</label>
             <select class="sort-select" id="sortSelect" onchange="filterGigs()">
                 <option value="newest" selected>{{ t('newest') }}</option>
-                <option value="nearest" id="nearestOption" style="display: none;">📍 Nearest First</option>
                 <option value="budget_high">{{ t('budget_highest') }}</option>
                 <option value="budget_low">{{ t('budget_lowest') }}</option>
             </select>
@@ -429,12 +396,6 @@
     let currentPage = 1;
     const pageSize = 12;
 
-    // Geolocation state
-    let userLocation = null;
-    let map = null;
-    let markers = [];
-
-    // Get category and search from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const selectedCategory = urlParams.get('category') || '';
     const urlSearch = urlParams.get('search') || '';
@@ -647,12 +608,7 @@
 
     async function loadGigs() {
         try {
-            // Use nearby endpoint if location is available
-            let apiUrl = '/api/gigs';
-            if (userLocation) {
-                apiUrl = `/api/gigs/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}`;
-            }
-
+            const apiUrl = '/api/gigs';
             const response = await fetch(apiUrl);
             if (response.ok) {
                 allGigs = await response.json();
@@ -746,7 +702,6 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
         const priceMax = parseInt(document.getElementById('priceMax').value) || 999999;
-        const maxDistance = parseFloat(document.getElementById('distanceFilter').value);
         const sortBy = document.getElementById('sortSelect').value;
 
         let filtered = allGigs.filter(gig => {
@@ -756,11 +711,7 @@
             const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
             const matchesCategory = !selectedCategory || gig.category === selectedCategory;
 
-            // Distance filter
-            const matchesDistance = !maxDistance || !userLocation ||
-                (gig.distance !== null && gig.distance !== undefined && gig.distance <= maxDistance);
-
-            return matchesSearch && matchesPrice && matchesCategory && matchesDistance;
+            return matchesSearch && matchesPrice && matchesCategory;
         });
 
         // Sort based on selection
@@ -768,23 +719,11 @@
             filtered.sort((a, b) => b.budget_max - a.budget_max);
         } else if (sortBy === 'budget_low') {
             filtered.sort((a, b) => a.budget_min - b.budget_min);
-        } else if (sortBy === 'nearest' && userLocation) {
-            // Sort by distance when location is available
-            filtered.sort((a, b) => {
-                if (a.distance === null || a.distance === undefined) return 1;
-                if (b.distance === null || b.distance === undefined) return -1;
-                return a.distance - b.distance;
-            });
         } else {
-            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            filtered.sort((a, b) => b.id - a.id);
         }
 
         renderGigs(filtered);
-
-        // Update map markers if map is visible
-        if (map) {
-            updateMapMarkers();
-        }
     }
 
     function loadMore() {
@@ -830,7 +769,6 @@
 
     // Call on page load
     highlightActiveCategory();
-    checkLocationPermission();
     loadGigs();
 </script>
 {% endblock %}
