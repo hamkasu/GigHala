@@ -1,0 +1,845 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - SOCSO Registration{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    .page-header p {
+        margin: 0;
+        font-size: 15px;
+        opacity: 0.95;
+    }
+
+    .section {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .section-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-light);
+    }
+
+    .section-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .section-body {
+        padding: 24px;
+    }
+
+    .alert-info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 24px;
+        color: #1e40af;
+        font-size: 14px;
+    }
+
+    .alert-info strong {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .search-section {
+        margin-bottom: 32px;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .search-box input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+
+    .search-box button {
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .search-box button:hover {
+        background: var(--primary-dark);
+    }
+
+    .user-results {
+        display: grid;
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .user-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+
+    .user-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-info {
+        flex: 1;
+    }
+
+    .user-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+    }
+
+    .user-meta {
+        display: flex;
+        gap: 16px;
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    .user-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-badge.registered {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.incomplete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-register {
+        padding: 10px 20px;
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-register:hover {
+        background: #7c3aed;
+    }
+
+    .btn-register:disabled {
+        background: #e5e7eb;
+        color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 14px;
+    }
+
+    .form-group label .required {
+        color: #ef4444;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .form-group .help-text {
+        font-size: 12px;
+        color: var(--text-light);
+        margin-top: 4px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: var(--bg-white);
+        z-index: 10;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+        color: var(--text-dark);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: var(--text-light);
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .alert {
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-gray);
+    }
+
+    .spinner {
+        border: 3px solid var(--border);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .form-group.full-width {
+            grid-column: span 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="page-header">
+        <h1>🏥 SOCSO Registration for Gig Workers</h1>
+        <p>Register freelancers for Social Security Organisation (SOCSO) under the Self-Employment Social Security Scheme (SESKSO) - Gig Workers Bill 2025</p>
+    </div>
+
+    <div class="section search-section">
+        <div class="section-header">
+            <h2>Search Freelancers</h2>
+        </div>
+        <div class="section-body">
+            <div class="alert-info">
+                <strong>SOCSO Registration Requirements</strong>
+                All freelancers earning through the platform must be registered for SOCSO. Platform automatically deducts 1.25% of net earnings for SOCSO contributions. Ensure all required fields are completed for compliance.
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name, email, IC number, or phone..." />
+                <button onclick="searchFreelancers()">🔍 Search</button>
+            </div>
+
+            <div id="searchLoading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Searching...</p>
+            </div>
+
+            <div id="searchResults" class="user-results"></div>
+        </div>
+    </div>
+</div>
+
+<!-- SOCSO Registration Modal -->
+<div id="registrationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Register for SOCSO</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="modalAlert"></div>
+
+            <form id="socsoRegistrationForm" onsubmit="submitRegistration(event)">
+                <input type="hidden" id="userId" name="user_id" />
+
+                <div class="form-grid">
+                    <!-- Personal Information -->
+                    <div class="form-group full-width">
+                        <h3 style="margin: 0 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid var(--primary); color: var(--primary);">Personal Information</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Full Name (as per IC) <span class="required">*</span></label>
+                        <input type="text" id="fullName" name="full_name" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>IC Number / Passport Number <span class="required">*</span></label>
+                        <input type="text" id="icNumber" name="ic_number" required pattern="[0-9]{12}|[A-Z0-9]{5,20}" />
+                        <div class="help-text">12-digit IC number or passport number</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date of Birth <span class="required">*</span></label>
+                        <input type="date" id="dateOfBirth" name="date_of_birth" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Gender <span class="required">*</span></label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Marital Status <span class="required">*</span></label>
+                        <select id="maritalStatus" name="marital_status" required>
+                            <option value="">Select Marital Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nationality <span class="required">*</span></label>
+                        <input type="text" id="nationality" name="nationality" value="Malaysian" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Race <span class="required">*</span></label>
+                        <select id="race" name="race" required>
+                            <option value="">Select Race</option>
+                            <option value="Malay">Malay</option>
+                            <option value="Chinese">Chinese</option>
+                            <option value="Indian">Indian</option>
+                            <option value="Bumiputera Sabah">Bumiputera Sabah</option>
+                            <option value="Bumiputera Sarawak">Bumiputera Sarawak</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="form-group full-width">
+                        <h3 style="margin: 24px 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid var(--primary); color: var(--primary);">Contact Information</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone" required pattern="[0-9]{10,12}" />
+                        <div class="help-text">Format: 0123456789 (without +60)</div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Address Line 1 <span class="required">*</span></label>
+                        <input type="text" id="addressLine1" name="address_line1" required placeholder="Street address, apartment, unit number" />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Address Line 2</label>
+                        <input type="text" id="addressLine2" name="address_line2" placeholder="Building name, floor (optional)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Postcode <span class="required">*</span></label>
+                        <input type="text" id="postcode" name="postcode" required pattern="[0-9]{5}" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>City <span class="required">*</span></label>
+                        <input type="text" id="city" name="city" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>State <span class="required">*</span></label>
+                        <select id="state" name="state" required>
+                            <option value="">Select State</option>
+                            <option value="Johor">Johor</option>
+                            <option value="Kedah">Kedah</option>
+                            <option value="Kelantan">Kelantan</option>
+                            <option value="Kuala Lumpur">Kuala Lumpur</option>
+                            <option value="Labuan">Labuan</option>
+                            <option value="Melaka">Melaka</option>
+                            <option value="Negeri Sembilan">Negeri Sembilan</option>
+                            <option value="Pahang">Pahang</option>
+                            <option value="Penang">Penang</option>
+                            <option value="Perak">Perak</option>
+                            <option value="Perlis">Perlis</option>
+                            <option value="Putrajaya">Putrajaya</option>
+                            <option value="Sabah">Sabah</option>
+                            <option value="Sarawak">Sarawak</option>
+                            <option value="Selangor">Selangor</option>
+                            <option value="Terengganu">Terengganu</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Country <span class="required">*</span></label>
+                        <input type="text" id="country" name="country" value="Malaysia" required />
+                    </div>
+
+                    <!-- Employment & Financial Information -->
+                    <div class="form-group full-width">
+                        <h3 style="margin: 24px 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid var(--primary); color: var(--primary);">Employment Information</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Self-Employment Start Date <span class="required">*</span></label>
+                        <input type="date" id="selfEmploymentStartDate" name="self_employment_start_date" required />
+                        <div class="help-text">When did you start working as a gig worker?</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Monthly Income Range <span class="required">*</span></label>
+                        <select id="monthlyIncomeRange" name="monthly_income_range" required>
+                            <option value="">Select Income Range</option>
+                            <option value="Below RM1000">Below RM 1,000</option>
+                            <option value="RM1000-RM2000">RM 1,000 - RM 2,000</option>
+                            <option value="RM2001-RM3000">RM 2,001 - RM 3,000</option>
+                            <option value="RM3001-RM4000">RM 3,001 - RM 4,000</option>
+                            <option value="RM4001-RM5000">RM 4,001 - RM 5,000</option>
+                            <option value="Above RM5000">Above RM 5,000</option>
+                        </select>
+                    </div>
+
+                    <!-- Bank Information -->
+                    <div class="form-group full-width">
+                        <h3 style="margin: 24px 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid var(--primary); color: var(--primary);">Bank Account Information</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bank Name <span class="required">*</span></label>
+                        <select id="bankName" name="bank_name" required>
+                            <option value="">Select Bank</option>
+                            <option value="Maybank">Maybank</option>
+                            <option value="CIMB Bank">CIMB Bank</option>
+                            <option value="Public Bank">Public Bank</option>
+                            <option value="RHB Bank">RHB Bank</option>
+                            <option value="Hong Leong Bank">Hong Leong Bank</option>
+                            <option value="AmBank">AmBank</option>
+                            <option value="Bank Islam">Bank Islam</option>
+                            <option value="Bank Rakyat">Bank Rakyat</option>
+                            <option value="Affin Bank">Affin Bank</option>
+                            <option value="Alliance Bank">Alliance Bank</option>
+                            <option value="Bank Muamalat">Bank Muamalat</option>
+                            <option value="BSN">Bank Simpasan Nasional (BSN)</option>
+                            <option value="OCBC Bank">OCBC Bank</option>
+                            <option value="Standard Chartered">Standard Chartered</option>
+                            <option value="HSBC Bank">HSBC Bank</option>
+                            <option value="UOB Malaysia">UOB Malaysia</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bank Account Number <span class="required">*</span></label>
+                        <input type="text" id="bankAccountNumber" name="bank_account_number" required />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Account Holder Name <span class="required">*</span></label>
+                        <input type="text" id="bankAccountHolder" name="bank_account_holder" required />
+                        <div class="help-text">Must match the name on the bank account</div>
+                    </div>
+
+                    <!-- SOCSO Specific Information -->
+                    <div class="form-group full-width">
+                        <h3 style="margin: 24px 0 16px 0; padding-bottom: 12px; border-bottom: 2px solid var(--primary); color: var(--primary);">SOCSO Information</h3>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>SOCSO Membership Number (if existing member)</label>
+                        <input type="text" id="socsoMembershipNumber" name="socso_membership_number" placeholder="Leave blank if new registration" />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label style="display: flex; align-items: start; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="socsoConsent" name="socso_consent" required style="width: auto; margin-top: 3px;" />
+                            <span>
+                                I consent to the platform deducting 1.25% of my net earnings (after platform fees) for SOCSO contributions in compliance with the Self-Employment Social Security Scheme (SESKSO) under the Gig Workers Bill 2025. <span class="required">*</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Register for SOCSO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentUserId = null;
+
+    async function searchFreelancers() {
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        const loading = document.getElementById('searchLoading');
+        const results = document.getElementById('searchResults');
+
+        if (!searchTerm) {
+            results.innerHTML = '<div class="alert-info">Please enter a search term</div>';
+            return;
+        }
+
+        loading.style.display = 'block';
+        results.innerHTML = '';
+
+        try {
+            const response = await fetch(`/api/admin/freelancers/search?q=${encodeURIComponent(searchTerm)}`);
+            const data = await response.json();
+
+            loading.style.display = 'none';
+
+            if (data.freelancers && data.freelancers.length > 0) {
+                results.innerHTML = data.freelancers.map(user => {
+                    let statusBadge = '';
+                    let statusClass = '';
+                    let buttonText = 'Register for SOCSO';
+                    let buttonDisabled = '';
+
+                    if (user.socso_registered && user.socso_data_complete) {
+                        statusBadge = '<span class="status-badge registered">✓ SOCSO Registered</span>';
+                        statusClass = 'registered';
+                        buttonText = 'Update SOCSO Data';
+                    } else if (user.socso_registered && !user.socso_data_complete) {
+                        statusBadge = '<span class="status-badge pending">⚠ Incomplete Data</span>';
+                        statusClass = 'incomplete';
+                    } else {
+                        statusBadge = '<span class="status-badge incomplete">✗ Not Registered</span>';
+                        statusClass = 'incomplete';
+                    }
+
+                    return `
+                        <div class="user-card">
+                            <div class="user-info">
+                                <div class="user-name">${user.full_name || user.username}</div>
+                                <div class="user-meta">
+                                    <span>📧 ${user.email}</span>
+                                    ${user.phone ? `<span>📱 ${user.phone}</span>` : ''}
+                                    ${user.ic_number ? `<span>🆔 ${user.ic_number}</span>` : '<span style="color: #ef4444;">⚠ No IC Number</span>'}
+                                </div>
+                            </div>
+                            <div class="user-status">
+                                ${statusBadge}
+                                <button class="btn-register" onclick="openRegistrationModal(${user.id})" ${buttonDisabled}>
+                                    ${buttonText}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                results.innerHTML = '<div class="alert-info">No freelancers found matching your search</div>';
+            }
+        } catch (error) {
+            loading.style.display = 'none';
+            results.innerHTML = '<div class="alert-error">Error searching freelancers. Please try again.</div>';
+            console.error('Search error:', error);
+        }
+    }
+
+    async function openRegistrationModal(userId) {
+        currentUserId = userId;
+        const modal = document.getElementById('registrationModal');
+        const modalAlert = document.getElementById('modalAlert');
+        modalAlert.innerHTML = '';
+
+        // Load user data
+        try {
+            const response = await fetch(`/api/admin/user/${userId}`);
+            const user = await response.json();
+
+            if (response.ok) {
+                // Populate form with existing data
+                document.getElementById('userId').value = user.id;
+                document.getElementById('fullName').value = user.full_name || '';
+                document.getElementById('icNumber').value = user.ic_number || '';
+                document.getElementById('dateOfBirth').value = user.date_of_birth || '';
+                document.getElementById('gender').value = user.gender || '';
+                document.getElementById('maritalStatus').value = user.marital_status || '';
+                document.getElementById('nationality').value = user.nationality || 'Malaysian';
+                document.getElementById('race').value = user.race || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+                document.getElementById('addressLine1').value = user.address_line1 || '';
+                document.getElementById('addressLine2').value = user.address_line2 || '';
+                document.getElementById('postcode').value = user.postcode || '';
+                document.getElementById('city').value = user.city || '';
+                document.getElementById('state').value = user.state || '';
+                document.getElementById('country').value = user.country || 'Malaysia';
+                document.getElementById('selfEmploymentStartDate').value = user.self_employment_start_date || '';
+                document.getElementById('monthlyIncomeRange').value = user.monthly_income_range || '';
+                document.getElementById('bankName').value = user.bank_name || '';
+                document.getElementById('bankAccountNumber').value = user.bank_account_number || '';
+                document.getElementById('bankAccountHolder').value = user.bank_account_holder || user.full_name || '';
+                document.getElementById('socsoMembershipNumber').value = user.socso_membership_number || '';
+                document.getElementById('socsoConsent').checked = user.socso_consent || false;
+
+                modal.classList.add('active');
+            } else {
+                alert('Error loading user data');
+            }
+        } catch (error) {
+            console.error('Error loading user:', error);
+            alert('Error loading user data');
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('registrationModal').classList.remove('active');
+        document.getElementById('socsoRegistrationForm').reset();
+    }
+
+    async function submitRegistration(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        const modalAlert = document.getElementById('modalAlert');
+
+        try {
+            const response = await fetch('/api/admin/socso/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                modalAlert.innerHTML = '<div class="alert-success">✓ SOCSO registration successful! User data has been updated.</div>';
+                setTimeout(() => {
+                    closeModal();
+                    searchFreelancers(); // Refresh search results
+                }, 2000);
+            } else {
+                modalAlert.innerHTML = `<div class="alert-error">✗ Error: ${result.error || 'Registration failed'}</div>`;
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            modalAlert.innerHTML = '<div class="alert-error">✗ An error occurred. Please try again.</div>';
+        }
+    }
+
+    // Enable Enter key to search
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchFreelancers();
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('registrationModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}
