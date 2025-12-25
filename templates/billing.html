@@ -1161,44 +1161,6 @@
 
     loadWalletData();
     loadTransactions();
-
-    async function loadStats() {
-        try {
-            const response = await fetch('/api/billing/stats');
-            if (response.ok) {
-                const stats = await response.json();
-                document.getElementById('availableBalance').textContent = `MYR ${stats.available_balance.toFixed(2)}`;
-                document.getElementById('totalEarned').textContent = `MYR ${stats.total_earned.toFixed(2)}`;
-                document.getElementById('heldBalance').textContent = `MYR ${stats.held_balance.toFixed(2)}`;
-                if (document.getElementById('totalSocso')) {
-                    document.getElementById('totalSocso').textContent = `MYR ${stats.total_socso.toFixed(2)}`;
-                }
-
-                const totalSpentEl = document.getElementById('totalSpent');
-                if (totalSpentEl) {
-                    totalSpentEl.textContent = `MYR ${stats.total_spent.toFixed(2)}`;
-                }
-            } else {
-                console.error('Error loading stats: Server returned', response.status);
-                showErrorMessage('Unable to load billing statistics. Please refresh the page.');
-            }
-        } catch (error) {
-            console.error('Error loading stats:', error);
-            showErrorMessage('Unable to load billing statistics. Please check your connection and refresh the page.');
-        }
-    }
-
-    function showErrorMessage(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = 'background: #fee; color: #c33; padding: 12px 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #fcc;';
-        errorDiv.textContent = message;
-        const container = document.querySelector('.billing-container') || document.querySelector('main');
-        if (container) {
-            container.insertBefore(errorDiv, container.firstChild);
-        }
-    }
-
-    loadStats();
 </script>
 
 {% block extra_footer %}
