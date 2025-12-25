@@ -1826,6 +1826,10 @@ class User(UserMixin, db.Model):
     self_employment_start_date = db.Column(db.Date)  # Date started self-employment
     monthly_income_range = db.Column(db.String(50))  # Income bracket for SOCSO categorization
     socso_registration_date = db.Column(db.DateTime)  # When registered for SOCSO via platform
+    # SOCSO Portal Submission Tracking
+    socso_submitted_to_portal = db.Column(db.Boolean, default=False)  # Whether submitted to SOCSO ASSIST Portal
+    socso_portal_submission_date = db.Column(db.DateTime)  # When submitted to SOCSO portal
+    socso_portal_reference_number = db.Column(db.String(50))  # Reference number from SOCSO portal (if any)
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -8086,7 +8090,10 @@ def search_freelancers():
             'ic_number': u.ic_number,
             'socso_registered': u.socso_registered,
             'socso_data_complete': u.socso_data_complete,
-            'socso_membership_number': u.socso_membership_number
+            'socso_membership_number': u.socso_membership_number,
+            'socso_submitted_to_portal': u.socso_submitted_to_portal,
+            'socso_portal_submission_date': u.socso_portal_submission_date.isoformat() if u.socso_portal_submission_date else None,
+            'socso_portal_reference_number': u.socso_portal_reference_number
         } for u in users]
 
         return jsonify({'freelancers': freelancers}), 200
@@ -8129,7 +8136,10 @@ def get_user_for_admin(user_id):
             'socso_registered': user.socso_registered,
             'socso_consent': user.socso_consent,
             'socso_data_complete': user.socso_data_complete,
-            'socso_membership_number': user.socso_membership_number
+            'socso_membership_number': user.socso_membership_number,
+            'socso_submitted_to_portal': user.socso_submitted_to_portal,
+            'socso_portal_submission_date': user.socso_portal_submission_date.isoformat() if user.socso_portal_submission_date else None,
+            'socso_portal_reference_number': user.socso_portal_reference_number
         }), 200
     except Exception as e:
         app.logger.error(f"Error getting user: {str(e)}")
@@ -8246,6 +8256,99 @@ def register_user_for_socso():
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error registering user for SOCSO: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/socso/mark-submitted', methods=['POST'])
+@admin_required
+def mark_socso_submitted():
+    """Mark user as submitted to SOCSO portal"""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        reference_number = data.get('reference_number', '')
+
+        if not user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Update submission status
+        user.socso_submitted_to_portal = True
+        user.socso_portal_submission_date = datetime.utcnow()
+        if reference_number:
+            user.socso_portal_reference_number = reference_number
+
+        db.session.commit()
+
+        # Log the security event
+        log_security_event(
+            user_id=session['user_id'],
+            action='socso_portal_submission',
+            resource_type='user',
+            resource_id=user.id,
+            status='success',
+            message=f'Admin marked user {user.username} as submitted to SOCSO portal',
+            severity='low'
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'User marked as submitted to SOCSO portal',
+            'submission_date': user.socso_portal_submission_date.isoformat()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error marking SOCSO submission: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/socso/unmark-submitted', methods=['POST'])
+@admin_required
+def unmark_socso_submitted():
+    """Unmark user as submitted to SOCSO portal (undo submission)"""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+
+        if not user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Reset submission status
+        user.socso_submitted_to_portal = False
+        user.socso_portal_submission_date = None
+        user.socso_portal_reference_number = None
+
+        db.session.commit()
+
+        # Log the security event
+        log_security_event(
+            user_id=session['user_id'],
+            action='socso_portal_submission_undo',
+            resource_type='user',
+            resource_id=user.id,
+            status='success',
+            message=f'Admin unmarked user {user.username} as submitted to SOCSO portal',
+            severity='low'
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'User unmarked from SOCSO portal submission'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error unmarking SOCSO submission: {str(e)}")
         import traceback
         app.logger.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
