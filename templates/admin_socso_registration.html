@@ -690,21 +690,38 @@
 
             if (data.freelancers && data.freelancers.length > 0) {
                 results.innerHTML = data.freelancers.map(user => {
-                    let statusBadge = '';
-                    let statusClass = '';
+                    let statusBadges = '';
                     let buttonText = 'Register for SOCSO';
                     let buttonDisabled = '';
+                    let submissionButtons = '';
 
+                    // Registration status badge
                     if (user.socso_registered && user.socso_data_complete) {
-                        statusBadge = '<span class="status-badge registered">✓ SOCSO Registered</span>';
-                        statusClass = 'registered';
+                        statusBadges += '<span class="status-badge registered">✓ SOCSO Registered</span>';
                         buttonText = 'Update SOCSO Data';
                     } else if (user.socso_registered && !user.socso_data_complete) {
-                        statusBadge = '<span class="status-badge pending">⚠ Incomplete Data</span>';
-                        statusClass = 'incomplete';
+                        statusBadges += '<span class="status-badge pending">⚠ Incomplete Data</span>';
                     } else {
-                        statusBadge = '<span class="status-badge incomplete">✗ Not Registered</span>';
-                        statusClass = 'incomplete';
+                        statusBadges += '<span class="status-badge incomplete">✗ Not Registered</span>';
+                    }
+
+                    // Portal submission status badge
+                    if (user.socso_submitted_to_portal) {
+                        const submissionDate = user.socso_portal_submission_date ?
+                            new Date(user.socso_portal_submission_date).toLocaleDateString() : '';
+                        statusBadges += `<span class="status-badge" style="background: #dbeafe; color: #1e40af; margin-left: 8px;" title="Submitted: ${submissionDate}">📤 Submitted to Portal</span>`;
+                        submissionButtons = `
+                            <button class="btn-register" onclick="unmarkAsSubmitted(${user.id})" style="background: #ef4444; margin-left: 8px;" title="Undo submission">
+                                ↩️ Unmark
+                            </button>
+                        `;
+                    } else if (user.socso_registered && user.socso_data_complete) {
+                        statusBadges += '<span class="status-badge" style="background: #fef3c7; color: #92400e; margin-left: 8px;">⏳ Not Submitted</span>';
+                        submissionButtons = `
+                            <button class="btn-register" onclick="markAsSubmitted(${user.id})" style="background: #3b82f6; margin-left: 8px;">
+                                📤 Mark as Submitted
+                            </button>
+                        `;
                     }
 
                     return `
@@ -715,13 +732,15 @@
                                     <span>📧 ${user.email}</span>
                                     ${user.phone ? `<span>📱 ${user.phone}</span>` : ''}
                                     ${user.ic_number ? `<span>🆔 ${user.ic_number}</span>` : '<span style="color: #ef4444;">⚠ No IC Number</span>'}
+                                    ${user.socso_portal_reference_number ? `<span title="Portal Reference">🔖 ${user.socso_portal_reference_number}</span>` : ''}
                                 </div>
                             </div>
                             <div class="user-status">
-                                ${statusBadge}
+                                ${statusBadges}
                                 <button class="btn-register" onclick="openRegistrationModal(${user.id})" ${buttonDisabled}>
                                     ${buttonText}
                                 </button>
+                                ${submissionButtons}
                             </div>
                         </div>
                     `;
@@ -818,6 +837,69 @@
         } catch (error) {
             console.error('Registration error:', error);
             modalAlert.innerHTML = '<div class="alert-error">✗ An error occurred. Please try again.</div>';
+        }
+    }
+
+    async function markAsSubmitted(userId) {
+        if (!confirm('Mark this user as submitted to SOCSO portal?\n\nYou can optionally add a reference number in the next step.')) {
+            return;
+        }
+
+        const referenceNumber = prompt('Enter SOCSO portal reference number (optional):');
+
+        try {
+            const response = await fetch('/api/admin/socso/mark-submitted', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    reference_number: referenceNumber || ''
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('✓ User marked as submitted to SOCSO portal!');
+                searchFreelancers(); // Refresh results
+            } else {
+                alert(`✗ Error: ${result.error || 'Failed to mark as submitted'}`);
+            }
+        } catch (error) {
+            console.error('Mark submission error:', error);
+            alert('✗ An error occurred. Please try again.');
+        }
+    }
+
+    async function unmarkAsSubmitted(userId) {
+        if (!confirm('Undo SOCSO portal submission for this user?\n\nThis will remove the submission status and date.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/socso/unmark-submitted', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('✓ Submission status removed!');
+                searchFreelancers(); // Refresh results
+            } else {
+                alert(`✗ Error: ${result.error || 'Failed to unmark submission'}`);
+            }
+        } catch (error) {
+            console.error('Unmark submission error:', error);
+            alert('✗ An error occurred. Please try again.');
         }
     }
 
