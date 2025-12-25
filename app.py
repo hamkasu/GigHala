@@ -8855,7 +8855,38 @@ def billing_page():
     """Billing dashboard page"""
     user_id = session.get('user_id')
     user = User.query.get(user_id)
-    return render_template('billing.html', user=user, active_page='billing', lang=get_user_language(), t=t)
+
+    # Get wallet information for header display
+    wallet = Wallet.query.filter_by(user_id=user_id).first()
+    if not wallet:
+        wallet = Wallet(user_id=user_id)
+        db.session.add(wallet)
+        db.session.commit()
+
+    # Get gig statistics for header display
+    total_gigs_posted = Gig.query.filter_by(client_id=user_id).count() if user.user_type in ['client', 'both'] else 0
+
+    # Count accepted gigs
+    total_gigs_accepted = 0
+    if user.user_type in ['freelancer', 'both']:
+        total_gigs_accepted += Application.query.filter_by(freelancer_id=user_id, status='accepted').count()
+    if user.user_type in ['client', 'both']:
+        client_accepted = db.session.query(Application).join(
+            Gig, Application.gig_id == Gig.id
+        ).filter(
+            Gig.client_id == user_id,
+            Application.status == 'accepted'
+        ).count()
+        total_gigs_accepted += client_accepted
+
+    return render_template('billing.html',
+                         user=user,
+                         wallet=wallet,
+                         total_gigs_posted=total_gigs_posted,
+                         total_gigs_accepted=total_gigs_accepted,
+                         active_page='billing',
+                         lang=get_user_language(),
+                         t=t)
 
 @app.route('/billing/socso-statement')
 @page_login_required
