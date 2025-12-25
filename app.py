@@ -170,12 +170,16 @@ else:
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50MB
+MAX_VIDEO_DURATION = 15  # 15 seconds
 
 # Create uploads directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'work_photos'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'gig_photos'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'gig_videos'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'portfolio'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'verification'), exist_ok=True)
 
@@ -185,6 +189,10 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def allowed_video(filename):
+    """Check if video file extension is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
 
 # Geolocation Helper Functions
 def calculate_distance(lat1, lon1, lat2, lon2):
@@ -1848,6 +1856,7 @@ class Gig(db.Model):
     deadline = db.Column(db.DateTime)
     views = db.Column(db.Integer, default=0)
     applications = db.Column(db.Integer, default=0)
+    video_filename = db.Column(db.String(255))  # Reference video filename (max 15 seconds)
 
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2998,9 +3007,37 @@ def post_gig():
                             photo_type='reference'
                         )
                         db.session.add(gig_photo)
-                
+
                 db.session.commit()
-            
+
+            # Handle video upload
+            video = request.files.get('video')
+            if video and video.filename:
+                allowed_video_ext = {'mp4', 'webm', 'mov'}
+                max_video_size = 50 * 1024 * 1024  # 50MB
+
+                ext = video.filename.rsplit('.', 1)[-1].lower() if '.' in video.filename else ''
+                if ext in allowed_video_ext:
+                    # Check file size
+                    video.seek(0, 2)  # Seek to end
+                    file_size = video.tell()
+                    video.seek(0)  # Reset to beginning
+
+                    if file_size <= max_video_size:
+                        # Generate unique filename with sanitized original name
+                        from werkzeug.utils import secure_filename
+                        safe_name = secure_filename(video.filename) or 'video'
+                        unique_filename = f"{uuid.uuid4().hex}_{safe_name}"
+                        file_path = os.path.join(UPLOAD_FOLDER, 'gig_videos', unique_filename)
+
+                        # Ensure the path stays within the upload folder
+                        if os.path.abspath(file_path).startswith(os.path.abspath(UPLOAD_FOLDER)):
+                            video.save(file_path)
+
+                            # Update gig with video filename
+                            new_gig.video_filename = unique_filename
+                            db.session.commit()
+
             flash('Gig berjaya dipost!', 'success')
             return redirect('/dashboard')
             
@@ -5284,6 +5321,24 @@ def serve_gig_photo(filename):
     except Exception as e:
         app.logger.error(f"Serve gig photo error: {str(e)}")
         return jsonify({'error': 'Failed to load photo'}), 500
+
+@app.route('/uploads/gig_videos/<path:filename>')
+def serve_gig_video(filename):
+    """Serve gig reference videos (public access)"""
+    try:
+        video_dir = os.path.join(UPLOAD_FOLDER, 'gig_videos')
+        file_path = os.path.join(video_dir, filename)
+
+        # Check if file exists
+        if not os.path.exists(file_path):
+            app.logger.warning(f"Gig video not found: {filename}")
+            return "Video not found", 404
+
+        # Gig videos are public, anyone can view them
+        return send_from_directory(video_dir, filename)
+    except Exception as e:
+        app.logger.error(f"Serve gig video error: {str(e)}")
+        return jsonify({'error': 'Failed to load video'}), 500
 
 # ============================================================================
 # WORK PHOTOS (Freelancer uploads during work execution)

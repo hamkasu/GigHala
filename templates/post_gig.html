@@ -325,6 +325,92 @@
         background: #DC2626;
     }
 
+    .video-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-md);
+        padding: 32px;
+        text-align: center;
+        background: var(--bg-light);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .video-upload-area:hover, .video-upload-area.dragover {
+        border-color: var(--primary);
+        background: rgba(29, 191, 115, 0.05);
+    }
+
+    .video-upload-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .video-upload-text {
+        color: var(--text-gray);
+        margin-bottom: 8px;
+    }
+
+    .video-upload-text strong {
+        color: var(--primary);
+    }
+
+    .video-upload-hint {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .video-preview-container {
+        margin-top: 16px;
+    }
+
+    .video-preview {
+        position: relative;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: #000;
+    }
+
+    .video-preview video {
+        width: 100%;
+        max-height: 400px;
+        display: block;
+    }
+
+    .video-preview .remove-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 8px 16px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .video-preview .remove-btn:hover {
+        background: #DC2626;
+    }
+
+    .video-info {
+        padding: 12px;
+        background: var(--bg-light);
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .video-duration {
+        font-weight: 600;
+        color: var(--primary);
+    }
+
     .submit-section {
         display: flex;
         justify-content: space-between;
@@ -719,6 +805,24 @@
 
             <div class="form-section">
                 <h3 class="form-section-title">
+                    <i data-feather="video" width="18"></i>
+                    Reference Video
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label">Upload Video (Optional - Max 15 seconds)</label>
+                    <div class="video-upload-area" id="videoUploadArea" onclick="document.getElementById('videoInput').click()">
+                        <div class="video-upload-icon">🎥</div>
+                        <p class="video-upload-text"><strong>Click to upload</strong> or drag video here</p>
+                        <p class="video-upload-hint">MP4, WebM, or MOV • Max 15 seconds • Max 50MB</p>
+                    </div>
+                    <input type="file" id="videoInput" name="video" accept="video/mp4,video/webm,video/quicktime" style="display: none;">
+                    <div class="video-preview-container" id="videoPreviewContainer"></div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">
                     <i data-feather="settings" width="18"></i>
                     {{ t('additional_options') }}
                 </h3>
@@ -969,6 +1073,107 @@
         selectedFiles.splice(index, 1);
         syncPhotoInput();
         updatePhotoPreviews();
+    }
+
+    // ============ VIDEO UPLOAD HANDLING ============
+    let selectedVideo = null;
+    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+    const MAX_VIDEO_DURATION = 15; // 15 seconds
+
+    const videoUploadArea = document.getElementById('videoUploadArea');
+    const videoInput = document.getElementById('videoInput');
+    const videoPreviewContainer = document.getElementById('videoPreviewContainer');
+
+    videoUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    videoUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    videoUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            handleVideoFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    videoInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleVideoFile(e.target.files[0]);
+        }
+    });
+
+    function handleVideoFile(file) {
+        // Validate file type
+        const validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+        if (!validTypes.includes(file.type)) {
+            showAlert('Please upload a valid video file (MP4, WebM, or MOV)', 'error');
+            videoInput.value = '';
+            return;
+        }
+
+        // Validate file size
+        if (file.size > MAX_VIDEO_SIZE) {
+            showAlert('Video file size must be less than 50MB', 'error');
+            videoInput.value = '';
+            return;
+        }
+
+        // Create video element to check duration
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+
+        video.onloadedmetadata = function() {
+            window.URL.revokeObjectURL(video.src);
+
+            // Validate duration
+            if (video.duration > MAX_VIDEO_DURATION) {
+                showAlert(`Video duration must be ${MAX_VIDEO_DURATION} seconds or less. Your video is ${Math.round(video.duration)} seconds.`, 'error');
+                videoInput.value = '';
+                selectedVideo = null;
+                return;
+            }
+
+            // Video is valid, store it and show preview
+            selectedVideo = file;
+            updateVideoPreview(file, video.duration);
+        };
+
+        video.onerror = function() {
+            showAlert('Failed to load video file. Please try another file.', 'error');
+            videoInput.value = '';
+        };
+
+        video.src = URL.createObjectURL(file);
+    }
+
+    function updateVideoPreview(file, duration) {
+        const videoURL = URL.createObjectURL(file);
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+        videoPreviewContainer.innerHTML = `
+            <div class="video-preview">
+                <video src="${videoURL}" controls>
+                    Your browser does not support the video tag.
+                </video>
+                <button type="button" class="remove-btn" onclick="removeVideo()">Remove Video</button>
+                <div class="video-info">
+                    <span><strong>${file.name}</strong> (${fileSizeMB} MB)</span>
+                    <span class="video-duration">Duration: ${Math.round(duration)}s</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function removeVideo() {
+        selectedVideo = null;
+        videoInput.value = '';
+        videoPreviewContainer.innerHTML = '';
     }
 </script>
 {% endblock %}

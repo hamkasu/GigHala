@@ -184,6 +184,18 @@
         object-fit: cover;
     }
 
+    .video-container {
+        margin-top: 12px;
+    }
+
+    .video-container video {
+        width: 100%;
+        max-width: 800px;
+        border-radius: 12px;
+        background: #000;
+        box-shadow: var(--shadow-md);
+    }
+
     .photo-modal {
         display: none;
         position: fixed;
@@ -1606,6 +1618,20 @@
                              onerror="handleBrokenImage(this)">
                     </div>
                     {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if gig.video_filename %}
+            <div class="gig-section">
+                <h3 class="section-title">{{ 'Video Rujukan' if lang == 'ms' else 'Reference Video' }}</h3>
+                <div class="video-container">
+                    <video controls controlsList="nodownload" preload="metadata" style="width: 100%; max-width: 800px; border-radius: 12px; background: #000;">
+                        <source src="/uploads/gig_videos/{{ gig.video_filename }}" type="video/mp4">
+                        <source src="/uploads/gig_videos/{{ gig.video_filename }}" type="video/webm">
+                        <source src="/uploads/gig_videos/{{ gig.video_filename }}" type="video/quicktime">
+                        {{ 'Pelayar anda tidak menyokong tag video.' if lang == 'ms' else 'Your browser does not support the video tag.' }}
+                    </video>
                 </div>
             </div>
             {% endif %}
