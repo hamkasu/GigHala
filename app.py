@@ -1221,8 +1221,41 @@ def inject_translations():
 
     # Calculate unread message count for logged-in users
     unread_message_count = 0
+    wallet = None
+    total_gigs_accepted = 0
+    total_gigs_posted = 0
+
     if 'user_id' in session:
         user_id = session['user_id']
+
+        # Get wallet information
+        wallet = Wallet.query.filter_by(user_id=user_id).first()
+        if not wallet:
+            wallet = Wallet(user_id=user_id)
+            db.session.add(wallet)
+            db.session.commit()
+
+        # Get user to check user_type
+        user = User.query.get(user_id)
+
+        # Get total_gigs_posted
+        if user and user.user_type in ['client', 'both']:
+            total_gigs_posted = Gig.query.filter_by(client_id=user_id).count()
+
+        # Get total_gigs_accepted
+        if user and user.user_type in ['freelancer', 'both']:
+            total_gigs_accepted += Application.query.filter_by(
+                freelancer_id=user_id, status='accepted'
+            ).count()
+        if user and user.user_type in ['client', 'both']:
+            client_accepted = db.session.query(Application).join(
+                Gig, Application.gig_id == Gig.id
+            ).filter(
+                Gig.client_id == user_id,
+                Application.status == 'accepted'
+            ).count()
+            total_gigs_accepted += client_accepted
+
         # Get all non-archived conversations for the user
         conversations = Conversation.query.filter(
             ((Conversation.participant_1_id == user_id) & (Conversation.is_archived_by_1 == False)) |
@@ -1244,6 +1277,9 @@ def inject_translations():
         today_dual=today_dual['full'],
         format_date_dual=format_date_dual,
         unread_message_count=unread_message_count,
+        wallet=wallet,
+        total_gigs_accepted=total_gigs_accepted,
+        total_gigs_posted=total_gigs_posted,
         csrf_token=generate_csrf
     )
 
