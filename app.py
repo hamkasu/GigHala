@@ -1343,8 +1343,17 @@ def send_phone_verification_sms(phone, otp_code):
     Send verification SMS with OTP code to phone number
     Returns (success, message) tuple
     """
+    # Development mode: If Twilio not configured, log OTP to console instead
     if not twilio_client or not twilio_phone_number:
-        return False, "SMS service is not configured"
+        app.logger.warning(f"⚠️  Twilio not configured. DEVELOPMENT MODE: OTP for {phone} is: {otp_code}")
+        print(f"\n{'='*60}")
+        print(f"📱 DEVELOPMENT MODE - SMS VERIFICATION")
+        print(f"{'='*60}")
+        print(f"Phone: {phone}")
+        print(f"OTP Code: {otp_code}")
+        print(f"Expires: 10 minutes")
+        print(f"{'='*60}\n")
+        return True, "Verification code sent (development mode - check console)"
 
     try:
         # Format phone number to E.164 format if needed
