@@ -699,16 +699,21 @@
     function filterGigs() {
         currentPage = 1;
 
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const priceMin = parseInt(document.getElementById('priceMin').value) || 0;
-        const priceMax = parseInt(document.getElementById('priceMax').value) || 999999;
-        const sortBy = document.getElementById('sortSelect').value;
+        const searchInput = document.getElementById('searchInput');
+        const priceMinInput = document.getElementById('priceMin');
+        const priceMaxInput = document.getElementById('priceMax');
+        const sortSelect = document.getElementById('sortSelect');
+
+        const search = searchInput ? searchInput.value.toLowerCase() : '';
+        const priceMin = priceMinInput ? (parseInt(priceMinInput.value) || 0) : 0;
+        const priceMax = priceMaxInput ? (parseInt(priceMaxInput.value) || 999999) : 999999;
+        const sortBy = sortSelect ? sortSelect.value : 'newest';
 
         let filtered = allGigs.filter(gig => {
             const matchesSearch = !search ||
-                gig.title.toLowerCase().includes(search) ||
-                gig.description.toLowerCase().includes(search);
-            const matchesPrice = gig.budget_min >= priceMin && gig.budget_max <= priceMax;
+                (gig.title && gig.title.toLowerCase().includes(search)) ||
+                (gig.description && gig.description.toLowerCase().includes(search));
+            const matchesPrice = (gig.budget_min || 0) >= priceMin && (gig.budget_max || 0) <= priceMax;
             const matchesCategory = !selectedCategory || gig.category === selectedCategory;
 
             return matchesSearch && matchesPrice && matchesCategory;
@@ -716,9 +721,9 @@
 
         // Sort based on selection
         if (sortBy === 'budget_high') {
-            filtered.sort((a, b) => b.budget_max - a.budget_max);
+            filtered.sort((a, b) => (b.budget_max || 0) - (a.budget_max || 0));
         } else if (sortBy === 'budget_low') {
-            filtered.sort((a, b) => a.budget_min - b.budget_min);
+            filtered.sort((a, b) => (a.budget_min || 0) - (b.budget_min || 0));
         } else {
             filtered.sort((a, b) => b.id - a.id);
         }
@@ -745,26 +750,12 @@
         `;
     }
 
-    document.getElementById('searchInput').addEventListener('input', filterGigs);
-
-    // Highlight active category in navigation
-    function highlightActiveCategory() {
-        if (selectedCategory) {
-            const categoryLinks = document.querySelectorAll('.category-link');
-            categoryLinks.forEach(link => {
-                const linkCategory = new URL(link.href).searchParams.get('category');
-                if (linkCategory === selectedCategory) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', filterGigs);
+        if (urlSearch) {
+            searchInput.value = urlSearch;
         }
-    }
-
-    // Populate search input from URL parameter
-    if (urlSearch) {
-        document.getElementById('searchInput').value = urlSearch;
     }
 
     // Call on page load
