@@ -395,10 +395,10 @@
         <div>
             <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">{{ t('sort_by') }}</label>
             <select class="sort-select" id="sortSelect" onchange="filterGigs()">
+                <option value="newest" selected>{{ t('newest') }}</option>
                 <option value="nearest" id="nearestOption" style="display: none;">📍 Nearest First</option>
                 <option value="budget_high">{{ t('budget_highest') }}</option>
                 <option value="budget_low">{{ t('budget_lowest') }}</option>
-                <option value="newest">{{ t('newest') }}</option>
             </select>
         </div>
     </div>
@@ -663,8 +663,8 @@
                            gig.budget_min != null && gig.budget_max != null;
                 });
 
-                // Default sort by highest budget
-                allGigs.sort((a, b) => b.budget_max - a.budget_max);
+                // Default sort by newest
+                allGigs.sort((a, b) => b.id - a.id);
                 // Apply category filter if present in URL
                 filterGigs();
             } else {
