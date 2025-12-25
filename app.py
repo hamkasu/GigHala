@@ -1334,6 +1334,92 @@ def sanitize_input(text, max_length=1000):
         text = text[:max_length]
     return text
 
+def generate_phone_otp():
+    """Generate a 6-digit OTP code for phone verification"""
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+def send_phone_verification_sms(phone, otp_code):
+    """
+    Send verification SMS with OTP code to phone number
+    Returns (success, message) tuple
+    """
+    if not twilio_client or not twilio_phone_number:
+        return False, "SMS service is not configured"
+
+    try:
+        # Format phone number to E.164 format if needed
+        if phone.startswith('01'):
+            phone = '+6' + phone  # Convert 01X to +601X
+        elif not phone.startswith('+'):
+            phone = '+' + phone
+
+        # Send SMS with OTP code
+        message = twilio_client.messages.create(
+            body=f"Your GigHala verification code is: {otp_code}. This code will expire in 10 minutes. Do not share this code with anyone.",
+            from_=twilio_phone_number,
+            to=phone
+        )
+
+        app.logger.info(f"Verification SMS sent to {phone}: {message.sid}")
+        return True, "Verification code sent successfully"
+    except Exception as e:
+        app.logger.error(f"Failed to send verification SMS to {phone}: {str(e)}")
+        return False, f"Failed to send SMS: {str(e)}"
+
+def verify_phone_otp(user, submitted_code):
+    """
+    Verify OTP code for phone verification
+    Returns (success, message) tuple
+    """
+    if not user.phone_verification_code:
+        return False, "No verification code found. Please request a new code."
+
+    # Check if code has expired (10 minutes)
+    if user.phone_verification_expires and datetime.utcnow() > user.phone_verification_expires:
+        return False, "Verification code has expired. Please request a new code."
+
+    # Verify the code
+    if user.phone_verification_code != submitted_code:
+        return False, "Invalid verification code. Please try again."
+
+    # Code is valid - mark phone as verified
+    user.phone_verified = True
+    user.phone_verified_at = datetime.utcnow()
+    user.phone_verification_code = None
+    user.phone_verification_expires = None
+
+    return True, "Phone number verified successfully"
+
+def send_transaction_sms_notification(phone, message_text):
+    """
+    Send SMS notification for transaction events
+    Returns (success, message) tuple
+    """
+    if not twilio_client or not twilio_phone_number:
+        return False, "SMS service is not configured"
+
+    if not phone:
+        return False, "No phone number provided"
+
+    try:
+        # Format phone number to E.164 format if needed
+        if phone.startswith('01'):
+            phone = '+6' + phone  # Convert 01X to +601X
+        elif not phone.startswith('+'):
+            phone = '+' + phone
+
+        message = twilio_client.messages.create(
+            body=message_text,
+            from_=twilio_phone_number,
+            to=phone
+        )
+
+        app.logger.info(f"Transaction SMS sent to {phone}: {message.sid}")
+        return True, "Notification sent successfully"
+    except Exception as e:
+        app.logger.error(f"Failed to send transaction SMS to {phone}: {str(e)}")
+        return False, f"Failed to send SMS: {str(e)}"
+
 def contains_blocked_contact_info(text):
     """
     Check if message contains phone numbers or email addresses to prevent phishing.
@@ -1720,6 +1806,11 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(32))  # TOTP secret key for 2FA
     totp_enabled = db.Column(db.Boolean, default=False)  # Whether 2FA is enabled
     totp_enabled_at = db.Column(db.DateTime)  # When 2FA was enabled
+    # Phone verification fields
+    phone_verified = db.Column(db.Boolean, default=False)  # Whether phone number is verified
+    phone_verification_code = db.Column(db.String(6))  # OTP code for phone verification
+    phone_verification_expires = db.Column(db.DateTime)  # When verification code expires
+    phone_verified_at = db.Column(db.DateTime)  # When phone was verified
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -4301,6 +4392,130 @@ def get_2fa_status():
 # END TWO-FACTOR AUTHENTICATION (2FA) ENDPOINTS
 # ============================================================================
 
+# ============================================================================
+# PHONE VERIFICATION ENDPOINTS
+# ============================================================================
+
+@app.route('/api/phone/send-verification', methods=['POST'])
+@login_required
+@rate_limit(max_attempts=3, window_minutes=60, lockout_minutes=30)
+def send_phone_verification():
+    """Send OTP verification code to user's phone number"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.json
+        phone = data.get('phone')
+
+        # If no phone provided, use user's existing phone
+        if not phone:
+            phone = user.phone
+
+        if not phone:
+            return jsonify({'error': 'Phone number is required'}), 400
+
+        # Validate phone number format
+        is_valid, message = validate_phone(phone)
+        if not is_valid:
+            return jsonify({'error': message}), 400
+
+        # Generate OTP code
+        otp_code = generate_phone_otp()
+
+        # Send SMS
+        success, sms_message = send_phone_verification_sms(phone, otp_code)
+        if not success:
+            return jsonify({'error': sms_message}), 500
+
+        # Save verification code to database
+        user.phone = phone  # Update phone if it was provided
+        user.phone_verification_code = otp_code
+        user.phone_verification_expires = datetime.utcnow() + timedelta(minutes=10)
+        user.phone_verified = False  # Reset verification status
+        db.session.commit()
+
+        # Log the event
+        app.logger.info(f"Phone verification SMS sent to user {user.username} ({user.id})")
+
+        return jsonify({
+            'message': 'Verification code sent successfully',
+            'expires_in_minutes': 10
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Phone verification send error: {str(e)}")
+        return jsonify({'error': 'Failed to send verification code'}), 500
+
+@app.route('/api/phone/verify', methods=['POST'])
+@login_required
+def verify_phone():
+    """Verify phone number with OTP code"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.json
+        submitted_code = data.get('code', '').strip()
+
+        if not submitted_code:
+            return jsonify({'error': 'Verification code is required'}), 400
+
+        # Verify the OTP
+        success, message = verify_phone_otp(user, submitted_code)
+
+        if not success:
+            return jsonify({'error': message}), 400
+
+        # Save to database
+        db.session.commit()
+
+        # Log the event
+        app.logger.info(f"Phone verified successfully for user {user.username} ({user.id})")
+
+        return jsonify({
+            'message': 'Phone number verified successfully',
+            'phone_verified': True,
+            'phone': user.phone
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Phone verification error: {str(e)}")
+        return jsonify({'error': 'Failed to verify phone number'}), 500
+
+@app.route('/api/phone/status', methods=['GET'])
+@login_required
+def get_phone_status():
+    """Get phone verification status for current user"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        return jsonify({
+            'phone': user.phone,
+            'phone_verified': user.phone_verified,
+            'phone_verified_at': user.phone_verified_at.isoformat() if user.phone_verified_at else None
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Phone status error: {str(e)}")
+        return jsonify({'error': 'Failed to get phone status'}), 500
+
+# ============================================================================
+# END PHONE VERIFICATION ENDPOINTS
+# ============================================================================
+
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
     """Get CSRF token for JavaScript requests"""
@@ -4389,6 +4604,11 @@ def google_callback():
         session['user_id'] = user.id
         session.permanent = True
 
+        # Check if user needs phone setup (Phase 1: Optional but encouraged)
+        if not user.phone or not user.phone_verified:
+            # Redirect OAuth users to dashboard with phone prompt
+            return redirect('/dashboard?show_phone_prompt=true')
+
         return redirect('/dashboard')
     except Exception as e:
         app.logger.error(f"Google OAuth error: {str(e)}")
@@ -4446,6 +4666,11 @@ def microsoft_callback():
         # Log user in
         session['user_id'] = user.id
         session.permanent = True
+
+        # Check if user needs phone setup (Phase 1: Optional but encouraged)
+        if not user.phone or not user.phone_verified:
+            # Redirect OAuth users to dashboard with phone prompt
+            return redirect('/dashboard?show_phone_prompt=true')
 
         return redirect('/dashboard')
     except Exception as e:
@@ -4511,6 +4736,11 @@ def apple_callback():
         # Log user in
         session['user_id'] = user.id
         session.permanent = True
+
+        # Check if user needs phone setup (Phase 1: Optional but encouraged)
+        if not user.phone or not user.phone_verified:
+            # Redirect OAuth users to dashboard with phone prompt
+            return redirect('/dashboard?show_phone_prompt=true')
 
         return redirect('/dashboard')
     except Exception as e:
@@ -5413,6 +5643,12 @@ def accept_application(application_id):
             existing_conv.gig_id = gig.id
 
         db.session.commit()
+
+        # Send SMS notification to freelancer if phone is verified (Phase 1)
+        freelancer = User.query.get(application.freelancer_id)
+        if freelancer and freelancer.phone and freelancer.phone_verified:
+            sms_message = f"GigHala: Congratulations! Your application for '{gig.title}' has been accepted. Check your dashboard to start working!"
+            send_transaction_sms_notification(freelancer.phone, sms_message)
 
         return jsonify({
             'message': 'Application accepted successfully',
@@ -6348,6 +6584,18 @@ def release_escrow(gig_id):
             db.session.add(worker_notification)
 
         db.session.commit()
+
+        # Send SMS notifications if users have verified phone numbers (Phase 1)
+        # Notify freelancer about payment received
+        if freelancer and freelancer.phone and freelancer.phone_verified:
+            sms_message = f"GigHala: Payment received! MYR {final_payout_amount:.2f} for '{gig.title}'. Check your dashboard for details."
+            send_transaction_sms_notification(freelancer.phone, sms_message)
+
+        # Notify client about payment completion
+        client = User.query.get(gig.client_id)
+        if client and client.phone and client.phone_verified:
+            sms_message = f"GigHala: Payment of MYR {escrow.amount:.2f} processed for '{gig.title}'. Thank you!"
+            send_transaction_sms_notification(client.phone, sms_message)
 
         return jsonify({
             'message': 'Payment completed! Invoice marked as paid and receipt created.',
