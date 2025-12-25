@@ -608,26 +608,29 @@
 
     async function loadGigs() {
         try {
+            console.log('Fetching gigs...');
             const apiUrl = '/api/gigs';
             const response = await fetch(apiUrl);
             if (response.ok) {
                 allGigs = await response.json();
+                console.log('Fetched gigs count:', allGigs.length);
 
                 // Filter valid gigs
                 allGigs = allGigs.filter(gig => {
-                    return gig.title && gig.category &&
-                           gig.budget_min != null && gig.budget_max != null;
+                    return gig.title && gig.category;
                 });
+                console.log('Valid gigs count:', allGigs.length);
 
                 // Default sort by newest
                 allGigs.sort((a, b) => b.id - a.id);
                 // Apply category filter if present in URL
                 filterGigs();
             } else {
+                console.error('Failed to fetch gigs:', response.status);
                 showError();
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching gigs:', error);
             showError();
         }
     }
@@ -709,15 +712,24 @@
         const priceMax = priceMaxInput ? (parseInt(priceMaxInput.value) || 999999) : 999999;
         const sortBy = sortSelect ? sortSelect.value : 'newest';
 
+        console.log('Filtering gigs with:', { search, priceMin, priceMax, sortBy, allGigsCount: allGigs.length });
+
         let filtered = allGigs.filter(gig => {
             const matchesSearch = !search ||
                 (gig.title && gig.title.toLowerCase().includes(search)) ||
                 (gig.description && gig.description.toLowerCase().includes(search));
-            const matchesPrice = (gig.budget_min || 0) >= priceMin && (gig.budget_max || 0) <= priceMax;
+            
+            // Fix price filtering logic - allow 0 and handle budget_min/max properly
+            const gigMin = gig.budget_min || 0;
+            const gigMax = gig.budget_max || 999999;
+            const matchesPrice = gigMin >= priceMin && gigMax <= priceMax;
+            
             const matchesCategory = !selectedCategory || gig.category === selectedCategory;
 
             return matchesSearch && matchesPrice && matchesCategory;
         });
+
+        console.log('Filtered gigs count:', filtered.length);
 
         // Sort based on selection
         if (sortBy === 'budget_high') {
