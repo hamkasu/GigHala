@@ -720,8 +720,8 @@
                 (gig.description && gig.description.toLowerCase().includes(search));
             
             // Fix price filtering logic - allow 0 and handle budget_min/max properly
-            const gigMin = gig.budget_min || 0;
-            const gigMax = gig.budget_max || 999999;
+            const gigMin = parseFloat(gig.budget_min) || 0;
+            const gigMax = parseFloat(gig.budget_max) || 999999;
             const matchesPrice = gigMin >= priceMin && gigMax <= priceMax;
             
             const matchesCategory = !selectedCategory || gig.category === selectedCategory;

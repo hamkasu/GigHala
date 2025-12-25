@@ -4517,6 +4517,54 @@ def apple_callback():
         app.logger.error(f"Apple OAuth error: {str(e)}")
         return redirect('/?error=apple_auth_failed')
 
+@app.route('/api/billing/stats')
+@login_required
+def get_billing_stats():
+    """Get billing statistics for the current user"""
+    try:
+        from models import Transaction, Wallet, Payout, Invoice
+        
+        # Get wallet
+        wallet = Wallet.query.filter_by(user_id=current_user.id).first()
+        available_balance = wallet.balance if wallet else 0.0
+        
+        # Total earned: Sum of all 'received' transactions with 'completed' status
+        total_earned = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.user_id == current_user.id,
+            Transaction.type == 'received',
+            Transaction.status == 'completed'
+        ).scalar() or 0.0
+        
+        # Held balance: Sum of all 'pending' payouts
+        held_balance = db.session.query(db.func.sum(Payout.amount)).filter(
+            Payout.user_id == current_user.id,
+            Payout.status == 'pending'
+        ).scalar() or 0.0
+        
+        # Total spent: Sum of all 'sent' transactions with 'completed' status
+        total_spent = db.session.query(db.func.sum(Transaction.amount)).filter(
+            Transaction.user_id == current_user.id,
+            Transaction.type == 'sent',
+            Transaction.status == 'completed'
+        ).scalar() or 0.0
+        
+        # SOCSO total: Sum of socso_amount from completed transactions
+        total_socso = db.session.query(db.func.sum(Transaction.socso_amount)).filter(
+            Transaction.user_id == current_user.id,
+            Transaction.status == 'completed'
+        ).scalar() or 0.0
+        
+        return jsonify({
+            'available_balance': float(available_balance),
+            'total_earned': float(total_earned),
+            'held_balance': float(held_balance),
+            'total_spent': float(total_spent),
+            'total_socso': float(total_socso)
+        })
+    except Exception as e:
+        app.logger.error(f"Error fetching billing stats: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/gigs', methods=['GET'])
 @api_rate_limit(requests_per_minute=120)
 def get_gigs():
