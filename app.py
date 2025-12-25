@@ -4522,38 +4522,35 @@ def apple_callback():
 def get_billing_stats():
     """Get billing statistics for the current user"""
     try:
-        from models import Transaction, Wallet, Payout, Invoice
-        
+        from models import PaymentHistory, Wallet, Payout, Invoice
+
         # Get wallet
         wallet = Wallet.query.filter_by(user_id=current_user.id).first()
         available_balance = wallet.balance if wallet else 0.0
-        
-        # Total earned: Sum of all 'received' transactions with 'completed' status
-        total_earned = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'received',
-            Transaction.status == 'completed'
+
+        # Total earned: Sum of positive payment types (payment, deposit, release)
+        total_earned = db.session.query(db.func.sum(PaymentHistory.amount)).filter(
+            PaymentHistory.user_id == current_user.id,
+            PaymentHistory.type.in_(['payment', 'deposit', 'release'])
         ).scalar() or 0.0
-        
+
         # Held balance: Sum of all 'pending' payouts
         held_balance = db.session.query(db.func.sum(Payout.amount)).filter(
-            Payout.user_id == current_user.id,
+            Payout.freelancer_id == current_user.id,
             Payout.status == 'pending'
         ).scalar() or 0.0
-        
-        # Total spent: Sum of all 'sent' transactions with 'completed' status
-        total_spent = db.session.query(db.func.sum(Transaction.amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == 'sent',
-            Transaction.status == 'completed'
+
+        # Total spent: Sum of negative payment types (withdrawal, commission, hold, payout, socso)
+        total_spent = db.session.query(db.func.sum(PaymentHistory.amount)).filter(
+            PaymentHistory.user_id == current_user.id,
+            PaymentHistory.type.in_(['withdrawal', 'payout', 'hold'])
         ).scalar() or 0.0
-        
-        # SOCSO total: Sum of socso_amount from completed transactions
-        total_socso = db.session.query(db.func.sum(Transaction.socso_amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.status == 'completed'
+
+        # SOCSO total: Sum of socso_amount from payment history
+        total_socso = db.session.query(db.func.sum(PaymentHistory.socso_amount)).filter(
+            PaymentHistory.user_id == current_user.id
         ).scalar() or 0.0
-        
+
         return jsonify({
             'available_balance': float(available_balance),
             'total_earned': float(total_earned),
@@ -10911,6 +10908,25 @@ def init_database():
             db.session.commit()
             print(f"Added {added_count} new categories successfully!")
 
+        # Migration: Fix existing gigs with incorrect category values
+        category_migration_map = {
+            'design': 'logo-design',
+            'writing': 'translation',
+            'video': 'video-editing',
+            'content': 'social-media'
+        }
+
+        migrated_count = 0
+        for old_cat, new_cat in category_migration_map.items():
+            gigs_to_update = Gig.query.filter_by(category=old_cat).all()
+            for gig in gigs_to_update:
+                gig.category = new_cat
+                migrated_count += 1
+
+        if migrated_count > 0:
+            db.session.commit()
+            print(f"Migrated {migrated_count} gigs to use correct category slugs")
+
         # Add sample data if database is empty
         if User.query.count() == 0:
             # Sample users
@@ -10963,7 +10979,7 @@ def init_database():
                 Gig(
                     title='Design Logo for Halal Restaurant',
                     description='Need a modern logo for my new halal restaurant in KL. Should incorporate Islamic geometric patterns.',
-                    category='design',
+                    category='logo-design',
                     budget_min=200,
                     budget_max=500,
                     duration='3-5 days',
@@ -10979,7 +10995,7 @@ def init_database():
                 Gig(
                     title='Translate Website from English to Bahasa Malaysia',
                     description='Need professional translation for e-commerce website (approximately 50 pages)',
-                    category='writing',
+                    category='translation',
                     budget_min=800,
                     budget_max=1200,
                     duration='1 week',
@@ -10993,7 +11009,7 @@ def init_database():
                 Gig(
                     title='Edit 10 Instagram Reels for Modest Fashion Brand',
                     description='Looking for creative video editor to produce engaging Reels showcasing our modest wear collection',
-                    category='video',
+                    category='video-editing',
                     budget_min=300,
                     budget_max=600,
                     duration='5-7 days',
@@ -11022,7 +11038,7 @@ def init_database():
                 Gig(
                     title='Create TikTok Content for Halal Food Delivery App',
                     description='Need 5 creative TikTok videos promoting our halal food delivery service. RM100 per approved video.',
-                    category='content',
+                    category='social-media',
                     budget_min=500,
                     budget_max=800,
                     duration='1 week',
