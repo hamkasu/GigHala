@@ -678,12 +678,18 @@
 
     function renderGigs(gigs, append = false) {
         const grid = document.getElementById('gigsGrid');
+        
+        // Prevent clearing the grid if we are appending
+        if (!append) {
+            grid.innerHTML = '';
+        }
+        
         filteredGigs = gigs;
 
         document.getElementById('resultCount').textContent = gigs.length;
         document.getElementById('totalCount').textContent = gigs.length;
 
-        if (gigs.length === 0) {
+        if (gigs.length === 0 && !append) {
             grid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <div class="empty-icon">🔍</div>
@@ -728,11 +734,7 @@
             `;
         }).join('');
 
-        if (append) {
-            grid.innerHTML += gigsHTML;
-        } else {
-            grid.innerHTML = gigsHTML;
-        }
+        grid.insertAdjacentHTML('beforeend', gigsHTML);
 
         const loadMoreSection = document.getElementById('loadMoreSection');
         loadMoreSection.style.display = showingCount < gigs.length ? 'block' : 'none';
@@ -830,12 +832,5 @@
     highlightActiveCategory();
     checkLocationPermission();
     loadGigs();
-
-    // Safety fallback to ensure rendering
-    setTimeout(() => {
-        if (allGigs.length > 0 && document.getElementById('gigsGrid').innerText.includes('Loading')) {
-            filterGigs();
-        }
-    }, 1500);
 </script>
 {% endblock %}
