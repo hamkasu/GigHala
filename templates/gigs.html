@@ -649,9 +649,10 @@
         });
     });
 
-    // Reset pagination when filters change
+    // Reset pagination and reload gigs when category changes
     document.getElementById('categorySelect').addEventListener('change', () => {
         currentPage = 1;
+        loadGigs();
     });
 </script>
 {% endblock %}
