@@ -102,6 +102,7 @@
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 12px;
         margin-bottom: 32px;
+        min-height: 200px;
     }
 
     .gig-card {
@@ -706,22 +707,22 @@
             const gradient = categoryGradients[gig.category?.toLowerCase()] || '#667eea, #764ba2';
 
             return `
-                <div class="gig-card-mini" onclick="viewGig(${gig.id})" style="cursor: pointer; margin-bottom: 12px; width: 100%; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); display: flex; align-items: center; gap: 12px; background: white; padding: 12px; border-radius: 12px; height: 80px; transition: all 0.2s;">
-                    <span class="gig-icon" style="font-size: 24px; background: linear-gradient(135deg, ${gradient}); padding: 12px; border-radius: 12px; color: white; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;">${icon}</span>
+                <div class="gig-card-mini" onclick="viewGig(${gig.id})" style="cursor: pointer; margin-bottom: 12px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex !important; align-items: center; gap: 12px; background: white; padding: 12px; border-radius: 12px; min-height: 80px; transition: all 0.2s; visibility: visible !important; opacity: 1 !important;">
+                    <span class="gig-icon" style="font-size: 24px; background: linear-gradient(135deg, ${gradient}); padding: 12px; border-radius: 12px; color: white; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0;">${icon}</span>
                     <div style="flex: 1; min-width: 0;">
-                        <div class="gig-title-mini" style="font-size: 14px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${gig.title}</div>
-                        <div style="display: flex; gap: 12px; font-size: 11px; color: var(--text-gray);">
-                            ${gig.distance ? `<span style="display: flex; align-items: center; gap: 4px;">📍 ${gig.distance} km</span>` : ''}
+                        <div class="gig-title-mini" style="font-size: 14px; font-weight: 700; color: #1a202c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${gig.title}</div>
+                        <div style="display: flex; gap: 12px; font-size: 11px; color: #718096;">
+                            <span style="display: flex; align-items: center; gap: 4px;">📍 ${gig.location || 'Remote'}</span>
                             <span style="display: flex; align-items: center; gap: 4px;">⏱ ${gig.duration || translations.flexible}</span>
                         </div>
                     </div>
-                    <div style="text-align: right; flex-shrink: 0; padding-left: 12px; border-left: 1px solid var(--border-light);">
-                        <div style="font-size: 9px; color: var(--text-gray); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Budget</div>
-                        <div class="gig-price-mini" style="font-size: 16px; font-weight: 800; color: var(--primary-green);">RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</div>
+                    <div style="text-align: right; flex-shrink: 0; padding-left: 12px; border-left: 1px solid #edf2f7; min-width: 100px;">
+                        <div style="font-size: 9px; color: #a0aec0; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Budget</div>
+                        <div class="gig-price-mini" style="font-size: 16px; font-weight: 800; color: #1DBF73;">RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</div>
                     </div>
                     ${gig.halal_verified ? `
-                    <div style="margin-left: 8px;">
-                        <span class="halal-mini" style="background: var(--primary-green); color: white; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px;">HALAL</span>
+                    <div style="margin-left: 8px; flex-shrink: 0;">
+                        <span class="halal-mini" style="background: #1DBF73; color: white; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px;">HALAL</span>
                     </div>` : ''}
                 </div>
             `;
@@ -829,5 +830,12 @@
     highlightActiveCategory();
     checkLocationPermission();
     loadGigs();
+
+    // Safety fallback to ensure rendering
+    setTimeout(() => {
+        if (allGigs.length > 0 && document.getElementById('gigsGrid').innerText.includes('Loading')) {
+            filterGigs();
+        }
+    }, 1500);
 </script>
 {% endblock %}
