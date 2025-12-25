@@ -1811,6 +1811,21 @@ class User(UserMixin, db.Model):
     phone_verification_code = db.Column(db.String(6))  # OTP code for phone verification
     phone_verification_expires = db.Column(db.DateTime)  # When verification code expires
     phone_verified_at = db.Column(db.DateTime)  # When phone was verified
+    # Additional SOCSO registration fields (required for SESKSO compliance)
+    date_of_birth = db.Column(db.Date)  # Date of birth
+    gender = db.Column(db.String(10))  # Male, Female, Other
+    marital_status = db.Column(db.String(20))  # Single, Married, Divorced, Widowed
+    nationality = db.Column(db.String(50), default='Malaysian')  # Nationality
+    race = db.Column(db.String(50))  # Malay, Chinese, Indian, Other
+    address_line1 = db.Column(db.String(255))  # Street address line 1
+    address_line2 = db.Column(db.String(255))  # Street address line 2 (optional)
+    postcode = db.Column(db.String(10))  # Postal code
+    city = db.Column(db.String(100))  # City
+    state = db.Column(db.String(100))  # State/Province
+    country = db.Column(db.String(100), default='Malaysia')  # Country
+    self_employment_start_date = db.Column(db.Date)  # Date started self-employment
+    monthly_income_range = db.Column(db.String(50))  # Income bracket for SOCSO categorization
+    socso_registration_date = db.Column(db.DateTime)  # When registered for SOCSO via platform
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -8027,6 +8042,213 @@ def admin_security_logs_page():
         return redirect('/')
 
     return render_template('admin_security_logs.html', user=user, lang=get_user_language(), t=t)
+
+@app.route('/admin/socso-registration')
+@page_login_required
+def admin_socso_registration_page():
+    """Serve admin SOCSO registration page"""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return redirect('/')
+
+    return render_template('admin_socso_registration.html', user=user, lang=get_user_language(), t=t, active_page='admin')
+
+@app.route('/api/admin/freelancers/search', methods=['GET'])
+@admin_required
+def search_freelancers():
+    """Search for freelancers by name, email, IC, or phone"""
+    try:
+        query = request.args.get('q', '').strip()
+        if not query:
+            return jsonify({'freelancers': []}), 200
+
+        # Search in multiple fields
+        users = User.query.filter(
+            db.or_(
+                User.full_name.ilike(f'%{query}%'),
+                User.username.ilike(f'%{query}%'),
+                User.email.ilike(f'%{query}%'),
+                User.ic_number.ilike(f'%{query}%'),
+                User.phone.ilike(f'%{query}%')
+            ),
+            db.or_(
+                User.user_type == 'freelancer',
+                User.user_type == 'both'
+            )
+        ).limit(20).all()
+
+        freelancers = [{
+            'id': u.id,
+            'username': u.username,
+            'full_name': u.full_name,
+            'email': u.email,
+            'phone': u.phone,
+            'ic_number': u.ic_number,
+            'socso_registered': u.socso_registered,
+            'socso_data_complete': u.socso_data_complete,
+            'socso_membership_number': u.socso_membership_number
+        } for u in users]
+
+        return jsonify({'freelancers': freelancers}), 200
+    except Exception as e:
+        app.logger.error(f"Error searching freelancers: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/user/<int:user_id>', methods=['GET'])
+@admin_required
+def get_user_for_admin(user_id):
+    """Get user details for admin"""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        return jsonify({
+            'id': user.id,
+            'username': user.username,
+            'full_name': user.full_name,
+            'email': user.email,
+            'phone': user.phone,
+            'ic_number': user.ic_number,
+            'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
+            'gender': user.gender,
+            'marital_status': user.marital_status,
+            'nationality': user.nationality,
+            'race': user.race,
+            'address_line1': user.address_line1,
+            'address_line2': user.address_line2,
+            'postcode': user.postcode,
+            'city': user.city,
+            'state': user.state,
+            'country': user.country,
+            'self_employment_start_date': user.self_employment_start_date.isoformat() if user.self_employment_start_date else None,
+            'monthly_income_range': user.monthly_income_range,
+            'bank_name': user.bank_name,
+            'bank_account_number': user.bank_account_number,
+            'bank_account_holder': user.bank_account_holder,
+            'socso_registered': user.socso_registered,
+            'socso_consent': user.socso_consent,
+            'socso_data_complete': user.socso_data_complete,
+            'socso_membership_number': user.socso_membership_number
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Error getting user: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/socso/register', methods=['POST'])
+@admin_required
+def register_user_for_socso():
+    """Register or update user's SOCSO information"""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+
+        if not user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Update personal information
+        if data.get('full_name'):
+            user.full_name = data['full_name']
+        if data.get('ic_number'):
+            user.ic_number = data['ic_number']
+        if data.get('date_of_birth'):
+            user.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+        if data.get('gender'):
+            user.gender = data['gender']
+        if data.get('marital_status'):
+            user.marital_status = data['marital_status']
+        if data.get('nationality'):
+            user.nationality = data['nationality']
+        if data.get('race'):
+            user.race = data['race']
+
+        # Update contact information
+        if data.get('email'):
+            user.email = data['email']
+        if data.get('phone'):
+            user.phone = data['phone']
+        if data.get('address_line1'):
+            user.address_line1 = data['address_line1']
+        if data.get('address_line2') is not None:
+            user.address_line2 = data['address_line2']
+        if data.get('postcode'):
+            user.postcode = data['postcode']
+        if data.get('city'):
+            user.city = data['city']
+        if data.get('state'):
+            user.state = data['state']
+        if data.get('country'):
+            user.country = data['country']
+
+        # Update employment information
+        if data.get('self_employment_start_date'):
+            user.self_employment_start_date = datetime.strptime(data['self_employment_start_date'], '%Y-%m-%d').date()
+        if data.get('monthly_income_range'):
+            user.monthly_income_range = data['monthly_income_range']
+
+        # Update bank information
+        if data.get('bank_name'):
+            user.bank_name = data['bank_name']
+        if data.get('bank_account_number'):
+            user.bank_account_number = data['bank_account_number']
+        if data.get('bank_account_holder'):
+            user.bank_account_holder = data['bank_account_holder']
+
+        # Update SOCSO information
+        if data.get('socso_membership_number'):
+            user.socso_membership_number = data['socso_membership_number']
+        if data.get('socso_consent'):
+            user.socso_consent = True
+            if not user.socso_consent_date:
+                user.socso_consent_date = datetime.utcnow()
+
+        # Set SOCSO registration flags
+        user.socso_registered = True
+        user.socso_registration_date = datetime.utcnow()
+
+        # Check if all required data is complete
+        required_fields = [
+            user.full_name, user.ic_number, user.date_of_birth, user.gender,
+            user.marital_status, user.nationality, user.race, user.email,
+            user.phone, user.address_line1, user.postcode, user.city,
+            user.state, user.country, user.self_employment_start_date,
+            user.monthly_income_range, user.bank_name, user.bank_account_number,
+            user.bank_account_holder, user.socso_consent
+        ]
+        user.socso_data_complete = all(field is not None and field != '' for field in required_fields)
+
+        db.session.commit()
+
+        # Log the security event
+        log_security_event(
+            user_id=session['user_id'],
+            action='socso_registration',
+            resource_type='user',
+            resource_id=user.id,
+            status='success',
+            message=f'Admin registered user {user.username} for SOCSO',
+            severity='low'
+        )
+
+        return jsonify({
+            'success': True,
+            'message': 'User registered for SOCSO successfully',
+            'socso_data_complete': user.socso_data_complete
+        }), 200
+
+    except ValueError as e:
+        app.logger.error(f"Invalid date format: {str(e)}")
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error registering user for SOCSO: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/admin/check', methods=['GET'])
 def check_admin():
