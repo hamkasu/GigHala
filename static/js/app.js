@@ -115,12 +115,21 @@ const app = {
     // Populate category filters
     populateCategoryFilters() {
         const select = document.getElementById('categoryFilter');
-        if (!select) return;
+        const secondarySelect = document.getElementById('categorySelect');
         
-        select.innerHTML = '<option value="">Semua Kategori</option>' +
-            this.categories.map(cat => 
-                `<option value="${cat.id}">${this.translateCategoryName(cat.name)}</option>`
-            ).join('');
+        if (select) {
+            select.innerHTML = '<option value="">Semua Kategori</option>' +
+                this.categories.map(cat => 
+                    `<option value="${cat.id}">${this.translateCategoryName(cat.name)}</option>`
+                ).join('');
+        }
+        
+        if (secondarySelect) {
+            secondarySelect.innerHTML = '<option value="">Semua Kategori</option>' +
+                this.categories.map(cat => 
+                    `<option value="${cat.id}">${this.translateCategoryName(cat.name)}</option>`
+                ).join('');
+        }
     },
     
     // Load gigs

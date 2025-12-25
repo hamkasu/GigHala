@@ -7695,7 +7695,8 @@ def get_categories():
     # Get user's language preference
     lang = get_user_language()
 
-    categories = Category.query.all()
+    # Sort categories alphabetically by name
+    categories = Category.query.order_by(Category.name).all()
     result = [{
         'id': cat.slug,
         'name': cat.name,  # Use actual category name, not translation key
