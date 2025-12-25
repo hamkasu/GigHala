@@ -3,8 +3,6 @@
 {% block title %}Browse Gigs{% endblock %}
 
 {% block extra_styles %}
-<!-- Leaflet CSS for Maps -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     .gigs-container {
         max-width: 1400px;
@@ -40,15 +38,16 @@
         margin-bottom: 8px;
     }
 
-    .filter-input {
+    .filter-input, .filter-select {
         width: 100%;
         padding: 10px 14px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
         font-size: 14px;
+        background: white;
     }
 
-    .filter-input:focus {
+    .filter-input:focus, .filter-select:focus {
         outline: none;
         border-color: var(--primary);
     }
@@ -72,10 +71,16 @@
         font-weight: 600;
         cursor: pointer;
         white-space: nowrap;
+        transition: opacity 0.2s;
     }
 
     .search-btn:hover {
         opacity: 0.9;
+    }
+
+    .search-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .results-header {
@@ -100,222 +105,169 @@
     .gigs-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 12px;
+        gap: 20px;
         margin-bottom: 32px;
-        min-height: 200px;
     }
 
     .gig-card {
-        display: none !important;
-    }
-
-    /* Support for gig-card-mini layout */
-    .gig-card-mini {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: white;
-        padding: 12px;
-        border-radius: 12px;
-        border: 1px solid var(--border-light);
-        transition: all 0.2s;
-        height: 80px;
-    }
-
-    .gig-card-mini:hover {
-        box-shadow: var(--shadow-md);
-        transform: translateY(-2px);
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
     }
 
     .gig-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transform: translateY(-2px);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     }
 
     .gig-header {
-        height: 120px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 48px;
-        position: relative;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
     }
 
-    .gig-badges {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        display: flex;
-        gap: 4px;
-    }
-
-    .badge {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 9px;
-        font-weight: 700;
-        text-transform: uppercase;
-    }
-
-    .badge-halal {
-        background: #0D7C66;
-        color: white;
-    }
-
-    .badge-instant {
-        background: #f59e0b;
-        color: white;
-    }
-
-    .badge-brand {
-        background: #6366f1;
-        color: white;
-    }
-
-    .gig-body {
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .gig-seller {
-        display: none;
-    }
-
-    .seller-avatar {
-        display: none;
-    }
-
-    .seller-name {
-        display: none;
-    }
-
-    .seller-location {
-        display: none;
+    .gig-icon {
+        font-size: 32px;
+        flex-shrink: 0;
     }
 
     .gig-title {
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--text-dark);
-        line-height: 1.2;
-        margin: 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        margin-bottom: 4px;
+        line-height: 1.4;
     }
 
     .gig-category {
-        display: none;
+        font-size: 12px;
+        color: var(--text-gray);
+        text-transform: capitalize;
+    }
+
+    .gig-description {
+        font-size: 14px;
+        color: var(--text-gray);
+        line-height: 1.6;
+        margin-bottom: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
     }
 
     .gig-meta {
         display: flex;
+        flex-wrap: wrap;
         gap: 8px;
-        font-size: 10px;
-        color: var(--text-light);
-        margin: 0;
+        margin-bottom: 16px;
+    }
+
+    .gig-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: var(--bg-light);
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        color: var(--text-gray);
+    }
+
+    .gig-badge.halal {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .gig-badge.instant {
+        background: #fff3e0;
+        color: #e65100;
     }
 
     .gig-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 8px;
-        padding: 0;
-        border: none;
-        margin-top: 4px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
     }
 
-    .gig-rating {
-        display: none;
-    }
-
-    .gig-rating .star {
-        color: #f59e0b;
-    }
-
-    .gig-price {
-        text-align: right;
-    }
-
-    .price-label {
-        font-size: 9px;
-        color: var(--text-light);
-    }
-
-    .price-value {
-        font-size: 14px;
+    .gig-budget {
+        font-size: 18px;
         font-weight: 700;
-        color: var(--text-dark);
+        color: var(--primary);
+    }
+
+    .gig-client {
+        font-size: 12px;
+        color: var(--text-gray);
     }
 
     .load-more-section {
         text-align: center;
-        margin: 32px 0;
+        margin-top: 32px;
     }
 
     .load-more-btn {
         padding: 12px 32px;
-        background: var(--bg-white);
-        border: 2px solid var(--primary);
-        color: var(--primary);
+        background: var(--primary);
+        color: white;
+        border: none;
         border-radius: var(--radius-md);
         font-weight: 600;
         cursor: pointer;
+        transition: opacity 0.2s;
     }
 
     .load-more-btn:hover {
-        background: var(--primary);
-        color: white;
+        opacity: 0.9;
     }
 
     .load-more-info {
         margin-top: 12px;
         font-size: 14px;
-        color: var(--text-light);
+        color: var(--text-gray);
+    }
+
+    .error-message, .empty-state {
+        grid-column: 1/-1;
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .error-message {
+        background: #fee;
+        color: #c33;
+        border-radius: var(--radius-md);
+        border: 1px solid #fcc;
     }
 
     .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        background: var(--bg-white);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--border);
+        color: var(--text-gray);
     }
 
-    .empty-icon {
+    .empty-state-icon {
         font-size: 64px;
         margin-bottom: 16px;
     }
 
-    .empty-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--text-dark);
-        margin-bottom: 8px;
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 4px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
     }
 
-    .empty-text {
-        color: var(--text-gray);
-    }
-
-    @media (max-width: 768px) {
-        .filters-row {
-            flex-direction: column;
-        }
-
-        .filter-group {
-            width: 100%;
-        }
-
-        .gigs-grid {
-            grid-template-columns: 1fr;
-        }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
@@ -326,55 +278,50 @@
     <div class="filters-bar">
         <div class="filters-row">
             <div class="filter-group">
-                <label class="filter-label">{{ t('search') }}</label>
-                <input type="text" class="filter-input" placeholder="{{ t('keywords_placeholder') }}" id="searchInput">
+                <label class="filter-label">Search</label>
+                <input type="text" class="filter-input" placeholder="Keywords..." id="searchInput">
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">{{ t('budget_rm') }}</label>
+                <label class="filter-label">Category</label>
+                <select class="filter-select" id="categorySelect">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Budget (RM)</label>
                 <div class="budget-inputs">
-                    <input type="number" class="filter-input" placeholder="{{ t('min_placeholder') }}" id="priceMin">
+                    <input type="number" class="filter-input" placeholder="Min" id="priceMin">
                     <span>-</span>
-                    <input type="number" class="filter-input" placeholder="{{ t('max_placeholder') }}" id="priceMax">
+                    <input type="number" class="filter-input" placeholder="Max" id="priceMax">
                 </div>
             </div>
 
             <div class="filter-group" style="flex: 0;">
-                <button class="search-btn" onclick="filterGigs()">{{ t('search_gig_btn') }}</button>
+                <button class="search-btn" id="searchBtn" onclick="loadGigs()">Search Gigs</button>
             </div>
         </div>
-
-        <!-- Map Toggle -->
-        <div id="mapToggleSection" style="display: none;">
-            <input type="checkbox" id="showMapToggle">
-        </div>
-    </div>
-
-    <!-- Map Container -->
-    <div id="mapContainer" style="display: none;">
-        <div id="map"></div>
     </div>
 
     <!-- Results Header -->
     <div class="results-header">
         <div class="results-count">
-            <strong id="resultCount">0</strong> {{ t('gigs_found') }}
+            <strong id="resultCount">0</strong> gigs found
         </div>
         <div>
-            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">{{ t('sort_by') }}</label>
-            <select class="sort-select" id="sortSelect" onchange="filterGigs()">
-                <option value="newest" selected>{{ t('newest') }}</option>
-                <option value="budget_high">{{ t('budget_highest') }}</option>
-                <option value="budget_low">{{ t('budget_lowest') }}</option>
+            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">Sort by:</label>
+            <select class="sort-select" id="sortSelect" onchange="loadGigs()">
+                <option value="newest" selected>Newest</option>
+                <option value="budget_high">Budget: High to Low</option>
+                <option value="budget_low">Budget: Low to High</option>
             </select>
         </div>
     </div>
 
     <!-- Gigs Grid -->
     <div class="gigs-grid" id="gigsGrid">
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-gray);">
-            {{ t('loading_gigs') }}
-        </div>
+        <div class="loading-spinner" style="grid-column: 1/-1; justify-self: center;"></div>
     </div>
 
     <!-- Load More -->
@@ -388,390 +335,323 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- Leaflet JS for Maps -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // ============ STATE MANAGEMENT ============
     let allGigs = [];
-    let filteredGigs = [];
+    let allCategories = [];
     let currentPage = 1;
     const pageSize = 12;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const selectedCategory = urlParams.get('category') || '';
-    const urlSearch = urlParams.get('search') || '';
+    // ============ CATEGORY ICONS MAPPING ============
+    const categoryIconMap = {
+        // Design & Creative
+        'graphic-design': '🎨',
+        'ui-ux': '📱',
+        'illustration': '🖼️',
+        'logo-design': '🏷️',
+        'fashion': '👗',
+        'interior-design': '🏠',
 
-    const categoryIcons = {
-        'design': '🎨',
-        'writing': '✍️',
-        'video': '🎬',
-        'tutoring': '📚',
-        'content': '📱',
-        'tech': '💻',
-        'web': '💻',
-        'marketing': '📈',
-        'admin': '📋',
-        'data': '📊',
-        'voice': '🎤',
-        'general': '📦',
-        'virtual-assistant': '💼',
-        'delivery': '🚚',
-        'micro-tasks': '✅',
-        'events': '🎉',
-        'caregiving': '🤝',
+        // Writing & Content
+        'content-writing': '✍️',
+        'translation': '🌐',
+        'proofreading': '📝',
+        'resume': '📄',
+        'email-marketing': '📧',
+        'social-copy': '📱',
+
+        // Video & Media
+        'video-editing': '🎬',
+        'animation': '🎞️',
+        'voiceover': '🎤',
+        'podcast': '🎙️',
         'photography': '📸',
-        'creative-other': '🎭'
+
+        // Web & App Development
+        'web-development': '💻',
+        'app-development': '📱',
+        'ecommerce': '🛒',
+
+        // Marketing & Business
+        'digital-marketing': '📈',
+        'social-media': '📱',
+        'business-consulting': '💼',
+        'data-analysis': '📊',
+
+        // Education & Tutoring
+        'tutoring': '📚',
+        'language-teaching': '🗣️',
+
+        // Technical & Engineering
+        'programming': '💻',
+        'engineering': '⚙️',
+
+        // Admin & Support
+        'virtual-assistant': '💼',
+        'transcription': '⌨️',
+        'data-entry': '📋',
+
+        // Finance & Legal
+        'bookkeeping': '💰',
+        'legal': '⚖️',
+
+        // Lifestyle & Personal
+        'wellness-coaching': '🧘',
+        'personal-styling': '👔',
+        'pet-services': '🐾',
+
+        // Home & Handyman
+        'home-repair': '🔧',
+        'cleaning': '🧹',
+        'gardening': '🌱',
+
+        // Specialized Services
+        'crafts': '🎨',
+        'music-production': '🎵',
+        'event-planning': '🎉',
+        'tours': '🗺️',
+
+        // General
+        'general': '📦'
     };
 
-    const categoryGradients = {
-        'design': '#667eea, #764ba2',
-        'writing': '#11998e, #38ef7d',
-        'video': '#fc4a1a, #f7b733',
-        'tutoring': '#4facfe, #00f2fe',
-        'content': '#f857a6, #ff5858',
-        'tech': '#00d2ff, #3a7bd5',
-        'web': '#00d2ff, #3a7bd5',
-        'marketing': '#f2994a, #f2c94c',
-        'admin': '#667eea, #764ba2',
-        'data': '#8e44ad, #3498db',
-        'voice': '#e91e63, #9c27b0',
-        'general': '#607d8b, #455a64',
-        'virtual-assistant': '#9b59b6, #8e44ad',
-        'delivery': '#e67e22, #d35400',
-        'micro-tasks': '#27ae60, #2ecc71',
-        'events': '#e74c3c, #c0392b',
-        'caregiving': '#1abc9c, #16a085',
-        'photography': '#f39c12, #e74c3c',
-        'creative-other': '#9b59b6, #e91e63'
-    };
-
-    const translations = {
-        no_gigs_found: "{{ t('no_gigs_found') }}",
-        no_gigs_desc: "{{ t('no_gigs_desc') }}",
-        error_loading_gigs: "{{ t('error_loading_gigs') }}",
-        reload_page: "{{ t('reload_page') }}",
-        flexible: "{{ t('flexible') }}",
-        budget: "{{ t('budget') }}"
-    };
-
-    // Geolocation Functions
-    function checkLocationPermission() {
-        // Check if location was previously denied
-        const locationDenied = localStorage.getItem('locationDenied');
-        const locationDismissed = localStorage.getItem('locationBannerDismissed');
-
-        if (locationDenied === 'true' || locationDismissed === 'true') {
-            return;
-        }
-
-        // Check if geolocation is supported
-        if ('geolocation' in navigator) {
-            // Show banner if permission not yet requested
-            navigator.permissions.query({ name: 'geolocation' }).then(result => {
-                if (result.state === 'prompt') {
-                    document.getElementById('locationBanner').style.display = 'block';
-                } else if (result.state === 'granted') {
-                    requestLocation();
-                }
-            }).catch(() => {
-                // Fallback if permissions API not supported
-                document.getElementById('locationBanner').style.display = 'block';
-            });
-        }
-    }
-
-    function requestLocation() {
-        document.getElementById('enableLocationBtn').textContent = 'Loading...';
-        document.getElementById('enableLocationBtn').disabled = true;
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-
-                // Hide banner and show success
-                document.getElementById('locationBanner').style.display = 'none';
-                document.getElementById('distanceFilter').disabled = false;
-                document.getElementById('mapToggleSection').hidden = false;
-                document.getElementById('locationStatus').style.display = 'inline';
-
-                // Show "Nearest" sort option
-                document.getElementById('nearestOption').style.display = 'block';
-                document.getElementById('sortSelect').value = 'nearest';
-
-                // Reload gigs with location
-                loadGigs();
-            },
-            (error) => {
-                console.error('Location error:', error);
-                localStorage.setItem('locationDenied', 'true');
-
-                // Update banner to show error
-                document.getElementById('locationBannerTitle').textContent = 'Location Access Denied';
-                document.getElementById('locationBannerText').textContent = 'You can still browse all gigs without location filtering.';
-                document.getElementById('enableLocationBtn').style.display = 'none';
-
-                // Auto-hide after 5 seconds
-                setTimeout(() => {
-                    document.getElementById('locationBanner').style.display = 'none';
-                }, 5000);
-            },
-            {
-                enableHighAccuracy: false,
-                timeout: 10000,
-                maximumAge: 300000 // Cache for 5 minutes
-            }
-        );
-    }
-
-    function dismissLocationBanner() {
-        document.getElementById('locationBanner').style.display = 'none';
-        localStorage.setItem('locationBannerDismissed', 'true');
-    }
-
-    function initMap() {
-        if (!userLocation) return;
-
-        // Initialize map centered on user location
-        map = L.map('map').setView([userLocation.lat, userLocation.lng], 11);
-
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 18
-        }).addTo(map);
-
-        // Add user location marker
-        const userMarker = L.marker([userLocation.lat, userLocation.lng], {
-            icon: L.divIcon({
-                className: 'user-location-marker',
-                html: '<div style="background: #2196f3; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
-                iconSize: [20, 20]
-            })
-        }).addTo(map);
-        userMarker.bindPopup('📍 Your Location');
-
-        // Add gig markers
-        updateMapMarkers();
-    }
-
-    function updateMapMarkers() {
-        if (!map) return;
-
-        // Clear existing markers
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-
-        // Add markers for filtered gigs with coordinates
-        filteredGigs.forEach(gig => {
-            if (gig.latitude && gig.longitude) {
-                const marker = L.marker([gig.latitude, gig.longitude], {
-                    icon: L.divIcon({
-                        className: 'gig-marker',
-                        html: `<div style="background: #00c853; color: white; padding: 6px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">RM ${gig.approved_budget || gig.budget_max}</div>`,
-                        iconSize: [60, 30]
-                    })
-                }).addTo(map);
-
-                const distance = gig.distance ? `${gig.distance} km away` : '';
-                marker.bindPopup(`
-                    <div style="min-width: 200px;">
-                        <h3 style="margin: 0 0 8px 0; font-size: 14px;">${gig.title}</h3>
-                        <p style="margin: 0 0 8px 0; font-size: 12px; color: #666;">${distance}</p>
-                        <p style="margin: 0 0 8px 0; font-size: 13px; color: #00c853; font-weight: 600;">RM ${gig.approved_budget || gig.budget_min + '-' + gig.budget_max}</p>
-                        <button onclick="viewGig(${gig.id})" style="width: 100%; padding: 8px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">View Gig</button>
-                    </div>
-                `);
-
-                markers.push(marker);
-            }
-        });
-    }
-
-    function toggleMap() {
-        const mapContainer = document.getElementById('mapContainer');
-        const showMap = document.getElementById('showMapToggle').checked;
-
-        if (showMap) {
-            mapContainer.style.display = 'block';
-            if (!map) {
-                setTimeout(initMap, 100); // Delay to ensure container is visible
-            } else {
-                map.invalidateSize();
-                updateMapMarkers();
-            }
-        } else {
-            mapContainer.style.display = 'none';
-        }
-    }
-
-    async function loadGigs() {
+    // ============ INITIALIZATION ============
+    async function init() {
         try {
-            console.log('Fetching gigs...');
-            const apiUrl = '/api/gigs';
-            const response = await fetch(apiUrl);
-            if (response.ok) {
-                allGigs = await response.json();
-                console.log('Fetched gigs count:', allGigs.length);
-
-                // Filter valid gigs
-                allGigs = allGigs.filter(gig => {
-                    return gig.title && gig.category;
-                });
-                console.log('Valid gigs count:', allGigs.length);
-
-                // Default sort by newest
-                allGigs.sort((a, b) => b.id - a.id);
-                // Apply category filter if present in URL
-                filterGigs();
-            } else {
-                console.error('Failed to fetch gigs:', response.status);
-                showError();
-            }
+            await loadCategories();
+            loadURLParams();
+            await loadGigs();
         } catch (error) {
-            console.error('Error fetching gigs:', error);
-            showError();
+            console.error('Initialization error:', error);
+            showError('Failed to initialize page. Please refresh.');
         }
     }
 
-    function renderGigs(gigs, append = false) {
-        const grid = document.getElementById('gigsGrid');
-        
-        // Prevent clearing the grid if we are appending
-        if (!append) {
-            grid.innerHTML = '';
+    // ============ LOAD CATEGORIES FROM API ============
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/categories');
+            if (!response.ok) throw new Error('Failed to fetch categories');
+
+            allCategories = await response.json();
+
+            const categorySelect = document.getElementById('categorySelect');
+            allCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.slug;
+                option.textContent = cat.name;
+                categorySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading categories:', error);
+            // Continue with empty categories - not critical
         }
-        
-        filteredGigs = gigs;
+    }
 
-        document.getElementById('resultCount').textContent = gigs.length;
-        document.getElementById('totalCount').textContent = gigs.length;
+    // ============ LOAD URL PARAMETERS ============
+    function loadURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
 
-        if (gigs.length === 0 && !append) {
-            grid.innerHTML = `
-                <div class="empty-state" style="grid-column: 1/-1;">
-                    <div class="empty-icon">🔍</div>
-                    <h2 class="empty-title">${translations.no_gigs_found}</h2>
-                    <p class="empty-text">${translations.no_gigs_desc}</p>
+        const category = urlParams.get('category');
+        if (category) {
+            document.getElementById('categorySelect').value = category;
+        }
+
+        const search = urlParams.get('search');
+        if (search) {
+            document.getElementById('searchInput').value = search;
+        }
+    }
+
+    // ============ LOAD GIGS FROM API ============
+    async function loadGigs() {
+        const searchBtn = document.getElementById('searchBtn');
+        const gigsGrid = document.getElementById('gigsGrid');
+
+        try {
+            // Disable search button while loading
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+
+            // Show loading state
+            gigsGrid.innerHTML = '<div class="loading-spinner" style="grid-column: 1/-1; justify-self: center;"></div>';
+
+            // Build API URL with parameters
+            const params = new URLSearchParams();
+
+            const search = document.getElementById('searchInput').value.trim();
+            if (search) params.append('search', search);
+
+            const category = document.getElementById('categorySelect').value;
+            if (category) params.append('category', category);
+
+            const apiUrl = `/api/gigs${params.toString() ? '?' + params.toString() : ''}`;
+
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Failed to fetch gigs');
+
+            allGigs = await response.json();
+
+            // Apply client-side filters
+            filterAndDisplayGigs();
+
+        } catch (error) {
+            console.error('Error loading gigs:', error);
+            showError('Failed to load gigs. Please try again.');
+        } finally {
+            searchBtn.disabled = false;
+            searchBtn.textContent = 'Search Gigs';
+        }
+    }
+
+    // ============ FILTER AND DISPLAY GIGS ============
+    function filterAndDisplayGigs() {
+        // Get filter values
+        const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
+        const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
+
+        // Filter gigs
+        let filtered = allGigs.filter(gig => {
+            // Price filter: Check if gig budget range overlaps with user's price range
+            const gigMin = parseFloat(gig.budget_min) || 0;
+            const gigMax = parseFloat(gig.budget_max) || Infinity;
+            const matchesPrice = gigMax >= priceMin && gigMin <= priceMax;
+
+            return matchesPrice;
+        });
+
+        // Sort gigs
+        const sortBy = document.getElementById('sortSelect').value;
+        if (sortBy === 'newest') {
+            filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        } else if (sortBy === 'budget_high') {
+            filtered.sort((a, b) => (b.budget_max || 0) - (a.budget_max || 0));
+        } else if (sortBy === 'budget_low') {
+            filtered.sort((a, b) => (a.budget_min || 0) - (b.budget_min || 0));
+        }
+
+        // Display results
+        displayGigs(filtered);
+    }
+
+    // ============ DISPLAY GIGS ============
+    function displayGigs(gigs) {
+        const gigsGrid = document.getElementById('gigsGrid');
+        const resultCount = document.getElementById('resultCount');
+
+        resultCount.textContent = gigs.length;
+
+        if (gigs.length === 0) {
+            gigsGrid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>No gigs found</h3>
+                    <p>Try adjusting your search filters</p>
                 </div>
             `;
             document.getElementById('loadMoreSection').style.display = 'none';
             return;
         }
 
-        const startIndex = append ? (currentPage - 1) * pageSize : 0;
-        const endIndex = currentPage * pageSize;
-        const gigsToShow = gigs.slice(startIndex, endIndex);
-        const showingCount = Math.min(endIndex, gigs.length);
+        // Pagination
+        const start = 0;
+        const end = currentPage * pageSize;
+        const visibleGigs = gigs.slice(start, end);
 
-        document.getElementById('showingCount').textContent = showingCount;
+        gigsGrid.innerHTML = visibleGigs.map(gig => renderGigCard(gig)).join('');
 
-        const gigsHTML = gigsToShow.map(gig => {
-            const icon = categoryIcons[gig.category?.toLowerCase()] || '📋';
-            const gradient = categoryGradients[gig.category?.toLowerCase()] || '#667eea, #764ba2';
+        // Update load more section
+        document.getElementById('showingCount').textContent = visibleGigs.length;
+        document.getElementById('totalCount').textContent = gigs.length;
 
-            return `
-                <div class="gig-card-mini" onclick="viewGig(${gig.id})" style="cursor: pointer; margin-bottom: 12px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex !important; align-items: center; gap: 12px; background: white; padding: 12px; border-radius: 12px; min-height: 80px; transition: all 0.2s; visibility: visible !important; opacity: 1 !important;">
-                    <span class="gig-icon" style="font-size: 24px; background: linear-gradient(135deg, ${gradient}); padding: 12px; border-radius: 12px; color: white; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0;">${icon}</span>
-                    <div style="flex: 1; min-width: 0;">
-                        <div class="gig-title-mini" style="font-size: 14px; font-weight: 700; color: #1a202c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">${gig.title}</div>
-                        <div style="display: flex; gap: 12px; font-size: 11px; color: #718096;">
-                            <span style="display: flex; align-items: center; gap: 4px;">📍 ${gig.location || 'Remote'}</span>
-                            <span style="display: flex; align-items: center; gap: 4px;">⏱ ${gig.duration || translations.flexible}</span>
-                        </div>
-                    </div>
-                    <div style="text-align: right; flex-shrink: 0; padding-left: 12px; border-left: 1px solid #edf2f7; min-width: 100px;">
-                        <div style="font-size: 9px; color: #a0aec0; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">Budget</div>
-                        <div class="gig-price-mini" style="font-size: 16px; font-weight: 800; color: #1DBF73;">RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</div>
-                    </div>
-                    ${gig.halal_verified ? `
-                    <div style="margin-left: 8px; flex-shrink: 0;">
-                        <span class="halal-mini" style="background: #1DBF73; color: white; padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px;">HALAL</span>
-                    </div>` : ''}
-                </div>
-            `;
-        }).join('');
-
-        grid.insertAdjacentHTML('beforeend', gigsHTML);
-
-        const loadMoreSection = document.getElementById('loadMoreSection');
-        loadMoreSection.style.display = showingCount < gigs.length ? 'block' : 'none';
+        if (visibleGigs.length < gigs.length) {
+            document.getElementById('loadMoreSection').style.display = 'block';
+        } else {
+            document.getElementById('loadMoreSection').style.display = 'none';
+        }
     }
 
-    function filterGigs() {
-        currentPage = 1;
+    // ============ RENDER GIG CARD ============
+    function renderGigCard(gig) {
+        const icon = categoryIconMap[gig.category] || '📋';
+        const categoryName = allCategories.find(c => c.slug === gig.category)?.name || gig.category;
 
-        const searchInput = document.getElementById('searchInput');
-        const priceMinInput = document.getElementById('priceMin');
-        const priceMaxInput = document.getElementById('priceMax');
-        const sortSelect = document.getElementById('sortSelect');
-
-        const search = searchInput ? searchInput.value.toLowerCase() : '';
-        const priceMin = priceMinInput ? (parseInt(priceMinInput.value) || 0) : 0;
-        const priceMax = priceMaxInput ? (parseInt(priceMaxInput.value) || 999999) : 999999;
-        const sortBy = sortSelect ? sortSelect.value : 'newest';
-
-        console.log('Filtering gigs with:', { search, priceMin, priceMax, sortBy, allGigsCount: allGigs.length });
-
-        let filtered = allGigs.filter(gig => {
-            const matchesSearch = !search ||
-                (gig.title && gig.title.toLowerCase().includes(search)) ||
-                (gig.description && gig.description.toLowerCase().includes(search));
-            
-            // Fix price filtering logic - allow 0 and handle budget_min/max properly
-            const gigMin = parseFloat(gig.budget_min) || 0;
-            const gigMax = parseFloat(gig.budget_max) || 999999;
-            const matchesPrice = gigMin >= priceMin && gigMax <= priceMax;
-            
-            const matchesCategory = !selectedCategory || gig.category === selectedCategory;
-
-            return matchesSearch && matchesPrice && matchesCategory;
-        });
-
-        console.log('Filtered gigs count:', filtered.length);
-
-        // Sort based on selection
-        if (sortBy === 'budget_high') {
-            filtered.sort((a, b) => (b.budget_max || 0) - (a.budget_max || 0));
-        } else if (sortBy === 'budget_low') {
-            filtered.sort((a, b) => (a.budget_min || 0) - (b.budget_min || 0));
+        // Format budget
+        let budgetText = '';
+        if (gig.approved_budget) {
+            budgetText = `RM ${gig.approved_budget.toFixed(2)}`;
+        } else if (gig.budget_min === gig.budget_max) {
+            budgetText = `RM ${gig.budget_min.toFixed(2)}`;
         } else {
-            filtered.sort((a, b) => b.id - a.id);
+            budgetText = `RM ${gig.budget_min.toFixed(2)} - ${gig.budget_max.toFixed(2)}`;
         }
 
-        renderGigs(filtered);
-    }
+        return `
+            <div class="gig-card" onclick="window.location.href='/gig/${gig.id}'">
+                <div class="gig-header">
+                    <div class="gig-icon">${icon}</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="gig-title">${escapeHtml(gig.title)}</div>
+                        <div class="gig-category">${escapeHtml(categoryName)}</div>
+                    </div>
+                </div>
 
-    function loadMore() {
-        currentPage++;
-        renderGigs(filteredGigs, true);
-    }
+                <div class="gig-description">${escapeHtml(gig.description)}</div>
 
-    function viewGig(gigId) {
-        window.location.href = '/gig/' + gigId;
-    }
+                <div class="gig-meta">
+                    ${gig.halal_verified ? '<span class="gig-badge halal">✓ Halal Verified</span>' : ''}
+                    ${gig.is_instant_payout ? '<span class="gig-badge instant">⚡ Instant Payout</span>' : ''}
+                    ${gig.is_remote ? '<span class="gig-badge">🌐 Remote</span>' : ''}
+                    ${gig.location ? `<span class="gig-badge">📍 ${escapeHtml(gig.location)}</span>` : ''}
+                </div>
 
-    function showError() {
-        document.getElementById('gigsGrid').innerHTML = `
-            <div class="empty-state" style="grid-column: 1/-1;">
-                <div class="empty-icon">⚠️</div>
-                <h2 class="empty-title">${translations.error_loading_gigs}</h2>
-                <p class="empty-text">${translations.reload_page}</p>
+                <div class="gig-footer">
+                    <div class="gig-budget">${budgetText}</div>
+                    <div class="gig-client">by ${escapeHtml(gig.client_name)}</div>
+                </div>
             </div>
         `;
     }
 
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', filterGigs);
-        if (urlSearch) {
-            searchInput.value = urlSearch;
-        }
+    // ============ LOAD MORE ============
+    function loadMore() {
+        currentPage++;
+        filterAndDisplayGigs();
     }
 
-    // Call on page load
-    highlightActiveCategory();
-    loadGigs();
+    // ============ SHOW ERROR ============
+    function showError(message) {
+        const gigsGrid = document.getElementById('gigsGrid');
+        gigsGrid.innerHTML = `
+            <div class="error-message">
+                <h3>⚠️ Error</h3>
+                <p>${escapeHtml(message)}</p>
+                <button onclick="location.reload()" style="margin-top: 16px; padding: 8px 16px; background: #c33; color: white; border: none; border-radius: 4px; cursor: pointer;">Reload Page</button>
+            </div>
+        `;
+    }
+
+    // ============ UTILITY FUNCTIONS ============
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ============ EVENT LISTENERS ============
+    document.addEventListener('DOMContentLoaded', init);
+
+    // Allow Enter key to trigger search
+    ['searchInput', 'priceMin', 'priceMax'].forEach(id => {
+        document.getElementById(id).addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadGigs();
+        });
+    });
+
+    // Reset pagination when filters change
+    document.getElementById('categorySelect').addEventListener('change', () => {
+        currentPage = 1;
+    });
 </script>
 {% endblock %}
