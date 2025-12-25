@@ -8346,6 +8346,10 @@ def admin_send_email():
         # Prepare email list
         to_emails = [(user.email, user.full_name or user.username) for user in users]
         
+        # Ensure HTML content has proper line breaks if it's plain text from a textarea
+        if '<' not in html_content and '>' not in html_content:
+            html_content = html_content.replace('\n', '<br>')
+        
         # Send email
         success, message, status_code = email_service.send_bulk_email(
             to_emails=to_emails,

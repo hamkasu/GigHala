@@ -883,9 +883,9 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Email Content (HTML)</label>
-                    <textarea id="email-content" name="html_content" placeholder="Enter your email content in HTML format" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; resize: vertical; min-height: 200px; font-family: monospace;" required></textarea>
-                    <div style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">Use HTML for formatting. Example: &lt;p&gt;Hello!&lt;/p&gt;&lt;strong&gt;Bold text&lt;/strong&gt;</div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Email Content</label>
+                    <textarea id="email-content" name="html_content" placeholder="Enter your email message. Line breaks will be automatically converted to HTML." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; resize: vertical; min-height: 200px;" required></textarea>
+                    <div style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">Line breaks are automatically preserved. You can also use HTML tags for advanced formatting.</div>
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="email-send-btn" style="width: 100%; padding: 12px;">Send Email</button>
