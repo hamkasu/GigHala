@@ -441,6 +441,265 @@
     .modal-buttons .btn {
         flex: 1;
     }
+
+    /* Phone Verification Banner */
+    .phone-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 24px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        animation: slideDown 0.4s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .phone-banner-content {
+        flex: 1;
+    }
+
+    .phone-banner h3 {
+        font-size: 18px;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .phone-banner p {
+        font-size: 14px;
+        opacity: 0.95;
+        margin: 0;
+    }
+
+    .phone-banner-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .phone-banner .btn {
+        padding: 10px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .phone-banner .btn-white {
+        background: white;
+        color: #667eea;
+    }
+
+    .phone-banner .btn-white:hover {
+        background: #f3f4f6;
+        transform: translateY(-1px);
+    }
+
+    .phone-banner .btn-transparent {
+        background: transparent;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .phone-banner .btn-transparent:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .phone-banner-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        opacity: 0.8;
+        margin-left: 16px;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .phone-banner-close:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Phone Verification Modal */
+    .phone-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .phone-modal.active {
+        display: flex;
+    }
+
+    .phone-modal-content {
+        background: white;
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        max-width: 480px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .phone-modal-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .phone-modal-header h2 {
+        font-size: 24px;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .phone-modal-header p {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+
+    .phone-step {
+        display: none;
+    }
+
+    .phone-step.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .phone-input-group {
+        margin-bottom: 20px;
+    }
+
+    .phone-input-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .phone-input-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 16px;
+        transition: border-color 0.2s;
+    }
+
+    .phone-input-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .otp-inputs {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin: 24px 0;
+    }
+
+    .otp-input {
+        width: 50px;
+        height: 56px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        transition: all 0.2s;
+    }
+
+    .otp-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        transform: scale(1.05);
+    }
+
+    .phone-modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .phone-modal-actions .btn {
+        flex: 1;
+    }
+
+    .resend-link {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    .resend-link button {
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: underline;
+    }
+
+    .resend-link button:disabled {
+        color: var(--text-light);
+        cursor: not-allowed;
+        text-decoration: none;
+    }
+
+    .success-icon {
+        font-size: 64px;
+        color: #10b981;
+        text-align: center;
+        margin-bottom: 16px;
+    }
 </style>
 {% endblock %}
 
@@ -449,6 +708,21 @@
     <h1>{{ t('welcome_back') }}, {{ user.full_name or user.username }}!</h1>
     <p>{{ t('happening_today') }}</p>
 </div>
+
+<!-- Phone Verification Banner -->
+{% if not user.phone_verified %}
+<div class="phone-banner" id="phoneBanner">
+    <div class="phone-banner-content">
+        <h3>📱 Secure Your Account with SMS Notifications</h3>
+        <p>Add your phone number to receive instant updates about your gigs and transactions</p>
+    </div>
+    <div class="phone-banner-actions">
+        <button class="btn btn-white" onclick="openPhoneModal()">Add Phone Number</button>
+        <button class="btn btn-transparent" onclick="dismissPhoneBanner()">Later</button>
+    </div>
+    <button class="phone-banner-close" onclick="dismissPhoneBanner()">&times;</button>
+</div>
+{% endif %}
 
 <div class="stats-grid">
     <a href="/billing" class="stat-card-link">
@@ -895,6 +1169,70 @@
         </div>
     </div>
 </div>
+
+<!-- Phone Verification Modal -->
+<div id="phoneModal" class="phone-modal">
+    <div class="phone-modal-content">
+        <!-- Step 1: Enter Phone Number -->
+        <div id="phoneStep1" class="phone-step active">
+            <div class="phone-modal-header">
+                <h2>📱 Add Phone Number</h2>
+                <p>We'll send you a verification code via SMS</p>
+            </div>
+
+            <div class="phone-input-group">
+                <label for="phoneNumber">Phone Number</label>
+                <input type="tel" id="phoneNumber" placeholder="+60123456789" value="{{ user.phone or '' }}">
+                <small style="color: var(--text-gray); font-size: 13px;">Malaysian format: +60 or 01</small>
+            </div>
+
+            <div class="phone-modal-actions">
+                <button class="btn btn-outline" onclick="closePhoneModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="sendVerificationCode()">Send Code</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Enter OTP Code -->
+        <div id="phoneStep2" class="phone-step">
+            <div class="phone-modal-header">
+                <h2>🔐 Enter Verification Code</h2>
+                <p>We sent a 6-digit code to <strong id="displayPhone"></strong></p>
+            </div>
+
+            <div class="otp-inputs">
+                <input type="text" class="otp-input" maxlength="1" id="otp1" oninput="moveToNext(this, 'otp2')" onkeydown="moveToPrev(event, this, null)">
+                <input type="text" class="otp-input" maxlength="1" id="otp2" oninput="moveToNext(this, 'otp3')" onkeydown="moveToPrev(event, this, 'otp1')">
+                <input type="text" class="otp-input" maxlength="1" id="otp3" oninput="moveToNext(this, 'otp4')" onkeydown="moveToPrev(event, this, 'otp2')">
+                <input type="text" class="otp-input" maxlength="1" id="otp4" oninput="moveToNext(this, 'otp5')" onkeydown="moveToPrev(event, this, 'otp3')">
+                <input type="text" class="otp-input" maxlength="1" id="otp5" oninput="moveToNext(this, 'otp6')" onkeydown="moveToPrev(event, this, 'otp4')">
+                <input type="text" class="otp-input" maxlength="1" id="otp6" oninput="moveToNext(this, null)" onkeydown="moveToPrev(event, this, 'otp5')">
+            </div>
+
+            <div class="phone-modal-actions">
+                <button class="btn btn-outline" onclick="goToPhoneStep1()">Back</button>
+                <button class="btn btn-primary" onclick="verifyOtpCode()">Verify</button>
+            </div>
+
+            <div class="resend-link">
+                Didn't receive code? <button id="resendBtn" onclick="resendVerificationCode()">Resend</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="phoneStep3" class="phone-step">
+            <div class="success-icon">✅</div>
+            <div class="phone-modal-header">
+                <h2>Phone Verified!</h2>
+                <p>You'll now receive SMS notifications for your gigs and transactions</p>
+            </div>
+
+            <div class="phone-modal-actions">
+                <button class="btn btn-primary" onclick="closePhoneModalAndReload()" style="width: 100%;">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -1167,6 +1505,215 @@
     document.getElementById('paymentReleasedModal')?.addEventListener('click', function(e) {
         if (e.target === this) {
             closePaymentReleasedModal();
+        }
+    });
+
+    // ========================================================================
+    // PHONE VERIFICATION FUNCTIONS
+    // ========================================================================
+
+    // Check if URL has show_phone_prompt parameter (from OAuth)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('show_phone_prompt') === 'true') {
+        // Auto-open modal for OAuth users
+        setTimeout(() => {
+            openPhoneModal();
+        }, 500);
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    function openPhoneModal() {
+        document.getElementById('phoneModal').classList.add('active');
+        goToPhoneStep1();
+    }
+
+    function closePhoneModal() {
+        document.getElementById('phoneModal').classList.remove('active');
+        clearOtpInputs();
+    }
+
+    function closePhoneModalAndReload() {
+        closePhoneModal();
+        window.location.reload();
+    }
+
+    function dismissPhoneBanner() {
+        const banner = document.getElementById('phoneBanner');
+        if (banner) {
+            banner.style.display = 'none';
+            // Store dismissal in session storage
+            sessionStorage.setItem('phoneBannerDismissed', 'true');
+        }
+    }
+
+    // Restore banner dismissal state
+    if (sessionStorage.getItem('phoneBannerDismissed') === 'true') {
+        const banner = document.getElementById('phoneBanner');
+        if (banner) banner.style.display = 'none';
+    }
+
+    function goToPhoneStep1() {
+        document.querySelectorAll('.phone-step').forEach(step => step.classList.remove('active'));
+        document.getElementById('phoneStep1').classList.add('active');
+    }
+
+    function goToPhoneStep2() {
+        document.querySelectorAll('.phone-step').forEach(step => step.classList.remove('active'));
+        document.getElementById('phoneStep2').classList.add('active');
+        // Focus first OTP input
+        setTimeout(() => document.getElementById('otp1').focus(), 100);
+    }
+
+    function goToPhoneStep3() {
+        document.querySelectorAll('.phone-step').forEach(step => step.classList.remove('active'));
+        document.getElementById('phoneStep3').classList.add('active');
+    }
+
+    async function sendVerificationCode() {
+        const phone = document.getElementById('phoneNumber').value.trim();
+
+        if (!phone) {
+            alert('Please enter your phone number');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/phone/send-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phone })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Show phone in step 2
+                document.getElementById('displayPhone').textContent = phone;
+                goToPhoneStep2();
+                startResendTimer();
+            } else {
+                alert(result.error || 'Failed to send verification code');
+            }
+        } catch (error) {
+            console.error('Error sending verification code:', error);
+            alert('Failed to send verification code. Please try again.');
+        }
+    }
+
+    function clearOtpInputs() {
+        for (let i = 1; i <= 6; i++) {
+            const input = document.getElementById(`otp${i}`);
+            if (input) input.value = '';
+        }
+    }
+
+    function moveToNext(current, nextId) {
+        if (current.value.length === 1 && nextId) {
+            document.getElementById(nextId).focus();
+        }
+    }
+
+    function moveToPrev(event, current, prevId) {
+        if (event.key === 'Backspace' && current.value === '' && prevId) {
+            document.getElementById(prevId).focus();
+        }
+    }
+
+    async function verifyOtpCode() {
+        // Collect OTP code
+        let code = '';
+        for (let i = 1; i <= 6; i++) {
+            const input = document.getElementById(`otp${i}`);
+            code += input.value;
+        }
+
+        if (code.length !== 6) {
+            alert('Please enter the complete 6-digit code');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/phone/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                goToPhoneStep3();
+            } else {
+                alert(result.error || 'Invalid verification code');
+                clearOtpInputs();
+                document.getElementById('otp1').focus();
+            }
+        } catch (error) {
+            console.error('Error verifying code:', error);
+            alert('Failed to verify code. Please try again.');
+        }
+    }
+
+    async function resendVerificationCode() {
+        const phone = document.getElementById('phoneNumber').value.trim();
+
+        try {
+            const response = await fetch('/api/phone/send-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phone })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Verification code sent again!');
+                clearOtpInputs();
+                document.getElementById('otp1').focus();
+                startResendTimer();
+            } else {
+                alert(result.error || 'Failed to resend code');
+            }
+        } catch (error) {
+            console.error('Error resending code:', error);
+            alert('Failed to resend code. Please try again.');
+        }
+    }
+
+    let resendTimer = null;
+    function startResendTimer() {
+        const resendBtn = document.getElementById('resendBtn');
+        if (!resendBtn) return;
+
+        let timeLeft = 60; // 60 seconds cooldown
+        resendBtn.disabled = true;
+        resendBtn.textContent = `Resend (${timeLeft}s)`;
+
+        if (resendTimer) clearInterval(resendTimer);
+
+        resendTimer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                resendBtn.textContent = `Resend (${timeLeft}s)`;
+            } else {
+                clearInterval(resendTimer);
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend';
+            }
+        }, 1000);
+    }
+
+    // Close phone modal on outside click
+    document.getElementById('phoneModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePhoneModal();
         }
     });
 </script>
