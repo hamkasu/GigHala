@@ -18,52 +18,87 @@ class EmailService:
     
     def send_bulk_email(self, to_emails, subject, html_content, text_content=None):
         """
-        Send bulk email to multiple recipients
-        
+        Send bulk email to multiple recipients individually (BCC-style privacy)
+
+        Each recipient receives their own email without seeing other recipients' addresses.
+        This ensures complete privacy and GDPR compliance.
+
         Args:
             to_emails: List of email addresses or list of (email, name) tuples
             subject: Email subject
             html_content: HTML email body
             text_content: Plain text email body (optional)
-            
+
         Returns:
             tuple: (success: bool, message: str, response_status: int or None)
         """
         if not self.is_configured():
             return False, "SendGrid is not configured. Please add SENDGRID_API_KEY and SENDGRID_FROM_EMAIL.", None
-        
+
         if not to_emails:
             return False, "No recipients specified.", None
-        
-        try:
-            # Normalize to_emails to list of To objects
-            to_list = []
-            for recipient in to_emails:
-                if isinstance(recipient, tuple):
-                    email, name = recipient
-                    to_list.append(To(email=email, name=name))
+
+        # Normalize to_emails to list of (email, name) tuples
+        recipient_list = []
+        for recipient in to_emails:
+            if isinstance(recipient, tuple):
+                email, name = recipient
+                recipient_list.append((email, name))
+            else:
+                recipient_list.append((recipient, None))
+
+        # Track success and failures
+        successful_sends = 0
+        failed_sends = 0
+        failed_recipients = []
+
+        # Send individual emails to each recipient
+        sg = SendGridAPIClient(self.api_key)
+
+        for email, name in recipient_list:
+            try:
+                # Create individual mail object for this recipient only
+                message = Mail(
+                    from_email=self.from_email,
+                    to_emails=To(email=email, name=name) if name else email,
+                    subject=subject,
+                    plain_text_content=text_content,
+                    html_content=html_content
+                )
+
+                # Send email to this single recipient
+                response = sg.send(message)
+
+                # Check if send was successful (2xx status codes)
+                if 200 <= response.status_code < 300:
+                    successful_sends += 1
                 else:
-                    to_list.append(To(email=recipient))
-            
-            # Create mail object
-            message = Mail(
-                from_email=self.from_email,
-                to_emails=to_list,
-                subject=subject,
-                plain_text_content=text_content,
-                html_content=html_content
-            )
-            
-            # Send email
-            sg = SendGridAPIClient(self.api_key)
-            response = sg.send(message)
-            
-            return True, f"Email sent successfully to {len(to_list)} recipients.", response.status_code
-            
-        except Exception as e:
-            error_message = f"Error sending email: {str(e)}"
-            current_app.logger.error(error_message)
-            return False, error_message, None
+                    failed_sends += 1
+                    failed_recipients.append(email)
+                    current_app.logger.warning(f"Non-success status {response.status_code} for {email}")
+
+            except Exception as e:
+                failed_sends += 1
+                failed_recipients.append(email)
+                current_app.logger.error(f"Error sending email to {email}: {str(e)}")
+
+        # Prepare result message
+        total_recipients = len(recipient_list)
+
+        if successful_sends == total_recipients:
+            return True, f"Email sent successfully to all {successful_sends} recipients.", 200
+        elif successful_sends > 0:
+            message = f"Email sent to {successful_sends}/{total_recipients} recipients. {failed_sends} failed."
+            if failed_recipients:
+                message += f" Failed: {', '.join(failed_recipients[:5])}"
+                if len(failed_recipients) > 5:
+                    message += f" and {len(failed_recipients) - 5} more"
+            current_app.logger.warning(message)
+            return True, message, 207  # 207 Multi-Status
+        else:
+            message = f"Failed to send email to all {total_recipients} recipients."
+            current_app.logger.error(message)
+            return False, message, None
     
     def send_single_email(self, to_email, to_name, subject, html_content, text_content=None):
         """Send email to a single recipient"""
