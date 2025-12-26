@@ -189,6 +189,39 @@
         color: #e65100;
     }
 
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-badge.open {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .status-badge.in_progress {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.pending_review {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-badge.completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
     .gig-footer {
         display: flex;
         justify-content: space-between;
@@ -586,6 +619,16 @@
             budgetText = `RM ${gig.budget_min.toFixed(2)} - ${gig.budget_max.toFixed(2)}`;
         }
 
+        // Format status
+        const statusLabels = {
+            'open': 'Open',
+            'in_progress': 'In Progress',
+            'pending_review': 'Pending Review',
+            'completed': 'Completed',
+            'cancelled': 'Cancelled'
+        };
+        const statusLabel = statusLabels[gig.status] || gig.status;
+
         return `
             <div class="gig-card" onclick="window.location.href='/gig/${gig.id}'">
                 <div class="gig-header">
@@ -599,6 +642,7 @@
                 <div class="gig-description">${escapeHtml(gig.description)}</div>
 
                 <div class="gig-meta">
+                    ${gig.status ? `<span class="status-badge ${gig.status}">${statusLabel}</span>` : ''}
                     ${gig.halal_verified ? '<span class="gig-badge halal">✓ Halal Verified</span>' : ''}
                     ${gig.is_instant_payout ? '<span class="gig-badge instant">⚡ Instant Payout</span>' : ''}
                     ${gig.is_remote ? '<span class="gig-badge">🌐 Remote</span>' : ''}
