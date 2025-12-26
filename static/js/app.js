@@ -155,9 +155,23 @@ const app = {
             this.categories = await response.json();
             this.renderCategories();
             this.populateCategoryFilters();
+            this.renderNavCategories();
         } catch (error) {
             console.error('Error loading categories:', error);
         }
+    },
+    
+    // Render categories in navigation dropdown
+    renderNavCategories() {
+        const list = document.getElementById('navCategoriesList');
+        if (!list) return;
+        
+        list.innerHTML = this.categories.map(cat => `
+            <a href="#" class="category-item" onclick="app.filterByCategory('${cat.id}'); return false;">
+                <span style="font-size: 18px;">${cat.icon}</span>
+                <span>${this.translateCategoryName(cat.name)}</span>
+            </a>
+        `).join('');
     },
     
     // Render categories grid
