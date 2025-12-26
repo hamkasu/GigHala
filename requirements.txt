@@ -98,3 +98,8 @@ SQLAlchemy>=2.0.35
 stripe>=7.0.0
 twilio
 Werkzeug==3.0.1
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
