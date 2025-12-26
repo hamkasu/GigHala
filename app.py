@@ -25,6 +25,7 @@ import pyotp
 import qrcode
 import io
 import base64
+import random
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -2275,6 +2276,8 @@ class Message(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     read_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
     
     def to_dict(self):
         return {
