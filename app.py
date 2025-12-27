@@ -21,6 +21,7 @@ from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
 from twilio.rest import Client
 from email_service import email_service
+from scheduled_jobs import init_scheduler
 import pyotp
 import qrcode
 import io
@@ -1839,6 +1840,16 @@ class EmailHistory(db.Model):
     new_email = db.Column(db.String(120), nullable=False)
     changed_at = db.Column(db.DateTime, default=datetime.utcnow)
     ip_address = db.Column(db.String(45))
+
+class EmailDigestLog(db.Model):
+    """Tracks email digest sends (e.g., new gigs notifications)"""
+    id = db.Column(db.Integer, primary_key=True)
+    digest_type = db.Column(db.String(50), nullable=False)  # 'new_gigs', 'weekly_summary', etc.
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    recipient_count = db.Column(db.Integer, default=0)  # Number of emails sent
+    gig_count = db.Column(db.Integer, default=0)  # Number of gigs included in digest
+    success = db.Column(db.Boolean, default=True)  # Whether send was successful
+    error_message = db.Column(db.Text)  # Error message if failed
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -13796,6 +13807,9 @@ def detect_search_bot():
 
 with app.app_context():
     init_database()
+
+# Initialize scheduled jobs (email digests, etc.)
+scheduler = init_scheduler(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service)
 
 # Setup Google OAuth if credentials are available
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint
