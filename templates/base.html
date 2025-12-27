@@ -3,8 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GigHala{% endblock %} - Platform GigHala #1 Malaysia</title>
-    <meta name="description" content="Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan.">
+
+    <!-- SEO: Title -->
+    <title>{% block title %}GigHala{% endblock %} - Platform Gig Halal #1 Malaysia</title>
+
+    <!-- SEO: Meta Description (overridable per page) -->
+    <meta name="description" content="{% block meta_description %}Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan yang mematuhi prinsip halal.{% endblock %}">
+
+    <!-- SEO: Keywords -->
+    <meta name="keywords" content="{% block meta_keywords %}gig halal, kerja freelance malaysia, side hustle halal, projek sambilan, pekerja gig malaysia, platform freelance halal{% endblock %}">
+
+    <!-- SEO: Author & Copyright -->
+    <meta name="author" content="GigHala">
+    <meta name="copyright" content="GigHala {{ now.year if now else '2025' }}">
+
+    <!-- SEO: Canonical URL (prevents duplicate content issues) -->
+    <link rel="canonical" href="{% block canonical_url %}https://gighala.calmic.com.my{{ request.path }}{% endblock %}">
+
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:site_name" content="GigHala">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}GigHala - Platform Gig Halal #1 Malaysia{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan yang mematuhi prinsip halal.{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://gighala.calmic.com.my{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://gighala.calmic.com.my/static/logo.png{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="ms_MY">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}GigHala - Platform Gig Halal #1 Malaysia{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Platform gig halal terbesar di Malaysia. Cari kerja freelance dan projek sambilan yang mematuhi prinsip halal.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://gighala.calmic.com.my/static/logo.png{% endblock %}">
+
+    <!-- Additional SEO Meta Tags -->
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- PWA Meta Tags -->
@@ -1058,6 +1095,24 @@
 
         {% block extra_styles %}{% endblock %}
     </style>
+
+    <!-- Structured Data (Schema.org JSON-LD) - Overridable per page -->
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "GigHala",
+        "url": "https://gighala.calmic.com.my",
+        "description": "Platform gig halal terbesar di Malaysia untuk pekerja freelance dan projek sambilan",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://gighala.calmic.com.my/gigs?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    {% endblock %}
 </head>
 <body>
     <!-- PWA Install Banner -->
