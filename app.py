@@ -2867,6 +2867,7 @@ def view_gig(gig_id):
                               freelancer_user=freelancer_user,
                               gig_invoices=gig_invoices,
                               gig_receipts=gig_receipts,
+                              timedelta=timedelta,
                               lang=get_user_language(),
                               t=t)
     except HTTPException:
@@ -13638,6 +13639,160 @@ def approve_milestone(milestone_id):
     except Exception as e:
         app.logger.error(f"Approve milestone error: {str(e)}")
         return jsonify({'error': 'Failed to approve milestone'}), 500
+
+# ============================================================================
+# SEO ROUTES: SITEMAP & ROBOTS.TXT
+# ============================================================================
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """
+    Generate dynamic XML sitemap for SEO
+    Includes: Homepage, static pages, all active gigs
+    """
+    try:
+        from flask import make_response
+
+        # Build sitemap URLs
+        pages = []
+
+        # Homepage - highest priority
+        pages.append({
+            'loc': 'https://gighala.calmic.com.my/',
+            'lastmod': datetime.now().strftime('%Y-%m-%d'),
+            'changefreq': 'daily',
+            'priority': '1.0'
+        })
+
+        # Static pages
+        static_pages = [
+            {'url': '/gigs', 'priority': '0.9', 'changefreq': 'hourly'},
+            {'url': '/about', 'priority': '0.7', 'changefreq': 'monthly'},
+            {'url': '/contact', 'priority': '0.6', 'changefreq': 'monthly'},
+            {'url': '/privacy', 'priority': '0.5', 'changefreq': 'yearly'},
+            {'url': '/halal-compliance', 'priority': '0.8', 'changefreq': 'monthly'},
+            {'url': '/gig-workers-bill', 'priority': '0.7', 'changefreq': 'monthly'},
+        ]
+
+        for page in static_pages:
+            pages.append({
+                'loc': f"https://gighala.calmic.com.my{page['url']}",
+                'lastmod': datetime.now().strftime('%Y-%m-%d'),
+                'changefreq': page['changefreq'],
+                'priority': page['priority']
+            })
+
+        # All active gigs (open, in_progress, or recently updated)
+        active_gigs = Gig.query.filter(
+            Gig.status.in_(['open', 'in_progress', 'completed'])
+        ).order_by(Gig.updated_at.desc()).limit(5000).all()
+
+        for gig in active_gigs:
+            # Determine priority based on status
+            if gig.status == 'open':
+                priority = '0.8'
+                changefreq = 'daily'
+            elif gig.status == 'in_progress':
+                priority = '0.6'
+                changefreq = 'weekly'
+            else:  # completed
+                priority = '0.4'
+                changefreq = 'monthly'
+
+            pages.append({
+                'loc': f"https://gighala.calmic.com.my/gig/{gig.id}",
+                'lastmod': gig.updated_at.strftime('%Y-%m-%d') if gig.updated_at else gig.created_at.strftime('%Y-%m-%d'),
+                'changefreq': changefreq,
+                'priority': priority
+            })
+
+        # Generate XML
+        sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+
+        for page in pages:
+            sitemap_xml += '  <url>\n'
+            sitemap_xml += f'    <loc>{page["loc"]}</loc>\n'
+            sitemap_xml += f'    <lastmod>{page["lastmod"]}</lastmod>\n'
+            sitemap_xml += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+            sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
+            sitemap_xml += '  </url>\n'
+
+        sitemap_xml += '</urlset>'
+
+        # Return with correct content type
+        response = make_response(sitemap_xml)
+        response.headers['Content-Type'] = 'application/xml; charset=utf-8'
+        return response
+
+    except Exception as e:
+        app.logger.error(f"Sitemap generation error: {str(e)}")
+        return 'Error generating sitemap', 500
+
+
+@app.route('/robots.txt')
+def robots():
+    """
+    Generate robots.txt for search engine crawlers
+    Allows all bots to crawl the site and points to sitemap
+    """
+    from flask import make_response
+
+    robots_txt = """User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /profile
+Disallow: /logout
+
+# Sitemaps
+Sitemap: https://gighala.calmic.com.my/sitemap.xml
+
+# Crawl delay (be nice to server)
+Crawl-delay: 1
+
+# Specific bot configurations
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+"""
+
+    response = make_response(robots_txt)
+    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return response
+
+
+# ============================================================================
+# BOT DETECTION MIDDLEWARE FOR SEO
+# ============================================================================
+
+@app.before_request
+def detect_search_bot():
+    """
+    Detect search engine bots and add flag to request context
+    This helps serve optimized content to crawlers
+    """
+    user_agent = request.headers.get('User-Agent', '').lower()
+
+    # List of known search engine bots
+    bot_patterns = [
+        'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider',
+        'yandexbot', 'sogou', 'exabot', 'facebot', 'ia_archiver'
+    ]
+
+    # Check if any bot pattern matches
+    request.is_bot = any(bot in user_agent for bot in bot_patterns)
+
+    # Log bot visits for monitoring (optional)
+    if request.is_bot and request.path.startswith('/gig/'):
+        app.logger.info(f"Bot visit: {user_agent} -> {request.path}")
+
 
 with app.app_context():
     init_database()

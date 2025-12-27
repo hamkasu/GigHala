@@ -1,6 +1,106 @@
 {% extends "base.html" %}
 
-{% block title %}{{ gig.title }}{% endblock %}
+{% block title %}{{ gig.title }} - {{ gig.category.name if gig.category else 'Gig' }}{% endblock %}
+
+{# SEO: Dynamic Meta Description for This Gig #}
+{% block meta_description %}{{ gig.description[:155] }}... Gaji: RM{{ gig.budget_min }}-{{ gig.budget_max }}. Lokasi: {{ gig.location or 'Remote' }}. Mohon sekarang di GigHala!{% endblock %}
+
+{# SEO: Dynamic Keywords #}
+{% block meta_keywords %}{{ gig.title }}, {{ gig.category.name if gig.category else 'gig' }}, kerja {{ gig.location or 'remote' }}, freelance malaysia, gig halal{{ ', halal verified' if gig.halal_verified else '' }}{% endblock %}
+
+{# SEO: Canonical URL #}
+{% block canonical_url %}https://gighala.calmic.com.my/gig/{{ gig.id }}{% endblock %}
+
+{# Open Graph Tags for Social Sharing #}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ gig.title }} - GigHala{% endblock %}
+{% block og_description %}{{ gig.description[:200] }}... Gaji: RM{{ gig.budget_min }}-{{ gig.budget_max }}{% endblock %}
+{% block og_url %}https://gighala.calmic.com.my/gig/{{ gig.id }}{% endblock %}
+{% block og_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.calmic.com.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.calmic.com.my/static/logo.png{% endif %}{% endblock %}
+
+{# Twitter Card Tags #}
+{% block twitter_title %}{{ gig.title }}{% endblock %}
+{% block twitter_description %}{{ gig.description[:150] }}... RM{{ gig.budget_min }}-{{ gig.budget_max }}{% endblock %}
+{% block twitter_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.calmic.com.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.calmic.com.my/static/logo.png{% endif %}{% endblock %}
+
+{# Structured Data: JobPosting Schema for SEO #}
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    "title": "{{ gig.title | replace('"', '\\"') }}",
+    "description": "{{ gig.description | replace('"', '\\"') | replace('\n', ' ') }}",
+    "datePosted": "{{ gig.created_at.strftime('%Y-%m-%d') }}",
+    "validThrough": "{{ (gig.created_at + timedelta(days=30)).strftime('%Y-%m-%d') }}",
+    "employmentType": "CONTRACTOR",
+    "hiringOrganization": {
+        "@type": "Organization",
+        "name": "GigHala",
+        "sameAs": "https://gighala.calmic.com.my",
+        "logo": "https://gighala.calmic.com.my/static/logo.png"
+    },
+    "jobLocation": {
+        "@type": "Place",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "{{ gig.location if gig.location else 'Malaysia' }}",
+            "addressCountry": "MY"
+        }
+    },
+    "baseSalary": {
+        "@type": "MonetaryAmount",
+        "currency": "MYR",
+        "value": {
+            "@type": "QuantitativeValue",
+            "minValue": {{ gig.budget_min }},
+            "maxValue": {{ gig.budget_max }},
+            "unitText": "PROJECT"
+        }
+    },
+    "applicantLocationRequirements": {
+        "@type": "Country",
+        "name": "MY"
+    },
+    "jobLocationType": "{% if gig.is_remote %}TELECOMMUTE{% else %}ON_SITE{% endif %}"{% if gig.category %},
+    "industry": "{{ gig.category.name | replace('"', '\\"') }}"{% endif %}
+}
+</script>
+
+{# Additional Breadcrumb Schema for Better Navigation in SERPs #}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://gighala.calmic.com.my/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Gigs",
+            "item": "https://gighala.calmic.com.my/gigs"
+        }{% if gig.category %},
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ gig.category.name }}",
+            "item": "https://gighala.calmic.com.my/gigs?category={{ gig.category.id }}"
+        }{% endif %},
+        {
+            "@type": "ListItem",
+            "position": {% if gig.category %}4{% else %}3{% endif %},
+            "name": "{{ gig.title | truncate(50, True) }}",
+            "item": "https://gighala.calmic.com.my/gig/{{ gig.id }}"
+        }
+    ]
+}
+</script>
+{% endblock %}
 
 {% block extra_styles %}
 <style>
