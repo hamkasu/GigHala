@@ -1072,6 +1072,7 @@ TRANSLATIONS = {
         'category_tours': 'Tour Guiding',
         'category_events': 'Event Planning',
         'category_online-selling': 'Online Selling',
+        'category_virtual-assistant': 'Virtual Assistant',
 
         # Gigs Page
         'search': 'Search',
