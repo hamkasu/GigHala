@@ -32,6 +32,16 @@ stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
 
+# Main categories to show in category pickers (excludes detailed subcategories)
+MAIN_CATEGORY_SLUGS = [
+    'design', 'writing', 'video', 'tutoring', 'content', 'web',
+    'marketing', 'admin', 'general', 'programming', 'consulting',
+    'engineering', 'music', 'photography', 'finance', 'crafts',
+    'garden', 'coaching', 'data', 'pets', 'handyman', 'tours',
+    'events', 'online-selling', 'virtual-assistant', 'delivery',
+    'micro-tasks', 'caregiving', 'creative-other'
+]
+
 # Twilio SMS Configuration
 twilio_account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
 twilio_auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
@@ -2710,7 +2720,8 @@ def browse_gigs():
     """Browse available gigs page"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    categories = Category.query.all()
+    # Get main categories only (exclude detailed subcategories)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
 @app.route('/gig/<int:gig_id>')
@@ -2899,7 +2910,8 @@ def post_gig():
     if user.user_type not in ['client', 'both']:
         return redirect('/dashboard')
 
-    categories = Category.query.all()
+    # Get main categories only (exclude detailed subcategories)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     
     form_data = {}
     
@@ -3052,18 +3064,19 @@ def edit_gig(gig_id):
     """Edit an existing gig"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    
+
     gig = Gig.query.get_or_404(gig_id)
-    
+
     if gig.client_id != user_id:
         flash('Anda tidak mempunyai kebenaran untuk mengedit gig ini.', 'error')
         return redirect('/dashboard')
-    
+
     if gig.status not in ['open', 'in_progress']:
         flash('Gig yang sudah selesai atau dibatalkan tidak boleh diedit.', 'error')
         return redirect(f'/gig/{gig_id}')
-    
-    categories = Category.query.all()
+
+    # Get main categories only (exclude detailed subcategories)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     
     try:
         existing_skills = json.loads(gig.skills_required) if gig.skills_required else []
@@ -7979,8 +7992,8 @@ def get_categories():
     # Get user's language preference
     lang = get_user_language()
 
-    # Sort categories alphabetically by name
-    categories = Category.query.order_by(Category.name).all()
+    # Get main categories only (exclude detailed subcategories) and sort alphabetically
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).order_by(Category.name).all()
     result = [{
         'id': cat.slug,
         'name': cat.name,  # Use actual category name, not translation key
@@ -11903,7 +11916,8 @@ def pricing():
 @app.route('/kategori')
 def kategori():
     user = User.query.get(session.get('user_id')) if 'user_id' in session else None
-    categories_list = Category.query.all()
+    # Get main categories only (exclude detailed subcategories)
+    categories_list = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     
     categories_html = '<div class="blog-grid">'
     for cat in categories_list:
@@ -12612,7 +12626,8 @@ def portfolio():
     user_id = session['user_id']
     user = User.query.get(user_id)
     portfolio_items = PortfolioItem.query.filter_by(user_id=user_id).order_by(PortfolioItem.display_order, PortfolioItem.created_at.desc()).all()
-    categories = Category.query.all()
+    # Get main categories only (exclude detailed subcategories)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('portfolio.html', user=user, portfolio_items=portfolio_items, categories=categories, active_page='portfolio', lang=get_user_language(), t=t)
 
 @app.route('/api/portfolio', methods=['POST'])
