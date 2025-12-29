@@ -10039,8 +10039,8 @@ def get_socso_contributions():
                 'current_page': pagination.page,
                 'per_page': pagination.per_page
             },
-            'summary': {
-                'total_socso_contributed': float(totals_result.total_socso or 0),
+            'totals': {
+                'total_socso': float(totals_result.total_socso or 0),
                 'total_net_earnings': float(totals_result.total_net_earnings or 0),
                 'total_final_payout': float(totals_result.total_final_payout or 0),
                 'transaction_count': totals_result.transaction_count or 0
