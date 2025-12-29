@@ -1806,6 +1806,8 @@ class User(UserMixin, db.Model):
     bank_name = db.Column(db.String(100))
     bank_account_number = db.Column(db.String(30))
     bank_account_holder = db.Column(db.String(120))
+    # Stripe customer ID for saved payment methods
+    stripe_customer_id = db.Column(db.String(100))  # Stripe customer ID (cus_xxx)
     # OAuth fields for social login
     oauth_provider = db.Column(db.String(20))  # google, apple, microsoft, or null for regular
     oauth_id = db.Column(db.String(255))  # User ID from OAuth provider
@@ -2074,6 +2076,17 @@ class PaymentHistory(db.Model):
     gateway_response = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class StripeWebhookLog(db.Model):
+    """Log all Stripe webhook events for debugging and auditing"""
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.String(100), unique=True, nullable=False)  # Stripe event ID
+    event_type = db.Column(db.String(100), nullable=False)  # e.g., checkout.session.completed
+    payload = db.Column(db.Text)  # Full event payload (JSON)
+    processed = db.Column(db.Boolean, default=False)
+    error_message = db.Column(db.Text)  # Error if processing failed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    processed_at = db.Column(db.DateTime)
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -2185,6 +2198,8 @@ class Escrow(db.Model):
     net_amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(30), default='pending')
     payment_reference = db.Column(db.String(100))
+    payment_gateway = db.Column(db.String(50))  # stripe, payhalal, bank_transfer
+    refunded_amount = db.Column(db.Float, default=0.0)  # Track partial refunds
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     funded_at = db.Column(db.DateTime)
     released_at = db.Column(db.DateTime)
@@ -2203,10 +2218,13 @@ class Escrow(db.Model):
             'amount': self.amount,
             'platform_fee': self.platform_fee,
             'net_amount': self.net_amount,
+            'refunded_amount': self.refunded_amount or 0.0,
+            'remaining_amount': self.amount - (self.refunded_amount or 0.0),
             'status': self.status,
             'status_label': self.get_status_label(),
             'status_color': self.get_status_color(),
             'payment_reference': self.payment_reference,
+            'payment_gateway': self.payment_gateway,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'funded_at': self.funded_at.isoformat() if self.funded_at else None,
             'released_at': self.released_at.isoformat() if self.released_at else None,
@@ -2220,11 +2238,12 @@ class Escrow(db.Model):
             'funded': 'Funds Held in Escrow',
             'released': 'Released to Freelancer',
             'refunded': 'Refunded to Client',
+            'partial_refund': 'Partially Refunded',
             'disputed': 'Under Dispute',
             'cancelled': 'Cancelled'
         }
         return labels.get(self.status, self.status.title())
-    
+
     def get_status_color(self):
         """Get Bootstrap color class for status"""
         colors = {
@@ -2232,6 +2251,7 @@ class Escrow(db.Model):
             'funded': 'info',
             'released': 'success',
             'refunded': 'secondary',
+            'partial_refund': 'warning',
             'disputed': 'danger',
             'cancelled': 'dark'
         }
@@ -6671,55 +6691,124 @@ def refund_escrow(gig_id):
     """Refund escrow funds to client"""
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     try:
         data = request.json or {}
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
         user = User.query.get(user_id)
-        
+
         # Only client or admin can refund
         if gig.client_id != user_id and not user.is_admin:
             return jsonify({'error': 'Only the client or admin can refund escrow'}), 403
-        
+
         escrow = Escrow.query.filter_by(gig_id=gig_id).first()
-        
+
         if not escrow:
             return jsonify({'error': 'No escrow found'}), 404
-        
-        if escrow.status not in ['funded', 'disputed']:
+
+        if escrow.status not in ['funded', 'disputed', 'partial_refund']:
             return jsonify({'error': f'Escrow cannot be refunded (status: {escrow.status})'}), 400
-        
-        # Refund escrow
-        escrow.status = 'refunded'
-        escrow.refunded_at = datetime.utcnow()
-        escrow.admin_notes = data.get('reason', '')
-        
+
+        # Get refund amount (support partial refunds)
+        refund_amount = float(data.get('refund_amount', 0))
+        if refund_amount <= 0:
+            refund_amount = escrow.amount - (escrow.refunded_amount or 0.0)  # Full refund of remaining
+
+        # Validate refund amount
+        remaining_amount = escrow.amount - (escrow.refunded_amount or 0.0)
+        if refund_amount > remaining_amount:
+            return jsonify({'error': f'Refund amount (RM{refund_amount:.2f}) exceeds remaining balance (RM{remaining_amount:.2f})'}), 400
+
+        is_partial = refund_amount < remaining_amount
+
+        # Process Stripe refund if payment was made via Stripe
+        stripe_refund_id = None
+        if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+            try:
+                if not stripe.api_key:
+                    app.logger.error("Stripe not configured for refund")
+                    return jsonify({'error': 'Stripe is not configured'}), 500
+
+                # Create refund in Stripe (amount in cents)
+                refund = stripe.Refund.create(
+                    payment_intent=escrow.payment_reference,
+                    amount=int(refund_amount * 100),  # Convert to cents
+                    reason='requested_by_customer',
+                    metadata={
+                        'gig_id': str(gig_id),
+                        'escrow_id': str(escrow.id),
+                        'reason': data.get('reason', 'Client requested refund'),
+                        'is_partial': str(is_partial)
+                    }
+                )
+                stripe_refund_id = refund.id
+                app.logger.info(f"Stripe {'partial ' if is_partial else ''}refund created: {stripe_refund_id} for RM{refund_amount:.2f}")
+
+            except stripe.error.InvalidRequestError as e:
+                app.logger.error(f"Stripe refund error: {str(e)}")
+                return jsonify({'error': f'Stripe refund failed: {str(e)}'}), 400
+            except stripe.error.StripeError as e:
+                app.logger.error(f"Stripe API error: {str(e)}")
+                return jsonify({'error': 'Payment gateway error. Please try again.'}), 500
+
+        # Update escrow with refund tracking
+        escrow.refunded_amount = (escrow.refunded_amount or 0.0) + refund_amount
+
+        # Update status based on whether it's full or partial refund
+        if is_partial:
+            escrow.status = 'partial_refund'
+        else:
+            escrow.status = 'refunded'
+            escrow.refunded_at = datetime.utcnow()
+
+        if escrow.admin_notes:
+            escrow.admin_notes += f"\n{data.get('reason', '')}"
+        else:
+            escrow.admin_notes = data.get('reason', '')
+
         # Update client wallet
         client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
         if client_wallet:
-            client_wallet.held_balance -= escrow.amount
-            client_wallet.balance += escrow.amount
-        
+            client_wallet.held_balance -= refund_amount
+            # For Stripe refunds, don't add to balance as money goes back to card
+            if escrow.payment_gateway != 'stripe':
+                client_wallet.balance += refund_amount
+
         # Record payment history
         payment_history = PaymentHistory(
             user_id=gig.client_id,
             type='refund',
-            amount=escrow.amount,
-            balance_before=client_wallet.balance - escrow.amount if client_wallet else 0,
-            balance_after=client_wallet.balance if client_wallet else escrow.amount,
-            description=f"Escrow refunded for gig: {gig.title}",
-            reference_number=escrow.payment_reference
+            amount=refund_amount,
+            balance_before=client_wallet.balance if client_wallet else 0,
+            balance_after=client_wallet.balance if client_wallet else 0,
+            description=f"{'Partial ' if is_partial else ''}Escrow refund for gig: {gig.title}",
+            reference_number=stripe_refund_id or escrow.payment_reference,
+            payment_gateway=escrow.payment_gateway,
+            gateway_response=f"Stripe refund: {stripe_refund_id}" if stripe_refund_id else None
         )
         db.session.add(payment_history)
-        
+
+        # Create notification for client
+        notification = Notification(
+            user_id=gig.client_id,
+            type='payment',
+            title='Escrow Refunded',
+            message=f'{"Partial " if is_partial else ""}Refund of RM{refund_amount:.2f} processed for gig: {gig.title}',
+            link=f'/gig/{gig_id}'
+        )
+        db.session.add(notification)
+
         db.session.commit()
-        
+
         return jsonify({
-            'message': 'Escrow refunded successfully',
-            'escrow': escrow.to_dict()
+            'message': f'{"Partial " if is_partial else ""}Escrow refund successful' + (' via Stripe' if stripe_refund_id else ''),
+            'escrow': escrow.to_dict(),
+            'refund_id': stripe_refund_id,
+            'refund_amount': refund_amount,
+            'is_partial': is_partial
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Refund escrow error: {str(e)}")
@@ -7271,7 +7360,7 @@ def create_stripe_checkout_session():
         
         # Generate unique order ID
         order_id = f"ESC-{gig_id}-{uuid.uuid4().hex[:8].upper()}"
-        
+
         # Create or update escrow as pending
         if existing:
             escrow = existing
@@ -7280,6 +7369,7 @@ def create_stripe_checkout_session():
             escrow.net_amount = net_amount
             escrow.status = 'pending'
             escrow.payment_reference = order_id
+            escrow.payment_gateway = 'stripe'
         else:
             escrow = Escrow(
                 escrow_number=generate_escrow_number(),
@@ -7290,22 +7380,23 @@ def create_stripe_checkout_session():
                 platform_fee=platform_fee,
                 net_amount=net_amount,
                 status='pending',
-                payment_reference=order_id
+                payment_reference=order_id,
+                payment_gateway='stripe'
             )
             db.session.add(escrow)
-        
+
         db.session.commit()
-        
+
         # Build callback URLs
         base_url = request.host_url.rstrip('/')
         if not base_url or 'localhost' in base_url:
             domain = os.environ.get('REPLIT_DEV_DOMAIN', '')
             if domain:
                 base_url = f"https://{domain}"
-        
+
         success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}"
         cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
-        
+
         # Create Stripe Checkout session
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -7440,7 +7531,7 @@ def stripe_checkout_success():
 @app.route('/api/stripe/webhook', methods=['POST'])
 @csrf.exempt
 def stripe_webhook():
-    """Handle Stripe webhook events"""
+    """Handle Stripe webhook events with enhanced logging and error handling"""
     payload = request.get_data(as_text=True)
     sig_header = request.headers.get('Stripe-Signature')
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
@@ -7454,55 +7545,127 @@ def stripe_webhook():
         app.logger.warning("Missing Stripe-Signature header")
         return jsonify({'error': 'Missing signature'}), 401
 
+    event = None
+    webhook_log = None
+
     try:
         # Always verify webhook signature
         event = stripe.Webhook.construct_event(
             payload, sig_header, webhook_secret
         )
-        
+
+        # Create webhook log for auditing
+        webhook_log = StripeWebhookLog(
+            event_id=event['id'],
+            event_type=event['type'],
+            payload=payload
+        )
+        db.session.add(webhook_log)
+        db.session.commit()
+
+        app.logger.info(f"Stripe webhook received: {event['type']} (ID: {event['id']})")
+
         # Handle checkout.session.completed event
         if event['type'] == 'checkout.session.completed':
             session_data = event['data']['object']
-            
+
             # Find escrow by session ID
             escrow = Escrow.query.filter_by(payment_reference=session_data['id']).first()
-            
+
             if escrow and escrow.status == 'pending':
-                escrow.status = 'funded'
-                escrow.funded_at = datetime.utcnow()
-                escrow.payment_reference = session_data.get('payment_intent', session_data['id'])
-                
-                # Update client wallet
-                client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
-                if not client_wallet:
-                    client_wallet = Wallet(user_id=escrow.client_id)
-                    db.session.add(client_wallet)
-                client_wallet.held_balance += escrow.amount
-                
-                # Create receipt
-                gig = Gig.query.get(escrow.gig_id)
-                if gig:
-                    create_escrow_receipt(escrow, gig, 'stripe')
-                
+                try:
+                    escrow.status = 'funded'
+                    escrow.funded_at = datetime.utcnow()
+                    escrow.payment_reference = session_data.get('payment_intent', session_data['id'])
+
+                    # Update client wallet
+                    client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+                    if not client_wallet:
+                        client_wallet = Wallet(user_id=escrow.client_id)
+                        db.session.add(client_wallet)
+                    client_wallet.held_balance += escrow.amount
+
+                    # Create receipt
+                    gig = Gig.query.get(escrow.gig_id)
+                    if gig:
+                        create_escrow_receipt(escrow, gig, 'stripe')
+
+                    db.session.commit()
+                    app.logger.info(f"Escrow {escrow.id} funded successfully via webhook (amount: RM{escrow.amount})")
+
+                    # Mark webhook as processed
+                    webhook_log.processed = True
+                    webhook_log.processed_at = datetime.utcnow()
+                    db.session.commit()
+
+                except Exception as e:
+                    db.session.rollback()
+                    error_msg = f"Failed to process escrow funding: {str(e)}"
+                    app.logger.error(error_msg)
+                    webhook_log.error_message = error_msg
+                    db.session.commit()
+                    raise
+            else:
+                if not escrow:
+                    app.logger.warning(f"Escrow not found for session {session_data['id']}")
+                else:
+                    app.logger.info(f"Escrow {escrow.id} already processed (status: {escrow.status})")
+                webhook_log.processed = True
+                webhook_log.processed_at = datetime.utcnow()
                 db.session.commit()
-                app.logger.info(f"Escrow {escrow.id} funded via webhook")
-        
+
         # Handle payment_intent.payment_failed event
         elif event['type'] == 'payment_intent.payment_failed':
             payment_intent = event['data']['object']
-            app.logger.warning(f"Payment failed: {payment_intent.get('id')}")
-        
-        return jsonify({'status': 'success'}), 200
-        
+            error_message = payment_intent.get('last_payment_error', {}).get('message', 'Unknown error')
+            app.logger.error(f"Payment failed - Intent: {payment_intent.get('id')}, Error: {error_message}")
+
+            webhook_log.processed = True
+            webhook_log.processed_at = datetime.utcnow()
+            webhook_log.error_message = f"Payment failed: {error_message}"
+            db.session.commit()
+
+        # Handle refund events
+        elif event['type'] == 'charge.refunded':
+            charge = event['data']['object']
+            app.logger.info(f"Charge refunded - ID: {charge.get('id')}, Amount: {charge.get('amount_refunded') / 100}")
+
+            webhook_log.processed = True
+            webhook_log.processed_at = datetime.utcnow()
+            db.session.commit()
+
+        else:
+            # Log other events but mark as processed
+            app.logger.info(f"Unhandled Stripe event type: {event['type']}")
+            webhook_log.processed = True
+            webhook_log.processed_at = datetime.utcnow()
+            db.session.commit()
+
+        return jsonify({'status': 'success', 'received': True}), 200
+
     except ValueError as e:
-        app.logger.error(f"Invalid webhook payload: {str(e)}")
+        error_msg = f"Invalid webhook payload: {str(e)}"
+        app.logger.error(error_msg)
         return jsonify({'error': 'Invalid payload'}), 400
+
     except stripe.error.SignatureVerificationError as e:
-        app.logger.error(f"Invalid webhook signature: {str(e)}")
+        error_msg = f"Invalid webhook signature: {str(e)}"
+        app.logger.error(error_msg)
         return jsonify({'error': 'Invalid signature'}), 400
+
     except Exception as e:
-        app.logger.error(f"Webhook error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        error_msg = f"Webhook processing error: {str(e)}"
+        app.logger.error(error_msg, exc_info=True)
+
+        # Update webhook log with error
+        if webhook_log and webhook_log.id:
+            try:
+                webhook_log.error_message = error_msg
+                db.session.commit()
+            except:
+                db.session.rollback()
+
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 @app.route('/api/stripe/config')
@@ -7513,6 +7676,128 @@ def stripe_config():
         'publishable_key': publishable_key,
         'configured': bool(publishable_key and stripe.api_key)
     })
+
+
+# ============================================================================
+# STRIPE PAYMENT METHODS (Saved Cards)
+# ============================================================================
+
+@app.route('/api/stripe/payment-methods', methods=['GET'])
+@login_required
+def get_payment_methods():
+    """Get user's saved payment methods"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        # Create Stripe customer if doesn't exist
+        if not user.stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=user.email,
+                name=user.full_name or user.username,
+                metadata={'user_id': str(user_id)}
+            )
+            user.stripe_customer_id = customer.id
+            db.session.commit()
+
+        # List payment methods
+        payment_methods = stripe.PaymentMethod.list(
+            customer=user.stripe_customer_id,
+            type='card'
+        )
+
+        return jsonify({
+            'payment_methods': [{
+                'id': pm.id,
+                'card': {
+                    'brand': pm.card.brand,
+                    'last4': pm.card.last4,
+                    'exp_month': pm.card.exp_month,
+                    'exp_year': pm.card.exp_year
+                }
+            } for pm in payment_methods.data]
+        }), 200
+
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch payment methods'}), 500
+    except Exception as e:
+        app.logger.error(f"Get payment methods error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch payment methods'}), 500
+
+
+@app.route('/api/stripe/setup-intent', methods=['POST'])
+@login_required
+def create_setup_intent():
+    """Create a SetupIntent for adding a new payment method"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        # Create Stripe customer if doesn't exist
+        if not user.stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=user.email,
+                name=user.full_name or user.username,
+                metadata={'user_id': str(user_id)}
+            )
+            user.stripe_customer_id = customer.id
+            db.session.commit()
+
+        # Create SetupIntent
+        setup_intent = stripe.SetupIntent.create(
+            customer=user.stripe_customer_id,
+            payment_method_types=['card'],
+            metadata={'user_id': str(user_id)}
+        )
+
+        return jsonify({
+            'client_secret': setup_intent.client_secret
+        }), 200
+
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error: {str(e)}")
+        return jsonify({'error': 'Failed to create setup intent'}), 500
+    except Exception as e:
+        app.logger.error(f"Create setup intent error: {str(e)}")
+        return jsonify({'error': 'Failed to create setup intent'}), 500
+
+
+@app.route('/api/stripe/payment-methods/<payment_method_id>', methods=['DELETE'])
+@login_required
+def delete_payment_method(payment_method_id):
+    """Delete a saved payment method"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user.stripe_customer_id:
+            return jsonify({'error': 'No saved payment methods'}), 404
+
+        # Detach payment method from customer
+        stripe.PaymentMethod.detach(payment_method_id)
+
+        return jsonify({'message': 'Payment method deleted successfully'}), 200
+
+    except stripe.error.InvalidRequestError as e:
+        app.logger.error(f"Stripe error: {str(e)}")
+        return jsonify({'error': 'Payment method not found'}), 404
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error: {str(e)}")
+        return jsonify({'error': 'Failed to delete payment method'}), 500
+    except Exception as e:
+        app.logger.error(f"Delete payment method error: {str(e)}")
+        return jsonify({'error': 'Failed to delete payment method'}), 500
+
 
 # ============================================================================
 # END STRIPE CHECKOUT
