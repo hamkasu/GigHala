@@ -22,6 +22,12 @@ if [ -f "migrations/run_approved_budget_migration.py" ]; then
     python migrations/run_approved_budget_migration.py || echo "Warning: Approved budget migration had warnings"
 fi
 
+# Run payment gateway migration
+if [ -f "migrations/apply_payment_gateway_migration.py" ]; then
+    echo "Running payment gateway migration..."
+    python migrations/apply_payment_gateway_migration.py || echo "Warning: Payment gateway migration had warnings"
+fi
+
 echo ""
 echo "========================================="
 echo "Starting Gunicorn server..."
