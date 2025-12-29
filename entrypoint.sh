@@ -28,6 +28,12 @@ if [ -f "migrations/apply_payment_gateway_migration.py" ]; then
     python migrations/apply_payment_gateway_migration.py || echo "Warning: Payment gateway migration had warnings"
 fi
 
+# Run refunded amount migration
+if [ -f "migrations/apply_refunded_amount_migration.py" ]; then
+    echo "Running refunded amount migration..."
+    python migrations/apply_refunded_amount_migration.py || echo "Warning: Refunded amount migration had warnings"
+fi
+
 echo ""
 echo "========================================="
 echo "Starting Gunicorn server..."
