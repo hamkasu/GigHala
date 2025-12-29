@@ -1234,8 +1234,15 @@ def inject_translations():
 
     # Calculate unread message count for logged-in users
     unread_message_count = 0
+    wallet = None
+    total_gigs_accepted = 0
+    total_gigs_posted = 0
+    user = None
+
     if 'user_id' in session:
         user_id = session['user_id']
+        user = User.query.get(user_id)
+
         # Get all non-archived conversations for the user
         conversations = Conversation.query.filter(
             ((Conversation.participant_1_id == user_id) & (Conversation.is_archived_by_1 == False)) |
@@ -1249,6 +1256,28 @@ def inject_translations():
                 is_read=False
             ).filter(Message.sender_id != user_id).count()
 
+        # Get wallet balance
+        if user:
+            wallet = Wallet.query.filter_by(user_id=user_id).first()
+
+            # Calculate total gigs posted (for clients)
+            if user.user_type in ['client', 'both']:
+                total_gigs_posted = Gig.query.filter_by(client_id=user_id).count()
+
+            # Calculate total gigs accepted (for freelancers)
+            if user.user_type in ['freelancer', 'both']:
+                total_gigs_accepted = Application.query.filter_by(
+                    freelancer_id=user_id,
+                    status='accepted'
+                ).count()
+
+                # Also count gigs where user is directly assigned as freelancer
+                if user.user_type == 'both':
+                    client_accepted = Gig.query.filter_by(
+                        freelancer_id=user_id
+                    ).filter(Gig.status.in_(['in_progress', 'submitted', 'completed'])).count()
+                    total_gigs_accepted += client_accepted
+
     return dict(
         t=t,
         lang=get_user_language(),
@@ -1257,7 +1286,11 @@ def inject_translations():
         today_dual=today_dual['full'],
         format_date_dual=format_date_dual,
         unread_message_count=unread_message_count,
-        csrf_token=generate_csrf
+        csrf_token=generate_csrf,
+        user=user,
+        wallet=wallet,
+        total_gigs_accepted=total_gigs_accepted,
+        total_gigs_posted=total_gigs_posted
     )
 
 # Security headers middleware
