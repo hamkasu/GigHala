@@ -1929,6 +1929,30 @@
                 </div>
 
                 <div class="escrow-actions">
+                    {% if is_own_gig and escrow.status == 'pending' %}
+                    <!-- Hidden input to store escrow amount for pending payment -->
+                    <input type="hidden" id="escrowAmount" value="{{ escrow.amount }}">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
+                        <select class="form-input" id="paymentGateway">
+                            <option value="stripe">{{ 'Kad Kredit/Debit (Stripe)' if lang == 'ms' else 'Credit/Debit Card (Stripe)' }}</option>
+                            <option value="payhalal">{{ 'FPX/E-Wallet (PayHalal)' if lang == 'ms' else 'FPX/E-Wallet (PayHalal)' }}</option>
+                        </select>
+                    </div>
+                    <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()" id="fundEscrowBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        {{ 'Bayar Sekarang' if lang == 'ms' else 'Pay Now' }}
+                    </button>
+                    <button class="escrow-btn" style="width: 100%; margin-top: 12px; background: #f59e0b; border-color: #f59e0b;" onclick="testFundEscrow()" id="testFundEscrowBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                        {{ '🧪 TEST: Dana Escrow (Tiada Bayaran)' if lang == 'ms' else '🧪 TEST: Fund Escrow (No Payment)' }}
+                    </button>
+                    <p style="text-align: center; margin-top: 12px; font-size: 12px; color: var(--text-gray);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        {{ 'Pembayaran selamat melalui penyedia pembayaran yang dipercayai' if lang == 'ms' else 'Secure payment through trusted payment providers' }}
+                    </p>
+                    {% endif %}
+
                     {% if is_freelancer and escrow.status == 'funded' and gig.status == 'in_progress' %}
                     <button class="escrow-btn escrow-btn-primary" onclick="markWorkCompleted()" id="markCompletedBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
