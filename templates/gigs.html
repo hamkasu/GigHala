@@ -699,4 +699,14 @@
         loadGigs();
     });
 </script>
+
+<!-- Modal: Gig Details -->
+<div id="gigModal" class="modal">
+    <div class="modal-content modal-large">
+        <button class="modal-close" onclick="app.closeModal('gigModal')">&times;</button>
+        <div id="gigDetails">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
 {% endblock %}
