@@ -2040,7 +2040,7 @@
                     <div class="form-group">
                         <label class="form-label">{{ 'Jumlah (RM)' if lang == 'ms' else 'Amount (RM)' }}</label>
                         <input type="number" class="form-input" id="escrowAmount"
-                               value="{{ gig.budget_min }}" min="{{ gig.budget_min }}" step="1">
+                               value="{{ gig.agreed_amount or gig.budget_min }}" min="{{ gig.agreed_amount or gig.budget_min }}" step="1">
                     </div>
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
