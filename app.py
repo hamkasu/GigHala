@@ -9573,6 +9573,7 @@ def get_wallet():
     """Get user's wallet information"""
     try:
         user_id = session['user_id']
+        user = User.query.get(user_id)
         wallet = Wallet.query.filter_by(user_id=user_id).first()
 
         # Create wallet if it doesn't exist
@@ -9583,6 +9584,7 @@ def get_wallet():
 
         return jsonify({
             'user_id': user_id,
+            'user_type': user.user_type if user else None,
             'balance': wallet.balance,
             'held_balance': wallet.held_balance,
             'total_earned': wallet.total_earned,

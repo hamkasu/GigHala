@@ -1425,6 +1425,32 @@
             }
         }
 
+        // Update wallet balance in header dynamically
+        async function updateWalletBalance() {
+            try {
+                const response = await fetch('/api/billing/wallet');
+                if (response.ok) {
+                    const walletData = await response.json();
+                    const walletValueElement = document.querySelector('.dashboard-stat[href="/billing"] .dashboard-stat-value');
+                    if (walletValueElement) {
+                        const balanceText = walletData.balance.toFixed(2);
+                        walletValueElement.innerHTML = `<span class="currency" style="margin-right: 8px;">MYR</span>${balanceText}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating wallet balance:', error);
+            }
+        }
+
+        // Update wallet balance on page load for logged-in users
+        {% if user %}
+        document.addEventListener('DOMContentLoaded', function() {
+            updateWalletBalance();
+            // Refresh wallet balance every 30 seconds
+            setInterval(updateWalletBalance, 30000);
+        });
+        {% endif %}
+
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
