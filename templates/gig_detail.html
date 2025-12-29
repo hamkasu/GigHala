@@ -2604,9 +2604,9 @@
                 alert(data.error);
                 button.disabled = false;
                 button.innerHTML = originalText;
-            } else if (data.url) {
+            } else if (data.checkout_url) {
                 // Redirect to Stripe Checkout
-                window.location.href = data.url;
+                window.location.href = data.checkout_url;
             } else {
                 alert('{{ "Ralat mencipta sesi pembayaran" if lang == "ms" else "Error creating payment session" }}');
                 button.disabled = false;
