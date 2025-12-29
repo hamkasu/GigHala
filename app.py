@@ -6825,7 +6825,7 @@ def refund_escrow(gig_id):
         # Create notification for client
         notification = Notification(
             user_id=gig.client_id,
-            type='payment',
+            notification_type='payment',
             title='Escrow Refunded',
             message=f'{"Partial " if is_partial else ""}Refund of RM{refund_amount:.2f} processed for gig: {gig.title}',
             link=f'/gig/{gig_id}'
@@ -7536,7 +7536,7 @@ def stripe_checkout_success():
                 # Create notification for freelancer
                 notification = Notification(
                     user_id=escrow.freelancer_id,
-                    type='payment',
+                    notification_type='payment',
                     title='Escrow Funded',
                     message=f'Client has funded RM{escrow.amount:.2f} for gig: {gig.title if gig else "Unknown"}',
                     link=f'/gig/{escrow.gig_id}'
