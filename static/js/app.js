@@ -223,7 +223,10 @@ const app = {
     renderGigs() {
         const grid = document.getElementById('gigsGrid');
         if (!grid) return;
-        
+
+        // Don't render if we're on the /gigs page (it has its own rendering logic)
+        if (window.location.pathname === '/gigs') return;
+
         if (this.gigs.length === 0) {
             grid.innerHTML = '<p style="text-align: center; color: var(--text-gray); grid-column: 1/-1;">Tiada gig dijumpai. Cuba filter yang berbeza.</p>';
             return;
