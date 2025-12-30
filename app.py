@@ -23,6 +23,12 @@ from twilio.rest import Client
 from email_service import email_service
 from scheduled_jobs import init_scheduler
 import pyotp
+from halal_compliance import (
+    validate_gig_halal_compliance,
+    get_categories_for_dropdown,
+    get_halal_guidelines_text,
+    HALAL_APPROVED_CATEGORY_SLUGS
+)
 import qrcode
 import io
 import base64
@@ -3031,7 +3037,40 @@ def post_gig():
                 except (ValueError, TypeError):
                     flash('Format tarikh tidak sah.', 'error')
                     return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
-            
+
+            # HALAL COMPLIANCE VALIDATION
+            # GigHala enforces strict halal compliance - all gigs must pass validation
+            skills_text = ' '.join(skills_required) if skills_required else ''
+            is_halal_compliant, halal_result = validate_gig_halal_compliance(
+                title=title,
+                description=description,
+                category=category,
+                skills=skills_text
+            )
+
+            if not is_halal_compliant:
+                # Log the violation for admin review
+                from security_logger import log_security_event
+                log_security_event(
+                    event_type='halal_violation_attempt',
+                    user_id=user_id,
+                    details={
+                        'action': 'create_gig',
+                        'violations': halal_result['violations'],
+                        'title': title[:100],
+                        'category': category
+                    },
+                    ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+                )
+
+                # Show detailed error message to user
+                error_msg = halal_result['message_ms'] + ' ' + halal_result['message_en']
+                if halal_result['errors']:
+                    error_msg += '\n\nDetails:\n' + '\n'.join(halal_result['errors'][:3])
+
+                flash(error_msg, 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+
             new_gig = Gig(
                 title=title,
                 description=description,
@@ -3214,7 +3253,41 @@ def edit_gig(gig_id):
                 except (ValueError, TypeError):
                     flash('Format tarikh tidak sah.', 'error')
                     return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
-            
+
+            # HALAL COMPLIANCE VALIDATION
+            # GigHala enforces strict halal compliance - all gigs must pass validation
+            skills_text = ' '.join(skills_required) if skills_required else ''
+            is_halal_compliant, halal_result = validate_gig_halal_compliance(
+                title=title,
+                description=description,
+                category=category,
+                skills=skills_text
+            )
+
+            if not is_halal_compliant:
+                # Log the violation for admin review
+                from security_logger import log_security_event
+                log_security_event(
+                    event_type='halal_violation_attempt',
+                    user_id=user_id,
+                    details={
+                        'action': 'edit_gig',
+                        'gig_id': gig_id,
+                        'violations': halal_result['violations'],
+                        'title': title[:100],
+                        'category': category
+                    },
+                    ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+                )
+
+                # Show detailed error message to user
+                error_msg = halal_result['message_ms'] + ' ' + halal_result['message_en']
+                if halal_result['errors']:
+                    error_msg += '\n\nDetails:\n' + '\n'.join(halal_result['errors'][:3])
+
+                flash(error_msg, 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
+
             db.session.refresh(gig)
             if gig.client_id != user_id:
                 flash('Anda tidak mempunyai kebenaran untuk mengedit gig ini.', 'error')
@@ -5103,6 +5176,39 @@ def create_gig():
                     return jsonify({'error': 'Deadline must be in the future'}), 400
             except (ValueError, TypeError):
                 return jsonify({'error': 'Invalid deadline format'}), 400
+
+        # HALAL COMPLIANCE VALIDATION
+        # GigHala enforces strict halal compliance - all gigs must pass validation
+        skills_text = ' '.join(skills_required) if skills_required else ''
+        is_halal_compliant, halal_result = validate_gig_halal_compliance(
+            title=title,
+            description=description,
+            category=category,
+            skills=skills_text
+        )
+
+        if not is_halal_compliant:
+            # Log the violation for admin review
+            from security_logger import log_security_event
+            log_security_event(
+                event_type='halal_violation_attempt',
+                user_id=session['user_id'],
+                details={
+                    'action': 'create_gig_api',
+                    'violations': halal_result['violations'],
+                    'title': title[:100],
+                    'category': category
+                },
+                ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+            )
+
+            # Return detailed error response
+            return jsonify({
+                'error': 'Halal compliance violation',
+                'message_en': halal_result['message_en'],
+                'message_ms': halal_result['message_ms'],
+                'violations': halal_result['violations']
+            }), 400
 
         # Geocode location to get coordinates
         latitude, longitude = None, None
