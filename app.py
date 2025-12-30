@@ -6449,6 +6449,10 @@ def cancel_gig(gig_id):
         if gig.status == 'completed':
             return jsonify({'error': 'Cannot cancel completed gigs'}), 400
 
+        # Cannot cancel gigs with accepted applications (in_progress state)
+        if gig.status == 'in_progress':
+            return jsonify({'error': 'Cannot cancel a gig that has an accepted application'}), 400
+
         cancellation_reason = data.get('reason', '')
 
         gig.status = 'cancelled'
