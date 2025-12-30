@@ -29,6 +29,7 @@ from halal_compliance import (
     get_halal_guidelines_text,
     HALAL_APPROVED_CATEGORY_SLUGS
 )
+from content_moderation import moderate_image, get_moderator
 import qrcode
 import io
 import base64
@@ -2710,6 +2711,42 @@ class AuditLog(db.Model):
 
         return f"CEF:0|GigHala|GigHala Platform|1.0|{self.event_type}|{self.action}|{cef_severity}|{extension_str}"
 
+class ContentModerationLog(db.Model):
+    """Model for tracking content moderation results for uploaded images"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    image_type = db.Column(db.String(50), nullable=False)  # 'gig_photo', 'work_photo', 'portfolio', 'verification'
+    image_path = db.Column(db.String(500), nullable=False)
+    image_filename = db.Column(db.String(255), nullable=False)
+    is_safe = db.Column(db.Boolean, nullable=False)
+    violations = db.Column(db.Text)  # JSON string of violation types
+    adult_likelihood = db.Column(db.String(20))  # UNKNOWN, VERY_UNLIKELY, UNLIKELY, POSSIBLE, LIKELY, VERY_LIKELY
+    violence_likelihood = db.Column(db.String(20))
+    racy_likelihood = db.Column(db.String(20))
+    medical_likelihood = db.Column(db.String(20))
+    spoof_likelihood = db.Column(db.String(20))
+    moderation_details = db.Column(db.Text)  # JSON string of full moderation details
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))
+
+    def to_dict(self):
+        """Convert moderation log to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'image_type': self.image_type,
+            'image_filename': self.image_filename,
+            'is_safe': self.is_safe,
+            'violations': self.violations,
+            'adult_likelihood': self.adult_likelihood,
+            'violence_likelihood': self.violence_likelihood,
+            'racy_likelihood': self.racy_likelihood,
+            'medical_likelihood': self.medical_likelihood,
+            'spoof_likelihood': self.spoof_likelihood,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'ip_address': self.ip_address
+        }
+
 # Initialize Security Logger after all models are defined
 from security_logger import init_security_logger
 security_logger = init_security_logger(app, db)
@@ -3992,9 +4029,57 @@ def upload_verification_documents():
         front_filename = f"ic_front_{timestamp}.{front_ext}"
         back_filename = f"ic_back_{timestamp}.{back_ext}"
         
-        ic_front.save(os.path.join(verification_folder, front_filename))
-        ic_back.save(os.path.join(verification_folder, back_filename))
-        
+        front_path = os.path.join(verification_folder, front_filename)
+        back_path = os.path.join(verification_folder, back_filename)
+
+        ic_front.save(front_path)
+        ic_back.save(back_path)
+
+        # Moderate both images for inappropriate content
+        front_safe, front_message, front_details = moderate_image(front_path)
+        back_safe, back_message, back_details = moderate_image(back_path)
+
+        # Log moderation results
+        for img_path, img_filename, is_safe, details in [
+            (front_path, front_filename, front_safe, front_details),
+            (back_path, back_filename, back_safe, back_details)
+        ]:
+            moderation_log = ContentModerationLog(
+                user_id=user_id,
+                image_type='verification',
+                image_path=img_path,
+                image_filename=img_filename,
+                is_safe=is_safe,
+                violations=json.dumps(details.get('violations', [])) if details else None,
+                adult_likelihood=details.get('adult') if details else None,
+                violence_likelihood=details.get('violence') if details else None,
+                racy_likelihood=details.get('racy') if details else None,
+                medical_likelihood=details.get('medical') if details else None,
+                spoof_likelihood=details.get('spoof') if details else None,
+                moderation_details=json.dumps(details) if details else None,
+                ip_address=request.remote_addr
+            )
+            db.session.add(moderation_log)
+        db.session.commit()
+
+        # If either image failed moderation, delete both and return error
+        if not front_safe or not back_safe:
+            try:
+                if os.path.exists(front_path):
+                    os.remove(front_path)
+                if os.path.exists(back_path):
+                    os.remove(back_path)
+            except Exception as e:
+                app.logger.error(f"Failed to delete rejected verification images: {e}")
+
+            error_msg = 'Imej tidak sesuai. '
+            if not front_safe:
+                error_msg += f'Depan: {front_message}. '
+            if not back_safe:
+                error_msg += f'Belakang: {back_message}.'
+            flash(error_msg, 'error')
+            return redirect('/settings')
+
         # Check if user already has pending verification
         existing = IdentityVerification.query.filter_by(user_id=user_id, status='pending').first()
         
@@ -5386,6 +5471,36 @@ def upload_gig_photo(gig_id):
         # Get file size
         file_size = os.path.getsize(file_path)
 
+        # Moderate image content
+        is_safe, moderation_message, moderation_details = moderate_image(file_path)
+
+        # Log moderation result
+        moderation_log = ContentModerationLog(
+            user_id=user_id,
+            image_type='gig_photo',
+            image_path=file_path,
+            image_filename=unique_filename,
+            is_safe=is_safe,
+            violations=json.dumps(moderation_details.get('violations', [])) if moderation_details else None,
+            adult_likelihood=moderation_details.get('adult') if moderation_details else None,
+            violence_likelihood=moderation_details.get('violence') if moderation_details else None,
+            racy_likelihood=moderation_details.get('racy') if moderation_details else None,
+            medical_likelihood=moderation_details.get('medical') if moderation_details else None,
+            spoof_likelihood=moderation_details.get('spoof') if moderation_details else None,
+            moderation_details=json.dumps(moderation_details) if moderation_details else None,
+            ip_address=request.remote_addr
+        )
+        db.session.add(moderation_log)
+        db.session.commit()
+
+        # If image failed moderation, delete it and return error
+        if not is_safe:
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                app.logger.error(f"Failed to delete rejected image {file_path}: {e}")
+            return jsonify({'error': moderation_message}), 400
+
         # Get optional caption and photo type from form data
         caption = request.form.get('caption', '')
         photo_type = request.form.get('photo_type', 'reference')
@@ -5543,6 +5658,36 @@ def upload_work_photo(gig_id):
 
         # Get file size
         file_size = os.path.getsize(file_path)
+
+        # Moderate image content
+        is_safe, moderation_message, moderation_details = moderate_image(file_path)
+
+        # Log moderation result
+        moderation_log = ContentModerationLog(
+            user_id=user_id,
+            image_type='work_photo',
+            image_path=file_path,
+            image_filename=unique_filename,
+            is_safe=is_safe,
+            violations=json.dumps(moderation_details.get('violations', [])) if moderation_details else None,
+            adult_likelihood=moderation_details.get('adult') if moderation_details else None,
+            violence_likelihood=moderation_details.get('violence') if moderation_details else None,
+            racy_likelihood=moderation_details.get('racy') if moderation_details else None,
+            medical_likelihood=moderation_details.get('medical') if moderation_details else None,
+            spoof_likelihood=moderation_details.get('spoof') if moderation_details else None,
+            moderation_details=json.dumps(moderation_details) if moderation_details else None,
+            ip_address=request.remote_addr
+        )
+        db.session.add(moderation_log)
+        db.session.commit()
+
+        # If image failed moderation, delete it and return error
+        if not is_safe:
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                app.logger.error(f"Failed to delete rejected image {file_path}: {e}")
+            return jsonify({'error': moderation_message}), 400
 
         # Get optional caption and upload stage from form data
         caption = request.form.get('caption', '')
@@ -13077,7 +13222,7 @@ def add_portfolio_item():
         
         image_filename = None
         image_path = None
-        
+
         if 'image' in request.files:
             file = request.files['image']
             if file and file.filename and allowed_file(file.filename):
@@ -13086,9 +13231,40 @@ def add_portfolio_item():
                 os.makedirs(portfolio_folder, exist_ok=True)
                 file_path = os.path.join(portfolio_folder, filename)
                 file.save(file_path)
+
+                # Moderate image content
+                is_safe, moderation_message, moderation_details = moderate_image(file_path)
+
+                # Log moderation result
+                moderation_log = ContentModerationLog(
+                    user_id=user_id,
+                    image_type='portfolio',
+                    image_path=file_path,
+                    image_filename=filename,
+                    is_safe=is_safe,
+                    violations=json.dumps(moderation_details.get('violations', [])) if moderation_details else None,
+                    adult_likelihood=moderation_details.get('adult') if moderation_details else None,
+                    violence_likelihood=moderation_details.get('violence') if moderation_details else None,
+                    racy_likelihood=moderation_details.get('racy') if moderation_details else None,
+                    medical_likelihood=moderation_details.get('medical') if moderation_details else None,
+                    spoof_likelihood=moderation_details.get('spoof') if moderation_details else None,
+                    moderation_details=json.dumps(moderation_details) if moderation_details else None,
+                    ip_address=request.remote_addr
+                )
+                db.session.add(moderation_log)
+                db.session.commit()
+
+                # If image failed moderation, delete it and return error
+                if not is_safe:
+                    try:
+                        os.remove(file_path)
+                    except Exception as e:
+                        app.logger.error(f"Failed to delete rejected image {file_path}: {e}")
+                    return jsonify({'error': moderation_message}), 400
+
                 image_filename = filename
                 image_path = file_path
-        
+
         item = PortfolioItem(
             user_id=user_id,
             title=title,
