@@ -20,6 +20,7 @@ twilio
 sendgrid
 pyotp>=2.9.0
 qrcode>=7.4.2
+google-cloud-vision>=3.4.0
 email_validator
 flask
 flask-sqlalchemy
