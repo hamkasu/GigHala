@@ -348,6 +348,13 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Shake animation for halal compliance validation */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
 </style>
 {% endblock %}
 
@@ -717,6 +724,55 @@
                 </div>
             </div>
 
+            <!-- HALAL COMPLIANCE NOTICE -->
+            <div class="form-section" style="background: #E8F5E9; border-left: 4px solid #2E7D32;">
+                <h3 class="form-section-title" style="color: #2E7D32;">
+                    <i data-feather="alert-circle" width="18"></i>
+                    ☪️ Pematuhan Halal Wajib / Mandatory Halal Compliance
+                </h3>
+
+                <div style="padding: 0 1rem 1rem 1rem;">
+                    <p style="margin-bottom: 1rem; font-weight: 500; color: #1B5E20;">
+                        <strong>PENTING:</strong> GigHala adalah platform 100% halal. Semua gig MESTI mematuhi syariah Islam dan undang-undang Malaysia.<br>
+                        <strong>IMPORTANT:</strong> GigHala is a 100% halal platform. All gigs MUST comply with Shariah Islam and Malaysian law.
+                    </p>
+
+                    <details style="background: white; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #D32F2F;">
+                            ❌ Kandungan & Aktiviti Yang DILARANG / PROHIBITED Content & Activities
+                        </summary>
+                        <ul style="margin-top: 1rem; line-height: 1.8; color: #424242;">
+                            <li>❌ Alkohol, bir, arak, minuman keras / Alcohol, beer, wine, liquor</li>
+                            <li>❌ Judi, pertaruhan, loteri, kasino / Gambling, betting, lottery, casino</li>
+                            <li>❌ Daging babi, ham, bacon / Pork, ham, bacon</li>
+                            <li>❌ Kandungan dewasa, pornografi, seksual / Adult content, pornography, sexual services</li>
+                            <li>❌ Riba, faedah, pinjaman berasaskan faedah / Usury, interest, interest-based loans</li>
+                            <li>❌ Penipuan, skim cepat kaya, MLM haram / Fraud, get-rich-quick schemes, illegal MLM</li>
+                            <li>❌ Dadah, tembakau, rokok, vape / Drugs, tobacco, cigarettes, vaping</li>
+                            <li>❌ Sihir, bomoh, ramalan nasib / Black magic, fortune telling, occult</li>
+                            <li>❌ Penghujatan agama / Religious defamation</li>
+                            <li>❌ Perkhidmatan dating tidak halal / Non-halal dating services</li>
+                        </ul>
+                    </details>
+
+                    <details style="background: white; border-radius: 8px; padding: 1rem;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #2E7D32;">
+                            ✅ Contoh Gig Yang DIBENARKAN / ALLOWED Gigs Examples
+                        </summary>
+                        <ul style="margin-top: 1rem; line-height: 1.8; color: #424242;">
+                            <li>✅ Reka bentuk logo, poster halal / Halal logo & poster design</li>
+                            <li>✅ Penulisan artikel, terjemahan / Article writing, translation</li>
+                            <li>✅ Pengaturcaraan & pembangunan web / Programming & web development</li>
+                            <li>✅ Pengajaran & bimbingan / Teaching & tutoring</li>
+                            <li>✅ Penghantaran makanan halal / Halal food delivery</li>
+                            <li>✅ Perkhidmatan pembersihan / Cleaning services</li>
+                            <li>✅ Pemasaran digital produk halal / Digital marketing for halal products</li>
+                            <li>✅ Fotografi & videografi acara halal / Photography for halal events</li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-feather="settings" width="18"></i>
@@ -732,11 +788,17 @@
                         </div>
                     </label>
 
-                    <label class="checkbox-item">
-                        <input type="checkbox" id="halal_compliant" name="halal_compliant" {% if not form_data or form_data.halal_compliant %}checked{% endif %}>
+                    <!-- MANDATORY HALAL COMPLIANCE CHECKBOX -->
+                    <label class="checkbox-item" style="border: 2px solid #2E7D32; background: #E8F5E9;">
+                        <input type="checkbox" id="halal_compliant" name="halal_compliant" required checked>
                         <div>
-                            <div class="checkbox-label">☪️ {{ t('halal_compliant') }}</div>
-                            <div class="checkbox-desc">{{ t('halal_compliant_desc') }}</div>
+                            <div class="checkbox-label" style="color: #1B5E20; font-weight: 600;">
+                                ☪️ {{ t('halal_compliant') }} <span style="color: #D32F2F;">*WAJIB/REQUIRED</span>
+                            </div>
+                            <div class="checkbox-desc" style="color: #2E7D32; font-weight: 500;">
+                                Saya mengesahkan gig ini 100% halal dan mematuhi syariah Islam serta undang-undang Malaysia.<br>
+                                I confirm this gig is 100% halal and complies with Shariah Islam and Malaysian law.
+                            </div>
                         </div>
                     </label>
 
@@ -842,11 +904,76 @@
         container.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // HALAL COMPLIANCE VALIDATION - Prohibited keywords (subset for client-side checking)
+    const prohibitedKeywords = [
+        'alcohol', 'alkohol', 'beer', 'bir', 'wine', 'wain', 'whiskey', 'vodka', 'rum', 'arak',
+        'gambling', 'judi', 'casino', 'kasino', 'betting', 'pertaruhan', 'lottery', 'loteri',
+        'pork', 'babi', 'pig', 'ham', 'bacon',
+        'porn', 'porno', 'pornography', 'pornografi', 'sex', 'seks', 'xxx', 'escort', 'prostitution',
+        'interest', 'faedah', 'riba', 'usury', 'loan shark', 'along', 'ah long',
+        'scam', 'penipuan', 'fraud', 'ponzi', 'pyramid scheme',
+        'drugs', 'dadah', 'marijuana', 'ganja', 'cocaine', 'heroin', 'syabu',
+        'cigarette', 'rokok', 'tobacco', 'tembakau', 'vape', 'vaping',
+        'black magic', 'sihir', 'bomoh', 'dukun', 'fortune telling', 'ramalan nasib'
+    ];
+
+    function checkProhibitedContent(text) {
+        if (!text) return null;
+        const lowerText = text.toLowerCase();
+        for (const keyword of prohibitedKeywords) {
+            // Use word boundary matching
+            const regex = new RegExp('\\b' + keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+            if (regex.test(lowerText)) {
+                return keyword;
+            }
+        }
+        return null;
+    }
+
     document.getElementById('postGigForm').addEventListener('submit', function(e) {
         const submitBtn = document.getElementById('submitBtn');
         const budgetMin = parseFloat(document.getElementById('budget_min').value);
         const budgetMax = parseFloat(document.getElementById('budget_max').value);
         const category = document.querySelector('input[name="category"]:checked')?.value;
+
+        // HALAL COMPLIANCE CHECK - Mandatory checkbox
+        const halalCheckbox = document.getElementById('halal_compliant');
+        if (!halalCheckbox.checked) {
+            e.preventDefault();
+            showAlert('⚠️ Anda MESTI mengesahkan bahawa gig ini halal dan mematuhi syariah Islam. / You MUST confirm this gig is halal and Shariah-compliant.', 'error');
+            halalCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            halalCheckbox.parentElement.parentElement.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                halalCheckbox.parentElement.parentElement.style.animation = '';
+            }, 500);
+            return;
+        }
+
+        // HALAL COMPLIANCE CHECK - Prohibited keywords in title
+        const title = document.getElementById('title').value;
+        const titleViolation = checkProhibitedContent(title);
+        if (titleViolation) {
+            e.preventDefault();
+            showAlert(`❌ Tajuk mengandungi kandungan yang dilarang: "${titleViolation}". Sila ubah tajuk anda. / Title contains prohibited content: "${titleViolation}". Please modify your title.`, 'error');
+            document.getElementById('title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('title').style.borderColor = '#D32F2F';
+            return;
+        }
+
+        // HALAL COMPLIANCE CHECK - Prohibited keywords in description
+        const description = document.getElementById('description').value;
+        const descViolation = checkProhibitedContent(description);
+        if (descViolation) {
+            e.preventDefault();
+            showAlert(`❌ Penerangan mengandungi kandungan yang dilarang: "${descViolation}". Sila ubah penerangan anda. / Description contains prohibited content: "${descViolation}". Please modify your description.`, 'error');
+            document.getElementById('description').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('description').style.borderColor = '#D32F2F';
+            return;
+        }
+
+        // Reset border colors if validation passes
+        document.getElementById('title').style.borderColor = '';
+        document.getElementById('description').style.borderColor = '';
 
         if (!category) {
             e.preventDefault();
