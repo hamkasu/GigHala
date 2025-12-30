@@ -92,14 +92,16 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                 # Prepare personalized email content
                 user_name = user.full_name or user.username or "User"
 
-                # Render email template
-                html_content = render_template(
-                    'email_new_gigs_digest.html',
-                    user_name=user_name,
-                    gigs=new_gigs,
-                    gig_count=len(new_gigs),
-                    base_url=base_url
-                )
+                # Render email template with test request context
+                # This is needed because inject_translations() context processor requires session
+                with app.test_request_context():
+                    html_content = render_template(
+                        'email_new_gigs_digest.html',
+                        user_name=user_name,
+                        gigs=new_gigs,
+                        gig_count=len(new_gigs),
+                        base_url=base_url
+                    )
 
                 # Determine subject based on language preference
                 if user.language == 'ms':
