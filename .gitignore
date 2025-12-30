@@ -29,6 +29,12 @@ venv/
 ENV/
 .pythonlibs/
 
+# Credentials (Google Cloud, etc.)
+credentials/
+*.json
+!package.json
+!package-lock.json
+
 # IDE
 .idea/
 .vscode/
