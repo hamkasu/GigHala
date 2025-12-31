@@ -109,27 +109,93 @@
             </div>
         </nav>
 
-        <div style="background: #F46C22; width: 100%; padding: 18px; color: white; text-align: center; position: relative; z-index: 10;">
+        <div style="background: linear-gradient(135deg, #FF6200 0%, #FF7A1F 100%); width: 100%; padding: 50px 20px; color: white; text-align: center; position: relative; z-index: 10;">
             <div class="container">
-                <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 4px; letter-spacing: 1px;">10% PLATFORM FI SELAMANYA! ☀️</h2>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 3px;">Untuk Early Adopters yang daftar sehingga 31 Disember 2025</div>
-                <div style="font-size: 15px; opacity: 0.9;">🚀 Jangan lepaskan peluang lock in kadar rendah forever.</div>
-                
+                <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2;">
+                    TESTING BILLING SYSTEM – PHASE 2! 🌟
+                </h1>
+
+                <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 30px; line-height: 1.6; max-width: 900px; margin-left: auto; margin-right: auto;">
+                    Sekarang kita masuk ke Fasa 2: Uji coba penuh sistem billing untuk pastikan semuanya lancar & selamat!
+                </p>
+
+                <div style="font-size: 1rem; margin-bottom: 12px; line-height: 1.7;">
+                    Untuk Early Adopters yang daftar sehingga 31 Disember 2025:
+                </div>
+                <div style="font-size: 1.4rem; font-weight: 700; margin: 10px 0;">
+                    Nikmati 10% PLATFORM FI SELAMANYA! ☀️
+                </div>
+                <div style="font-size: 1rem; margin: 8px 0; font-weight: 500;">
+                    Jangan lepaskan peluang lock in kadar rendah forever. 🚀
+                </div>
+
                 <!-- Countdown Timer -->
-                <div id="countdownContainer" style="font-size: 21px; font-weight: 800; margin: 12px 0; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 9px; display: inline-block; min-width: 180px;">
-                    <div style="font-size: 10px; opacity: 0.9; margin-bottom: 6px;">Masa Tinggal</div>
-                    <div id="countdownTimer" style="font-size: 24px; font-weight: 900; letter-spacing: 1px;">
+                <div id="countdownContainer" style="background: rgba(139, 69, 19, 0.85); border-radius: 20px; padding: 25px 40px; margin: 35px auto; max-width: 450px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                    <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; opacity: 0.95;">Masa Tinggal</div>
+                    <div style="font-size: 1.6rem; font-weight: 800; margin: 10px 0; letter-spacing: 0.5px;">
+                        🎉 JOIN SEKARANG & TEST BILLING!
+                    </div>
+                    <div id="countdownTimer" style="font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 15px 0;">
                         ⏳ Loading...
                     </div>
-                    <div style="font-size: 9px; opacity: 0.85; margin-top: 6px;">hingga 01/01/2026</div>
+                    <div style="font-size: 0.9rem; font-weight: 600; margin-top: 10px; opacity: 0.95;">hingga 31/01/2026</div>
                 </div>
-                
-                <div style="font-size: 11.5px; margin-top: 9px; opacity: 0.8; font-style: italic; line-height: 1.4;">
-                    GigHala sedang dalam Heavy Beta Test (Semua sistem berfungsi kecuali billing system - join sekarang & test platform kami!). Target Live Date 01/01/2026.<br>
+
+                <div style="font-size: 0.8rem; margin-top: 35px; opacity: 0.9; line-height: 1.6; max-width: 1000px; margin-left: auto; margin-right: auto;">
+                    GigHala kini memasuki Phase 2 Testing Billing System (Semua sistem termasuk billing sedang diuji – join sekarang & bantu kami sempurnakan platform!). Target Full Live Date selepas 31/01/2026.<br>
                     Pembayaran selamat via PayHalal | Dimiliki Calmic Sdn Bhd
                 </div>
             </div>
         </div>
+
+        <!-- Responsive CSS for Phase 2 Banner -->
+        <style>
+            @media (max-width: 768px) {
+                .container > h1 {
+                    font-size: 1.8rem !important;
+                }
+                .container > p {
+                    font-size: 1rem !important;
+                }
+                #countdownContainer {
+                    padding: 20px 25px !important;
+                    max-width: 90% !important;
+                }
+                #countdownContainer > div:nth-child(2) {
+                    font-size: 1.2rem !important;
+                }
+                #countdownTimer {
+                    font-size: 1.3rem !important;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .container > h1 {
+                    font-size: 1.4rem !important;
+                }
+                .container > p {
+                    font-size: 0.9rem !important;
+                }
+                .container > div {
+                    font-size: 0.85rem !important;
+                }
+                #countdownContainer {
+                    padding: 15px 20px !important;
+                }
+                #countdownContainer > div:nth-child(2) {
+                    font-size: 1rem !important;
+                }
+                #countdownTimer {
+                    font-size: 1.1rem !important;
+                }
+            }
+
+            #countdownContainer:hover {
+                transform: scale(1.03);
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+                background: rgba(139, 69, 19, 0.95);
+            }
+        </style>
 
         <!-- Why Choose Us Section -->
         <section class="benefits-section" id="kenapa-kita">
@@ -1090,14 +1156,14 @@
             }
         }
 
-        // Countdown Timer to 01/01/2026
+        // Countdown Timer to 31/01/2026
         function updateCountdown() {
-            const targetDate = new Date('2026-01-01T00:00:00').getTime();
+            const targetDate = new Date('2026-01-31T23:59:59').getTime();
             const now = new Date().getTime();
             const distance = targetDate - now;
 
             if (distance < 0) {
-                document.getElementById('countdownTimer').innerHTML = '🎉 LAUNCH!';
+                document.getElementById('countdownTimer').innerHTML = '🎉 PHASE 2 COMPLETE!';
                 return;
             }
 
