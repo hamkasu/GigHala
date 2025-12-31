@@ -1767,6 +1767,12 @@
                         {{ 'Edit Gig' if lang == 'ms' else 'Edit Gig' }}
                     </a>
                     {% endif %}
+                    {% if gig.status not in ['completed', 'cancelled'] %}
+                    <button class="apply-btn" onclick="openCancelGigModal()" style="display: block; width: 100%; margin-top: 12px; background: #dc2626; border-color: #dc2626;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        {{ 'Batal Gig' if lang == 'ms' else 'Cancel Gig' }}
+                    </button>
+                    {% endif %}
                     {% elif existing_application %}
                     <div class="already-applied">
                         <p>{{ 'Anda sudah memohon untuk gig ini' if lang == 'ms' else 'You have already applied for this gig' }}</p>
@@ -2316,6 +2322,34 @@
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" onclick="closeApplicationModal()">{{ t('cancel') }}</button>
                 <button type="submit" class="apply-btn">{{ 'Hantar Permohonan' if lang == 'ms' else 'Submit Application' }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel Gig Modal -->
+<div class="application-modal" id="cancelGigModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>{{ 'Batal Gig' if lang == 'ms' else 'Cancel Gig' }}</h3>
+            <button class="modal-close" onclick="closeCancelGigModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div style="margin-bottom: 20px; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b;">
+            <strong>{{ 'Amaran:' if lang == 'ms' else 'Warning:' }}</strong>
+            {{ 'Tindakan ini tidak boleh dibatalkan. Jika escrow telah didanakan, dana akan dikembalikan secara automatik.' if lang == 'ms' else 'This action cannot be undone. If escrow has been funded, funds will be automatically refunded.' }}
+        </div>
+        <form id="cancelGigForm" onsubmit="submitCancelGig(event)">
+            <div class="form-group">
+                <label class="form-label">{{ 'Sebab Pembatalan' if lang == 'ms' else 'Reason for Cancellation' }}</label>
+                <textarea class="form-textarea" name="reason" id="cancellationReason" rows="4"
+                          placeholder="{{ 'Sila berikan sebab anda membatalkan gig ini...' if lang == 'ms' else 'Please provide a reason for cancelling this gig...' }}" required></textarea>
+                <p class="form-hint">{{ 'Minimum 20 aksara' if lang == 'ms' else 'Minimum 20 characters' }}</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeCancelGigModal()">{{ 'Kembali' if lang == 'ms' else 'Go Back' }}</button>
+                <button type="submit" class="apply-btn" style="background: #dc2626; border-color: #dc2626;">{{ 'Ya, Batal Gig' if lang == 'ms' else 'Yes, Cancel Gig' }}</button>
             </div>
         </form>
     </div>
@@ -2934,6 +2968,70 @@
             alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
             button.disabled = false;
             button.innerHTML = originalText;
+        });
+    }
+
+    // Cancel Gig Functions
+    function openCancelGigModal() {
+        document.getElementById('cancelGigModal').style.display = 'flex';
+    }
+
+    function closeCancelGigModal() {
+        document.getElementById('cancelGigModal').style.display = 'none';
+        document.getElementById('cancellationReason').value = '';
+    }
+
+    function submitCancelGig(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const reason = document.getElementById('cancellationReason').value.trim();
+
+        // Validate minimum length
+        if (reason.length < 20) {
+            alert('{{ "Sila berikan sebab yang lebih terperinci (minimum 20 aksara)" if lang == "ms" else "Please provide a more detailed reason (minimum 20 characters)" }}');
+            return;
+        }
+
+        // Confirm cancellation
+        const confirmMsg = '{{ "Adakah anda pasti mahu membatalkan gig ini? Tindakan ini tidak boleh dibatalkan." if lang == "ms" else "Are you sure you want to cancel this gig? This action cannot be undone." }}';
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '{{ "Memproses..." if lang == "ms" else "Processing..." }}';
+
+        fetch('/api/gigs/{{ gig.id }}/cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            } else {
+                let successMsg = '{{ "Gig berjaya dibatalkan!" if lang == "ms" else "Gig cancelled successfully!" }}';
+                if (data.refund && data.refund.processed) {
+                    successMsg += '\n{{ "Bayaran balik sebanyak RM" if lang == "ms" else "Refund of RM" }}' + data.refund.amount.toFixed(2) + ' {{ "telah diproses." if lang == "ms" else "has been processed." }}';
+                }
+                alert(successMsg);
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         });
     }
 </script>
