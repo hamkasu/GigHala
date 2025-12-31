@@ -661,11 +661,11 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">SOCSO Deduction (1.25%)</span>
-                        <span class="detail-value">RM ${(escrow.amount * 0.0125).toFixed(2)}</span>
+                        <span class="detail-value">RM ${escrow.socso_amount.toFixed(2)}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Freelancer Receives</span>
-                        <span class="detail-value">RM ${escrow.net_amount.toFixed(2)}</span>
+                        <span class="detail-value">RM ${escrow.final_payout.toFixed(2)}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Created</span>
@@ -705,19 +705,19 @@
                 <h4 style="font-size: 13px; font-weight: 600; color: #15803D; margin-bottom: 12px;">Freelancer Deductions (Paid to Platform)</h4>
                 <div class="fee-row">
                     <span>Platform Fee (15%)</span>
-                    <span>RM ${(escrow.amount * 0.15).toFixed(2)}</span>
+                    <span>RM ${escrow.platform_fee.toFixed(2)}</span>
                 </div>
                 <div class="fee-row">
-                    <span>SOCSO Contribution (1.25%)</span>
-                    <span>RM ${(escrow.amount * 0.0125).toFixed(2)}</span>
+                    <span>SOCSO Contribution (1.25% of net)</span>
+                    <span>RM ${escrow.socso_amount.toFixed(2)}</span>
                 </div>
                 <div class="fee-row total">
                     <span>Total Deductions</span>
-                    <span>RM ${(escrow.amount * 0.1625).toFixed(2)}</span>
+                    <span>RM ${(escrow.platform_fee + escrow.socso_amount).toFixed(2)}</span>
                 </div>
                 <div class="fee-row total" style="border-top: 2px solid #86EFAC; margin-top: 12px; padding-top: 12px;">
                     <span>Freelancer Net Earnings</span>
-                    <span style="color: #15803D; font-size: 18px;">RM ${(escrow.amount * 0.8375).toFixed(2)}</span>
+                    <span style="color: #15803D; font-size: 18px;">RM ${escrow.final_payout.toFixed(2)}</span>
                 </div>
             </div>
             
