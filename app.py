@@ -1931,6 +1931,8 @@ class Gig(db.Model):
     deadline = db.Column(db.DateTime)
     views = db.Column(db.Integer, default=0)
     applications = db.Column(db.Integer, default=0)
+    cancellation_reason = db.Column(db.Text)  # Reason for cancellation
+    cancelled_at = db.Column(db.DateTime)  # When the gig was cancelled
 
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6432,12 +6434,12 @@ def request_revision(gig_id):
 
 @app.route('/api/gigs/<int:gig_id>/cancel', methods=['POST'])
 def cancel_gig(gig_id):
-    """Cancel a gig (client only, before work is completed)"""
+    """Cancel a gig with automatic escrow refund and notifications"""
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
 
     try:
-        data = request.json
+        data = request.json or {}
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
 
@@ -6449,23 +6451,133 @@ def cancel_gig(gig_id):
         if gig.status == 'completed':
             return jsonify({'error': 'Cannot cancel completed gigs'}), 400
 
-        # Cannot cancel gigs with accepted applications (in_progress state)
-        if gig.status == 'in_progress':
-            return jsonify({'error': 'Cannot cancel a gig that has an accepted application'}), 400
+        # Cannot cancel already cancelled gigs
+        if gig.status == 'cancelled':
+            return jsonify({'error': 'Gig is already cancelled'}), 400
 
-        cancellation_reason = data.get('reason', '')
+        cancellation_reason = data.get('reason', 'No reason provided')
 
+        # Store cancellation details
+        gig.cancellation_reason = cancellation_reason
+        gig.cancelled_at = datetime.utcnow()
+        old_status = gig.status
         gig.status = 'cancelled'
+
+        # Handle escrow refund if gig was funded
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        refund_processed = False
+        refund_amount = 0
+
+        if escrow and escrow.status in ['funded', 'in_progress']:
+            # Calculate remaining refund amount
+            remaining_amount = escrow.amount - (escrow.refunded_amount or 0.0)
+
+            if remaining_amount > 0:
+                # Process Stripe refund if payment was made via Stripe
+                stripe_refund_id = None
+                if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+                    try:
+                        if stripe.api_key:
+                            refund = stripe.Refund.create(
+                                payment_intent=escrow.payment_reference,
+                                amount=int(remaining_amount * 100),
+                                reason='requested_by_customer',
+                                metadata={
+                                    'gig_id': str(gig_id),
+                                    'escrow_id': str(escrow.id),
+                                    'reason': cancellation_reason
+                                }
+                            )
+                            stripe_refund_id = refund.id
+                            app.logger.info(f"Stripe refund created: {stripe_refund_id} for RM{remaining_amount:.2f}")
+                    except Exception as stripe_error:
+                        app.logger.error(f"Stripe refund error: {str(stripe_error)}")
+                        # Continue with cancellation even if Stripe refund fails
+
+                # Update escrow status
+                escrow.refunded_amount = escrow.amount
+                escrow.status = 'refunded'
+                escrow.refunded_at = datetime.utcnow()
+                if escrow.admin_notes:
+                    escrow.admin_notes += f"\nGig cancelled: {cancellation_reason}"
+                else:
+                    escrow.admin_notes = f"Gig cancelled: {cancellation_reason}"
+
+                # Update client wallet
+                client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+                if client_wallet:
+                    client_wallet.held_balance -= remaining_amount
+                    # For non-Stripe payments, add to balance
+                    if escrow.payment_gateway != 'stripe':
+                        client_wallet.balance += remaining_amount
+
+                # Record payment history
+                payment_history = PaymentHistory(
+                    user_id=gig.client_id,
+                    type='refund',
+                    amount=remaining_amount,
+                    balance_before=client_wallet.balance if client_wallet else 0,
+                    balance_after=client_wallet.balance if client_wallet else 0,
+                    description=f"Refund for cancelled gig: {gig.title}",
+                    reference_number=stripe_refund_id or escrow.payment_reference,
+                    payment_gateway=escrow.payment_gateway,
+                    status='completed'
+                )
+                db.session.add(payment_history)
+
+                refund_processed = True
+                refund_amount = remaining_amount
+
+        # Reject all pending applications
+        pending_applications = Application.query.filter_by(
+            gig_id=gig_id,
+            status='pending'
+        ).all()
+
+        for app in pending_applications:
+            app.status = 'rejected'
+            # Notify applicants
+            notification = Notification(
+                user_id=app.freelancer_id,
+                notification_type='application',
+                title='Gig Cancelled',
+                message=f'The gig "{gig.title}" has been cancelled by the client.',
+                link=f'/gig/{gig_id}',
+                related_id=gig_id
+            )
+            db.session.add(notification)
+
+        # Notify assigned freelancer if any
+        if gig.freelancer_id and old_status in ['in_progress', 'pending_review']:
+            freelancer_notification = Notification(
+                user_id=gig.freelancer_id,
+                notification_type='payment',
+                title='Gig Cancelled',
+                message=f'The client has cancelled the gig "{gig.title}". Reason: {cancellation_reason}',
+                link=f'/gig/{gig_id}',
+                related_id=gig_id
+            )
+            db.session.add(freelancer_notification)
 
         db.session.commit()
 
-        return jsonify({
+        response_data = {
             'message': 'Gig cancelled successfully',
             'gig': {
                 'id': gig.id,
-                'status': gig.status
+                'status': gig.status,
+                'cancellation_reason': cancellation_reason
             }
-        }), 200
+        }
+
+        if refund_processed:
+            response_data['refund'] = {
+                'processed': True,
+                'amount': refund_amount,
+                'method': escrow.payment_gateway if escrow else None
+            }
+
+        return jsonify(response_data), 200
 
     except Exception as e:
         db.session.rollback()
