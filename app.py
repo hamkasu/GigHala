@@ -2250,6 +2250,10 @@ class Escrow(db.Model):
     
     def to_dict(self):
         """Convert escrow to dictionary for JSON response"""
+        # Calculate SOCSO on net amount (after platform fee)
+        socso_amount = calculate_socso(self.net_amount)
+        final_payout = round(self.net_amount - socso_amount, 2)
+
         return {
             'id': self.id,
             'escrow_number': self.escrow_number,
@@ -2259,6 +2263,8 @@ class Escrow(db.Model):
             'amount': self.amount,
             'platform_fee': self.platform_fee,
             'net_amount': self.net_amount,
+            'socso_amount': socso_amount,
+            'final_payout': final_payout,
             'refunded_amount': self.refunded_amount or 0.0,
             'remaining_amount': self.amount - (self.refunded_amount or 0.0),
             'status': self.status,
