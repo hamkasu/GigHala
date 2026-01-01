@@ -34,10 +34,16 @@ class EmailService:
             tuple: (success: bool, message: str, response_status: int or None)
         """
         if not self.is_configured():
+            current_app.logger.error("Brevo email service is not configured properly")
+            current_app.logger.error("Required: BREVO_API_KEY and BREVO_FROM_EMAIL environment variables")
             return False, "Brevo is not configured. Please add BREVO_API_KEY and BREVO_FROM_EMAIL.", None
 
         if not to_emails:
             return False, "No recipients specified.", None
+
+        # Log sender information for debugging
+        current_app.logger.info(f"Email sender: {self.from_name} <{self.from_email}>")
+        current_app.logger.info(f"NOTE: Sender email must be verified in Brevo dashboard")
 
         # Configure Brevo API
         configuration = brevo_python.Configuration()
@@ -102,6 +108,18 @@ class EmailService:
 
         # Log final summary
         current_app.logger.info(f"Email sending complete: {successful_sends} succeeded, {failed_sends} failed out of {total_recipients} total")
+
+        # Add diagnostic note if emails were accepted by Brevo
+        if successful_sends > 0:
+            current_app.logger.info("=" * 60)
+            current_app.logger.info("IMPORTANT: Emails accepted by Brevo API")
+            current_app.logger.info("If recipients don't receive emails, check:")
+            current_app.logger.info(f"  1. Sender email ({self.from_email}) is VERIFIED in Brevo dashboard")
+            current_app.logger.info("  2. Account is not in sandbox/test mode")
+            current_app.logger.info("  3. Domain has SPF/DKIM records configured")
+            current_app.logger.info("  4. Brevo transactional logs: https://app.brevo.com/email/logs")
+            current_app.logger.info("  5. Run 'python diagnose_brevo.py' for detailed diagnostics")
+            current_app.logger.info("=" * 60)
 
         # Prepare result message
         if successful_sends == total_recipients:
