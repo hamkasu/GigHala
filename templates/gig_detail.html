@@ -1813,6 +1813,14 @@
                     {{ 'Sila' if lang == 'ms' else 'Please' }} <a href="/?login=1">{{ t('login') }}</a> {{ 'untuk memohon' if lang == 'ms' else 'to apply' }}
                 </div>
                 {% endif %}
+
+                {# Report button for logged-in users (not gig owners) #}
+                {% if session.get('user_id') and not is_own_gig %}
+                <button onclick="openReportModal()" style="display: block; width: 100%; margin-top: 12px; padding: 10px; background: #fff; color: #dc2626; border: 1px solid #dc2626; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {{ 'Laporkan Gig' if lang == 'ms' else 'Report Gig' }}
+                </button>
+                {% endif %}
             </div>
 
             {% if is_own_gig and gig.status == 'open' and gig_applications %}
@@ -3055,7 +3063,110 @@
             submitBtn.innerHTML = originalText;
         });
     }
+
+    // Report Gig Modal Functions
+    function openReportModal() {
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+        document.getElementById('reportModal').style.display = 'none';
+        document.getElementById('reportForm').reset();
+    }
+
+    function submitReport(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const reason = formData.get('reason');
+        const description = formData.get('description').trim();
+
+        if (!reason) {
+            alert('{{ "Sila pilih sebab pelaporan" if lang == "ms" else "Please select a reason for reporting" }}');
+            return;
+        }
+
+        if (description.length < 10) {
+            alert('{{ "Sila berikan penjelasan yang lebih terperinci (minimum 10 aksara)" if lang == "ms" else "Please provide more details (minimum 10 characters)" }}');
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '{{ "Menghantar..." if lang == "ms" else "Submitting..." }}';
+
+        fetch('/api/gigs/{{ gig.id }}/report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                reason: reason,
+                description: description
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            } else {
+                let successMsg = '{{ "Laporan berjaya dihantar! Terima kasih atas maklum balas anda." if lang == "ms" else "Report submitted successfully! Thank you for your feedback." }}';
+                if (data.auto_blocked) {
+                    successMsg += '\n{{ "Gig ini telah disekat secara automatik untuk semakan." if lang == "ms" else "This gig has been automatically blocked for review." }}';
+                }
+                alert(successMsg);
+                closeReportModal();
+                if (data.auto_blocked) {
+                    window.location.reload();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    }
 </script>
+
+<!-- Report Gig Modal -->
+<div id="reportModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>{{ 'Laporkan Gig' if lang == 'ms' else 'Report Gig' }}</h3>
+            <button class="modal-close" onclick="closeReportModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <form id="reportForm" onsubmit="submitReport(event)">
+            <div class="form-group">
+                <label>{{ 'Sebab Pelaporan' if lang == 'ms' else 'Reason for Reporting' }}</label>
+                <select name="reason" required style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff;">
+                    <option value="">{{ 'Pilih sebab' if lang == 'ms' else 'Select a reason' }}</option>
+                    <option value="haram_content">{{ 'Kandungan Haram' if lang == 'ms' else 'Haram Content' }}</option>
+                    <option value="inappropriate">{{ 'Tidak Sesuai' if lang == 'ms' else 'Inappropriate' }}</option>
+                    <option value="spam">{{ 'Spam' if lang == 'ms' else 'Spam' }}</option>
+                    <option value="fraud">{{ 'Penipuan' if lang == 'ms' else 'Fraud' }}</option>
+                    <option value="other">{{ 'Lain-lain' if lang == 'ms' else 'Other' }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>{{ 'Penjelasan' if lang == 'ms' else 'Description' }}</label>
+                <textarea name="description" required rows="4" placeholder="{{ 'Berikan butiran terperinci mengapa anda melaporkan gig ini (minimum 10 aksara)' if lang == 'ms' else 'Provide detailed information about why you are reporting this gig (minimum 10 characters)' }}" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; resize: vertical;"></textarea>
+            </div>
+            <div class="form-actions" style="display: flex; gap: 12px; margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="closeReportModal()">{{ 'Batal' if lang == 'ms' else 'Cancel' }}</button>
+                <button type="submit" class="apply-btn" style="background: #dc2626; border-color: #dc2626;">{{ 'Hantar Laporan' if lang == 'ms' else 'Submit Report' }}</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% block extra_footer %}
 <div style="text-align: center; padding: 24px; font-size: 11px; color: var(--text-gray); margin-top: 32px; border-top: 1px solid var(--border);">
