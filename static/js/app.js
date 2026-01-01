@@ -509,7 +509,15 @@ const app = {
     // Switch to login modal
     switchToLogin() {
         this.closeModal('registerModal');
+        this.closeModal('forgotPasswordModal');
         this.showLogin();
+    },
+
+    // Switch to forgot password modal
+    switchToForgotPassword() {
+        this.closeModal('loginModal');
+        const modal = document.getElementById('forgotPasswordModal');
+        modal.classList.add('active');
     },
 
     // Show privacy policy modal
@@ -618,7 +626,41 @@ const app = {
             alert('Error during registration. Please try again.');
         }
     },
-    
+
+    // Handle forgot password form submission
+    async handleForgotPassword(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const data = {
+            email: formData.get('email')
+        };
+
+        try {
+            const response = await fetch('/api/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(result.message);
+                this.closeModal('forgotPasswordModal');
+                form.reset();
+            } else {
+                alert(result.error || 'Failed to send reset link. Please try again.');
+            }
+        } catch (error) {
+            console.error('Forgot password error:', error);
+            alert('An error occurred. Please try again later.');
+        }
+    },
+
     // Update UI for logged in user
     updateUIForLoggedInUser() {
         console.log('User logged in:', this.currentUser);

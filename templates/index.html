@@ -730,6 +730,11 @@
                         <label>{{ t('password') }}</label>
                         <input type="password" name="password" required>
                     </div>
+                    <div style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
+                        <a href="#" onclick="app.switchToForgotPassword(); return false;" style="color: var(--primary); font-size: 14px; text-decoration: none;">
+                            Forgot Password?
+                        </a>
+                    </div>
                     <button type="submit" class="btn-modal-primary">{{ t('login') }}</button>
 
                     <div style="margin: 20px 0; text-align: center; position: relative;">
@@ -1013,6 +1018,23 @@
                     </div>
 
                     <p class="modal-footer-text">{{ t('have_account') }} <a href="#" onclick="app.switchToLogin()">{{ t('login_now') }}</a></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Forgot Password -->
+        <div id="forgotPasswordModal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="app.closeModal('forgotPasswordModal')">&times;</button>
+                <h2 class="modal-title">Reset Password</h2>
+                <p style="color: #666; margin-bottom: 24px; text-align: center;">Enter your email address and we'll send you a link to reset your password.</p>
+                <form id="forgotPasswordForm" onsubmit="app.handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label>{{ t('email') }}</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <button type="submit" class="btn-modal-primary">Send Reset Link</button>
+                    <p class="modal-footer-text">Remember your password? <a href="#" onclick="app.switchToLogin()">{{ t('login_now') }}</a></p>
                 </form>
             </div>
         </div>
