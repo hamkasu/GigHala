@@ -54,9 +54,15 @@ class EmailService:
 
         # Send individual emails to each recipient
         sg = SendGridAPIClient(self.api_key)
+        total_recipients = len(recipient_list)
 
-        for email, name in recipient_list:
+        current_app.logger.info(f"Starting to send {total_recipients} emails...")
+
+        for idx, (email, name) in enumerate(recipient_list, 1):
             try:
+                # Log progress
+                current_app.logger.info(f"Sending email {idx}/{total_recipients} to {email}...")
+
                 # Create individual mail object for this recipient only
                 message = Mail(
                     from_email=self.from_email,
@@ -72,19 +78,21 @@ class EmailService:
                 # Check if send was successful (2xx status codes)
                 if 200 <= response.status_code < 300:
                     successful_sends += 1
+                    current_app.logger.info(f"✓ Email {idx}/{total_recipients} sent successfully to {email}")
                 else:
                     failed_sends += 1
                     failed_recipients.append(email)
-                    current_app.logger.warning(f"Non-success status {response.status_code} for {email}")
+                    current_app.logger.error(f"✗ Email {idx}/{total_recipients} failed for {email}: Non-success status {response.status_code}")
 
             except Exception as e:
                 failed_sends += 1
                 failed_recipients.append(email)
-                current_app.logger.error(f"Error sending email to {email}: {str(e)}")
+                current_app.logger.error(f"✗ Email {idx}/{total_recipients} error for {email}: {str(e)}")
+
+        # Log final summary
+        current_app.logger.info(f"Email sending complete: {successful_sends} succeeded, {failed_sends} failed out of {total_recipients} total")
 
         # Prepare result message
-        total_recipients = len(recipient_list)
-
         if successful_sends == total_recipients:
             return True, f"Email sent successfully to all {successful_sends} recipients.", 200
         elif successful_sends > 0:
