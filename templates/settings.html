@@ -22,11 +22,39 @@
         color: var(--text-dark);
         font-size: 28px;
         margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .page-header p {
         color: var(--text-gray);
         font-size: 15px;
+    }
+
+    .verified-badge-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .unverified-badge-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #fef3c7;
+        color: #92400e;
     }
 
     .settings-tabs {
@@ -284,7 +312,14 @@
 {% block content %}
 <div class="settings-container">
     <div class="page-header">
-        <h1>Tetapan Akaun</h1>
+        <h1>
+            <span>Tetapan Akaun</span>
+            {% if user.is_verified %}
+            <span class="verified-badge-header">✓ Verified</span>
+            {% else %}
+            <span class="unverified-badge-header">⚠ Unverified</span>
+            {% endif %}
+        </h1>
         <p>Urus maklumat peribadi, keselamatan dan butiran pembayaran anda</p>
     </div>
 
