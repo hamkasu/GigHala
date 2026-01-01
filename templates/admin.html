@@ -482,6 +482,18 @@
     <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
     <button class="tab-btn" onclick="switchTab('users')">Users</button>
     <button class="tab-btn" onclick="switchTab('gigs')">Gigs</button>
+    <button class="tab-btn" onclick="switchTab('gig-reports')" style="color: #dc2626;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+            <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        Gig Reports
+    </button>
+    <button class="tab-btn" onclick="switchTab('blocked-gigs')" style="color: #dc2626;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+            <circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+        </svg>
+        Blocked Gigs
+    </button>
     <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
     <button class="tab-btn" onclick="switchTab('reports')">Financial Reports</button>
     <button class="tab-btn" onclick="switchTab('socso')">SOCSO Compliance</button>
@@ -708,6 +720,74 @@
                 <tbody id="gigs-tbody"></tbody>
             </table>
             <div class="pagination" id="gigs-pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Gig Reports Tab -->
+<div id="gig-reports-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Gig Reports - Content Moderation</h2>
+            <select id="report-status-filter" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border);" onchange="loadGigReports()">
+                <option value="">All Status</option>
+                <option value="pending" selected>Pending Review</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="dismissed">Dismissed</option>
+                <option value="action_taken">Action Taken</option>
+            </select>
+        </div>
+        <div id="reports-loading" class="loading">Loading reports...</div>
+        <div id="reports-content" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Gig</th>
+                        <th>Reporter</th>
+                        <th>Reason</th>
+                        <th>Description</th>
+                        <th>Gig Status</th>
+                        <th>Reported At</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="reports-tbody"></tbody>
+            </table>
+            <div class="pagination" id="reports-pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Blocked Gigs Tab -->
+<div id="blocked-gigs-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Blocked Gigs</h2>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <span style="color: #dc2626; font-weight: 600;">⚠️ Gigs hidden from public view</span>
+            </div>
+        </div>
+        <div id="blocked-gigs-loading" class="loading">Loading blocked gigs...</div>
+        <div id="blocked-gigs-content" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gig ID</th>
+                        <th>Title</th>
+                        <th>Client</th>
+                        <th>Category</th>
+                        <th>Reports</th>
+                        <th>Blocked At</th>
+                        <th>Blocked By</th>
+                        <th>Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="blocked-gigs-tbody"></tbody>
+            </table>
+            <div class="pagination" id="blocked-gigs-pagination"></div>
         </div>
     </div>
 </div>
@@ -3265,6 +3345,176 @@
 
     // Load users on page load
     window.addEventListener('load', loadAllUsers);
+
+    // ==================== GIG REPORTS FUNCTIONS ====================
+    async function loadGigReports(page = 1) {
+        const status = document.getElementById('report-status-filter').value;
+        try {
+            document.getElementById('reports-loading').style.display = 'block';
+            document.getElementById('reports-content').style.display = 'none';
+
+            const response = await fetch(`/api/admin/reports?status=${status}&page=${page}&per_page=50`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            const tbody = document.getElementById('reports-tbody');
+            tbody.innerHTML = '';
+
+            if (data.reports && data.reports.length > 0) {
+                data.reports.forEach(report => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>#${report.id}</td>
+                        <td><a href="/gig/${report.gig_id}" target="_blank">${report.gig_title}</a></td>
+                        <td>${report.reporter_name}</td>
+                        <td><span class="badge ${report.reason}">${formatReason(report.reason)}</span></td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${report.description}</td>
+                        <td><span class="badge ${report.gig_status}">${report.gig_status}</span></td>
+                        <td>${new Date(report.created_at).toLocaleString()}</td>
+                        <td><span class="badge ${report.status}">${report.status}</span></td>
+                        <td>
+                            <button onclick="viewReport(${report.id})" style="padding: 6px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px;">View</button>
+                            ${report.gig_status !== 'blocked' && report.gig_status !== 'deleted' ? `
+                                <button onclick="blockGigFromReport(${report.gig_id}, ${report.id})" style="padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer;">Block Gig</button>
+                            ` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No reports found</td></tr>';
+            }
+
+            document.getElementById('reports-loading').style.display = 'none';
+            document.getElementById('reports-content').style.display = 'block';
+        } catch (error) {
+            console.error('Error loading reports:', error);
+            alert('Failed to load reports');
+        }
+    }
+
+    function formatReason(reason) {
+        const reasons = {
+            'haram_content': 'Haram Content',
+            'inappropriate': 'Inappropriate',
+            'spam': 'Spam',
+            'fraud': 'Fraud',
+            'other': 'Other'
+        };
+        return reasons[reason] || reason;
+    }
+
+    async function viewReport(reportId) {
+        const report = await fetch(`/api/admin/reports?page=1&per_page=1000`, {credentials: 'include'}).then(r => r.json());
+        const reportData = report.reports.find(r => r.id === reportId);
+        if (reportData) {
+            alert(`Report #${reportId}\n\nGig: ${reportData.gig_title}\nReporter: ${reportData.reporter_name}\nReason: ${formatReason(reportData.reason)}\nDescription: ${reportData.description}\n\nGig Status: ${reportData.gig_status}\nReport Status: ${reportData.status}`);
+        }
+    }
+
+    async function blockGigFromReport(gigId, reportId) {
+        const reason = prompt('Enter reason for blocking this gig:');
+        if (!reason) return;
+
+        try {
+            const response = await fetch(`/api/admin/gigs/${gigId}/block`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({reason})
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                // Update report status
+                await fetch(`/api/admin/reports/${reportId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        status: 'action_taken',
+                        admin_notes: `Gig blocked: ${reason}`
+                    })
+                });
+
+                alert('Gig blocked successfully!');
+                loadGigReports();
+            } else {
+                alert(data.error || 'Failed to block gig');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to block gig');
+        }
+    }
+
+    // ==================== BLOCKED GIGS FUNCTIONS ====================
+    async function loadBlockedGigs(page = 1) {
+        try {
+            document.getElementById('blocked-gigs-loading').style.display = 'block';
+            document.getElementById('blocked-gigs-content').style.display = 'none';
+
+            const response = await fetch(`/api/admin/gigs?status=blocked&page=${page}&per_page=50`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            const tbody = document.getElementById('blocked-gigs-tbody');
+            tbody.innerHTML = '';
+
+            if (data.gigs && data.gigs.length > 0) {
+                data.gigs.forEach(gig => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>#${gig.id}</td>
+                        <td><a href="/gig/${gig.id}" target="_blank">${gig.title}</a></td>
+                        <td>${gig.client_name || 'N/A'}</td>
+                        <td>${gig.category}</td>
+                        <td><span class="badge" style="background: #dc2626;">${gig.report_count || 0}</span></td>
+                        <td>${gig.blocked_at ? new Date(gig.blocked_at).toLocaleString() : 'N/A'}</td>
+                        <td>Admin #${gig.blocked_by || 'System'}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${gig.block_reason || 'N/A'}</td>
+                        <td>
+                            <button onclick="unblockGig(${gig.id})" style="padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px;">Unblock</button>
+                            <button onclick="deleteGig(${gig.id})" style="padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer;">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No blocked gigs found</td></tr>';
+            }
+
+            document.getElementById('blocked-gigs-loading').style.display = 'none';
+            document.getElementById('blocked-gigs-content').style.display = 'block';
+        } catch (error) {
+            console.error('Error loading blocked gigs:', error);
+            alert('Failed to load blocked gigs');
+        }
+    }
+
+    async function unblockGig(gigId) {
+        if (!confirm('Are you sure you want to unblock this gig?')) return;
+
+        try {
+            const response = await fetch(`/api/admin/gigs/${gigId}/unblock`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Gig unblocked successfully!');
+                loadBlockedGigs();
+            } else {
+                alert(data.error || 'Failed to unblock gig');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to unblock gig');
+        }
+    }
 
     checkAdminAccess();
 </script>

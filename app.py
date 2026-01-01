@@ -2113,7 +2113,7 @@ class Gig(db.Model):
     latitude = db.Column(db.Float, nullable=True)  # Geolocation latitude
     longitude = db.Column(db.Float, nullable=True)  # Geolocation longitude
     is_remote = db.Column(db.Boolean, default=True)
-    status = db.Column(db.String(20), default='open')  # open, in_progress, pending_review, completed, cancelled
+    status = db.Column(db.String(20), default='open')  # open, in_progress, pending_review, completed, cancelled, blocked
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     agreed_amount = db.Column(db.Float)
@@ -2129,6 +2129,28 @@ class Gig(db.Model):
     applications = db.Column(db.Integer, default=0)
     cancellation_reason = db.Column(db.Text)  # Reason for cancellation
     cancelled_at = db.Column(db.DateTime)  # When the gig was cancelled
+    blocked_at = db.Column(db.DateTime)  # When the gig was blocked
+    blocked_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who blocked it
+    block_reason = db.Column(db.Text)  # Reason for blocking
+    report_count = db.Column(db.Integer, default=0)  # Number of reports received
+
+class GigReport(db.Model):
+    """User reports for flagging inappropriate or haram content in gigs"""
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    reason = db.Column(db.String(50), nullable=False)  # haram_content, inappropriate, spam, fraud, other
+    description = db.Column(db.Text)  # Detailed explanation from reporter
+    status = db.Column(db.String(20), default='pending')  # pending, reviewed, dismissed, action_taken
+    reviewed_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who reviewed
+    reviewed_at = db.Column(db.DateTime)  # When it was reviewed
+    admin_notes = db.Column(db.Text)  # Admin's notes on the report
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    gig = db.relationship('Gig', backref='reports')
+    reporter = db.relationship('User', foreign_keys=[reporter_id], backref='gig_reports_made')
+    reviewer = db.relationship('User', foreign_keys=[reviewed_by], backref='gig_reports_reviewed')
 
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -5403,7 +5425,8 @@ def get_gigs():
         halal_only = request.args.get('halal_only', 'false').lower() == 'true'
         search = sanitize_input(request.args.get('search', ''), max_length=200)
 
-        query = Gig.query.filter_by(status='open')
+        # Exclude blocked gigs from public view
+        query = Gig.query.filter(Gig.status == 'open')
 
         if category:
             query = query.filter_by(category=category)
@@ -5480,8 +5503,8 @@ def get_nearby_gigs():
         halal_only = request.args.get('halal_only', 'false').lower() == 'true'
         search = sanitize_input(request.args.get('search', ''), max_length=200)
 
-        # Base query for open gigs
-        query = Gig.query.filter_by(status='open')
+        # Base query for open gigs (exclude blocked)
+        query = Gig.query.filter(Gig.status == 'open')
 
         # Apply filters
         if category:
@@ -7078,6 +7101,103 @@ def cancel_gig(gig_id):
         db.session.rollback()
         app.logger.error(f"Cancel gig error: {str(e)}")
         return jsonify({'error': 'Failed to cancel gig'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/report', methods=['POST'])
+@api_rate_limit(requests_per_minute=10)
+def report_gig(gig_id):
+    """User reports a gig for inappropriate or haram content"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json or {}
+        user_id = session['user_id']
+
+        # Validate gig exists
+        gig = Gig.query.get_or_404(gig_id)
+
+        # Don't allow reporting own gigs
+        if gig.client_id == user_id:
+            return jsonify({'error': 'You cannot report your own gig'}), 400
+
+        # Check if user already reported this gig
+        existing_report = GigReport.query.filter_by(
+            gig_id=gig_id,
+            reporter_id=user_id
+        ).first()
+
+        if existing_report:
+            return jsonify({'error': 'You have already reported this gig'}), 400
+
+        # Validate reason
+        reason = data.get('reason', '').strip()
+        valid_reasons = ['haram_content', 'inappropriate', 'spam', 'fraud', 'other']
+        if reason not in valid_reasons:
+            return jsonify({'error': 'Invalid report reason'}), 400
+
+        description = sanitize_input(data.get('description', ''), max_length=1000)
+
+        # Create report
+        report = GigReport(
+            gig_id=gig_id,
+            reporter_id=user_id,
+            reason=reason,
+            description=description,
+            status='pending'
+        )
+        db.session.add(report)
+
+        # Increment report count on gig
+        gig.report_count = (gig.report_count or 0) + 1
+
+        # Auto-block if reports reach threshold (e.g., 3 reports)
+        AUTO_BLOCK_THRESHOLD = 3
+        if gig.report_count >= AUTO_BLOCK_THRESHOLD and gig.status != 'blocked':
+            gig.status = 'blocked'
+            gig.blocked_at = datetime.utcnow()
+            gig.block_reason = f'Automatically blocked after receiving {gig.report_count} user reports'
+
+            # Notify gig owner
+            owner_notification = Notification(
+                user_id=gig.client_id,
+                notification_type='admin',
+                title='Gig Blocked Due to Reports',
+                message=f'Your gig "{gig.title}" has been temporarily blocked due to multiple user reports. An admin will review it soon.',
+                link=f'/gig/{gig_id}',
+                related_id=gig_id
+            )
+            db.session.add(owner_notification)
+
+            # Log security event
+            from security_logger import log_security_event
+            log_security_event(
+                event_category='content_moderation',
+                event_type='auto_block_gig',
+                severity='medium',
+                user_id=user_id,
+                action='auto_block',
+                resource_type='gig',
+                resource_id=gig_id,
+                status='success',
+                details={
+                    'gig_id': gig_id,
+                    'report_count': gig.report_count,
+                    'threshold': AUTO_BLOCK_THRESHOLD
+                }
+            )
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Report submitted successfully',
+            'report_id': report.id,
+            'auto_blocked': gig.status == 'blocked'
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Report gig error: {str(e)}")
+        return jsonify({'error': 'Failed to submit report'}), 500
 
 # ============================================================================
 # END GIG WORKFLOW
@@ -10377,6 +10497,215 @@ This is an automated notification. Please do not reply to this email.
         db.session.rollback()
         app.logger.error(f"Admin delete gig error: {str(e)}")
         return jsonify({'error': 'Failed to delete gig'}), 500
+
+@app.route('/api/admin/gigs/<int:gig_id>/block', methods=['POST'])
+@admin_required
+def admin_block_gig(gig_id):
+    """Admin blocks a gig (soft delete)"""
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        data = request.json or {}
+
+        if gig.status == 'blocked':
+            return jsonify({'error': 'Gig is already blocked'}), 400
+
+        admin_id = session.get('user_id')
+        block_reason = sanitize_input(data.get('reason', 'Blocked by admin'), max_length=1000)
+
+        gig.status = 'blocked'
+        gig.blocked_at = datetime.utcnow()
+        gig.blocked_by = admin_id
+        gig.block_reason = block_reason
+
+        # Notify gig owner
+        notification = Notification(
+            user_id=gig.client_id,
+            notification_type='admin',
+            title='Gig Blocked by Admin',
+            message=f'Your gig "{gig.title}" has been blocked. Reason: {block_reason}',
+            link=f'/gig/{gig_id}',
+            related_id=gig_id
+        )
+        db.session.add(notification)
+
+        # Log security event
+        from security_logger import log_security_event
+        log_security_event(
+            event_category='content_moderation',
+            event_type='admin_block_gig',
+            severity='high',
+            user_id=admin_id,
+            action='block',
+            resource_type='gig',
+            resource_id=gig_id,
+            status='success',
+            details={
+                'gig_id': gig_id,
+                'reason': block_reason
+            }
+        )
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig blocked successfully',
+            'gig_id': gig_id,
+            'blocked_at': gig.blocked_at.isoformat()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin block gig error: {str(e)}")
+        return jsonify({'error': 'Failed to block gig'}), 500
+
+@app.route('/api/admin/gigs/<int:gig_id>/unblock', methods=['POST'])
+@admin_required
+def admin_unblock_gig(gig_id):
+    """Admin unblocks a gig"""
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+
+        if gig.status != 'blocked':
+            return jsonify({'error': 'Gig is not blocked'}), 400
+
+        admin_id = session.get('user_id')
+
+        # Restore to open status
+        gig.status = 'open'
+        gig.blocked_at = None
+        gig.blocked_by = None
+        gig.block_reason = None
+
+        # Notify gig owner
+        notification = Notification(
+            user_id=gig.client_id,
+            notification_type='admin',
+            title='Gig Unblocked',
+            message=f'Your gig "{gig.title}" has been reviewed and unblocked by an admin.',
+            link=f'/gig/{gig_id}',
+            related_id=gig_id
+        )
+        db.session.add(notification)
+
+        # Log security event
+        from security_logger import log_security_event
+        log_security_event(
+            event_category='content_moderation',
+            event_type='admin_unblock_gig',
+            severity='medium',
+            user_id=admin_id,
+            action='unblock',
+            resource_type='gig',
+            resource_id=gig_id,
+            status='success',
+            details={'gig_id': gig_id}
+        )
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Gig unblocked successfully',
+            'gig_id': gig_id
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin unblock gig error: {str(e)}")
+        return jsonify({'error': 'Failed to unblock gig'}), 500
+
+@app.route('/api/admin/reports', methods=['GET'])
+@admin_required
+def admin_get_reports():
+    """Get all gig reports with filtering options"""
+    try:
+        # Query parameters
+        status = request.args.get('status', '')  # pending, reviewed, dismissed, action_taken
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+
+        query = GigReport.query
+
+        # Filter by status
+        if status:
+            query = query.filter_by(status=status)
+
+        # Order by creation date (newest first)
+        query = query.order_by(GigReport.created_at.desc())
+
+        # Paginate
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+
+        reports = []
+        for report in paginated.items:
+            # Get gig details
+            gig = Gig.query.get(report.gig_id)
+            # Get reporter details
+            reporter = User.query.get(report.reporter_id)
+            # Get reviewer details if reviewed
+            reviewer = User.query.get(report.reviewed_by) if report.reviewed_by else None
+
+            reports.append({
+                'id': report.id,
+                'gig_id': report.gig_id,
+                'gig_title': gig.title if gig else 'Deleted Gig',
+                'gig_status': gig.status if gig else 'deleted',
+                'reporter_id': report.reporter_id,
+                'reporter_name': reporter.full_name or reporter.username if reporter else 'Unknown',
+                'reason': report.reason,
+                'description': report.description,
+                'status': report.status,
+                'reviewed_by': report.reviewed_by,
+                'reviewer_name': reviewer.full_name or reviewer.username if reviewer else None,
+                'reviewed_at': report.reviewed_at.isoformat() if report.reviewed_at else None,
+                'admin_notes': report.admin_notes,
+                'created_at': report.created_at.isoformat()
+            })
+
+        return jsonify({
+            'reports': reports,
+            'total': paginated.total,
+            'page': page,
+            'per_page': per_page,
+            'pages': paginated.pages
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Admin get reports error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve reports'}), 500
+
+@app.route('/api/admin/reports/<int:report_id>', methods=['PUT'])
+@admin_required
+def admin_update_report(report_id):
+    """Admin updates a report status"""
+    try:
+        report = GigReport.query.get_or_404(report_id)
+        data = request.json or {}
+        admin_id = session.get('user_id')
+
+        # Update status
+        new_status = data.get('status', '').strip()
+        valid_statuses = ['pending', 'reviewed', 'dismissed', 'action_taken']
+        if new_status and new_status in valid_statuses:
+            report.status = new_status
+            report.reviewed_by = admin_id
+            report.reviewed_at = datetime.utcnow()
+
+        # Update admin notes
+        if 'admin_notes' in data:
+            report.admin_notes = sanitize_input(data.get('admin_notes', ''), max_length=2000)
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Report updated successfully',
+            'report_id': report_id,
+            'status': report.status
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin update report error: {str(e)}")
+        return jsonify({'error': 'Failed to update report'}), 500
 
 # ==================== BILLING ROUTES ====================
 
