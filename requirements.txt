@@ -20,3 +20,17 @@ twilio
 brevo-python
 pyotp>=2.9.0
 qrcode>=7.4.2
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-cors
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+python-dotenv
+sqlalchemy
+werkzeug
