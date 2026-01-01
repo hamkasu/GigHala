@@ -12630,7 +12630,16 @@ def init_database():
             print(f"Migrated {migrated_count} gigs to use correct category slugs")
 
         # Add sample data if database is empty
-        if User.query.count() == 0:
+        # Try to count users, but skip if table structure is incomplete (migrations pending)
+        try:
+            user_count = User.query.count()
+        except Exception as e:
+            # Database schema might be incomplete (migrations pending)
+            print(f"Database initialization skipped - migrations may be pending: {str(e)}")
+            _db_initialized = True
+            return
+
+        if user_count == 0:
             # Sample users
             sample_user = User(
                 username='demo_freelancer',

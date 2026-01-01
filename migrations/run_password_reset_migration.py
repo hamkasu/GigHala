@@ -7,17 +7,15 @@ Automatically detects database type and applies the appropriate migration
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
-# Add parent directory to path to import app
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from app import app, db
-from sqlalchemy import text, inspect
-
+def get_database_url():
+    """Get the database URL from environment"""
+    return os.environ.get('DATABASE_URL', 'sqlite:///gighala.db')
 
 def get_database_type():
     """Detect the database type from the connection string"""
-    db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+    db_uri = get_database_url()
     if db_uri.startswith('sqlite'):
         return 'sqlite'
     elif 'postgres' in db_uri:
@@ -25,18 +23,56 @@ def get_database_type():
     else:
         return 'unknown'
 
+def get_db_connection():
+    """Get a database connection based on the database type"""
+    db_type = get_database_type()
+    db_uri = get_database_url()
 
-def column_exists(table_name, column_name):
+    if db_type == 'postgresql':
+        import psycopg2
+        # Handle both postgres:// and postgresql:// schemes
+        if db_uri.startswith('postgres://'):
+            db_uri = db_uri.replace('postgres://', 'postgresql://', 1)
+
+        result = urlparse(db_uri)
+        conn = psycopg2.connect(
+            database=result.path[1:],
+            user=result.username,
+            password=result.password,
+            host=result.hostname,
+            port=result.port
+        )
+        return conn, db_type
+    elif db_type == 'sqlite':
+        import sqlite3
+        db_path = db_uri.replace('sqlite:///', '')
+        conn = sqlite3.connect(db_path)
+        return conn, db_type
+    else:
+        return None, db_type
+
+def column_exists(cursor, table_name, column_name, db_type):
     """Check if a column exists in a table"""
-    inspector = inspect(db.engine)
     try:
-        columns = [col['name'] for col in inspector.get_columns(table_name)]
-        return column_name in columns
+        if db_type == 'postgresql':
+            cursor.execute("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = %s
+                    AND column_name = %s
+                )
+            """, (table_name, column_name))
+            return cursor.fetchone()[0]
+        elif db_type == 'sqlite':
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = [row[1] for row in cursor.fetchall()]
+            return column_name in columns
     except Exception:
         return False
 
 
-def run_postgresql_migration():
+def run_postgresql_migration(conn):
     """Run PostgreSQL-specific migration"""
     print("🔧 Running PostgreSQL migration...")
 
@@ -44,32 +80,35 @@ def run_postgresql_migration():
     with open(migration_file, 'r') as f:
         sql = f.read()
 
+    cursor = conn.cursor()
     try:
         # Split and execute statements
         for statement in sql.split(';'):
             statement = statement.strip()
             if statement and not statement.startswith('--'):
                 try:
-                    db.session.execute(text(statement))
-                    db.session.commit()
+                    cursor.execute(statement)
+                    conn.commit()
                 except Exception as e:
                     # Ignore errors if columns already exist
                     if 'already exists' in str(e).lower():
-                        print(f"⚠️  Column already exists, skipping: {str(e)}")
+                        print(f"⚠️  Column already exists, skipping")
                     else:
                         print(f"⚠️  Warning: {str(e)}")
-                    db.session.rollback()
+                    conn.rollback()
 
         print("✅ PostgreSQL migration completed successfully!")
+        cursor.close()
         return True
 
     except Exception as e:
         print(f"❌ Error running PostgreSQL migration: {str(e)}")
-        db.session.rollback()
+        conn.rollback()
+        cursor.close()
         return False
 
 
-def run_sqlite_migration():
+def run_sqlite_migration(conn):
     """Run SQLite-specific migration"""
     print("🔧 Running SQLite migration...")
 
@@ -77,32 +116,35 @@ def run_sqlite_migration():
     with open(migration_file, 'r') as f:
         sql = f.read()
 
+    cursor = conn.cursor()
     try:
         # Split and execute statements
         for statement in sql.split(';'):
             statement = statement.strip()
             if statement and not statement.startswith('--'):
                 try:
-                    db.session.execute(text(statement))
-                    db.session.commit()
+                    cursor.execute(statement)
+                    conn.commit()
                 except Exception as e:
                     # Ignore errors if columns already exist
                     if 'duplicate column' in str(e).lower():
-                        print(f"⚠️  Column already exists, skipping: {str(e)}")
+                        print(f"⚠️  Column already exists, skipping")
                     else:
                         print(f"⚠️  Warning: {str(e)}")
-                    db.session.rollback()
+                    conn.rollback()
 
         print("✅ SQLite migration completed successfully!")
+        cursor.close()
         return True
 
     except Exception as e:
         print(f"❌ Error running SQLite migration: {str(e)}")
-        db.session.rollback()
+        conn.rollback()
+        cursor.close()
         return False
 
 
-def verify_migration():
+def verify_migration(cursor, db_type):
     """Verify that all required columns exist"""
     print("\n🔍 Verifying migration...")
 
@@ -114,7 +156,7 @@ def verify_migration():
 
     for table, columns in required_columns.items():
         for column in columns:
-            if not column_exists(table, column):
+            if not column_exists(cursor, table, column, db_type):
                 print(f"❌ Column '{table}.{column}' is missing")
                 all_good = False
             else:
@@ -137,32 +179,48 @@ def main():
         print("❌ Unknown database type. Please check your DATABASE_URL.")
         return 1
 
+    # Get database connection
+    try:
+        conn, db_type = get_db_connection()
+        if conn is None:
+            print("❌ Could not connect to database.")
+            return 1
+        print(f"✅ Connected to {db_type} database")
+    except Exception as e:
+        print(f"❌ Error connecting to database: {str(e)}")
+        return 1
+
     # Run appropriate migration
     success = False
-    if db_type == 'postgresql':
-        success = run_postgresql_migration()
-    elif db_type == 'sqlite':
-        success = run_sqlite_migration()
+    try:
+        if db_type == 'postgresql':
+            success = run_postgresql_migration(conn)
+        elif db_type == 'sqlite':
+            success = run_sqlite_migration(conn)
 
-    if not success:
-        print("\n❌ Migration failed!")
-        return 1
+        if not success:
+            print("\n❌ Migration failed!")
+            return 1
 
-    # Verify migration
-    if verify_migration():
-        print("\n✅ Migration verified successfully!")
-        print("\n📝 Summary:")
-        print("   - password_reset_token column added to user table")
-        print("   - password_reset_expires column added to user table")
-        print("   - Index created on password_reset_token for faster lookups")
-        print("\n🚀 Your database is ready for password reset functionality!")
-        return 0
-    else:
-        print("\n⚠️  Migration completed with warnings. Some columns may be missing.")
-        return 1
+        # Verify migration
+        cursor = conn.cursor()
+        if verify_migration(cursor, db_type):
+            print("\n✅ Migration verified successfully!")
+            print("\n📝 Summary:")
+            print("   - password_reset_token column added to user table")
+            print("   - password_reset_expires column added to user table")
+            print("   - Index created on password_reset_token for faster lookups")
+            print("\n🚀 Your database is ready for password reset functionality!")
+            cursor.close()
+            return 0
+        else:
+            print("\n⚠️  Migration completed with warnings. Some columns may be missing.")
+            cursor.close()
+            return 1
+    finally:
+        conn.close()
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        exit_code = main()
-        sys.exit(exit_code)
+    exit_code = main()
+    sys.exit(exit_code)
