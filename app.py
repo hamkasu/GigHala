@@ -5610,18 +5610,56 @@ GigHala - Your Trusted Gig Platform
                 """.strip()
 
                 # Send the email
-                email_service.send_single_email(
+                subject = f"New bid received for {gig.title}"
+                success, message, status_code, details = email_service.send_single_email(
                     to_email=client.email,
                     to_name=client.full_name or client.username,
-                    subject=f"New bid received for {gig.title}",
+                    subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
 
-                app.logger.info(f"Sent new bid notification email to client {client.id} for gig {gig.id}")
+                # Log to email audit table
+                email_log = EmailSendLog(
+                    email_type='transactional',
+                    subject=subject,
+                    sender_user_id=None,  # System-generated email
+                    recipient_count=details.get('total_count', 1),
+                    successful_count=details.get('successful_count', 0),
+                    failed_count=details.get('failed_count', 0),
+                    recipient_type='client',
+                    success=success,
+                    error_message=None if success else message,
+                    brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                    failed_recipients=json.dumps(details.get('failed_recipients', []))
+                )
+                db.session.add(email_log)
+                db.session.commit()
+
+                app.logger.info(f"Sent new bid notification email to client {client.id} for gig {gig.id}: {message}")
         except Exception as e:
             # Log error but don't fail the application submission
             app.logger.error(f"Failed to send bid notification email: {str(e)}")
+
+            # Log the failure to audit table
+            try:
+                email_log = EmailSendLog(
+                    email_type='transactional',
+                    subject=f"New bid received for {gig.title}",
+                    sender_user_id=None,
+                    recipient_count=1,
+                    successful_count=0,
+                    failed_count=1,
+                    recipient_type='client',
+                    success=False,
+                    error_message=str(e),
+                    brevo_message_ids=json.dumps([]),
+                    failed_recipients=json.dumps([client.email if client and client.email else 'unknown'])
+                )
+                db.session.add(email_log)
+                db.session.commit()
+            except Exception as log_error:
+                app.logger.error(f"Failed to log email error to database: {str(log_error)}")
 
         return jsonify({'message': 'Application submitted successfully'}), 201
     except Exception as e:
