@@ -1442,6 +1442,100 @@ def verify_phone_otp(user, submitted_code):
 
     return True, "Phone number verified successfully"
 
+def generate_email_verification_token():
+    """Generate a secure random token for email verification"""
+    return secrets.token_urlsafe(32)
+
+def send_verification_email(user_email, token, username):
+    """
+    Send email verification link to user
+    Returns (success, message) tuple
+    """
+    try:
+        verification_url = f"{os.getenv('APP_URL', 'http://localhost:5000')}/verify-email?token={token}"
+
+        subject = "Verify Your GigHala Email Address"
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #2563eb;">Welcome to GigHala!</h2>
+                    <p>Hi {username},</p>
+                    <p>Thank you for registering with GigHala. Please verify your email address to activate your account.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{verification_url}"
+                           style="background-color: #2563eb; color: white; padding: 12px 30px;
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Verify Email Address
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        Or copy and paste this link into your browser:<br>
+                        <a href="{verification_url}">{verification_url}</a>
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        This verification link will expire in 24 hours.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        If you didn't create a GigHala account, please ignore this email.
+                    </p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="color: #999; font-size: 12px;">
+                        GigHala - Halal Gig Economy Platform
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        # Send email using the email service
+        success = email_service.send_email(
+            to_email=user_email,
+            subject=subject,
+            html_content=html_content
+        )
+
+        if success:
+            app.logger.info(f"Verification email sent to {user_email}")
+            return True, "Verification email sent successfully"
+        else:
+            app.logger.error(f"Failed to send verification email to {user_email}")
+            return False, "Failed to send verification email"
+    except Exception as e:
+        app.logger.error(f"Error sending verification email to {user_email}: {str(e)}")
+        return False, f"Error sending email: {str(e)}"
+
+def verify_email_token(token):
+    """
+    Verify email token and mark user as verified
+    Returns (success, message, user) tuple
+    """
+    try:
+        user = User.query.filter_by(email_verification_token=token).first()
+
+        if not user:
+            return False, "Invalid verification token", None
+
+        # Check if token has expired (24 hours)
+        if user.email_verification_expires and datetime.utcnow() > user.email_verification_expires:
+            return False, "Verification link has expired. Please request a new one.", None
+
+        # Check if already verified
+        if user.is_verified:
+            return True, "Email already verified", user
+
+        # Mark user as verified
+        user.is_verified = True
+        user.email_verification_token = None
+        user.email_verification_expires = None
+        db.session.commit()
+
+        app.logger.info(f"Email verified for user {user.username} ({user.email})")
+        return True, "Email verified successfully", user
+    except Exception as e:
+        app.logger.error(f"Error verifying email token: {str(e)}")
+        return False, f"Error verifying email: {str(e)}", None
+
 def send_transaction_sms_notification(phone, message_text):
     """
     Send SMS notification for transaction events
@@ -1837,6 +1931,8 @@ class User(UserMixin, db.Model):
     language = db.Column(db.String(5), default='ms')  # ms (Malay) or en (English)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, default=False)
+    email_verification_token = db.Column(db.String(100))  # Token for email verification
+    email_verification_expires = db.Column(db.DateTime)  # When verification token expires
     halal_verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
@@ -4129,6 +4225,10 @@ def register():
         full_name = sanitize_input(data.get('full_name', ''), max_length=120)
         location = sanitize_input(data.get('location', ''), max_length=100)
 
+        # Generate email verification token
+        verification_token = generate_email_verification_token()
+        verification_expires = datetime.utcnow() + timedelta(hours=24)
+
         # user_type already validated above
         # Create new user with SOCSO compliance fields
         new_user = User(
@@ -4143,7 +4243,10 @@ def register():
             socso_registered=False, # Explicitly set boolean
             socso_consent=bool(socso_consent) if user_type in ['freelancer', 'both'] else False,
             socso_consent_date=datetime.utcnow() if socso_consent else None,
-            socso_data_complete=bool(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False
+            socso_data_complete=bool(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False,
+            email_verification_token=verification_token,
+            email_verification_expires=verification_expires,
+            is_verified=False  # User needs to verify email
         )
 
         db.session.add(new_user)
@@ -4151,6 +4254,13 @@ def register():
 
         session['user_id'] = new_user.id
         session.permanent = True
+
+        # Send verification email
+        try:
+            send_verification_email(new_user.email, verification_token, new_user.username)
+        except Exception as e:
+            # Log the error but don't fail registration
+            app.logger.error(f"Failed to send verification email to {new_user.email}: {str(e)}")
 
         # Reset rate limit on successful registration
         reset_rate_limit(request.remote_addr)
@@ -4170,12 +4280,14 @@ def register():
         )
 
         return jsonify({
-            'message': 'Registration successful',
+            'message': 'Registration successful. Please check your email to verify your account.',
+            'verification_required': True,
             'user': {
                 'id': new_user.id,
                 'username': new_user.username,
                 'email': new_user.email,
-                'user_type': new_user.user_type
+                'user_type': new_user.user_type,
+                'is_verified': new_user.is_verified
             }
         }), 201
     except Exception as e:
@@ -4183,6 +4295,86 @@ def register():
         # Log the error but don't expose details to user
         app.logger.error(f"Registration error: {str(e)}")
         return jsonify({'error': 'Registration failed. Please try again.'}), 500
+
+@app.route('/verify-email', methods=['GET'])
+def verify_email_page():
+    """Handle email verification via GET link"""
+    token = request.args.get('token')
+
+    if not token:
+        return jsonify({'error': 'Verification token is required'}), 400
+
+    success, message, user = verify_email_token(token)
+
+    if success:
+        # Automatically log the user in after verification
+        if user:
+            session['user_id'] = user.id
+            session.permanent = True
+
+        # Redirect to a success page or dashboard
+        return redirect('/?verified=true')
+    else:
+        return redirect(f'/?verification_error={message}')
+
+@app.route('/api/verify-email', methods=['POST'])
+def verify_email_api():
+    """API endpoint for email verification"""
+    try:
+        data = request.json
+        token = data.get('token')
+
+        if not token:
+            return jsonify({'error': 'Verification token is required'}), 400
+
+        success, message, user = verify_email_token(token)
+
+        if success:
+            return jsonify({
+                'message': message,
+                'verified': True,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'is_verified': user.is_verified
+                } if user else None
+            }), 200
+        else:
+            return jsonify({'error': message, 'verified': False}), 400
+    except Exception as e:
+        app.logger.error(f"Email verification error: {str(e)}")
+        return jsonify({'error': 'Verification failed. Please try again.'}), 500
+
+@app.route('/api/resend-verification', methods=['POST'])
+@login_required
+def resend_verification_email():
+    """Resend verification email to user"""
+    try:
+        user = User.query.get(session['user_id'])
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_verified:
+            return jsonify({'message': 'Email already verified'}), 200
+
+        # Generate new verification token
+        token = generate_email_verification_token()
+        user.email_verification_token = token
+        user.email_verification_expires = datetime.utcnow() + timedelta(hours=24)
+        db.session.commit()
+
+        # Send verification email
+        success, message = send_verification_email(user.email, token, user.username)
+
+        if success:
+            return jsonify({'message': 'Verification email sent successfully'}), 200
+        else:
+            return jsonify({'error': message}), 500
+    except Exception as e:
+        app.logger.error(f"Resend verification error: {str(e)}")
+        return jsonify({'error': 'Failed to resend verification email'}), 500
 
 @app.route('/api/login', methods=['POST'])
 @rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30)
