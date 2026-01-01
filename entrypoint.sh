@@ -28,6 +28,12 @@ if [ -f "migrations/apply_payment_gateway_migration.py" ]; then
     python migrations/apply_payment_gateway_migration.py || echo "Warning: Payment gateway migration had warnings"
 fi
 
+# Run password reset migration
+if [ -f "migrations/run_password_reset_migration.py" ]; then
+    echo "Running password reset migration..."
+    python migrations/run_password_reset_migration.py || echo "Warning: Password reset migration had warnings"
+fi
+
 echo ""
 echo "========================================="
 echo "Starting Gunicorn server..."
