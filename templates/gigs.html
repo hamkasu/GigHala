@@ -612,11 +612,13 @@
         // Format budget
         let budgetText = '';
         if (gig.approved_budget) {
-            budgetText = `RM ${gig.approved_budget.toFixed(2)}`;
+            budgetText = `RM${parseFloat(gig.approved_budget).toLocaleString('en-MY', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         } else if (gig.budget_min === gig.budget_max) {
-            budgetText = `RM ${gig.budget_min.toFixed(2)}`;
+            budgetText = `RM${parseFloat(gig.budget_min).toLocaleString('en-MY', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         } else {
-            budgetText = `RM ${gig.budget_min.toFixed(2)} - ${gig.budget_max.toFixed(2)}`;
+            const minStr = parseFloat(gig.budget_min).toLocaleString('en-MY', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            const maxStr = parseFloat(gig.budget_max).toLocaleString('en-MY', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            budgetText = `RM${minStr} - ${maxStr}`;
         }
 
         // Format status
