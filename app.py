@@ -1442,6 +1442,91 @@ def verify_phone_otp(user, submitted_code):
 
     return True, "Phone number verified successfully"
 
+def generate_email_otp():
+    """Generate a 6-digit OTP code for email verification"""
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+def send_email_otp(user_email, otp_code, username):
+    """
+    Send OTP verification email to user
+    Returns (success, message) tuple
+    """
+    try:
+        subject = "Your GigHala Verification Code"
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #2563eb;">Welcome to GigHala!</h2>
+                    <p>Hi {username},</p>
+                    <p>Thank you for registering with GigHala. Please use the verification code below to complete your registration.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; display: inline-block;">
+                            <p style="margin: 0; font-size: 14px; color: #666;">Your verification code is:</p>
+                            <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 8px;">
+                                {otp_code}
+                            </p>
+                        </div>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        This verification code will expire in <strong>10 minutes</strong>.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        For your security, do not share this code with anyone.
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        If you didn't create a GigHala account, please ignore this email.
+                    </p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="color: #999; font-size: 12px;">
+                        GigHala - Halal Gig Economy Platform
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        # Send email using the email service
+        success = email_service.send_single_email(
+            to_email=user_email,
+            to_name=username,
+            subject=subject,
+            html_content=html_content
+        )
+
+        if success:
+            app.logger.info(f"Email OTP sent to {user_email}")
+            return True, "Verification code sent to your email"
+        else:
+            app.logger.error(f"Failed to send email OTP to {user_email}")
+            return False, "Failed to send verification code"
+    except Exception as e:
+        app.logger.error(f"Error sending email OTP to {user_email}: {str(e)}")
+        return False, f"Error sending email: {str(e)}"
+
+def verify_email_otp(user, submitted_code):
+    """
+    Verify OTP code for email verification
+    Returns (success, message) tuple
+    """
+    if not user.email_otp_code:
+        return False, "No verification code found. Please request a new code."
+
+    # Check if code has expired (10 minutes)
+    if user.email_otp_expires and datetime.utcnow() > user.email_otp_expires:
+        return False, "Verification code has expired. Please request a new code."
+
+    # Verify the code
+    if user.email_otp_code != submitted_code:
+        return False, "Invalid verification code. Please try again."
+
+    # Code is valid - mark email as verified
+    user.is_verified = True
+    user.email_otp_code = None
+    user.email_otp_expires = None
+
+    return True, "Email verified successfully"
+
 def generate_email_verification_token():
     """Generate a secure random token for email verification"""
     return secrets.token_urlsafe(32)
@@ -1933,6 +2018,8 @@ class User(UserMixin, db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(100))  # Token for email verification
     email_verification_expires = db.Column(db.DateTime)  # When verification token expires
+    email_otp_code = db.Column(db.String(6))  # OTP code for email verification
+    email_otp_expires = db.Column(db.DateTime)  # When email OTP expires
     halal_verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
@@ -4225,9 +4312,9 @@ def register():
         full_name = sanitize_input(data.get('full_name', ''), max_length=120)
         location = sanitize_input(data.get('location', ''), max_length=100)
 
-        # Generate email verification token
-        verification_token = generate_email_verification_token()
-        verification_expires = datetime.utcnow() + timedelta(hours=24)
+        # Generate email verification OTP
+        email_otp = generate_email_otp()
+        otp_expires = datetime.utcnow() + timedelta(minutes=10)
 
         # user_type already validated above
         # Create new user with SOCSO compliance fields
@@ -4244,8 +4331,8 @@ def register():
             socso_consent=bool(socso_consent) if user_type in ['freelancer', 'both'] else False,
             socso_consent_date=datetime.utcnow() if socso_consent else None,
             socso_data_complete=bool(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False,
-            email_verification_token=verification_token,
-            email_verification_expires=verification_expires,
+            email_otp_code=email_otp,
+            email_otp_expires=otp_expires,
             is_verified=False  # User needs to verify email
         )
 
@@ -4255,9 +4342,9 @@ def register():
         session['user_id'] = new_user.id
         session.permanent = True
 
-        # Send verification email
+        # Send verification OTP email
         try:
-            send_verification_email(new_user.email, verification_token, new_user.username)
+            send_email_otp(new_user.email, email_otp, new_user.username)
         except Exception as e:
             # Log the error but don't fail registration
             app.logger.error(f"Failed to send verification email to {new_user.email}: {str(e)}")
@@ -4280,7 +4367,7 @@ def register():
         )
 
         return jsonify({
-            'message': 'Registration successful. Please check your email to verify your account.',
+            'message': 'Registration successful. A 6-digit verification code has been sent to your email.',
             'verification_required': True,
             'user': {
                 'id': new_user.id,
@@ -4319,7 +4406,7 @@ def verify_email_page():
 
 @app.route('/api/verify-email', methods=['POST'])
 def verify_email_api():
-    """API endpoint for email verification"""
+    """API endpoint for email verification (legacy token-based)"""
     try:
         data = request.json
         token = data.get('token')
@@ -4346,10 +4433,69 @@ def verify_email_api():
         app.logger.error(f"Email verification error: {str(e)}")
         return jsonify({'error': 'Verification failed. Please try again.'}), 500
 
+@app.route('/api/verify-email-otp', methods=['POST'])
+@login_required
+@rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30)
+def verify_email_otp_api():
+    """API endpoint for email OTP verification"""
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if user.is_verified:
+            return jsonify({'message': 'Email already verified', 'verified': True}), 200
+
+        data = request.json
+        submitted_code = data.get('code', '').strip()
+
+        if not submitted_code:
+            return jsonify({'error': 'Verification code is required'}), 400
+
+        # Verify the OTP
+        success, message = verify_email_otp(user, submitted_code)
+
+        if not success:
+            return jsonify({'error': message, 'verified': False}), 400
+
+        # Save to database
+        db.session.commit()
+
+        # Reset rate limit on successful verification
+        reset_rate_limit(request.remote_addr)
+
+        # Log the event
+        security_logger.log_authentication(
+            event_type='email_verified',
+            username=user.username,
+            status='success',
+            message=f'Email verified successfully for user {user.username}',
+            user_id=user.id
+        )
+
+        return jsonify({
+            'message': 'Email verified successfully',
+            'verified': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_verified': user.is_verified
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Email OTP verification error: {str(e)}")
+        return jsonify({'error': 'Failed to verify email'}), 500
+
 @app.route('/api/resend-verification', methods=['POST'])
 @login_required
+@rate_limit(max_attempts=3, window_minutes=60, lockout_minutes=15)
 def resend_verification_email():
-    """Resend verification email to user"""
+    """Resend verification OTP to user"""
     try:
         user = User.query.get(session['user_id'])
 
@@ -4359,22 +4505,25 @@ def resend_verification_email():
         if user.is_verified:
             return jsonify({'message': 'Email already verified'}), 200
 
-        # Generate new verification token
-        token = generate_email_verification_token()
-        user.email_verification_token = token
-        user.email_verification_expires = datetime.utcnow() + timedelta(hours=24)
+        # Generate new OTP
+        email_otp = generate_email_otp()
+        user.email_otp_code = email_otp
+        user.email_otp_expires = datetime.utcnow() + timedelta(minutes=10)
         db.session.commit()
 
-        # Send verification email
-        success, message = send_verification_email(user.email, token, user.username)
+        # Send verification OTP email
+        success, message = send_email_otp(user.email, email_otp, user.username)
 
         if success:
-            return jsonify({'message': 'Verification email sent successfully'}), 200
+            # Reset rate limit on successful send
+            reset_rate_limit(request.remote_addr)
+            return jsonify({'message': 'Verification code sent successfully'}), 200
         else:
             return jsonify({'error': message}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Resend verification error: {str(e)}")
-        return jsonify({'error': 'Failed to resend verification email'}), 500
+        return jsonify({'error': 'Failed to resend verification code'}), 500
 
 @app.route('/api/login', methods=['POST'])
 @rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30)
