@@ -1210,17 +1210,6 @@
                         {% endif %}
                     </div>
                 </a>
-
-                <a href="/verification" class="dashboard-stat {% if user.is_verified %}verified{% else %}unverified{% endif %}" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{{ t('status') if t('status') != 'status' else 'Status' }}</div>
-                    <div class="dashboard-stat-value">
-                        {% if user.is_verified %}
-                        ✓ Verified
-                        {% else %}
-                        ⚠ Unverified
-                        {% endif %}
-                    </div>
-                </a>
             </div>
             {% endif %}
 
