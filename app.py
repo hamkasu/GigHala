@@ -10207,6 +10207,121 @@ def admin_delete_gig(gig_id):
     try:
         gig = Gig.query.get_or_404(gig_id)
 
+        # Get gig owner information before deletion
+        gig_owner = User.query.get(gig.client_id)
+        if gig_owner and gig_owner.email:
+            # Send email notification to gig owner
+            try:
+                subject = "GigHala - Gig Removed Due to Policy Violation"
+                recipient_name = gig_owner.full_name or gig_owner.username
+
+                html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">GigHala</h1>
+    </div>
+
+    <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+        <h2 style="color: #dc2626; margin-top: 0;">Gig Removed - Terms and Conditions Breach</h2>
+
+        <p>Dear {recipient_name},</p>
+
+        <p>We are writing to inform you that your gig "<strong>{gig.title}</strong>" has been removed from GigHala by our administrative team.</p>
+
+        <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #991b1b;">
+                <strong>Reason:</strong> Your gig has breached the terms and conditions of GigHala.
+            </p>
+        </div>
+
+        <p>This action was taken to maintain the integrity and safety of our platform. We take our community guidelines and terms of service very seriously.</p>
+
+        <h3 style="color: #374151; margin-top: 25px;">What happens next?</h3>
+        <ul style="color: #4b5563;">
+            <li>Your gig has been permanently removed from the platform</li>
+            <li>All associated applications and data have been deleted</li>
+            <li>You may create new gigs if they comply with our terms and conditions</li>
+        </ul>
+
+        <p style="margin-top: 25px;">If you believe this action was taken in error, please contact our support team with details about your gig.</p>
+
+        <div style="background: #e0e7ff; padding: 15px; margin: 25px 0; border-radius: 4px; text-align: center;">
+            <p style="margin: 0; color: #3730a3;">
+                <strong>Need Help?</strong><br>
+                Please review our <a href="https://gighala.com/terms" style="color: #4f46e5;">Terms and Conditions</a> to ensure future gigs comply with our policies.
+            </p>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            Thank you for your understanding.<br>
+            The GigHala Team
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #9ca3af; font-size: 12px; margin: 5px 0;">
+            © 2024 GigHala. All rights reserved.
+        </p>
+        <p style="color: #9ca3af; font-size: 12px; margin: 5px 0;">
+            This is an automated notification. Please do not reply to this email.
+        </p>
+    </div>
+</body>
+</html>
+"""
+
+                text_content = f"""
+GigHala - Gig Removed Due to Policy Violation
+
+Dear {recipient_name},
+
+We are writing to inform you that your gig "{gig.title}" has been removed from GigHala by our administrative team.
+
+REASON: Your gig has breached the terms and conditions of GigHala.
+
+This action was taken to maintain the integrity and safety of our platform. We take our community guidelines and terms of service very seriously.
+
+What happens next?
+- Your gig has been permanently removed from the platform
+- All associated applications and data have been deleted
+- You may create new gigs if they comply with our terms and conditions
+
+If you believe this action was taken in error, please contact our support team with details about your gig.
+
+Please review our Terms and Conditions at https://gighala.com/terms to ensure future gigs comply with our policies.
+
+Thank you for your understanding.
+The GigHala Team
+
+---
+© 2024 GigHala. All rights reserved.
+This is an automated notification. Please do not reply to this email.
+"""
+
+                # Send the email
+                email_sent = email_service.send_email(
+                    to_email=gig_owner.email,
+                    to_name=recipient_name,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+
+                if email_sent:
+                    app.logger.info(f"Breach notification email sent to {gig_owner.email} for deleted gig: {gig.title}")
+                else:
+                    app.logger.warning(f"Failed to send breach notification email to {gig_owner.email}")
+
+            except Exception as email_error:
+                # Log the error but don't stop the deletion process
+                app.logger.error(f"Error sending breach notification email: {str(email_error)}")
+
         # Delete gig photos with file cleanup
         gig_photos = GigPhoto.query.filter_by(gig_id=gig_id).all()
         for photo in gig_photos:
