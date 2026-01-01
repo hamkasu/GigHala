@@ -1536,6 +1536,85 @@ def verify_email_token(token):
         app.logger.error(f"Error verifying email token: {str(e)}")
         return False, f"Error verifying email: {str(e)}", None
 
+def send_password_reset_email(user_email, token, username):
+    """
+    Send password reset link to user
+    Returns (success, message) tuple
+    """
+    try:
+        reset_url = f"{os.getenv('APP_URL', 'http://localhost:5000')}/reset-password?token={token}"
+
+        subject = "Reset Your GigHala Password"
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #2563eb;">Password Reset Request</h2>
+                    <p>Hi {username},</p>
+                    <p>We received a request to reset your password for your GigHala account.</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_url}"
+                           style="background-color: #2563eb; color: white; padding: 12px 30px;
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Reset Password
+                        </a>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">
+                        Or copy and paste this link into your browser:<br>
+                        <a href="{reset_url}">{reset_url}</a>
+                    </p>
+                    <p style="color: #666; font-size: 14px;">
+                        This password reset link will expire in 24 hours.
+                    </p>
+                    <p style="color: #d32f2f; font-size: 14px; font-weight: bold;">
+                        If you didn't request a password reset, please ignore this email and your password will remain unchanged.
+                    </p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="color: #999; font-size: 12px;">
+                        GigHala - Halal Gig Economy Platform
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        # Send email using the email service
+        success = email_service.send_email(
+            to_email=user_email,
+            subject=subject,
+            html_content=html_content
+        )
+
+        if success:
+            app.logger.info(f"Password reset email sent to {user_email}")
+            return True, "Password reset email sent successfully"
+        else:
+            app.logger.error(f"Failed to send password reset email to {user_email}")
+            return False, "Failed to send password reset email"
+    except Exception as e:
+        app.logger.error(f"Error sending password reset email to {user_email}: {str(e)}")
+        return False, f"Error sending email: {str(e)}"
+
+def verify_password_reset_token(token):
+    """
+    Verify password reset token
+    Returns (success, message, user) tuple
+    """
+    try:
+        user = User.query.filter_by(password_reset_token=token).first()
+
+        if not user:
+            return False, "Invalid password reset token", None
+
+        # Check if token has expired (24 hours)
+        if user.password_reset_expires and datetime.utcnow() > user.password_reset_expires:
+            return False, "Password reset link has expired. Please request a new one.", None
+
+        return True, "Token is valid", user
+    except Exception as e:
+        app.logger.error(f"Error verifying password reset token: {str(e)}")
+        return False, f"Error verifying token: {str(e)}", None
+
 def send_transaction_sms_notification(phone, message_text):
     """
     Send SMS notification for transaction events
@@ -1933,6 +2012,8 @@ class User(UserMixin, db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(100))  # Token for email verification
     email_verification_expires = db.Column(db.DateTime)  # When verification token expires
+    password_reset_token = db.Column(db.String(100))  # Token for password reset
+    password_reset_expires = db.Column(db.DateTime)  # When password reset token expires
     halal_verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
@@ -4346,6 +4427,23 @@ def verify_email_api():
         app.logger.error(f"Email verification error: {str(e)}")
         return jsonify({'error': 'Verification failed. Please try again.'}), 500
 
+@app.route('/reset-password', methods=['GET'])
+def reset_password_page():
+    """Display password reset form"""
+    token = request.args.get('token')
+
+    if not token:
+        return render_template('reset-password.html', error='Password reset token is required')
+
+    # Verify token is valid
+    success, message, user = verify_password_reset_token(token)
+
+    if not success:
+        return render_template('reset-password.html', error=message)
+
+    # Token is valid, show reset form
+    return render_template('reset-password.html', token=token, email=user.email if user else None)
+
 @app.route('/api/resend-verification', methods=['POST'])
 @login_required
 def resend_verification_email():
@@ -4504,6 +4602,117 @@ def logout():
         return redirect('/')
     # For POST requests (JavaScript calls), return JSON
     return jsonify({'message': 'Logged out successfully'}), 200
+
+# ============================================================================
+# PASSWORD RESET ENDPOINTS
+# ============================================================================
+
+@app.route('/api/forgot-password', methods=['POST'])
+@rate_limit(max_attempts=3, window_minutes=15, lockout_minutes=30)
+def forgot_password():
+    """Request password reset email"""
+    try:
+        data = request.json
+
+        # Validate required fields
+        if not data or not data.get('email'):
+            return jsonify({'error': 'Email is required'}), 400
+
+        # Validate email format
+        try:
+            email_info = validate_email(data['email'], check_deliverability=False)
+            email = email_info.normalized
+        except EmailNotValidError:
+            # Don't reveal whether email exists or not for security
+            return jsonify({'message': 'If an account exists with this email, you will receive password reset instructions.'}), 200
+
+        user = User.query.filter_by(email=email).first()
+
+        # Don't reveal whether user exists or not (security best practice)
+        if not user:
+            app.logger.info(f"Password reset requested for non-existent email: {email}")
+            return jsonify({'message': 'If an account exists with this email, you will receive password reset instructions.'}), 200
+
+        # Don't allow password reset for OAuth users
+        if user.oauth_provider:
+            app.logger.info(f"Password reset attempted for OAuth user: {email}")
+            return jsonify({'message': 'If an account exists with this email, you will receive password reset instructions.'}), 200
+
+        # Generate secure token
+        reset_token = secrets.token_urlsafe(32)
+
+        # Set token expiration (24 hours)
+        user.password_reset_token = reset_token
+        user.password_reset_expires = datetime.utcnow() + timedelta(hours=24)
+        db.session.commit()
+
+        # Send password reset email
+        success, message = send_password_reset_email(user.email, reset_token, user.username)
+
+        if not success:
+            app.logger.error(f"Failed to send password reset email to {email}: {message}")
+
+        # Always return success message (don't reveal if email failed)
+        security_logger.log_authentication(
+            event_type='password_reset_requested',
+            username=user.username,
+            status='success',
+            message=f'Password reset requested for {email}',
+            user_id=user.id
+        )
+
+        return jsonify({'message': 'If an account exists with this email, you will receive password reset instructions.'}), 200
+
+    except Exception as e:
+        app.logger.error(f"Error in forgot_password: {str(e)}")
+        return jsonify({'error': 'An error occurred. Please try again later.'}), 500
+
+@app.route('/api/reset-password', methods=['POST'])
+@rate_limit(max_attempts=5, window_minutes=15, lockout_minutes=30)
+def reset_password():
+    """Reset password using token"""
+    try:
+        data = request.json
+
+        # Validate required fields
+        if not data or not data.get('token') or not data.get('password'):
+            return jsonify({'error': 'Token and password are required'}), 400
+
+        token = data['token']
+        new_password = data['password']
+
+        # Validate password strength
+        is_valid, error_message = validate_password_strength(new_password)
+        if not is_valid:
+            return jsonify({'error': error_message}), 400
+
+        # Verify token
+        success, message, user = verify_password_reset_token(token)
+        if not success:
+            return jsonify({'error': message}), 400
+
+        # Update password
+        user.password_hash = generate_password_hash(new_password)
+        user.password_reset_token = None
+        user.password_reset_expires = None
+        db.session.commit()
+
+        # Log password reset
+        security_logger.log_authentication(
+            event_type='password_reset_completed',
+            username=user.username,
+            status='success',
+            message=f'Password reset completed for {user.email}',
+            user_id=user.id
+        )
+
+        app.logger.info(f"Password reset successful for user {user.username}")
+
+        return jsonify({'message': 'Password reset successfully. You can now log in with your new password.'}), 200
+
+    except Exception as e:
+        app.logger.error(f"Error in reset_password: {str(e)}")
+        return jsonify({'error': 'An error occurred. Please try again later.'}), 500
 
 # ============================================================================
 # TWO-FACTOR AUTHENTICATION (2FA) ENDPOINTS
