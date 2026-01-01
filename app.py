@@ -5258,7 +5258,8 @@ def create_gig():
 @app.route('/api/gigs/<int:gig_id>', methods=['GET'])
 def get_gig(gig_id):
     gig = Gig.query.get_or_404(gig_id)
-    gig.views += 1
+    # Handle None case for views count (existing gigs may have None)
+    gig.views = (gig.views or 0) + 1
     db.session.commit()
     
     client = User.query.get(gig.client_id)
@@ -5338,7 +5339,8 @@ def apply_to_gig(gig_id):
             video_pitch=video_pitch
         )
 
-        gig.applications += 1
+        # Handle None case for applications count (existing gigs may have None)
+        gig.applications = (gig.applications or 0) + 1
 
         db.session.add(application)
         db.session.commit()
