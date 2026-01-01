@@ -138,6 +138,29 @@ class EmailService:
         """Send email to a single recipient"""
         return self.send_bulk_email([(to_email, to_name)], subject, html_content, text_content)
 
+    def send_email(self, to_email, subject, html_content, text_content=None, to_name=None):
+        """
+        Send email to a single recipient (backward compatibility wrapper)
+
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            html_content: HTML email body
+            text_content: Plain text email body (optional)
+            to_name: Recipient name (optional)
+
+        Returns:
+            bool: True if email sent successfully, False otherwise
+        """
+        success, message, status_code, details = self.send_single_email(
+            to_email=to_email,
+            to_name=to_name,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+        return success
+
 
 # Global instance
 email_service = EmailService()
