@@ -223,9 +223,10 @@
     }
 
     .gig-footer {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto 1fr;
         align-items: baseline;
+        gap: 12px;
         padding-top: 16px;
         border-top: 1px solid var(--border);
     }
@@ -241,7 +242,6 @@
         font-size: 12px;
         color: var(--text-gray);
         text-align: right;
-        margin-left: 12px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
