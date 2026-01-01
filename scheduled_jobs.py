@@ -125,36 +125,73 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                     'html': html_content
                 })
 
-            # Send bulk emails
+            # Send emails individually with progress tracking
             if emails_to_send:
-                logger.info(f"Sending {len(emails_to_send)} emails...")
-                success = email_service.send_bulk_email(emails_to_send)
+                total_emails = len(emails_to_send)
+                logger.info(f"Starting to send {total_emails} emails...")
 
-                if success:
-                    # Log the digest send
+                successful_sends = 0
+                failed_sends = 0
+                failed_recipients = []
+
+                for idx, email_data in enumerate(emails_to_send, 1):
+                    try:
+                        # Log progress
+                        logger.info(f"Sending email {idx}/{total_emails} to {email_data['to']}...")
+
+                        # Send individual email
+                        success, message, status_code = email_service.send_single_email(
+                            to_email=email_data['to'],
+                            to_name=None,  # Name is included in the email content
+                            subject=email_data['subject'],
+                            html_content=email_data['html']
+                        )
+
+                        if success:
+                            successful_sends += 1
+                            logger.info(f"✓ Email {idx}/{total_emails} sent successfully to {email_data['to']}")
+                        else:
+                            failed_sends += 1
+                            failed_recipients.append(email_data['to'])
+                            logger.error(f"✗ Email {idx}/{total_emails} failed for {email_data['to']}: {message}")
+
+                    except Exception as e:
+                        failed_sends += 1
+                        failed_recipients.append(email_data['to'])
+                        logger.error(f"✗ Email {idx}/{total_emails} error for {email_data['to']}: {str(e)}")
+
+                # Log final summary
+                logger.info(f"Email sending complete: {successful_sends} succeeded, {failed_sends} failed out of {total_emails} total")
+
+                # Log the digest send
+                if successful_sends > 0:
                     digest_log = EmailDigestLog(
                         digest_type='new_gigs',
                         sent_at=datetime.utcnow(),
-                        recipient_count=len(emails_to_send),
+                        recipient_count=successful_sends,
                         gig_count=len(new_gigs),
-                        success=True
+                        success=True,
+                        error_message=f"Failed: {failed_sends}" if failed_sends > 0 else None
                     )
                     db.session.add(digest_log)
                     db.session.commit()
-                    logger.info(f"Successfully sent {len(emails_to_send)} emails")
+                    logger.info(f"Successfully sent {successful_sends} emails")
                 else:
                     # Log failed attempt
+                    error_msg = f"All {total_emails} emails failed"
+                    if failed_recipients:
+                        error_msg += f". Recipients: {', '.join(failed_recipients[:5])}"
                     digest_log = EmailDigestLog(
                         digest_type='new_gigs',
                         sent_at=datetime.utcnow(),
-                        recipient_count=len(emails_to_send),
+                        recipient_count=0,
                         gig_count=len(new_gigs),
                         success=False,
-                        error_message="Email service returned failure"
+                        error_message=error_msg
                     )
                     db.session.add(digest_log)
                     db.session.commit()
-                    logger.error("Failed to send emails")
+                    logger.error(error_msg)
 
             logger.info("New gigs email digest job completed")
 
