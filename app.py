@@ -5556,6 +5556,73 @@ def apply_to_gig(gig_id):
         db.session.add(application)
         db.session.commit()
 
+        # Send email notification to client
+        try:
+            # Get client and worker information
+            client = User.query.get(gig.client_id)
+            worker = User.query.get(session['user_id'])
+
+            if client and client.email and worker:
+                # Get base URL for links
+                base_url = os.environ.get('BASE_URL', 'https://gighala.com')
+
+                # Render email template
+                html_content = render_template(
+                    'email_new_bid.html',
+                    client_name=client.full_name or client.username,
+                    worker_name=worker.full_name or worker.username,
+                    worker_id=worker.id,
+                    worker_rating=worker.rating or 0,
+                    worker_review_count=worker.review_count or 0,
+                    gig_id=gig.id,
+                    gig_code=gig.gig_code,
+                    gig_title=gig.title,
+                    gig_category=gig.category,
+                    gig_budget_min=gig.budget_min,
+                    gig_budget_max=gig.budget_max,
+                    gig_location=gig.location,
+                    proposed_price=proposed_price,
+                    cover_letter=cover_letter,
+                    base_url=base_url
+                )
+
+                # Prepare plain text version
+                text_content = f"""
+New Bid Received!
+
+Hi {client.full_name or client.username},
+
+{worker.full_name or worker.username} has submitted a bid for your gig.
+
+Gig: {gig.title} ({gig.gig_code})
+Category: {gig.category}
+Your Budget: RM {gig.budget_min} - RM {gig.budget_max}
+Proposed Price: RM {proposed_price if proposed_price else 'Not specified'}
+
+Cover Letter:
+{cover_letter if cover_letter else 'No cover letter provided'}
+
+View all bids: {base_url}/gig/{gig.id}
+View worker profile: {base_url}/profile/{worker.id}
+
+---
+GigHala - Your Trusted Gig Platform
+                """.strip()
+
+                # Send the email
+                email_service.send_single_email(
+                    to_email=client.email,
+                    to_name=client.full_name or client.username,
+                    subject=f"New bid received for {gig.title}",
+                    html_content=html_content,
+                    text_content=text_content
+                )
+
+                app.logger.info(f"Sent new bid notification email to client {client.id} for gig {gig.id}")
+        except Exception as e:
+            # Log error but don't fail the application submission
+            app.logger.error(f"Failed to send bid notification email: {str(e)}")
+
         return jsonify({'message': 'Application submitted successfully'}), 201
     except Exception as e:
         db.session.rollback()

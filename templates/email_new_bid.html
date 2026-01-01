@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Bid Received - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            color: #ffffff;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .alert-box {
+            background-color: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #555555;
+        }
+        .gig-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .gig-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin: 0 0 10px 0;
+        }
+        .gig-code {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        .gig-detail {
+            font-size: 14px;
+            color: #666666;
+            margin: 8px 0;
+        }
+        .gig-detail strong {
+            color: #333333;
+            font-weight: 600;
+        }
+        .bid-section {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .bid-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #333333;
+        }
+        .cover-letter {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .button-secondary {
+            background: #ffffff;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #888888;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 New Bid Received!</h1>
+            <p>A worker has submitted a bid for your gig</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Hi {{ client_name }},
+            </div>
+
+            <div class="alert-box">
+                <strong>Great news!</strong> {{ worker_name }} has submitted a bid for your gig. Review the details below and decide if they're the right fit for your project.
+            </div>
+
+            <!-- Gig Information -->
+            <div class="gig-card">
+                <div class="gig-code">{{ gig_code }}</div>
+                <h2 class="gig-title">{{ gig_title }}</h2>
+                <div class="gig-detail"><strong>Category:</strong> {{ gig_category }}</div>
+                <div class="gig-detail"><strong>Your Budget:</strong> RM {{ gig_budget_min }} - RM {{ gig_budget_max }}</div>
+                {% if gig_location %}
+                <div class="gig-detail"><strong>Location:</strong> {{ gig_location }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Bid Information -->
+            <div class="bid-section">
+                <h3>📋 Bid Details</h3>
+                <div class="gig-detail"><strong>Worker:</strong> {{ worker_name }}</div>
+                {% if worker_rating > 0 %}
+                <div class="gig-detail"><strong>Rating:</strong> ⭐ {{ worker_rating }}/5.0 ({{ worker_review_count }} reviews)</div>
+                {% endif %}
+                {% if proposed_price %}
+                <div class="gig-detail"><strong>Proposed Price:</strong> RM {{ proposed_price }}</div>
+                {% endif %}
+
+                {% if cover_letter %}
+                <h3 style="margin-top: 20px; margin-bottom: 10px; font-size: 14px; color: #333333;">Cover Letter</h3>
+                <div class="cover-letter">{{ cover_letter }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-container">
+                <a href="{{ base_url }}/gig/{{ gig_id }}" class="button">View All Bids</a>
+                <a href="{{ base_url }}/profile/{{ worker_id }}" class="button button-secondary">View Worker Profile</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>You're receiving this email because you posted a gig on GigHala.</p>
+            <p><a href="{{ base_url }}/settings">Manage email preferences</a> | <a href="{{ base_url }}">Visit GigHala</a></p>
+            <p>&copy; 2026 GigHala. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
