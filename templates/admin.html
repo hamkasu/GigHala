@@ -214,6 +214,15 @@
         background: #dc2626;
     }
 
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+    }
+
     .modal-lg {
         max-width: 800px;
     }
@@ -1975,6 +1984,7 @@
                     <td>
                         <div class="action-btns">
                             <button class="btn-sm btn-edit" onclick="editGig(${gig.id})">Edit</button>
+                            <button class="btn-sm btn-delete" onclick="deleteGig(${gig.id}, '${gig.title.replace(/'/g, "\\'")}')">Delete</button>
                         </div>
                     </td>
                 </tr>
@@ -2080,6 +2090,31 @@
     function editGig(gigId) {
         currentEditGigId = gigId;
         document.getElementById('edit-gig-modal').classList.add('active');
+    }
+
+    async function deleteGig(gigId, gigTitle) {
+        if (!confirm(`Are you sure you want to delete the gig "${gigTitle}"?\n\nThis will permanently delete:\n- The gig and all its details\n- All applications\n- All photos and files\n- All reviews and ratings\n- All transactions and escrow records\n- All disputes and messages\n\nThis action CANNOT be undone!`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/gigs/${gigId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Gig deleted successfully');
+                loadGigs(1); // Reload the gigs list
+            } else {
+                alert('Failed to delete gig: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error deleting gig:', error);
+            alert('Error deleting gig: ' + error.message);
+        }
     }
 
     function closeModal(modalId) {
