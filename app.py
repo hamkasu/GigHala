@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, current_user
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -1902,6 +1902,25 @@ class EmailDigestLog(db.Model):
     gig_count = db.Column(db.Integer, default=0)  # Number of gigs included in digest
     success = db.Column(db.Boolean, default=True)  # Whether send was successful
     error_message = db.Column(db.Text)  # Error message if failed
+
+class EmailSendLog(db.Model):
+    """Tracks all email sends for auditing and debugging"""
+    __tablename__ = 'email_send_log'
+    id = db.Column(db.Integer, primary_key=True)
+    email_type = db.Column(db.String(50), nullable=False)  # 'admin_bulk', 'admin_single', 'digest', 'transactional'
+    subject = db.Column(db.String(500))
+    sender_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who sent (if applicable)
+    recipient_count = db.Column(db.Integer, default=0)
+    successful_count = db.Column(db.Integer, default=0)
+    failed_count = db.Column(db.Integer, default=0)
+    recipient_type = db.Column(db.String(50))  # 'all', 'freelancers', 'clients', 'selected'
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    success = db.Column(db.Boolean, default=True)
+    error_message = db.Column(db.Text)
+    brevo_message_ids = db.Column(db.Text)  # JSON array of message IDs from Brevo
+    failed_recipients = db.Column(db.Text)  # JSON array of failed email addresses
+
+    sender = db.relationship('User', foreign_keys=[sender_user_id], backref='sent_emails')
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -9502,26 +9521,51 @@ def admin_send_email():
         # Ensure HTML content has proper line breaks if it's plain text from a textarea
         if '<' not in html_content and '>' not in html_content:
             html_content = html_content.replace('\n', '<br>')
-        
+
         # Send email
-        success, message, status_code = email_service.send_bulk_email(
+        success, message, status_code, details = email_service.send_bulk_email(
             to_emails=to_emails,
             subject=subject,
             html_content=html_content,
             text_content=text_content or None
         )
-        
+
+        # Create database log entry
+        try:
+            email_log = EmailSendLog(
+                email_type='admin_bulk',
+                subject=subject,
+                sender_user_id=current_user.id if current_user and current_user.is_authenticated else None,
+                recipient_count=details.get('total_count', len(users)),
+                successful_count=details.get('successful_count', 0),
+                failed_count=details.get('failed_count', 0),
+                recipient_type=recipient_type,
+                success=success,
+                error_message=message if not success else None,
+                brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                failed_recipients=json.dumps(details.get('failed_recipients', []))
+            )
+            db.session.add(email_log)
+            db.session.commit()
+            app.logger.info(f"[EMAIL_LOG] Created database log entry ID {email_log.id} for email send operation")
+        except Exception as log_error:
+            app.logger.error(f"[EMAIL_LOG] Failed to create database log: {str(log_error)}")
+            # Don't fail the request if logging fails
+            db.session.rollback()
+
         if success:
             # Log the email action
-            app.logger.info(f"Admin sent email to {len(users)} users. Subject: {subject}")
+            app.logger.info(f"Admin sent email to {len(users)} users. Subject: {subject}. Success: {details.get('successful_count', 0)}, Failed: {details.get('failed_count', 0)}")
             return jsonify({
                 'message': message,
                 'recipients_count': len(users),
-                'recipient_type': recipient_type
+                'recipient_type': recipient_type,
+                'successful_count': details.get('successful_count', 0),
+                'failed_count': details.get('failed_count', 0)
             }), 200
         else:
             return jsonify({'error': message}), 500
-            
+
     except Exception as e:
         app.logger.error(f"Admin send email error: {str(e)}")
         return jsonify({'error': f'Failed to send email: {str(e)}'}), 500

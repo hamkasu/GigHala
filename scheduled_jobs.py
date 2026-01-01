@@ -140,7 +140,7 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                         logger.info(f"Sending email {idx}/{total_emails} to {email_data['to']}...")
 
                         # Send individual email
-                        success, message, status_code = email_service.send_single_email(
+                        success, message, status_code, details = email_service.send_single_email(
                             to_email=email_data['to'],
                             to_name=None,  # Name is included in the email content
                             subject=email_data['subject'],
