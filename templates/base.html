@@ -267,6 +267,26 @@
             margin-right: 2px;
         }
 
+        .dashboard-stat.verified {
+            background: #065f46;
+            border-color: #059669;
+        }
+
+        .dashboard-stat.verified:hover {
+            background: #047857;
+            border-color: #10b981;
+        }
+
+        .dashboard-stat.unverified {
+            background: #92400e;
+            border-color: #b45309;
+        }
+
+        .dashboard-stat.unverified:hover {
+            background: #b45309;
+            border-color: #d97706;
+        }
+
         .header-nav {
             display: flex;
             align-items: center;
@@ -1187,6 +1207,17 @@
                         {{ "%.1f"|format(user.rating) }} ⭐
                         {% else %}
                         N/A
+                        {% endif %}
+                    </div>
+                </a>
+
+                <a href="/verification" class="dashboard-stat {% if user.is_verified %}verified{% else %}unverified{% endif %}" style="text-decoration: none;">
+                    <div class="dashboard-stat-label">{{ t('status') if t('status') != 'status' else 'Status' }}</div>
+                    <div class="dashboard-stat-value">
+                        {% if user.is_verified %}
+                        ✓ Verified
+                        {% else %}
+                        ⚠ Unverified
                         {% endif %}
                     </div>
                 </a>

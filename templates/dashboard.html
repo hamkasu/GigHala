@@ -16,6 +16,10 @@
         color: var(--text-dark);
         font-size: 28px;
         margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .welcome-header p {
@@ -199,6 +203,30 @@
         background: #dc2626 !important;
         border-color: #dc2626 !important;
         color: white !important;
+    }
+
+    .verified-badge-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .unverified-badge-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #fef3c7;
+        color: #92400e;
     }
 
     /* Responsive Design for Different Devices */
@@ -705,7 +733,14 @@
 
 {% block content %}
 <div class="welcome-header">
-    <h1>{{ t('welcome_back') }}, {{ user.full_name or user.username }}!</h1>
+    <h1>
+        <span>{{ t('welcome_back') }}, {{ user.full_name or user.username }}!</span>
+        {% if user.is_verified %}
+        <span class="verified-badge-header">✓ Verified</span>
+        {% else %}
+        <span class="unverified-badge-header">⚠ Unverified</span>
+        {% endif %}
+    </h1>
     <p>{{ t('happening_today') }}</p>
 </div>
 

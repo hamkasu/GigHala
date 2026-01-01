@@ -25,6 +25,32 @@
         color: var(--text-dark);
         font-size: 28px;
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .verified-badge-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .unverified-badge-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        background: #fef3c7;
+        color: #92400e;
     }
     .portfolio-grid {
         display: grid;
@@ -212,7 +238,14 @@
 <div class="portfolio-container">
     <div class="page-header">
         <div>
-            <h1>My Portfolio</h1>
+            <h1>
+                <span>My Portfolio</span>
+                {% if user.is_verified %}
+                <span class="verified-badge-header">✓ Verified</span>
+                {% else %}
+                <span class="unverified-badge-header">⚠ Unverified</span>
+                {% endif %}
+            </h1>
             <p style="color: var(--text-gray); margin-top: 4px;">Showcase your best work to attract clients</p>
         </div>
         <button class="btn-primary" onclick="openAddModal()" style="width: auto;">
