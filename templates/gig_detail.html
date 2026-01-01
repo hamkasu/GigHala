@@ -1764,7 +1764,7 @@
         <div class="gig-sidebar">
             <div class="sidebar-card budget-card">
                 <div class="budget-label">{{ t('budget') }}</div>
-                <div class="budget-amount">RM {{ "%.0f"|format(gig.budget_min) }}{% if gig.budget_min != gig.budget_max %} - {{ "%.0f"|format(gig.budget_max) }}{% endif %}</div>
+                <div class="budget-amount">RM{{ "{:,.0f}".format(gig.budget_min) }}{% if gig.budget_min != gig.budget_max %} - {{ "{:,.0f}".format(gig.budget_max) }}{% endif %}</div>
                 {% if gig.budget_min != gig.budget_max %}
                 <div class="budget-range">{{ 'Bergantung kepada skop' if lang == 'ms' else 'Depending on scope' }}</div>
                 {% endif %}

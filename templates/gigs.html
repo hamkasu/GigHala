@@ -225,7 +225,7 @@
     .gig-footer {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: baseline;
         padding-top: 16px;
         border-top: 1px solid var(--border);
     }
@@ -234,11 +234,17 @@
         font-size: 18px;
         font-weight: 700;
         color: var(--primary);
+        white-space: nowrap;
     }
 
     .gig-client {
         font-size: 12px;
         color: var(--text-gray);
+        text-align: right;
+        margin-left: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .load-more-section {
