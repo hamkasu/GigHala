@@ -491,6 +491,8 @@
                         <th>Date</th>
                         <th>Description</th>
                         <th>Amount</th>
+                        <th>Platform Fee</th>
+                        <th>Gateway Fee</th>
                         <th>SOCSO</th>
                         <th>Net Received</th>
                         <th>Type</th>
@@ -824,14 +826,20 @@
                 const tbody = document.getElementById('transactionsBody');
                 tbody.innerHTML = data.map(txn => {
                     const isReceived = txn.type === 'received' || (txn.type !== 'sent' && txn.client_id !== walletData?.user_id);
-                    const socsoAmount = isReceived ? txn.amount * 0.0125 : 0;
-                    const netReceived = isReceived ? txn.amount - socsoAmount : 0;
+
+                    // Calculate fees for received transactions only
+                    const platformFee = isReceived ? txn.amount * 0.10 : 0; // 10% platform fee
+                    const gatewayFee = isReceived ? txn.amount * 0.02 : 0; // 2% gateway processing fee
+                    const socsoAmount = isReceived ? txn.amount * 0.0125 : 0; // 1.25% SOCSO
+                    const netReceived = isReceived ? txn.amount - platformFee - gatewayFee - socsoAmount : 0;
 
                     return `
                     <tr>
                         <td>${new Date(txn.transaction_date || txn.date).toLocaleDateString()}</td>
                         <td>${txn.gig_title ? txn.gig_title : 'Payment for Gig #' + (txn.gig_id || 'N/A')}</td>
                         <td>MYR ${txn.amount.toFixed(2)}</td>
+                        <td>${isReceived ? 'MYR ' + platformFee.toFixed(2) : '-'}</td>
+                        <td>${isReceived ? 'MYR ' + gatewayFee.toFixed(2) : '-'}</td>
                         <td>${isReceived ? 'MYR ' + socsoAmount.toFixed(2) : '-'}</td>
                         <td>${isReceived ? 'MYR ' + netReceived.toFixed(2) : '-'}</td>
                         <td><span class="badge ${txn.type || (txn.client_id === walletData?.user_id ? 'sent' : 'received')}">${txn.type === 'sent' || txn.client_id === walletData?.user_id ? 'Sent' : 'Received'}</span></td>
