@@ -719,7 +719,7 @@
                         <p class="photo-upload-text"><strong>{{ t('click_to_upload') }}</strong> {{ t('drag_photos_here') }}</p>
                         <p class="photo-upload-hint">{{ t('photo_format_hint') }}</p>
                     </div>
-                    <input type="file" id="photoInput" name="photos" multiple accept="image/png,image/jpeg,image/webp" style="display: none;">
+                    <input type="file" id="photoInput" name="photos" multiple accept="image/png,image/jpeg,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;">
                     <div class="photo-previews" id="photoPreviews"></div>
                 </div>
             </div>
@@ -1028,7 +1028,7 @@
                 showAlert('{{ t('max_5_photos') }}', 'error');
                 break;
             }
-            if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+            if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)) {
                 showAlert('{{ t('only_image_formats') }}', 'error');
                 continue;
             }
@@ -1043,7 +1043,7 @@
     });
 
     function handleFiles(files) {
-        const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+        const validTypes = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
         for (let file of files) {
             if (selectedFiles.length >= MAX_FILES) {
