@@ -6629,7 +6629,8 @@ def mark_gig_completed(gig_id):
             commission = calculate_commission(escrow.amount)
             net_amount = escrow.amount - commission
 
-            # Create invoice with 'issued' status (not yet paid)
+            # Create invoice with 'issued' status and auto-submit
+            current_time = datetime.utcnow()
             invoice = Invoice(
                 invoice_number=invoice_number,
                 transaction_id=None,  # Transaction will be created when payment is released
@@ -6643,7 +6644,13 @@ def mark_gig_completed(gig_id):
                 status='issued',  # Invoice is issued but not yet paid
                 payment_method='escrow',
                 payment_reference=escrow.payment_reference,
-                notes=f'Invoice for completed work: {gig.title}'
+                notes=f'Invoice for completed work: {gig.title}',
+                # Auto-submit invoice fields
+                invoice_submitted=True,
+                freelancer_invoice_number=invoice_number,
+                freelancer_invoice_date=current_time,
+                freelancer_submitted_at=current_time,
+                freelancer_invoice_notes='Automatically generated invoice'
             )
             db.session.add(invoice)
             db.session.flush()  # Get invoice ID
@@ -6671,14 +6678,14 @@ def mark_gig_completed(gig_id):
             user_id=gig.client_id,
             notification_type='work_completed',
             title='Work Completed - Invoice Ready',
-            message=f'Freelancer has completed work for: {gig.title}. Invoice #{invoice_info["invoice_number"]} is ready for payment.',
+            message=f'Freelancer has completed work for: {gig.title}. Invoice #{invoice_info["invoice_number"]} has been automatically generated. You can now release payment.',
             link=f'/gig/{gig.id}'
         )
         db.session.add(notification)
         db.session.commit()
 
         return jsonify({
-            'message': 'Work marked as completed! Invoice generated and ready for payment release.',
+            'message': 'Work marked as completed! Invoice automatically generated and submitted. Client can now release payment.',
             'gig': {
                 'id': gig.id,
                 'status': gig.status
