@@ -192,7 +192,7 @@ else:
 
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 # Create uploads directory if it doesn't exist
@@ -796,10 +796,10 @@ TRANSLATIONS = {
         'type_skill_enter': 'Taip kemahiran dan tekan Enter',
         'press_enter_add_skill': 'Tekan Enter untuk menambah setiap kemahiran',
         'reference_photos': 'Gambar Rujukan',
-        'upload_photos_optional': 'Muat Naik Gambar (Pilihan)',
+        'upload_photos_optional': 'Muat Naik Fail (Pilihan)',
         'click_to_upload': 'Klik untuk muat naik',
-        'drag_photos_here': 'atau seret gambar ke sini',
-        'photo_format_hint': 'PNG, JPG atau WEBP (Maksimum 5MB setiap gambar, maksimum 5 gambar)',
+        'drag_photos_here': 'atau seret fail ke sini',
+        'photo_format_hint': 'PNG, JPG, WEBP, PDF atau Word (Maksimum 5MB setiap fail, maksimum 5 fail)',
         'additional_options': 'Pilihan Tambahan',
         'remote_work': 'Kerja Remote',
         'remote_work_desc': 'Freelancer boleh bekerja dari mana-mana',
@@ -816,8 +816,8 @@ TRANSLATIONS = {
         'please_select_category': 'Sila pilih kategori',
         'budget_max_error': 'Budget maksimum mesti lebih besar daripada budget minimum',
         'processing': 'Memproses...',
-        'max_5_photos': 'Maksimum 5 gambar sahaja dibenarkan',
-        'only_image_formats': 'Hanya fail PNG, JPG atau WEBP dibenarkan',
+        'max_5_photos': 'Maksimum 5 fail sahaja dibenarkan',
+        'only_image_formats': 'Hanya fail PNG, JPG, WEBP, PDF atau Word dibenarkan',
         'max_file_size_5mb': 'Saiz fail mesti kurang daripada 5MB',
         
         # Messages & Chat
@@ -1143,10 +1143,10 @@ TRANSLATIONS = {
         'type_skill_enter': 'Type skill and press Enter',
         'press_enter_add_skill': 'Press Enter to add each skill',
         'reference_photos': 'Reference Photos',
-        'upload_photos_optional': 'Upload Photos (Optional)',
+        'upload_photos_optional': 'Upload Files (Optional)',
         'click_to_upload': 'Click to upload',
-        'drag_photos_here': 'or drag photos here',
-        'photo_format_hint': 'PNG, JPG or WEBP (Max 5MB per photo, max 5 photos)',
+        'drag_photos_here': 'or drag files here',
+        'photo_format_hint': 'PNG, JPG, WEBP, PDF or Word (Max 5MB per file, max 5 files)',
         'additional_options': 'Additional Options',
         'remote_work': 'Remote Work',
         'remote_work_desc': 'Freelancer can work from anywhere',
@@ -1163,8 +1163,8 @@ TRANSLATIONS = {
         'please_select_category': 'Please select a category',
         'budget_max_error': 'Maximum budget must be greater than minimum budget',
         'processing': 'Processing...',
-        'max_5_photos': 'Maximum 5 photos allowed',
-        'only_image_formats': 'Only PNG, JPG or WEBP files allowed',
+        'max_5_photos': 'Maximum 5 files allowed',
+        'only_image_formats': 'Only PNG, JPG, WEBP, PDF or Word files allowed',
         'max_file_size_5mb': 'File size must be less than 5MB',
         
         # Messages & Chat
