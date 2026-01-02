@@ -27,6 +27,11 @@
         font-size: 15px;
     }
 
+    .user-email {
+        font-size: 50%;
+        color: var(--text-gray);
+    }
+
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -734,7 +739,7 @@
 {% block content %}
 <div class="welcome-header">
     <h1>
-        <span>{{ t('welcome_back') }}, {{ user.full_name or user.username }} ({{ user.email }})!</span>
+        <span>{{ t('welcome_back') }}, {{ user.full_name or user.username }} <span class="user-email">({{ user.email }})</span>!</span>
         {% if user.is_verified %}
         <span class="verified-badge-header">✓ Verified</span>
         {% else %}
