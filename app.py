@@ -491,6 +491,8 @@ TRANSLATIONS = {
         'submitted_proposals': 'Cadangan dihantar',
         'posted_gigs': 'Gig Disiarkan',
         'total_gigs_created': 'Jumlah gig dicipta',
+        'gigs_in_progress': 'Gig Sedang Berjalan',
+        'currently_active': 'Sedang aktif',
         'total_earned': 'Jumlah Perolehan',
         'all_time_earnings': 'Perolehan sepanjang masa',
         'your_rating': 'Penarafan Anda',
@@ -863,6 +865,8 @@ TRANSLATIONS = {
         'submitted_proposals': 'Submitted proposals',
         'posted_gigs': 'Posted Gigs',
         'total_gigs_created': 'Total gigs created',
+        'gigs_in_progress': 'Gigs In Progress',
+        'currently_active': 'Currently active',
         'total_earned': 'Total Earned',
         'all_time_earnings': 'All-time earnings',
         'your_rating': 'Your Rating',
@@ -3819,6 +3823,15 @@ def dashboard():
                     'date': contribution.created_at
                 })
 
+    # Count gigs in progress (where user is freelancer or client)
+    gigs_in_progress = 0
+    if user.user_type in ['freelancer', 'both']:
+        # Gigs where user is freelancer with in_progress status
+        gigs_in_progress += Gig.query.filter_by(freelancer_id=user_id, status='in_progress').count()
+    if user.user_type in ['client', 'both']:
+        # Gigs where user is client with in_progress status
+        gigs_in_progress += Gig.query.filter_by(client_id=user_id, status='in_progress').count()
+
     return render_template('dashboard.html',
                          user=user,
                          wallet=wallet,
@@ -3834,6 +3847,7 @@ def dashboard():
                          recent_reviews=recent_reviews,
                          recent_invoices=invoices_with_gigs,
                          socso_data=socso_data,
+                         gigs_in_progress=gigs_in_progress,
                          lang=get_user_language(),
                          t=t)
 
