@@ -556,7 +556,27 @@ const app = {
                 // Redirect to personalized dashboard
                 window.location.href = '/dashboard';
             } else {
-                alert('Login gagal: ' + result.error);
+                // Check if this is an OAuth-specific error
+                if (result.oauth_provider === 'google') {
+                    // Show error message
+                    alert('Login gagal: ' + result.error);
+
+                    // Highlight the Google login button
+                    const googleBtn = document.querySelector('.btn-google');
+                    if (googleBtn) {
+                        googleBtn.style.animation = 'pulse 1s ease-in-out 3';
+                        googleBtn.style.border = '2px solid #4285F4';
+                        googleBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                        // Remove highlight after 3 seconds
+                        setTimeout(() => {
+                            googleBtn.style.animation = '';
+                            googleBtn.style.border = '';
+                        }, 3000);
+                    }
+                } else {
+                    alert('Login gagal: ' + result.error);
+                }
             }
         } catch (error) {
             console.error('Login error:', error);

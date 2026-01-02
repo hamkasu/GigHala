@@ -323,6 +323,21 @@ body {
     50% { transform: translate(-30px, -30px) rotate(180deg); }
 }
 
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(66, 133, 244, 0.5);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+    }
+}
+
 .hero .container {
     display: grid;
     grid-template-columns: 1fr 1fr;
