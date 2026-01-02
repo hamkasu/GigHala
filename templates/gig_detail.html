@@ -1735,8 +1735,8 @@
                                 {% elif 'word' in (photo.mime_type or '') or 'document' in (photo.mime_type or '') %}📝
                                 {% else %}📎{% endif %}
                             </div>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="font-weight: 600; color: var(--text-dark); word-break: break-word;">{{ photo.original_filename }}</div>
+                            <div style="flex: 1; min-width: 0; max-width: 100%;">
+                                <div style="font-weight: 600; color: var(--text-dark); overflow-wrap: break-word; word-wrap: break-word;">{{ photo.original_filename }}</div>
                                 <div style="font-size: 12px; color: var(--text-gray);">
                                     {% if photo.file_size %}{{ (photo.file_size / 1024 / 1024)|round(2) }} MB{% endif %}
                                 </div>
