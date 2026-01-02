@@ -8985,7 +8985,7 @@ def create_stripe_checkout_session():
                     'currency': 'myr',
                     'product_data': {
                         'name': f'Escrow for: {gig.title[:50]}',
-                        'description': f'Platform fee: RM{platform_fee:.2f}, Processing: RM{processing_fee:.2f}'
+                        'description': f'Gig Amount: RM{amount:.2f} | Platform Fee: RM{platform_fee:.2f} | Processing Fee: RM{processing_fee:.2f} | Total: RM{total_amount:.2f} | Worker Receives: RM{net_amount:.2f}'
                     },
                     'unit_amount': int(total_amount * 100),
                 },
