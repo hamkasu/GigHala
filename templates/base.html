@@ -991,6 +991,15 @@
             color: rgba(255,255,255,0.8);
         }
 
+        .user-email-bar {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 24px;
+            padding-top: 4px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+        }
+
         /* Auth Bar - Login/Register buttons below date bar */
         .auth-bar {
             background: #1a1a1a;
@@ -1157,6 +1166,11 @@
             <span class="date-separator">:</span>
             <span class="gregorian-date">{{ today_gregorian }}</span>
         </div>
+        {% if user %}
+        <div class="user-email-bar">
+            {{ user.email }}
+        </div>
+        {% endif %}
     </div>
 
     <!-- Auth Bar - Login/Register for guests -->
