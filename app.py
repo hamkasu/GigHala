@@ -1945,6 +1945,14 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return jsonify({'error': 'Unauthorized - Please login'}), 401
+
+        # Verify user still exists in database
+        from models import User
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            return jsonify({'error': 'Session expired - Please login again'}), 401
+
         return f(*args, **kwargs)
     return decorated_function
 
@@ -1955,6 +1963,15 @@ def page_login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect('/')
+
+        # Verify user still exists in database
+        from models import User
+        user = User.query.get(session['user_id'])
+        if not user:
+            session.clear()
+            flash('Sesi anda telah tamat tempoh. Sila log masuk semula.', 'info')
+            return redirect('/')
+
         return f(*args, **kwargs)
     return decorated_function
 
