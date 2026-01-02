@@ -229,7 +229,7 @@
 
     .gig-footer {
         display: grid;
-        grid-template-columns: auto 1fr;
+        grid-template-columns: auto auto 1fr;
         align-items: baseline;
         gap: 12px;
         padding-top: 16px;
@@ -241,6 +241,15 @@
         font-weight: 700;
         color: var(--primary);
         white-space: nowrap;
+    }
+
+    .gig-views {
+        font-size: 12px;
+        color: var(--text-gray);
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .gig-client {
@@ -664,6 +673,7 @@
 
                 <div class="gig-footer">
                     <div class="gig-budget">${budgetText}</div>
+                    <div class="gig-views">👁️ ${gig.views || 0}</div>
                     <div class="gig-client">by ${escapeHtml(gig.client_name)}</div>
                 </div>
             </div>
