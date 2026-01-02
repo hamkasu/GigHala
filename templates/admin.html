@@ -1077,7 +1077,60 @@
             </button>
         </div>
     </div>
-    
+
+    <div class="data-table" style="margin-top: 24px;">
+        <div class="table-header">
+            <h2>Stripe Transaction Mode</h2>
+        </div>
+        <div style="padding: 24px;">
+            <p style="color: var(--text-gray); margin-bottom: 24px;">
+                <strong>⚠️ IMPORTANT:</strong> Switch between test and live modes for Stripe transactions.
+                Test mode uses sandbox keys for testing without real money. Live mode processes actual payments.
+            </p>
+
+            <div id="stripe-mode-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div class="stripe-mode-card" id="mode-test" onclick="selectStripeMode('test')" style="background: var(--bg-white); border: 2px solid var(--border); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 32px;">🧪</span>
+                        <div>
+                            <h3 style="margin: 0; color: var(--text-dark);">Test Mode</h3>
+                            <span style="background: #F59E0B; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px;">SANDBOX</span>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 12px;">Use test API keys for development and testing. No real money is charged.</p>
+                    <div style="font-size: 13px; color: var(--text-light);">
+                        <div>Status: <span id="test-mode-status">⏳ Checking...</span></div>
+                    </div>
+                </div>
+
+                <div class="stripe-mode-card" id="mode-live" onclick="selectStripeMode('live')" style="background: var(--bg-white); border: 2px solid var(--border); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <span style="font-size: 32px;">🔴</span>
+                        <div>
+                            <h3 style="margin: 0; color: var(--text-dark);">Live Mode</h3>
+                            <span style="background: #DC2626; color: white; font-size: 10px; padding: 2px 8px; border-radius: 4px;">PRODUCTION</span>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-gray); font-size: 14px; margin-bottom: 12px;">Use live API keys for real transactions. Real money will be charged.</p>
+                    <div style="font-size: 13px; color: var(--text-light);">
+                        <div>Status: <span id="live-mode-status">⏳ Checking...</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stripe-mode-status" style="padding: 16px; background: var(--bg-light); border-radius: 8px; margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="stripe-mode-status-icon">⏳</span>
+                    <span id="stripe-mode-status-text">Loading current mode...</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveStripeModeSettings()" id="save-stripe-mode-btn" style="display: none;">
+                Save Stripe Mode
+            </button>
+        </div>
+    </div>
+
     <div class="data-table" style="margin-top: 24px;">
         <div class="table-header">
             <h2>Fee Configuration</h2>
@@ -1676,7 +1729,10 @@
             loadSocsoUserTotals();
         }
         else if (tabName === 'messaging') initMessaging();
-        else if (tabName === 'settings') loadSettings();
+        else if (tabName === 'settings') {
+            loadSettings();
+            loadStripeModeSettings();
+        }
     }
 
     function initMessaging() {
@@ -1810,6 +1866,8 @@
 
     let selectedGateway = 'stripe';
     let currentGateway = 'stripe';
+    let selectedStripeMode = 'test';
+    let currentStripeMode = 'test';
 
     async function loadSettings() {
         try {
@@ -1868,21 +1926,21 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ gateway: selectedGateway })
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
                 currentGateway = selectedGateway;
                 document.getElementById('save-gateway-btn').style.display = 'none';
-                document.getElementById('gateway-status-text').textContent = 
+                document.getElementById('gateway-status-text').textContent =
                     `Current gateway: ${currentGateway === 'payhalal' ? 'PayHalal' : 'Stripe'} (saved)`;
-                
+
                 if (currentGateway === 'payhalal') {
                     document.getElementById('current-processing-fee').textContent = '2%';
                 } else {
                     document.getElementById('current-processing-fee').textContent = '2.9% + RM1';
                 }
-                
+
                 showSuccess('Payment gateway updated successfully!');
             } else {
                 showError(data.error || 'Failed to save settings');
@@ -1890,6 +1948,98 @@
         } catch (error) {
             console.error('Error saving settings:', error);
             showError('Failed to save settings');
+        }
+    }
+
+    // Stripe Mode Functions
+    async function loadStripeModeSettings() {
+        try {
+            const response = await fetch('/api/admin/settings/stripe-mode');
+            const data = await response.json();
+
+            currentStripeMode = data.mode || 'test';
+            selectedStripeMode = currentStripeMode;
+
+            // Update status displays
+            document.getElementById('test-mode-status').innerHTML =
+                data.test_configured ? '<strong style="color: #10B981;">✓ Keys Configured</strong>' : '<strong style="color: #EF4444;">✗ Not Configured</strong>';
+            document.getElementById('live-mode-status').innerHTML =
+                data.live_configured ? '<strong style="color: #10B981;">✓ Keys Configured</strong>' : '<strong style="color: #EF4444;">✗ Not Configured</strong>';
+
+            updateStripeModeUI();
+
+            // Update status message
+            const modeLabel = currentStripeMode === 'live' ? 'LIVE (Production)' : 'TEST (Sandbox)';
+            const modeIcon = currentStripeMode === 'live' ? '🔴' : '🧪';
+            document.getElementById('stripe-mode-status-icon').textContent = modeIcon;
+            document.getElementById('stripe-mode-status-text').textContent =
+                `Current mode: ${modeLabel} ${data.current_key_set ? '(configured)' : '(missing keys)'}`;
+
+        } catch (error) {
+            console.error('Error loading Stripe mode:', error);
+            document.getElementById('stripe-mode-status-icon').textContent = '⚠️';
+            document.getElementById('stripe-mode-status-text').textContent = 'Error loading Stripe mode';
+        }
+    }
+
+    function selectStripeMode(mode) {
+        selectedStripeMode = mode;
+        updateStripeModeUI();
+
+        if (selectedStripeMode !== currentStripeMode) {
+            document.getElementById('save-stripe-mode-btn').style.display = 'inline-flex';
+        } else {
+            document.getElementById('save-stripe-mode-btn').style.display = 'none';
+        }
+    }
+
+    function updateStripeModeUI() {
+        document.querySelectorAll('.stripe-mode-card').forEach(card => {
+            card.style.borderColor = 'var(--border)';
+            card.style.boxShadow = 'none';
+        });
+
+        const selectedCard = document.getElementById(`mode-${selectedStripeMode}`);
+        if (selectedCard) {
+            selectedCard.style.borderColor = 'var(--primary)';
+            selectedCard.style.boxShadow = '0 0 0 3px rgba(0, 200, 83, 0.2)';
+        }
+    }
+
+    async function saveStripeModeSettings() {
+        try {
+            // Show confirmation for live mode
+            if (selectedStripeMode === 'live') {
+                if (!confirm('⚠️ WARNING: You are about to switch to LIVE mode.\n\nThis will process REAL transactions with REAL money.\n\nAre you sure you want to continue?')) {
+                    return;
+                }
+            }
+
+            const response = await fetch('/api/admin/settings/stripe-mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: selectedStripeMode })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                currentStripeMode = selectedStripeMode;
+                document.getElementById('save-stripe-mode-btn').style.display = 'none';
+
+                const modeLabel = currentStripeMode === 'live' ? 'LIVE (Production)' : 'TEST (Sandbox)';
+                const modeIcon = currentStripeMode === 'live' ? '🔴' : '🧪';
+                document.getElementById('stripe-mode-status-icon').textContent = modeIcon;
+                document.getElementById('stripe-mode-status-text').textContent =
+                    `Current mode: ${modeLabel} (saved)`;
+
+                showSuccess(`Stripe mode updated to ${modeLabel}!`);
+            } else {
+                showError(data.error || 'Failed to save Stripe mode');
+            }
+        } catch (error) {
+            console.error('Error saving Stripe mode:', error);
+            showError('Failed to save Stripe mode');
         }
     }
 
