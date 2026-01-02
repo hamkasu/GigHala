@@ -4535,7 +4535,11 @@ def login():
         except EmailNotValidError:
             return jsonify({'error': 'Invalid credentials'}), 401
 
+        # Try to find user with normalized email first, then try case-insensitive lookup
         user = User.query.filter_by(email=email).first()
+        if not user:
+            # Try case-insensitive lookup with the original input (lowercased)
+            user = User.query.filter(db.func.lower(User.email) == data['email'].lower().strip()).first()
 
         # Check if user exists but is OAuth-only (no password set)
         if user and not user.password_hash:
