@@ -11543,6 +11543,197 @@ def admin_socso_monthly_report():
         app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Failed to generate SOCSO report'}), 500
 
+@app.route('/api/admin/socso/user-totals', methods=['GET'])
+@admin_required
+def admin_socso_user_totals():
+    """
+    Admin endpoint: Get SOCSO payment totals per user for specified period
+    Supports 1 month, 6 months, or 12 months lookback
+    """
+    try:
+        # Get period parameter (default 1 month)
+        period = request.args.get('period', 1, type=int)
+
+        # Calculate date range
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=period * 30)  # Approximate months
+
+        # Build query
+        query = db.session.query(
+            User.id.label('freelancer_id'),
+            User.full_name,
+            User.ic_number,
+            User.socso_membership_number,
+            User.email,
+            User.phone,
+            db.func.count(SocsoContribution.id).label('transaction_count'),
+            db.func.sum(SocsoContribution.net_earnings).label('total_net_earnings'),
+            db.func.sum(SocsoContribution.socso_amount).label('total_socso'),
+            db.func.sum(SocsoContribution.final_payout).label('total_final_payout'),
+            db.func.bool_and(SocsoContribution.remitted_to_socso).label('all_remitted'),
+            db.func.max(SocsoContribution.remittance_date).label('last_remittance_date')
+        ).join(SocsoContribution, User.id == SocsoContribution.freelancer_id)\
+         .filter(SocsoContribution.created_at >= start_date)\
+         .filter(SocsoContribution.created_at <= end_date)\
+         .group_by(
+            User.id,
+            User.full_name,
+            User.ic_number,
+            User.socso_membership_number,
+            User.email,
+            User.phone
+        ).order_by(
+            db.func.sum(SocsoContribution.socso_amount).desc()
+        )
+
+        results = query.all()
+
+        # Format results
+        totals_data = []
+        for row in results:
+            totals_data.append({
+                'freelancer_id': row.freelancer_id,
+                'full_name': row.full_name,
+                'ic_number': row.ic_number,
+                'socso_membership_number': row.socso_membership_number,
+                'email': row.email,
+                'phone': row.phone,
+                'transaction_count': row.transaction_count,
+                'total_net_earnings': float(row.total_net_earnings or 0),
+                'total_socso': float(row.total_socso or 0),
+                'total_final_payout': float(row.total_final_payout or 0),
+                'all_remitted': row.all_remitted or False,
+                'last_remittance_date': row.last_remittance_date.isoformat() if row.last_remittance_date else None
+            })
+
+        # Calculate grand totals
+        grand_totals = {
+            'total_users': len(totals_data),
+            'total_transactions': sum(r['transaction_count'] for r in totals_data),
+            'total_net_earnings': sum(r['total_net_earnings'] for r in totals_data),
+            'total_socso': sum(r['total_socso'] for r in totals_data),
+            'total_final_payout': sum(r['total_final_payout'] for r in totals_data)
+        }
+
+        return jsonify({
+            'totals': totals_data,
+            'summary': grand_totals,
+            'period': period,
+            'date_range': {
+                'start': start_date.isoformat(),
+                'end': end_date.isoformat()
+            }
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Admin SOCSO user totals error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to load SOCSO user totals'}), 500
+
+@app.route('/api/admin/socso/user-totals/export', methods=['GET'])
+@admin_required
+def admin_socso_user_totals_export():
+    """
+    Admin endpoint: Export SOCSO user totals as CSV
+    """
+    try:
+        # Get period parameter (default 1 month)
+        period = request.args.get('period', 1, type=int)
+
+        # Calculate date range
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=period * 30)
+
+        # Build query
+        query = db.session.query(
+            User.id.label('freelancer_id'),
+            User.full_name,
+            User.ic_number,
+            User.socso_membership_number,
+            User.email,
+            User.phone,
+            db.func.count(SocsoContribution.id).label('transaction_count'),
+            db.func.sum(SocsoContribution.net_earnings).label('total_net_earnings'),
+            db.func.sum(SocsoContribution.socso_amount).label('total_socso'),
+            db.func.sum(SocsoContribution.final_payout).label('total_final_payout'),
+            db.func.bool_and(SocsoContribution.remitted_to_socso).label('all_remitted')
+        ).join(SocsoContribution, User.id == SocsoContribution.freelancer_id)\
+         .filter(SocsoContribution.created_at >= start_date)\
+         .filter(SocsoContribution.created_at <= end_date)\
+         .group_by(
+            User.id,
+            User.full_name,
+            User.ic_number,
+            User.socso_membership_number,
+            User.email,
+            User.phone
+        ).order_by(
+            db.func.sum(SocsoContribution.socso_amount).desc()
+        )
+
+        results = query.all()
+
+        import io
+        import csv
+        from flask import make_response
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # CSV Headers
+        writer.writerow([
+            'IC Number',
+            'SOCSO Membership Number',
+            'Full Name',
+            'Email',
+            'Phone',
+            'Transaction Count',
+            'Total Net Earnings (MYR)',
+            'Total SOCSO (MYR)',
+            'Total Final Payout (MYR)',
+            'All Remitted'
+        ])
+
+        # Data rows
+        total_socso = 0
+        for row in results:
+            total_socso += float(row.total_socso or 0)
+            writer.writerow([
+                row.ic_number,
+                row.socso_membership_number or '',
+                row.full_name,
+                row.email,
+                row.phone,
+                row.transaction_count,
+                f"{float(row.total_net_earnings or 0):.2f}",
+                f"{float(row.total_socso or 0):.2f}",
+                f"{float(row.total_final_payout or 0):.2f}",
+                'Yes' if row.all_remitted else 'No'
+            ])
+
+        # Add summary row
+        writer.writerow([])
+        writer.writerow(['SUMMARY'])
+        writer.writerow(['Total Users', len(results)])
+        writer.writerow(['Total SOCSO Collected (MYR)', f"{total_socso:.2f}"])
+        writer.writerow(['Period (Months)', period])
+
+        # Create response
+        csv_output = output.getvalue()
+        response = make_response(csv_output)
+        filename = f"socso_user_totals_{period}months_{end_date.strftime('%Y%m%d')}.csv"
+
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        response.headers['Content-Type'] = 'text/csv'
+        return response
+
+    except Exception as e:
+        app.logger.error(f"Admin SOCSO user totals export error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export SOCSO user totals'}), 500
+
 @app.route('/api/admin/socso/mark-remitted', methods=['POST'])
 @admin_required
 def admin_mark_socso_remitted():
