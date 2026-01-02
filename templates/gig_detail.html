@@ -1718,14 +1718,36 @@
 
             {% if gig_photos and gig_photos|length > 0 %}
             <div class="gig-section">
-                <h3 class="section-title">{{ 'Gambar Rujukan' if lang == 'ms' else 'Reference Photos' }}</h3>
+                <h3 class="section-title">{{ 'Fail Rujukan' if lang == 'ms' else 'Reference Files' }}</h3>
                 <div class="photo-gallery" id="photoGallery">
                     {% for photo in gig_photos %}
+                    {% if photo.mime_type and photo.mime_type.startswith('image/') %}
                     <div class="photo-item" onclick="openPhotoModal('/uploads/gig_photos/{{ photo.filename }}')">
                         <img src="/uploads/gig_photos/{{ photo.filename }}"
                              alt="{{ photo.original_filename }}"
                              onerror="handleBrokenImage(this)">
                     </div>
+                    {% else %}
+                    <div class="document-item" style="padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-light);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 32px;">
+                                {% if photo.mime_type == 'application/pdf' %}📄
+                                {% elif 'word' in (photo.mime_type or '') or 'document' in (photo.mime_type or '') %}📝
+                                {% else %}📎{% endif %}
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; color: var(--text-dark); word-break: break-word;">{{ photo.original_filename }}</div>
+                                <div style="font-size: 12px; color: var(--text-gray);">
+                                    {% if photo.file_size %}{{ (photo.file_size / 1024 / 1024)|round(2) }} MB{% endif %}
+                                </div>
+                            </div>
+                            <a href="/uploads/gig_photos/{{ photo.filename }}" download="{{ photo.original_filename }}"
+                               style="padding: 8px 16px; background: var(--primary); color: white; border-radius: var(--radius-md); text-decoration: none; font-size: 13px; white-space: nowrap;">
+                                {{ 'Muat Turun' if lang == 'ms' else 'Download' }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
             </div>

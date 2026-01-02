@@ -209,6 +209,24 @@ def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_mime_type(filename):
+    """Get MIME type from filename extension"""
+    if not filename or '.' not in filename:
+        return 'application/octet-stream'
+
+    ext = filename.rsplit('.', 1)[1].lower()
+    mime_types = {
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    }
+    return mime_types.get(ext, 'application/octet-stream')
+
 # Geolocation Helper Functions
 def calculate_distance(lat1, lon1, lat2, lon2):
     """
@@ -2417,6 +2435,7 @@ class GigPhoto(db.Model):
     file_size = db.Column(db.Integer)  # in bytes
     caption = db.Column(db.Text)
     photo_type = db.Column(db.String(50), default='reference')  # reference, example, inspiration
+    mime_type = db.Column(db.String(100))  # MIME type of the file (image/png, application/pdf, etc.)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -2431,6 +2450,7 @@ class GigPhoto(db.Model):
             'file_size': self.file_size,
             'caption': self.caption,
             'photo_type': self.photo_type,
+            'mime_type': self.mime_type,
             'created_at': self.created_at.isoformat()
         }
 
@@ -3347,9 +3367,9 @@ def post_gig():
             # Handle photo uploads
             photos = request.files.getlist('photos')
             if photos:
-                allowed_extensions = {'png', 'jpg', 'jpeg', 'webp'}
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'webp', 'pdf', 'doc', 'docx'}
                 max_size = 5 * 1024 * 1024  # 5MB
-                
+
                 for photo in photos[:5]:  # Max 5 photos
                     if photo and photo.filename:
                         ext = photo.filename.rsplit('.', 1)[-1].lower() if '.' in photo.filename else ''
@@ -3382,7 +3402,8 @@ def post_gig():
                             original_filename=photo.filename,
                             file_path=file_path,
                             file_size=file_size,
-                            photo_type='reference'
+                            photo_type='reference',
+                            mime_type=get_mime_type(photo.filename)
                         )
                         db.session.add(gig_photo)
                 
@@ -5983,7 +6004,8 @@ def upload_gig_photo(gig_id):
             file_path=file_path,
             file_size=file_size,
             caption=caption[:500] if caption else None,  # Limit caption length
-            photo_type=photo_type
+            photo_type=photo_type,
+            mime_type=get_mime_type(original_filename)
         )
 
         db.session.add(gig_photo)
