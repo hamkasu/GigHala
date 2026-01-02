@@ -138,8 +138,8 @@ login_manager.login_view = 'index'
 
 @login_manager.user_loader
 def load_user(user_id):
-    from models import User
-    return User.query.get(int(user_id))
+    # User class is defined later in this file, so we access it from globals
+    return globals()['User'].query.get(int(user_id))
 
 # OAuth Configuration
 oauth = OAuth(app)
@@ -1947,8 +1947,8 @@ def login_required(f):
             return jsonify({'error': 'Unauthorized - Please login'}), 401
 
         # Verify user still exists in database
-        from models import User
-        user = User.query.get(session['user_id'])
+        # User class is defined later in this file, so we access it from globals
+        user = globals()['User'].query.get(session['user_id'])
         if not user:
             session.clear()
             return jsonify({'error': 'Session expired - Please login again'}), 401
@@ -1965,8 +1965,8 @@ def page_login_required(f):
             return redirect('/')
 
         # Verify user still exists in database
-        from models import User
-        user = User.query.get(session['user_id'])
+        # User class is defined later in this file, so we access it from globals
+        user = globals()['User'].query.get(session['user_id'])
         if not user:
             session.clear()
             flash('Sesi anda telah tamat tempoh. Sila log masuk semula.', 'info')
