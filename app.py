@@ -4537,15 +4537,38 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        # Check if user exists and has a password (not OAuth user)
-        if not user or not user.password_hash:
-            # Log failed login attempt (user not found or OAuth user)
+        # Check if user exists but is OAuth-only (no password set)
+        if user and not user.password_hash:
+            # Log failed login attempt (OAuth user trying password login)
             security_logger.log_authentication(
                 event_type='login_failure',
                 username=email,
                 status='failure',
-                message='User not found or OAuth-only user',
-                details={'reason': 'user_not_found' if not user else 'oauth_only_user'}
+                message='OAuth-only user attempted password login',
+                details={'reason': 'oauth_only_user', 'oauth_provider': user.oauth_provider}
+            )
+
+            # Provide helpful error message based on OAuth provider
+            if user.oauth_provider == 'google':
+                return jsonify({
+                    'error': 'This account uses Google login. Please click "Continue with Google" to sign in.',
+                    'oauth_provider': 'google'
+                }), 401
+            else:
+                return jsonify({
+                    'error': f'This account uses {user.oauth_provider} login. Please use the {user.oauth_provider} sign in button.',
+                    'oauth_provider': user.oauth_provider
+                }), 401
+
+        # Check if user doesn't exist
+        if not user:
+            # Log failed login attempt (user not found)
+            security_logger.log_authentication(
+                event_type='login_failure',
+                username=email,
+                status='failure',
+                message='User not found',
+                details={'reason': 'user_not_found'}
             )
             return jsonify({'error': 'Invalid credentials'}), 401
 
