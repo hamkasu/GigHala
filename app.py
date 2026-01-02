@@ -1668,6 +1668,92 @@ def send_transaction_sms_notification(phone, message_text):
         app.logger.error(f"Failed to send transaction SMS to {phone}: {str(e)}")
         return False, f"Failed to send SMS: {str(e)}"
 
+def send_interaction_notification(user, subject, message, html_content=None, text_content=None, sms_message=None):
+    """
+    Send comprehensive notification via email and SMS for client-worker interactions
+
+    Args:
+        user: User object (recipient)
+        subject: Notification subject/title
+        message: Short message for in-app notification
+        html_content: HTML email body (optional, will be auto-generated if not provided)
+        text_content: Plain text email body (optional, will be auto-generated if not provided)
+        sms_message: SMS message (optional, will use message if not provided)
+
+    Returns:
+        dict: Status of email and SMS sending
+    """
+    result = {
+        'email_sent': False,
+        'sms_sent': False,
+        'errors': []
+    }
+
+    # Generate default HTML and text content if not provided
+    if not html_content:
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #2ecc71; color: white; padding: 20px; text-align: center; }}
+                .content {{ padding: 20px; background-color: #f9f9f9; }}
+                .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h2>{subject}</h2>
+                </div>
+                <div class="content">
+                    <p>{message}</p>
+                </div>
+                <div class="footer">
+                    <p>GigHala - Your Trusted Halal Gig Platform</p>
+                    <p>This is an automated notification. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+    if not text_content:
+        text_content = f"{subject}\n\n{message}\n\n---\nGigHala - Your Trusted Halal Gig Platform"
+
+    # Send email if user has email
+    if user and user.email:
+        try:
+            email_service.send_single_email(
+                to_email=user.email,
+                to_name=user.full_name or user.username,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content
+            )
+            result['email_sent'] = True
+            app.logger.info(f"Interaction email sent to user {user.id}: {subject}")
+        except Exception as e:
+            error_msg = f"Failed to send email: {str(e)}"
+            result['errors'].append(error_msg)
+            app.logger.error(f"Failed to send interaction email to user {user.id}: {str(e)}")
+
+    # Send SMS if user has verified phone
+    if user and user.phone and user.phone_verified:
+        try:
+            sms_text = sms_message if sms_message else f"GigHala: {message}"
+            send_transaction_sms_notification(user.phone, sms_text)
+            result['sms_sent'] = True
+            app.logger.info(f"Interaction SMS sent to user {user.id}: {subject}")
+        except Exception as e:
+            error_msg = f"Failed to send SMS: {str(e)}"
+            result['errors'].append(error_msg)
+            app.logger.error(f"Failed to send interaction SMS to user {user.id}: {str(e)}")
+
+    return result
+
 def contains_blocked_contact_info(text):
     """
     Check if message contains phone numbers or email addresses to prevent phishing.
@@ -5931,6 +6017,13 @@ GigHala - Your Trusted Gig Platform
                 )
 
                 app.logger.info(f"Sent new bid notification email to client {client.id} for gig {gig.id}")
+
+                # Send SMS notification to client
+                if client.phone and client.phone_verified:
+                    sms_text = f"GigHala: New bid received from {worker.full_name or worker.username} for '{gig.title}'. Proposed price: RM {proposed_price if proposed_price else 'Not specified'}. View details on your dashboard."
+                    send_transaction_sms_notification(client.phone, sms_text)
+                    app.logger.info(f"Sent new bid SMS to client {client.id} for gig {gig.id}")
+
         except Exception as e:
             # Log error but don't fail the application submission
             app.logger.error(f"Failed to send bid notification email: {str(e)}")
@@ -6454,11 +6547,77 @@ def accept_application(application_id):
 
         db.session.commit()
 
-        # Send SMS notification to freelancer if phone is verified (Phase 1)
+        # Send email and SMS notification to freelancer
         freelancer = User.query.get(application.freelancer_id)
-        if freelancer and freelancer.phone and freelancer.phone_verified:
-            sms_message = f"GigHala: Congratulations! Your application for '{gig.title}' has been accepted. Check your dashboard to start working!"
-            send_transaction_sms_notification(freelancer.phone, sms_message)
+        if freelancer:
+            # Send email notification
+            try:
+                subject = "Application Accepted!"
+                message = f"Congratulations! Your application for '{gig.title}' has been accepted by the client. You can now start working on the project."
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #2ecc71; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>🎉 Application Accepted!</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {freelancer.full_name or freelancer.username},</p>
+                            <p>Great news! Your application for <strong>"{gig.title}"</strong> has been accepted.</p>
+                            <p><strong>Agreed Amount:</strong> RM {gig.agreed_amount if gig.agreed_amount else gig.budget_min}</p>
+                            <p>You can now start working on the project. Check your dashboard for more details and to communicate with the client.</p>
+                            <p>Good luck with your project!</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Application Accepted!
+
+Hi {freelancer.full_name or freelancer.username},
+
+Great news! Your application for "{gig.title}" has been accepted.
+
+Agreed Amount: RM {gig.agreed_amount if gig.agreed_amount else gig.budget_min}
+
+You can now start working on the project. Check your dashboard for more details.
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=freelancer.email,
+                    to_name=freelancer.full_name or freelancer.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent application accepted email to freelancer {freelancer.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send application accepted email: {str(e)}")
+
+            # Send SMS notification if phone is verified
+            if freelancer.phone and freelancer.phone_verified:
+                sms_message = f"GigHala: Congratulations! Your application for '{gig.title}' has been accepted. Check your dashboard to start working!"
+                send_transaction_sms_notification(freelancer.phone, sms_message)
 
         return jsonify({
             'message': 'Application accepted successfully',
@@ -6495,6 +6654,77 @@ def reject_application(application_id):
 
         application.status = 'rejected'
         db.session.commit()
+
+        # Send email and SMS notification to freelancer about rejection
+        freelancer = User.query.get(application.freelancer_id)
+        if freelancer:
+            try:
+                subject = "Application Not Selected"
+                message = f"Thank you for your interest in '{gig.title}'. Unfortunately, your application was not selected this time. Keep applying to other gigs!"
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #3498db; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Application Update</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {freelancer.full_name or freelancer.username},</p>
+                            <p>Thank you for your interest in <strong>"{gig.title}"</strong>.</p>
+                            <p>Unfortunately, your application was not selected for this project. Don't be discouraged! There are many other opportunities available on GigHala.</p>
+                            <p>Keep applying and showcasing your skills. Your next great project is just around the corner!</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Application Update
+
+Hi {freelancer.full_name or freelancer.username},
+
+Thank you for your interest in "{gig.title}".
+
+Unfortunately, your application was not selected for this project. Don't be discouraged! There are many other opportunities available on GigHala.
+
+Keep applying and showcasing your skills!
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=freelancer.email,
+                    to_name=freelancer.full_name or freelancer.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent application rejection email to freelancer {freelancer.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send application rejection email: {str(e)}")
+
+            # Send SMS notification if phone is verified
+            if freelancer.phone and freelancer.phone_verified:
+                sms_text = f"GigHala: Your application for '{gig.title}' was not selected. Keep applying to other opportunities!"
+                send_transaction_sms_notification(freelancer.phone, sms_text)
+                app.logger.info(f"Sent application rejection SMS to freelancer {freelancer.id}")
 
         return jsonify({'message': 'Application rejected successfully'}), 200
 
@@ -6895,6 +7125,82 @@ def submit_work(gig_id):
 
         db.session.commit()
 
+        # Send email and SMS notifications to client about work submission
+        client = User.query.get(gig.client_id)
+        freelancer = User.query.get(gig.freelancer_id)
+
+        if client and freelancer:
+            try:
+                subject = "Work Submitted for Review"
+                message = f"{freelancer.full_name or freelancer.username} has submitted work for '{gig.title}'. Please review and approve or request revisions."
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #2ecc71; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Work Submitted for Review</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {client.full_name or client.username},</p>
+                            <p><strong>{freelancer.full_name or freelancer.username}</strong> has submitted completed work for your gig: <strong>"{gig.title}"</strong></p>
+                            <p><strong>Invoice:</strong> {invoice_number if not existing_invoice else existing_invoice.invoice_number}</p>
+                            <p><strong>Amount:</strong> MYR {amount:.2f}</p>
+                            <p>Please review the submitted work and either approve it or request revisions.</p>
+                            <p>Login to your dashboard to review the work.</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Work Submitted for Review
+
+Hi {client.full_name or client.username},
+
+{freelancer.full_name or freelancer.username} has submitted completed work for "{gig.title}".
+
+Invoice: {invoice_number if not existing_invoice else existing_invoice.invoice_number}
+Amount: MYR {amount:.2f}
+
+Please review the submitted work and either approve it or request revisions.
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=client.email,
+                    to_name=client.full_name or client.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent work submission email to client {client.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send work submission email: {str(e)}")
+
+            # Send SMS notification to client if phone is verified
+            if client.phone and client.phone_verified:
+                sms_text = f"GigHala: {freelancer.full_name or freelancer.username} submitted work for '{gig.title}'. Please review. Invoice: MYR {amount:.2f}"
+                send_transaction_sms_notification(client.phone, sms_text)
+                app.logger.info(f"Sent work submission SMS to client {client.id}")
+
         return jsonify({
             'message': 'Work submitted successfully. Invoice created and shared. Waiting for client review.',
             'gig': {
@@ -6967,6 +7273,83 @@ def approve_work(gig_id):
 
         db.session.commit()
 
+        # Send email and SMS notifications to freelancer about work approval
+        client = User.query.get(gig.client_id)
+
+        if freelancer and client:
+            try:
+                subject = "Work Approved!"
+                message = f"Great news! Your work for '{gig.title}' has been approved by {client.full_name or client.username}. Payment will be released soon."
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #2ecc71; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>🎉 Work Approved!</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {freelancer.full_name or freelancer.username},</p>
+                            <p>Congratulations! Your work for <strong>"{gig.title}"</strong> has been approved by the client.</p>
+                            <p><strong>Project:</strong> {gig.title}</p>
+                            <p><strong>Status:</strong> Completed</p>
+                            {f'<p><strong>Amount:</strong> MYR {invoice.amount:.2f}</p>' if invoice else ''}
+                            <p>The client will release payment soon. You will be notified when the payment is processed.</p>
+                            <p>Thank you for your excellent work!</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Work Approved!
+
+Hi {freelancer.full_name or freelancer.username},
+
+Congratulations! Your work for "{gig.title}" has been approved by the client.
+
+Project: {gig.title}
+Status: Completed
+{f'Amount: MYR {invoice.amount:.2f}' if invoice else ''}
+
+The client will release payment soon. You will be notified when the payment is processed.
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=freelancer.email,
+                    to_name=freelancer.full_name or freelancer.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent work approval email to freelancer {freelancer.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send work approval email: {str(e)}")
+
+            # Send SMS notification to freelancer if phone is verified
+            if freelancer.phone and freelancer.phone_verified:
+                sms_text = f"GigHala: Great news! Your work for '{gig.title}' has been approved. Payment will be released soon!"
+                send_transaction_sms_notification(freelancer.phone, sms_text)
+                app.logger.info(f"Sent work approval SMS to freelancer {freelancer.id}")
+
         return jsonify({
             'message': 'Work approved! Gig marked as completed. Please release payment if escrow is funded.',
             'gig': {
@@ -7022,7 +7405,93 @@ def request_revision(gig_id):
             application.work_submitted = False
             application.work_submission_date = None
 
+        # Create in-app notification for freelancer
+        revision_notification = Notification(
+            user_id=gig.freelancer_id,
+            notification_type='revision_request',
+            title='Revision Requested',
+            message=f'The client has requested revisions for "{gig.title}". Please review the feedback and resubmit.',
+            link=f'/gig/{gig.id}',
+            related_id=gig.id
+        )
+        db.session.add(revision_notification)
+
         db.session.commit()
+
+        # Send email and SMS notifications to freelancer about revision request
+        freelancer = User.query.get(gig.freelancer_id)
+        client = User.query.get(gig.client_id)
+
+        if freelancer and client:
+            try:
+                subject = "Revision Requested"
+                message = f"The client has requested revisions for '{gig.title}'. Please review the feedback and make the necessary changes."
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #f39c12; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .revision-notes {{ background-color: #fff; border-left: 4px solid #f39c12; padding: 15px; margin: 15px 0; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Revision Requested</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {freelancer.full_name or freelancer.username},</p>
+                            <p>The client <strong>{client.full_name or client.username}</strong> has requested revisions for your work on <strong>"{gig.title}"</strong>.</p>
+                            {f'<div class="revision-notes"><strong>Client Feedback:</strong><br>{revision_notes}</div>' if revision_notes else '<p>No specific notes provided. Please contact the client for clarification.</p>'}
+                            <p>Please review the feedback carefully, make the necessary changes, and resubmit your work.</p>
+                            <p>Login to your dashboard to view the details and communicate with the client.</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Revision Requested
+
+Hi {freelancer.full_name or freelancer.username},
+
+The client {client.full_name or client.username} has requested revisions for your work on "{gig.title}".
+
+{f'Client Feedback: {revision_notes}' if revision_notes else 'No specific notes provided. Please contact the client for clarification.'}
+
+Please review the feedback carefully, make the necessary changes, and resubmit your work.
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=freelancer.email,
+                    to_name=freelancer.full_name or freelancer.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent revision request email to freelancer {freelancer.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send revision request email: {str(e)}")
+
+            # Send SMS notification to freelancer if phone is verified
+            if freelancer.phone and freelancer.phone_verified:
+                sms_text = f"GigHala: Revision requested for '{gig.title}'. Please review client feedback and resubmit your work."
+                send_transaction_sms_notification(freelancer.phone, sms_text)
+                app.logger.info(f"Sent revision request SMS to freelancer {freelancer.id}")
 
         return jsonify({
             'message': 'Revision requested. Freelancer has been notified.',
@@ -7613,6 +8082,160 @@ def release_escrow(gig_id):
 
         db.session.commit()
 
+        # Send email notifications to both parties about payment release
+        client = User.query.get(gig.client_id)
+
+        # Email to freelancer about payment received
+        if freelancer:
+            try:
+                subject = "Payment Received!"
+                message = f"Great news! You've received payment for '{gig.title}'. MYR {final_payout_amount:.2f} has been credited to your wallet."
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #27ae60; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .amount {{ font-size: 24px; color: #27ae60; font-weight: bold; margin: 10px 0; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>💰 Payment Received!</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {freelancer.full_name or freelancer.username},</p>
+                            <p>Congratulations! Payment for <strong>"{gig.title}"</strong> has been successfully released.</p>
+                            <div class="amount">MYR {final_payout_amount:.2f}</div>
+                            <p><strong>Breakdown:</strong></p>
+                            <ul>
+                                <li>Gross Amount: MYR {escrow.amount:.2f}</li>
+                                <li>Platform Fee: MYR {escrow.platform_fee:.2f}</li>
+                                {f'<li>SOCSO Contribution: MYR {socso_amount:.2f}</li>' if socso_amount > 0 else ''}
+                                <li><strong>Net Payment: MYR {final_payout_amount:.2f}</strong></li>
+                            </ul>
+                            {f'<p><strong>Receipt Number:</strong> {freelancer_receipt.receipt_number if freelancer_receipt else existing_client_receipt.receipt_number}</p>' if freelancer_receipt or existing_client_receipt else ''}
+                            <p>The amount has been credited to your GigHala wallet. You can withdraw it anytime.</p>
+                            <p>Thank you for your excellent work!</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Payment Received!
+
+Hi {freelancer.full_name or freelancer.username},
+
+Congratulations! Payment for "{gig.title}" has been successfully released.
+
+Amount: MYR {final_payout_amount:.2f}
+
+Breakdown:
+- Gross Amount: MYR {escrow.amount:.2f}
+- Platform Fee: MYR {escrow.platform_fee:.2f}
+{f'- SOCSO Contribution: MYR {socso_amount:.2f}' if socso_amount > 0 else ''}
+- Net Payment: MYR {final_payout_amount:.2f}
+
+{f'Receipt Number: {freelancer_receipt.receipt_number if freelancer_receipt else existing_client_receipt.receipt_number}' if freelancer_receipt or existing_client_receipt else ''}
+
+The amount has been credited to your GigHala wallet.
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=freelancer.email,
+                    to_name=freelancer.full_name or freelancer.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent payment received email to freelancer {freelancer.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send payment received email to freelancer: {str(e)}")
+
+        # Email to client about payment completion
+        if client:
+            try:
+                subject = "Payment Completed"
+                message = f"Payment for '{gig.title}' has been successfully processed. Thank you for using GigHala!"
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #3498db; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .amount {{ font-size: 24px; color: #3498db; font-weight: bold; margin: 10px 0; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>✅ Payment Completed</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {client.full_name or client.username},</p>
+                            <p>Payment for <strong>"{gig.title}"</strong> has been successfully released to {freelancer.full_name or freelancer.username}.</p>
+                            <div class="amount">MYR {escrow.amount:.2f}</div>
+                            {f'<p><strong>Receipt Number:</strong> {client_receipt.receipt_number if client_receipt else existing_client_receipt.receipt_number}</p>' if client_receipt or existing_client_receipt else ''}
+                            <p>Thank you for using GigHala! We hope you had a great experience.</p>
+                            <p>Feel free to post more gigs or leave a review for the freelancer.</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+Payment Completed
+
+Hi {client.full_name or client.username},
+
+Payment for "{gig.title}" has been successfully released to {freelancer.full_name or freelancer.username}.
+
+Amount: MYR {escrow.amount:.2f}
+
+{f'Receipt Number: {client_receipt.receipt_number if client_receipt else existing_client_receipt.receipt_number}' if client_receipt or existing_client_receipt else ''}
+
+Thank you for using GigHala!
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=client.email,
+                    to_name=client.full_name or client.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent payment completed email to client {client.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send payment completed email to client: {str(e)}")
+
         # Send SMS notifications if users have verified phone numbers (Phase 1)
         # Notify freelancer about payment received
         if freelancer and freelancer.phone and freelancer.phone_verified:
@@ -7620,7 +8243,6 @@ def release_escrow(gig_id):
             send_transaction_sms_notification(freelancer.phone, sms_message)
 
         # Notify client about payment completion
-        client = User.query.get(gig.client_id)
         if client and client.phone and client.phone_verified:
             sms_message = f"GigHala: Payment of MYR {escrow.amount:.2f} processed for '{gig.title}'. Thank you!"
             send_transaction_sms_notification(client.phone, sms_message)
@@ -14644,8 +15266,85 @@ def send_message():
         )
         db.session.add(notification)
         db.session.commit()
-        
+
+        # Send email and SMS notifications for new message
         sender = User.query.get(message.sender_id)
+        recipient = User.query.get(other_user_id)
+
+        if sender and recipient:
+            # Get gig context if available
+            gig = Gig.query.get(conv.gig_id) if conv.gig_id else None
+
+            try:
+                subject = f"New Message from {sender.full_name or sender.username}"
+                msg_preview = content[:100] + "..." if len(content) > 100 else content
+
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #3498db; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .message-preview {{ background-color: #fff; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; font-style: italic; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>New Message</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {recipient.full_name or recipient.username},</p>
+                            <p>You have received a new message from <strong>{sender.full_name or sender.username}</strong>{f' regarding "{gig.title}"' if gig else ''}.</p>
+                            <div class="message-preview">{msg_preview}</div>
+                            <p>Login to your dashboard to read and reply to this message.</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Halal Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                text_content = f"""
+New Message
+
+Hi {recipient.full_name or recipient.username},
+
+You have received a new message from {sender.full_name or sender.username}{f' regarding "{gig.title}"' if gig else ''}.
+
+Message Preview:
+{msg_preview}
+
+Login to your dashboard to read and reply.
+
+---
+GigHala - Your Trusted Halal Gig Platform
+                """.strip()
+
+                email_service.send_single_email(
+                    to_email=recipient.email,
+                    to_name=recipient.full_name or recipient.username,
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content
+                )
+                app.logger.info(f"Sent message notification email to user {recipient.id}")
+
+            except Exception as e:
+                app.logger.error(f"Failed to send message notification email: {str(e)}")
+
+            # Send SMS notification if phone is verified
+            if recipient.phone and recipient.phone_verified:
+                sms_text = f"GigHala: New message from {sender.full_name or sender.username}{f' about {gig.title}' if gig else ''}. Login to reply."
+                send_transaction_sms_notification(recipient.phone, sms_text)
+                app.logger.info(f"Sent message notification SMS to user {recipient.id}")
+
         msg_data = message.to_dict()
         msg_data['sender_name'] = sender.full_name or sender.username if sender else 'Unknown'
         msg_data['sender_username'] = sender.username if sender else 'unknown'
