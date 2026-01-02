@@ -275,7 +275,47 @@ PROHIBITED_KEYWORDS = {
         'sake', 'soju', 'cognac', 'brandy', 'tequila', 'cocktail', 'koktail',
         'bar', 'pub', 'nightclub', 'kelab malam', 'brewery', 'kilang bir',
         'liquor store', 'kedai arak', 'wine tasting', 'minuman keras',
-        'alcoholic', 'beralkohol', 'intoxicating', 'memabukkan'
+        'alcoholic', 'beralkohol', 'intoxicating', 'memabukkan',
+        # Beer brands
+        'heineken', 'tiger beer', 'carlsberg', 'guinness', 'corona', 'budweiser',
+        'stella artois', 'heinken', 'tigers beer', 'tiger lager', 'anchor beer',
+        'asahi', 'kirin', 'sapporo', 'hoegaarden', 'erdinger', 'paulaner',
+        'chang beer', 'singha', 'leo beer', 'skol', 'miller', 'coors',
+        'peroni', 'kronenbourg', 'desperados', 'foster', 'becks',
+        # Whiskey/Whisky brands
+        'jack daniels', 'johnnie walker', 'chivas regal', 'jameson', 'glenfiddich',
+        'glenlivet', 'macallan', 'jd whiskey', 'jd whisky', 'black label',
+        'red label', 'blue label', 'gold label', 'green label', 'ballantines',
+        'dewar', 'famous grouse', 'crown royal', 'jim beam', 'makers mark',
+        'wild turkey', 'four roses', 'bulleit', 'lagavulin', 'talisker',
+        # Cognac/Brandy brands
+        'hennessy', 'remy martin', 'martell', 'courvoisier', 'vsop', 'xo cognac',
+        'henny', 'remy', 'napoleon brandy', 'louis xiii', 'camus',
+        # Vodka brands
+        'absolut', 'smirnoff', 'grey goose', 'belvedere', 'ciroc', 'ketel one',
+        'skyy', 'finlandia', 'stolichnaya', 'stoli', 'titos', 'russian standard',
+        # Rum brands
+        'bacardi', 'captain morgan', 'havana club', 'malibu', 'kraken', 'sailor jerry',
+        'mount gay', 'appleton', 'goslings', 'diplomatico', 'ron zacapa',
+        # Tequila brands
+        'jose cuervo', 'patron', 'don julio', 'casamigos', '1800 tequila',
+        'sauza', 'espolon', 'herradura', 'clase azul', 'olmeca',
+        # Gin brands
+        'bombay sapphire', 'tanqueray', 'gordon', 'hendricks', 'beefeater',
+        'plymouth', 'aviation', 'monkey 47', 'sipsmith', 'botanist',
+        # Wine brands
+        'yellowtail', 'barefoot wine', 'gallo', 'beringer', 'jacob creek',
+        'penfolds', 'chateau', 'bordeaux', 'chianti', 'chardonnay', 'cabernet',
+        'sauvignon', 'merlot', 'pinot noir', 'riesling', 'moscato', 'prosecco',
+        # Liqueur brands
+        'baileys', 'kahlua', 'amaretto', 'jagermeister', 'campari', 'aperol',
+        'cointreau', 'grand marnier', 'sambuca', 'frangelico', 'benedictine',
+        'drambuie', 'southern comfort', 'fireball', 'pimms',
+        # Local/Regional brands
+        'montoku', 'lihing', 'langkau', 'brem', 'tuak manis',
+        # General alcohol terms
+        'spirits', 'hard liquor', 'booze', 'alcoholic beverage', 'minuman beralkohol',
+        'wine bar', 'cocktail bar', 'whisky bar', 'liquor license', 'lesen arak'
     ],
 
     # Gambling & Betting (القمار)
