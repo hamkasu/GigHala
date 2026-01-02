@@ -732,6 +732,15 @@
 {% endblock %}
 
 {% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; font-size: 14px; {% if category == 'success' %}background: #D1FAE5; color: #059669; border: 1px solid #A7F3D0;{% elif category == 'error' %}background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA;{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 <div class="welcome-header">
     <h1>
         <span>{{ t('welcome_back') }}, {{ user.full_name or user.username }}</span>
