@@ -4,6 +4,7 @@ import requests
 from flask import Blueprint, redirect, request, url_for
 from flask_login import login_user, logout_user
 from oauthlib.oauth2 import WebApplicationClient
+from email_validator import validate_email, EmailNotValidError
 
 def setup_google_oauth(app, db):
     """Setup Google OAuth blueprint. Call this from main app after app is initialized."""
@@ -87,11 +88,17 @@ def setup_google_oauth(app, db):
         
         userinfo = userinfo_response.json()
         if userinfo.get("email_verified"):
-            users_email = userinfo["email"]
+            # Normalize email to ensure consistency with regular login/registration
+            try:
+                email_info = validate_email(userinfo["email"], check_deliverability=False)
+                users_email = email_info.normalized
+            except EmailNotValidError:
+                return "Invalid email address from Google OAuth.", 400
+
             users_name = userinfo.get("given_name", userinfo.get("name", "User"))
         else:
             return "User email not available or not verified by Google.", 400
-        
+
         user = User.query.filter_by(email=users_email).first()
         if not user:
             user = User(username=users_name, email=users_email, oauth_provider='google', oauth_id=userinfo['sub'])

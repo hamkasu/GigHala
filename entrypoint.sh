@@ -34,6 +34,12 @@ if [ -f "migrations/run_password_reset_migration.py" ]; then
     python migrations/run_password_reset_migration.py || echo "Warning: Password reset migration had warnings"
 fi
 
+# Run email normalization migration
+if [ -f "migrations/014_normalize_user_emails.py" ]; then
+    echo "Running email normalization migration..."
+    python migrations/014_normalize_user_emails.py || echo "Warning: Email normalization migration had warnings"
+fi
+
 echo ""
 echo "========================================="
 echo "Starting Gunicorn server..."
