@@ -907,7 +907,7 @@
     }
 
     .applications-card {
-        max-height: 500px;
+        max-height: 800px;
         overflow-y: auto;
     }
 
@@ -1039,7 +1039,12 @@
         color: var(--text-gray);
         line-height: 1.5;
         margin-bottom: 8px;
-        padding: 8px 0;
+        padding: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .applicant-message strong {
@@ -1887,7 +1892,7 @@
                         {% endif %}
                         {% if app.cover_letter %}
                         <div class="applicant-message">
-                            <strong>{{ 'Surat Permohonan:' if lang == 'ms' else 'Cover Letter:' }}</strong> {{ app.cover_letter[:150] }}{% if app.cover_letter|length > 150 %}...{% endif %}
+                            <strong>{{ 'Surat Permohonan:' if lang == 'ms' else 'Cover Letter:' }}</strong> {{ app.cover_letter }}
                         </div>
                         {% endif %}
                         <div class="application-date">{{ app.created_at.strftime('%d %b %Y') }}</div>
