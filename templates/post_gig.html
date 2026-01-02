@@ -906,14 +906,29 @@
 
     // HALAL COMPLIANCE VALIDATION - Prohibited keywords (subset for client-side checking)
     const prohibitedKeywords = [
+        // Alcohol - general terms
         'alcohol', 'alkohol', 'beer', 'bir', 'wine', 'wain', 'whiskey', 'vodka', 'rum', 'arak',
+        // Alcohol - popular brands
+        'heineken', 'tiger beer', 'carlsberg', 'guinness', 'corona', 'budweiser', 'stella artois',
+        'jack daniels', 'johnnie walker', 'chivas regal', 'jameson', 'hennessy', 'remy martin',
+        'absolut', 'smirnoff', 'grey goose', 'bacardi', 'captain morgan', 'jose cuervo', 'patron',
+        'bombay sapphire', 'tanqueray', 'baileys', 'jagermeister', 'black label', 'red label',
+        'anchor beer', 'asahi', 'kirin', 'chang beer', 'singha',
+        // Gambling
         'gambling', 'judi', 'casino', 'kasino', 'betting', 'pertaruhan', 'lottery', 'loteri',
+        // Pork
         'pork', 'babi', 'pig', 'ham', 'bacon',
+        // Adult content
         'porn', 'porno', 'pornography', 'pornografi', 'sex', 'seks', 'xxx', 'escort', 'prostitution',
+        // Riba
         'interest', 'faedah', 'riba', 'usury', 'loan shark', 'along', 'ah long',
+        // Fraud
         'scam', 'penipuan', 'fraud', 'ponzi', 'pyramid scheme',
+        // Drugs
         'drugs', 'dadah', 'marijuana', 'ganja', 'cocaine', 'heroin', 'syabu',
+        // Tobacco
         'cigarette', 'rokok', 'tobacco', 'tembakau', 'vape', 'vaping',
+        // Occult
         'black magic', 'sihir', 'bomoh', 'dukun', 'fortune telling', 'ramalan nasib'
     ];
 
