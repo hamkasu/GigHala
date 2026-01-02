@@ -34,7 +34,54 @@ import io
 import base64
 import random
 
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+# Stripe configuration - will be set dynamically based on mode
+def get_stripe_keys():
+    """Get Stripe keys based on the current mode setting"""
+    from models import get_site_setting
+
+    # Get the mode from site settings (default to 'test' for safety)
+    stripe_mode = get_site_setting('stripe_mode', 'test')
+
+    if stripe_mode == 'live':
+        # Use live keys
+        secret_key = os.environ.get('STRIPE_LIVE_SECRET_KEY')
+        publishable_key = os.environ.get('STRIPE_LIVE_PUBLISHABLE_KEY')
+        webhook_secret = os.environ.get('STRIPE_LIVE_WEBHOOK_SECRET')
+    else:
+        # Use test keys (default)
+        secret_key = os.environ.get('STRIPE_TEST_SECRET_KEY')
+        publishable_key = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
+        webhook_secret = os.environ.get('STRIPE_TEST_WEBHOOK_SECRET')
+
+    # Fallback to legacy keys if specific mode keys not set
+    if not secret_key:
+        secret_key = os.environ.get('STRIPE_SECRET_KEY')
+    if not publishable_key:
+        publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+    if not webhook_secret:
+        webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+    return {
+        'secret_key': secret_key,
+        'publishable_key': publishable_key,
+        'webhook_secret': webhook_secret,
+        'mode': stripe_mode
+    }
+
+def init_stripe():
+    """Initialize Stripe with the appropriate keys"""
+    try:
+        keys = get_stripe_keys()
+        stripe.api_key = keys['secret_key']
+        return keys
+    except:
+        # Fallback for initial setup before DB is ready
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
+        return None
+
+# Initialize Stripe (will use legacy key initially, then switch to mode-based after DB is ready)
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
+
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
 
@@ -8900,6 +8947,9 @@ def escrow_page():
 def create_stripe_checkout_session():
     """Create a Stripe Checkout session for escrow funding"""
     try:
+        # Initialize Stripe with the correct mode keys
+        init_stripe()
+
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
         
@@ -9036,12 +9086,15 @@ def stripe_checkout_success():
     """Handle successful Stripe checkout redirect"""
     session_id = request.args.get('session_id')
     gig_id = request.args.get('gig_id')
-    
+
     if not session_id:
         flash('Payment session not found', 'error')
         return redirect('/escrow')
-    
+
     try:
+        # Initialize Stripe with the correct mode keys
+        init_stripe()
+
         # Retrieve the session from Stripe
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         
@@ -9251,10 +9304,21 @@ def stripe_webhook():
 @app.route('/api/stripe/config')
 def stripe_config():
     """Return Stripe publishable key for frontend"""
-    publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+    # Initialize Stripe with the correct mode keys
+    keys = init_stripe()
+
+    if keys:
+        publishable_key = keys['publishable_key']
+        mode = keys['mode']
+    else:
+        # Fallback to legacy key
+        publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+        mode = 'unknown'
+
     return jsonify({
         'publishable_key': publishable_key,
-        'configured': bool(publishable_key and stripe.api_key)
+        'configured': bool(publishable_key and stripe.api_key),
+        'mode': mode
     })
 
 
@@ -13483,6 +13547,71 @@ def set_payment_gateway_setting():
         db.session.rollback()
         app.logger.error(f"Set payment gateway error: {str(e)}")
         return jsonify({'error': 'Failed to set payment gateway'}), 500
+
+@app.route('/api/admin/settings/stripe-mode', methods=['GET'])
+@admin_required
+def get_stripe_mode_setting():
+    """Get current Stripe mode setting (test/live)"""
+    try:
+        mode = get_site_setting('stripe_mode', 'test')
+
+        # Check if keys are configured for both modes
+        test_configured = bool(
+            os.environ.get('STRIPE_TEST_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY')
+        )
+        live_configured = bool(os.environ.get('STRIPE_LIVE_SECRET_KEY'))
+
+        # Get current Stripe keys info
+        keys = get_stripe_keys()
+
+        return jsonify({
+            'mode': mode,
+            'test_configured': test_configured,
+            'live_configured': live_configured,
+            'current_key_set': bool(keys['secret_key'])
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get Stripe mode error: {str(e)}")
+        return jsonify({'error': 'Failed to get Stripe mode setting'}), 500
+
+@app.route('/api/admin/settings/stripe-mode', methods=['POST'])
+@admin_required
+def set_stripe_mode_setting():
+    """Set Stripe mode (test/live)"""
+    try:
+        data = request.get_json()
+        mode = data.get('mode')
+
+        if mode not in ['test', 'live']:
+            return jsonify({'error': 'Invalid mode. Must be test or live'}), 400
+
+        # Check if keys are configured for the selected mode
+        if mode == 'live':
+            if not os.environ.get('STRIPE_LIVE_SECRET_KEY'):
+                return jsonify({'error': 'Live mode keys are not configured. Please set STRIPE_LIVE_SECRET_KEY and STRIPE_LIVE_PUBLISHABLE_KEY in environment variables.'}), 400
+        else:
+            if not (os.environ.get('STRIPE_TEST_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY')):
+                return jsonify({'error': 'Test mode keys are not configured. Please set STRIPE_TEST_SECRET_KEY and STRIPE_TEST_PUBLISHABLE_KEY in environment variables.'}), 400
+
+        user_id = session.get('user_id')
+        set_site_setting(
+            'stripe_mode',
+            mode,
+            description=f'Stripe mode set to {mode}',
+            user_id=user_id
+        )
+
+        # Reinitialize Stripe with new mode
+        init_stripe()
+
+        return jsonify({
+            'message': f'Stripe mode set to {mode}',
+            'mode': mode
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Set Stripe mode error: {str(e)}")
+        return jsonify({'error': 'Failed to set Stripe mode'}), 500
 
 @app.route('/api/admin/master-reset', methods=['POST'])
 @admin_required
