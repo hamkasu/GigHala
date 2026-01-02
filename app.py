@@ -70,11 +70,16 @@ if not app.secret_key:
     app.secret_key = secrets.token_hex(32)
     print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET environment variable in production!")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///gighala.db')
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql+psycopg2://', 1)
-elif app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgresql://'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgresql://', 'postgresql+psycopg2://', 1)
+# Handle DATABASE_URL - use 'or' to catch both None and empty string
+database_url = os.environ.get('DATABASE_URL') or 'sqlite:///gighala.db'
+
+# Convert postgres:// to postgresql+psycopg2:// for SQLAlchemy compatibility
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+elif database_url.startswith('postgresql://'):
+    database_url = database_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Secure session configuration for OAuth
