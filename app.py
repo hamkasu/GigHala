@@ -12932,6 +12932,1247 @@ def complete_gig_transaction(gig_id):
         app.logger.error(f"Complete gig transaction error: {str(e)}")
         return jsonify({'error': 'Failed to complete transaction'}), 500
 
+# ============================================================================
+# EXPORT ENDPOINTS - Transactions, Invoices, Payouts
+# ============================================================================
+
+@app.route('/api/billing/transactions/export', methods=['GET'])
+@login_required
+def export_transactions():
+    """Export user's transactions to CSV or Excel"""
+    try:
+        import io
+        import csv
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment
+        from flask import make_response
+
+        user_id = session['user_id']
+        export_format = request.args.get('format', 'csv')  # csv or excel
+        transaction_type = request.args.get('type', 'all')
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+        app.logger.info(f"Export transactions - user_id={user_id}, format={export_format}, type={transaction_type}")
+
+        # Build query
+        if transaction_type == 'sent':
+            query = Transaction.query.filter_by(client_id=user_id)
+        elif transaction_type == 'received':
+            query = Transaction.query.filter_by(freelancer_id=user_id)
+        else:
+            query = Transaction.query.filter(
+                (Transaction.client_id == user_id) | (Transaction.freelancer_id == user_id)
+            )
+
+        # Apply date filters
+        if start_date:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.filter(Transaction.transaction_date >= start_dt)
+        if end_date:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(Transaction.transaction_date <= end_dt)
+
+        transactions = query.order_by(Transaction.transaction_date.desc()).all()
+
+        if export_format == 'excel':
+            # Create Excel workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = 'Transactions'
+
+            # Header styling
+            header_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+            header_font = Font(bold=True, color='FFFFFF')
+
+            # Headers
+            headers = ['Date', 'Transaction ID', 'Gig', 'Client', 'Freelancer',
+                      'Amount (MYR)', 'Commission (MYR)', 'Net Amount (MYR)',
+                      'SOCSO (MYR)', 'Payment Method', 'Status', 'Type']
+            ws.append(headers)
+
+            # Style header row
+            for cell in ws[1]:
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            # Data rows
+            for t in transactions:
+                gig = Gig.query.get(t.gig_id)
+                client = User.query.get(t.client_id)
+                freelancer = User.query.get(t.freelancer_id)
+
+                ws.append([
+                    t.transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    str(t.id),
+                    gig.title if gig else 'N/A',
+                    client.full_name or client.username if client else 'N/A',
+                    freelancer.full_name or freelancer.username if freelancer else 'N/A',
+                    float(t.amount),
+                    float(t.commission),
+                    float(t.net_amount),
+                    float(t.socso_amount or 0),
+                    t.payment_method or 'N/A',
+                    t.status,
+                    'Sent' if t.client_id == user_id else 'Received'
+                ])
+
+            # Adjust column widths
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+
+            # Save to BytesIO
+            excel_file = io.BytesIO()
+            wb.save(excel_file)
+            excel_file.seek(0)
+
+            response = make_response(excel_file.read())
+            filename = f"transactions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            return response
+
+        else:  # CSV format
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # Headers
+            writer.writerow(['Date', 'Transaction ID', 'Gig', 'Client', 'Freelancer',
+                           'Amount (MYR)', 'Commission (MYR)', 'Net Amount (MYR)',
+                           'SOCSO (MYR)', 'Payment Method', 'Status', 'Type'])
+
+            # Data rows
+            for t in transactions:
+                gig = Gig.query.get(t.gig_id)
+                client = User.query.get(t.client_id)
+                freelancer = User.query.get(t.freelancer_id)
+
+                writer.writerow([
+                    t.transaction_date.strftime('%Y-%m-%d %H:%M:%S'),
+                    t.id,
+                    gig.title if gig else 'N/A',
+                    client.full_name or client.username if client else 'N/A',
+                    freelancer.full_name or freelancer.username if freelancer else 'N/A',
+                    f"{t.amount:.2f}",
+                    f"{t.commission:.2f}",
+                    f"{t.net_amount:.2f}",
+                    f"{t.socso_amount or 0:.2f}",
+                    t.payment_method or 'N/A',
+                    t.status,
+                    'Sent' if t.client_id == user_id else 'Received'
+                ])
+
+            csv_output = output.getvalue()
+            response = make_response(csv_output)
+            filename = f"transactions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'text/csv'
+            return response
+
+    except Exception as e:
+        app.logger.error(f"Export transactions error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export transactions'}), 500
+
+@app.route('/api/billing/invoices/export', methods=['GET'])
+@login_required
+def export_invoices():
+    """Export user's invoices to CSV or Excel"""
+    try:
+        import io
+        import csv
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment
+        from flask import make_response
+
+        user_id = session['user_id']
+        export_format = request.args.get('format', 'csv')
+        status = request.args.get('status', 'all')
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+        app.logger.info(f"Export invoices - user_id={user_id}, format={export_format}, status={status}")
+
+        # Build query
+        query = Invoice.query.filter(
+            (Invoice.client_id == user_id) | (Invoice.freelancer_id == user_id)
+        )
+
+        if status != 'all':
+            query = query.filter_by(status=status)
+
+        # Apply date filters
+        if start_date:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.filter(Invoice.created_at >= start_dt)
+        if end_date:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(Invoice.created_at <= end_dt)
+
+        invoices = query.order_by(Invoice.created_at.desc()).all()
+
+        if export_format == 'excel':
+            # Create Excel workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = 'Invoices'
+
+            # Header styling
+            header_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+            header_font = Font(bold=True, color='FFFFFF')
+
+            # Headers
+            headers = ['Invoice Number', 'Date', 'Gig', 'Client', 'Freelancer',
+                      'Amount (MYR)', 'Platform Fee (MYR)', 'Tax (MYR)', 'Total (MYR)',
+                      'Payment Method', 'Status']
+            ws.append(headers)
+
+            # Style header row
+            for cell in ws[1]:
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            # Data rows
+            for inv in invoices:
+                gig = Gig.query.get(inv.gig_id) if inv.gig_id else None
+                client = User.query.get(inv.client_id)
+                freelancer = User.query.get(inv.freelancer_id)
+
+                ws.append([
+                    inv.invoice_number,
+                    inv.created_at.strftime('%Y-%m-%d'),
+                    gig.title if gig else 'N/A',
+                    client.full_name or client.username if client else 'N/A',
+                    freelancer.full_name or freelancer.username if freelancer else 'N/A',
+                    float(inv.amount),
+                    float(inv.platform_fee or 0),
+                    float(inv.tax_amount or 0),
+                    float(inv.total_amount),
+                    inv.payment_method or 'N/A',
+                    inv.status.upper()
+                ])
+
+            # Adjust column widths
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+
+            # Save to BytesIO
+            excel_file = io.BytesIO()
+            wb.save(excel_file)
+            excel_file.seek(0)
+
+            response = make_response(excel_file.read())
+            filename = f"invoices_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            return response
+
+        else:  # CSV format
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # Headers
+            writer.writerow(['Invoice Number', 'Date', 'Gig', 'Client', 'Freelancer',
+                           'Amount (MYR)', 'Platform Fee (MYR)', 'Tax (MYR)', 'Total (MYR)',
+                           'Payment Method', 'Status'])
+
+            # Data rows
+            for inv in invoices:
+                gig = Gig.query.get(inv.gig_id) if inv.gig_id else None
+                client = User.query.get(inv.client_id)
+                freelancer = User.query.get(inv.freelancer_id)
+
+                writer.writerow([
+                    inv.invoice_number,
+                    inv.created_at.strftime('%Y-%m-%d'),
+                    gig.title if gig else 'N/A',
+                    client.full_name or client.username if client else 'N/A',
+                    freelancer.full_name or freelancer.username if freelancer else 'N/A',
+                    f"{inv.amount:.2f}",
+                    f"{inv.platform_fee or 0:.2f}",
+                    f"{inv.tax_amount or 0:.2f}",
+                    f"{inv.total_amount:.2f}",
+                    inv.payment_method or 'N/A',
+                    inv.status.upper()
+                ])
+
+            csv_output = output.getvalue()
+            response = make_response(csv_output)
+            filename = f"invoices_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'text/csv'
+            return response
+
+    except Exception as e:
+        app.logger.error(f"Export invoices error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export invoices'}), 500
+
+@app.route('/api/billing/payouts/export', methods=['GET'])
+@login_required
+def export_payouts():
+    """Export user's payouts to CSV or Excel"""
+    try:
+        import io
+        import csv
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment
+        from flask import make_response
+
+        user_id = session['user_id']
+        export_format = request.args.get('format', 'csv')
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+        app.logger.info(f"Export payouts - user_id={user_id}, format={export_format}")
+
+        # Build query
+        query = Payout.query.filter_by(freelancer_id=user_id)
+
+        # Apply date filters
+        if start_date:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.filter(Payout.requested_at >= start_dt)
+        if end_date:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(Payout.requested_at <= end_dt)
+
+        payouts = query.order_by(Payout.requested_at.desc()).all()
+
+        if export_format == 'excel':
+            # Create Excel workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = 'Payouts'
+
+            # Header styling
+            header_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+            header_font = Font(bold=True, color='FFFFFF')
+
+            # Headers
+            headers = ['Payout Number', 'Requested Date', 'Completed Date', 'Amount (MYR)',
+                      'Fee (MYR)', 'SOCSO (MYR)', 'Net Amount (MYR)', 'Payment Method',
+                      'Bank', 'Status']
+            ws.append(headers)
+
+            # Style header row
+            for cell in ws[1]:
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            # Data rows
+            for p in payouts:
+                ws.append([
+                    p.payout_number,
+                    p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    p.completed_at.strftime('%Y-%m-%d %H:%M:%S') if p.completed_at else 'Pending',
+                    float(p.amount),
+                    float(p.fee or 0),
+                    float(p.socso_amount or 0),
+                    float(p.net_amount),
+                    p.payment_method or 'N/A',
+                    p.bank_name or 'N/A',
+                    p.status.upper()
+                ])
+
+            # Adjust column widths
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+
+            # Save to BytesIO
+            excel_file = io.BytesIO()
+            wb.save(excel_file)
+            excel_file.seek(0)
+
+            response = make_response(excel_file.read())
+            filename = f"payouts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            return response
+
+        else:  # CSV format
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # Headers
+            writer.writerow(['Payout Number', 'Requested Date', 'Completed Date', 'Amount (MYR)',
+                           'Fee (MYR)', 'SOCSO (MYR)', 'Net Amount (MYR)', 'Payment Method',
+                           'Bank', 'Status'])
+
+            # Data rows
+            for p in payouts:
+                writer.writerow([
+                    p.payout_number,
+                    p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    p.completed_at.strftime('%Y-%m-%d %H:%M:%S') if p.completed_at else 'Pending',
+                    f"{p.amount:.2f}",
+                    f"{p.fee or 0:.2f}",
+                    f"{p.socso_amount or 0:.2f}",
+                    f"{p.net_amount:.2f}",
+                    p.payment_method or 'N/A',
+                    p.bank_name or 'N/A',
+                    p.status.upper()
+                ])
+
+            csv_output = output.getvalue()
+            response = make_response(csv_output)
+            filename = f"payouts_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'text/csv'
+            return response
+
+    except Exception as e:
+        app.logger.error(f"Export payouts error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export payouts'}), 500
+
+@app.route('/api/billing/invoice/<int:invoice_id>/pdf', methods=['GET'])
+@login_required
+def export_invoice_pdf(invoice_id):
+    """Export single invoice as professional PDF"""
+    try:
+        from weasyprint import HTML
+        from flask import make_response, render_template_string
+        import io
+
+        user_id = session['user_id']
+
+        # Get invoice
+        invoice = Invoice.query.get_or_404(invoice_id)
+
+        # Verify user owns this invoice
+        if invoice.client_id != user_id and invoice.freelancer_id != user_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Get related data
+        gig = Gig.query.get(invoice.gig_id) if invoice.gig_id else None
+        client = User.query.get(invoice.client_id)
+        freelancer = User.query.get(invoice.freelancer_id)
+
+        # Render HTML template
+        html_template = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4F81BD;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            color: #4F81BD;
+        }
+        .invoice-meta {
+            text-align: right;
+        }
+        .invoice-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .invoice-date {
+            color: #666;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-issued { background: #fef3c7; color: #92400e; }
+        .parties {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .party-box {
+            flex: 1;
+        }
+        .party-box h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .party-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .party-email {
+            color: #666;
+            font-size: 14px;
+        }
+        .gig-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        .gig-section h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .gig-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            text-align: left;
+            padding: 12px 0;
+            border-bottom: 2px solid #ddd;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+        }
+        td {
+            padding: 16px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .amount {
+            text-align: right;
+            font-weight: 600;
+        }
+        .totals {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 15px;
+        }
+        .grand-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4F81BD;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 2px solid #333;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">GigHala</div>
+        <div class="invoice-meta">
+            <div class="invoice-number">{{ invoice.invoice_number }}</div>
+            <div class="invoice-date">Date: {{ invoice.created_at.strftime('%d %B %Y') }}</div>
+            <span class="status-badge status-{{ invoice.status }}">{{ invoice.status|upper }}</span>
+        </div>
+    </div>
+
+    <div class="parties">
+        <div class="party-box">
+            <h4>From (Client)</h4>
+            <div class="party-name">{{ client_name }}</div>
+            <div class="party-email">{{ client.email }}</div>
+        </div>
+        <div class="party-box">
+            <h4>To (Freelancer)</h4>
+            <div class="party-name">{{ freelancer_name }}</div>
+            <div class="party-email">{{ freelancer.email }}</div>
+        </div>
+    </div>
+
+    {% if gig %}
+    <div class="gig-section">
+        <h4>Gig</h4>
+        <div style="font-size: 11px; font-weight: 600; color: #4F81BD; margin-bottom: 8px;">{{ gig.gig_code or 'GIG-' + gig.id|string }}</div>
+        <div class="gig-title">{{ gig.title }}</div>
+    </div>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th class="amount">Amount (MYR)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Gig service payment</td>
+                <td class="amount">{{ "%.2f"|format(invoice.amount) }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div class="total-row">
+            <span>Subtotal</span>
+            <span>MYR {{ "%.2f"|format(invoice.amount) }}</span>
+        </div>
+        <div class="total-row">
+            <span>Platform Fee</span>
+            <span>MYR {{ "%.2f"|format(invoice.platform_fee or 0) }}</span>
+        </div>
+        {% if invoice.tax_amount and invoice.tax_amount > 0 %}
+        <div class="total-row">
+            <span>Tax</span>
+            <span>MYR {{ "%.2f"|format(invoice.tax_amount) }}</span>
+        </div>
+        {% endif %}
+        <div class="total-row grand-total">
+            <span>Total</span>
+            <span>MYR {{ "%.2f"|format(invoice.total_amount) }}</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for using GigHala!</p>
+        <p>GigHala - Malaysia's #1 Gig Platform</p>
+    </div>
+</body>
+</html>
+        '''
+
+        html_content = render_template_string(
+            html_template,
+            invoice=invoice,
+            gig=gig,
+            client=client,
+            freelancer=freelancer,
+            client_name=client.full_name or client.username,
+            freelancer_name=freelancer.full_name or freelancer.username
+        )
+
+        # Generate PDF
+        pdf_file = HTML(string=html_content).write_pdf()
+
+        response = make_response(pdf_file)
+        filename = f"{invoice.invoice_number}.pdf"
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        response.headers['Content-Type'] = 'application/pdf'
+        return response
+
+    except Exception as e:
+        app.logger.error(f"Export invoice PDF error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export invoice PDF'}), 500
+
+@app.route('/api/billing/earnings-statement', methods=['GET'])
+@login_required
+def export_earnings_statement():
+    """Export monthly/yearly earnings statement for freelancers (PDF)"""
+    try:
+        from weasyprint import HTML
+        from flask import make_response, render_template_string
+        from sqlalchemy import func, extract
+        import io
+
+        user_id = session['user_id']
+        period = request.args.get('period', 'monthly')  # monthly or yearly
+        year = request.args.get('year', datetime.now().year, type=int)
+        month = request.args.get('month', datetime.now().month, type=int)
+        export_format = request.args.get('format', 'pdf')  # pdf or csv
+
+        app.logger.info(f"Export earnings statement - user_id={user_id}, period={period}, year={year}")
+
+        # Get all transactions for freelancer
+        if period == 'monthly':
+            transactions = Transaction.query.filter_by(
+                freelancer_id=user_id,
+                status='completed'
+            ).filter(
+                extract('year', Transaction.transaction_date) == year,
+                extract('month', Transaction.transaction_date) == month
+            ).order_by(Transaction.transaction_date.desc()).all()
+            period_title = f"{datetime(year, month, 1).strftime('%B %Y')}"
+        else:  # yearly
+            transactions = Transaction.query.filter_by(
+                freelancer_id=user_id,
+                status='completed'
+            ).filter(
+                extract('year', Transaction.transaction_date) == year
+            ).order_by(Transaction.transaction_date.desc()).all()
+            period_title = f"{year}"
+
+        # Calculate totals
+        total_gross = sum(t.amount for t in transactions)
+        total_commission = sum(t.commission for t in transactions)
+        total_socso = sum(t.socso_amount or 0 for t in transactions)
+        total_net = sum(t.net_amount for t in transactions)
+
+        # Get user details
+        user = User.query.get(user_id)
+
+        if export_format == 'pdf':
+            # Render PDF
+            html_template = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4F81BD;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            color: #4F81BD;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .period {
+            font-size: 18px;
+            color: #666;
+        }
+        .user-info {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .user-info h3 {
+            margin-top: 0;
+            color: #4F81BD;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            text-align: left;
+            padding: 12px;
+            background: #4F81BD;
+            color: white;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .amount {
+            text-align: right;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+        }
+        .summary-row.grand-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4F81BD;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 2px solid #333;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">GigHala</div>
+        <h1>Earnings Statement</h1>
+        <div class="period">{{ period_title }}</div>
+    </div>
+
+    <div class="user-info">
+        <h3>Freelancer Details</h3>
+        <p><strong>Name:</strong> {{ user_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        {% if user.ic_number %}
+        <p><strong>IC Number:</strong> {{ user.ic_number }}</p>
+        {% endif %}
+        {% if user.socso_membership_number %}
+        <p><strong>SOCSO Number:</strong> {{ user.socso_membership_number }}</p>
+        {% endif %}
+    </div>
+
+    <h2>Transaction Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Gig</th>
+                <th class="amount">Gross Amount</th>
+                <th class="amount">Commission</th>
+                <th class="amount">SOCSO</th>
+                <th class="amount">Net Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td>{{ t.transaction_date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ t.gig.title if t.gig else 'N/A' }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(t.amount) }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(t.commission) }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(t.socso_amount or 0) }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(t.net_amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <h3>Summary</h3>
+        <div class="summary-row">
+            <span>Total Gross Earnings:</span>
+            <span>MYR {{ "%.2f"|format(total_gross) }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Total Platform Commission:</span>
+            <span>MYR {{ "%.2f"|format(total_commission) }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Total SOCSO Contribution:</span>
+            <span>MYR {{ "%.2f"|format(total_socso) }}</span>
+        </div>
+        <div class="summary-row grand-total">
+            <span>Total Net Earnings:</span>
+            <span>MYR {{ "%.2f"|format(total_net) }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Number of Transactions:</span>
+            <span>{{ transactions|length }}</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>This statement is generated electronically by GigHala.</p>
+        <p>Generated on: {{ now.strftime('%d %B %Y at %H:%M') }}</p>
+    </div>
+</body>
+</html>
+            '''
+
+            # Add gig to each transaction for template
+            for t in transactions:
+                t.gig = Gig.query.get(t.gig_id) if t.gig_id else None
+
+            html_content = render_template_string(
+                html_template,
+                period_title=period_title,
+                user=user,
+                user_name=user.full_name or user.username,
+                transactions=transactions,
+                total_gross=total_gross,
+                total_commission=total_commission,
+                total_socso=total_socso,
+                total_net=total_net,
+                now=datetime.now()
+            )
+
+            # Generate PDF
+            pdf_file = HTML(string=html_content).write_pdf()
+
+            response = make_response(pdf_file)
+            filename = f"earnings_statement_{period_title.replace(' ', '_')}.pdf"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'application/pdf'
+            return response
+
+        else:  # CSV format
+            import csv
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            writer.writerow([f'Earnings Statement - {period_title}'])
+            writer.writerow([])
+            writer.writerow(['Freelancer', user.full_name or user.username])
+            writer.writerow(['Email', user.email])
+            writer.writerow([])
+            writer.writerow(['Date', 'Gig', 'Gross Amount (MYR)', 'Commission (MYR)', 'SOCSO (MYR)', 'Net Amount (MYR)'])
+
+            for t in transactions:
+                gig = Gig.query.get(t.gig_id) if t.gig_id else None
+                writer.writerow([
+                    t.transaction_date.strftime('%d/%m/%Y'),
+                    gig.title if gig else 'N/A',
+                    f"{t.amount:.2f}",
+                    f"{t.commission:.2f}",
+                    f"{t.socso_amount or 0:.2f}",
+                    f"{t.net_amount:.2f}"
+                ])
+
+            writer.writerow([])
+            writer.writerow(['SUMMARY'])
+            writer.writerow(['Total Gross Earnings', f"MYR {total_gross:.2f}"])
+            writer.writerow(['Total Commission', f"MYR {total_commission:.2f}"])
+            writer.writerow(['Total SOCSO', f"MYR {total_socso:.2f}"])
+            writer.writerow(['Total Net Earnings', f"MYR {total_net:.2f}"])
+            writer.writerow(['Number of Transactions', len(transactions)])
+
+            csv_output = output.getvalue()
+            response = make_response(csv_output)
+            filename = f"earnings_statement_{period_title.replace(' ', '_')}.csv"
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'text/csv'
+            return response
+
+    except Exception as e:
+        app.logger.error(f"Export earnings statement error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export earnings statement'}), 500
+
+@app.route('/api/billing/socso-annual-summary', methods=['GET'])
+@login_required
+def export_socso_annual_summary():
+    """Export annual SOCSO contribution summary (PDF)"""
+    try:
+        from weasyprint import HTML
+        from flask import make_response, render_template_string
+        from sqlalchemy import extract
+
+        user_id = session['user_id']
+        year = request.args.get('year', datetime.now().year, type=int)
+
+        app.logger.info(f"Export SOCSO annual summary - user_id={user_id}, year={year}")
+
+        # Get all SOCSO contributions for the year
+        contributions = SocsoContribution.query.filter_by(
+            freelancer_id=user_id
+        ).filter(
+            extract('year', SocsoContribution.created_at) == year
+        ).order_by(SocsoContribution.contribution_month, SocsoContribution.contribution_year).all()
+
+        # Get user details
+        user = User.query.get(user_id)
+
+        # Calculate totals
+        total_gross = sum(c.gross_amount for c in contributions)
+        total_commission = sum(c.platform_commission for c in contributions)
+        total_net = sum(c.net_earnings for c in contributions)
+        total_socso = sum(c.socso_amount for c in contributions)
+
+        # Group by month
+        monthly_data = {}
+        for c in contributions:
+            key = f"{c.contribution_year}-{c.contribution_month:02d}"
+            if key not in monthly_data:
+                monthly_data[key] = {
+                    'month': datetime(c.contribution_year, c.contribution_month, 1).strftime('%B %Y'),
+                    'gross': 0,
+                    'commission': 0,
+                    'net': 0,
+                    'socso': 0,
+                    'count': 0
+                }
+            monthly_data[key]['gross'] += c.gross_amount
+            monthly_data[key]['commission'] += c.platform_commission
+            monthly_data[key]['net'] += c.net_earnings
+            monthly_data[key]['socso'] += c.socso_amount
+            monthly_data[key]['count'] += 1
+
+        # Render PDF
+        html_template = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4F81BD;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            color: #4F81BD;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .year {
+            font-size: 18px;
+            color: #666;
+        }
+        .user-info {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .user-info h3 {
+            margin-top: 0;
+            color: #4F81BD;
+        }
+        .info-note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            text-align: left;
+            padding: 12px;
+            background: #4F81BD;
+            color: white;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .amount {
+            text-align: right;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+        }
+        .summary-row.highlight {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4F81BD;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 2px solid #333;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">GigHala</div>
+        <h1>SOCSO Contribution Statement</h1>
+        <div class="year">Year {{ year }}</div>
+    </div>
+
+    <div class="user-info">
+        <h3>Contributor Details</h3>
+        <p><strong>Name:</strong> {{ user_name }}</p>
+        <p><strong>IC Number:</strong> {{ user.ic_number or 'Not provided' }}</p>
+        <p><strong>SOCSO Membership Number:</strong> {{ user.socso_membership_number or 'Not registered' }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+    </div>
+
+    <div class="info-note">
+        <p><strong>Note:</strong> This statement shows your SOCSO contributions for self-employed gig workers under the Gig Workers Bill 2025. The contribution rate is 1.25% of net earnings.</p>
+    </div>
+
+    <h2>Monthly Breakdown</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th class="amount">Gross Earnings</th>
+                <th class="amount">Commission</th>
+                <th class="amount">Net Earnings</th>
+                <th class="amount">SOCSO (1.25%)</th>
+                <th class="amount">Transactions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, data in monthly_data.items() %}
+            <tr>
+                <td>{{ data.month }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(data.gross) }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(data.commission) }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(data.net) }}</td>
+                <td class="amount">MYR {{ "%.2f"|format(data.socso) }}</td>
+                <td class="amount">{{ data.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <h3>Annual Summary</h3>
+        <div class="summary-row">
+            <span>Total Gross Earnings:</span>
+            <span>MYR {{ "%.2f"|format(total_gross) }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Total Platform Commission:</span>
+            <span>MYR {{ "%.2f"|format(total_commission) }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Total Net Earnings:</span>
+            <span>MYR {{ "%.2f"|format(total_net) }}</span>
+        </div>
+        <div class="summary-row highlight">
+            <span>Total SOCSO Contribution:</span>
+            <span>MYR {{ "%.2f"|format(total_socso) }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Total Transactions:</span>
+            <span>{{ contributions|length }}</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>This statement is for your records. Please submit to PERKESO via the ASSIST Portal.</p>
+        <p>For more information, visit <strong>www.perkeso.gov.my</strong></p>
+        <p>Generated on: {{ now.strftime('%d %B %Y at %H:%M') }}</p>
+    </div>
+</body>
+</html>
+        '''
+
+        html_content = render_template_string(
+            html_template,
+            year=year,
+            user=user,
+            user_name=user.full_name or user.username,
+            contributions=contributions,
+            monthly_data=sorted(monthly_data.items()),
+            total_gross=total_gross,
+            total_commission=total_commission,
+            total_net=total_net,
+            total_socso=total_socso,
+            now=datetime.now()
+        )
+
+        # Generate PDF
+        pdf_file = HTML(string=html_content).write_pdf()
+
+        response = make_response(pdf_file)
+        filename = f"SOCSO_Statement_{year}.pdf"
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        response.headers['Content-Type'] = 'application/pdf'
+        return response
+
+    except Exception as e:
+        app.logger.error(f"Export SOCSO annual summary error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to export SOCSO summary'}), 500
+
 @app.route('/api/gigs/<int:gig_id>/approve-and-pay', methods=['POST'])
 @login_required
 def approve_and_pay_gig(gig_id):

@@ -347,6 +347,9 @@
                 <a href="/documents" class="btn btn-outline">
                     {{ 'Kembali' if lang == 'ms' else 'Back' }}
                 </a>
+                <a href="/api/billing/invoice/{{ invoice.id }}/pdf" class="btn btn-outline">
+                    📄 {{ 'Muat Turun PDF' if lang == 'ms' else 'Download PDF' }}
+                </a>
                 <button class="btn btn-primary" onclick="window.print()">
                     {{ 'Cetak' if lang == 'ms' else 'Print' }}
                 </button>
