@@ -6,6 +6,7 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
 import os
@@ -1290,7 +1291,10 @@ GREGORIAN_MONTHS = {
 def get_dual_date(date_obj=None, lang=None):
     """Get formatted dual date (Gregorian and Hijri)"""
     if date_obj is None:
-        date_obj = datetime.now()
+        # Get timezone from environment or default to Malaysia
+        timezone_str = os.getenv('TIMEZONE', 'Asia/Kuala_Lumpur')
+        # Get current time in the configured timezone
+        date_obj = datetime.now(ZoneInfo(timezone_str))
     if lang is None:
         lang = get_user_language()
 
