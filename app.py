@@ -14003,6 +14003,46 @@ def accounting_update_user_role(user_id):
         db.session.rollback()
         return jsonify({'error': 'Failed to update user role'}), 500
 
+@app.route('/api/accounting/user-roles/<int:user_id>', methods=['DELETE'])
+@admin_required
+def accounting_delete_user(user_id):
+    """Delete a user - only super_admin can do this, and super_admin users cannot be deleted"""
+    try:
+        current_user = User.query.get(session['user_id'])
+
+        # Only super_admin can delete users
+        if current_user.admin_role != 'super_admin':
+            return jsonify({'error': 'Only super admins can remove users'}), 403
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Prevent deletion of super_admin users
+        if user.admin_role == 'super_admin':
+            return jsonify({'error': 'Super admin users cannot be removed'}), 403
+
+        # Prevent users from deleting themselves
+        if user.id == current_user.id:
+            return jsonify({'error': 'You cannot remove yourself'}), 403
+
+        # Store username for logging
+        username = user.username
+
+        # Delete the user
+        db.session.delete(user)
+        db.session.commit()
+
+        app.logger.info(f"User {username} (ID: {user_id}) was removed by admin {current_user.username}")
+
+        return jsonify({
+            'message': f'User {username} removed successfully'
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Delete user error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to remove user'}), 500
+
 # ==================== ADMIN SETTINGS ROUTES ====================
 
 @app.route('/api/admin/settings/payment-gateway', methods=['GET'])
