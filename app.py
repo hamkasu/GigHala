@@ -6017,6 +6017,7 @@ def apply_to_gig(gig_id):
                     client_name=client.full_name or client.username,
                     worker_name=worker.full_name or worker.username,
                     worker_id=worker.id,
+                    worker_username=worker.username,
                     worker_rating=worker.rating or 0,
                     worker_review_count=worker.review_count or 0,
                     gig_id=gig.id,
