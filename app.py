@@ -584,6 +584,10 @@ TRANSLATIONS = {
         'payment_sent': 'Bayaran Dihantar',
         'payment_received': 'Bayaran Diterima',
         'application': 'Permohonan',
+        'recent_invoices': 'Invois Terkini',
+        'no_invoices_yet': 'Tiada invois lagi',
+        'socso_deductions': 'Potongan SOCSO (Rang Undang-Undang Pekerja Gig 2025)',
+        'no_socso_deductions': 'Tiada potongan SOCSO lagi',
 
         # Language
         'language': 'Bahasa',
@@ -956,6 +960,10 @@ TRANSLATIONS = {
         'payment_sent': 'Payment Sent',
         'payment_received': 'Payment Received',
         'application': 'Application',
+        'recent_invoices': 'Recent Invoices',
+        'no_invoices_yet': 'No invoices yet',
+        'socso_deductions': 'SOCSO Deductions (Gig Workers Bill 2025)',
+        'no_socso_deductions': 'No SOCSO deductions yet',
 
         # Language
         'language': 'Language',
