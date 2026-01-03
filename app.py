@@ -14006,11 +14006,11 @@ def accounting_update_user_role(user_id):
 @app.route('/api/accounting/user-roles/<int:user_id>', methods=['DELETE'])
 @admin_required
 def accounting_delete_user(user_id):
-    """Delete a user - only super_admin can do this, and super_admin users cannot be deleted"""
+    """Remove user from billing/accounting admin page - only super_admin can do this"""
     try:
         current_user = User.query.get(session['user_id'])
 
-        # Only super_admin can delete users
+        # Only super_admin can remove users
         if current_user.admin_role != 'super_admin':
             return jsonify({'error': 'Only super admins can remove users'}), 403
 
@@ -14018,30 +14018,32 @@ def accounting_delete_user(user_id):
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        # Prevent deletion of super_admin users
+        # Prevent removal of super_admin users
         if user.admin_role == 'super_admin':
             return jsonify({'error': 'Super admin users cannot be removed'}), 403
 
-        # Prevent users from deleting themselves
+        # Prevent users from removing themselves
         if user.id == current_user.id:
             return jsonify({'error': 'You cannot remove yourself'}), 403
 
         # Store username for logging
         username = user.username
 
-        # Delete the user
-        db.session.delete(user)
+        # Remove admin role and permissions (don't delete the user)
+        user.admin_role = None
+        user.admin_permissions = None
+        user.is_admin = False
         db.session.commit()
 
-        app.logger.info(f"User {username} (ID: {user_id}) was removed by admin {current_user.username}")
+        app.logger.info(f"User {username} (ID: {user_id}) was removed from billing page by admin {current_user.username}")
 
         return jsonify({
-            'message': f'User {username} removed successfully'
+            'message': f'User {username} removed from billing page successfully'
         }), 200
     except Exception as e:
-        app.logger.error(f"Delete user error: {str(e)}")
+        app.logger.error(f"Remove user from billing page error: {str(e)}")
         db.session.rollback()
-        return jsonify({'error': 'Failed to remove user'}), 500
+        return jsonify({'error': 'Failed to remove user from billing page'}), 500
 
 # ==================== ADMIN SETTINGS ROUTES ====================
 

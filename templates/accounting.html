@@ -628,7 +628,7 @@ async function updateUserRole(userId, role) {
 }
 
 async function removeUser(userId, username) {
-    if (!confirm(`Are you sure you want to remove user "${username}"?\n\nThis action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to remove user "${username}" from the billing page?\n\nThis will remove their admin role and permissions. The user account will remain active.`)) {
         return;
     }
 
@@ -643,14 +643,14 @@ async function removeUser(userId, username) {
         const data = await response.json();
 
         if (response.ok) {
-            alert('User removed successfully!');
+            alert('User removed from billing page successfully!');
             loadRoles();
         } else {
             alert('Error: ' + data.error);
         }
     } catch (error) {
         console.error('Error removing user:', error);
-        alert('Failed to remove user');
+        alert('Failed to remove user from billing page');
     }
 }
 
