@@ -1001,7 +1001,8 @@ async function handleReportTypeChange() {
             data.workers.forEach(worker => {
                 const option = document.createElement('option');
                 option.value = worker.id;
-                option.textContent = `${worker.username} (${worker.email}) - ${worker.completed_gigs} gigs, RM ${worker.total_earnings.toFixed(2)}`;
+                const dualRoleTag = worker.is_dual_role ? ' 🔄 [Dual Role]' : '';
+                option.textContent = `${worker.username} (${worker.email})${dualRoleTag} - ${worker.completed_gigs} gigs, RM ${worker.total_earnings.toFixed(2)}`;
                 userSelect.appendChild(option);
             });
         } catch (error) {
@@ -1021,7 +1022,8 @@ async function handleReportTypeChange() {
             data.clients.forEach(client => {
                 const option = document.createElement('option');
                 option.value = client.id;
-                option.textContent = `${client.username} (${client.email}) - RM ${client.total_spent.toFixed(2)} spent`;
+                const dualRoleTag = client.is_dual_role ? ' 🔄 [Dual Role]' : '';
+                option.textContent = `${client.username} (${client.email})${dualRoleTag} - RM ${client.total_spent.toFixed(2)} spent`;
                 userSelect.appendChild(option);
             });
         } catch (error) {
@@ -1241,13 +1243,24 @@ function displayPlatformReport(data) {
 }
 
 function displayWorkerReport(data) {
-    document.getElementById('report-title').textContent = 'Worker Financial Report';
+    const isDualRole = data.worker.user_type === 'both';
+    document.getElementById('report-title').textContent = isDualRole
+        ? 'Worker Financial Report 🔄 (Dual Role User)'
+        : 'Worker Financial Report';
     document.getElementById('worker-report').style.display = 'block';
 
     document.getElementById('worker-name').textContent = data.worker.username;
     document.getElementById('worker-email').textContent = data.worker.email;
     document.getElementById('worker-period').textContent =
         `${data.period.start_date} to ${data.period.end_date}`;
+
+    // Add dual role notice if applicable
+    if (isDualRole) {
+        const noticeDiv = document.createElement('div');
+        noticeDiv.style.cssText = 'background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 16px 0; border-radius: 4px;';
+        noticeDiv.innerHTML = '<strong>ℹ️ Dual Role User:</strong> This user is both a freelancer and a client. This report shows only their <strong>freelancer earnings</strong>. To view their client spending, generate a "Client Spending Report" for this user.';
+        document.getElementById('worker-report').insertBefore(noticeDiv, document.getElementById('worker-report').firstChild.nextSibling);
+    }
 
     document.getElementById('worker-balance').textContent =
         `RM ${data.wallet.current_balance.toFixed(2)}`;
@@ -1339,13 +1352,24 @@ function displayWorkerReport(data) {
 }
 
 function displayClientReport(data) {
-    document.getElementById('report-title').textContent = 'Client Spending Report';
+    const isDualRole = data.client.user_type === 'both';
+    document.getElementById('report-title').textContent = isDualRole
+        ? 'Client Spending Report 🔄 (Dual Role User)'
+        : 'Client Spending Report';
     document.getElementById('client-report').style.display = 'block';
 
     document.getElementById('client-name').textContent = data.client.username;
     document.getElementById('client-email').textContent = data.client.email;
     document.getElementById('client-period').textContent =
         `${data.period.start_date} to ${data.period.end_date}`;
+
+    // Add dual role notice if applicable
+    if (isDualRole) {
+        const noticeDiv = document.createElement('div');
+        noticeDiv.style.cssText = 'background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 16px 0; border-radius: 4px;';
+        noticeDiv.innerHTML = '<strong>ℹ️ Dual Role User:</strong> This user is both a freelancer and a client. This report shows only their <strong>client spending</strong>. To view their freelancer earnings, generate a "Worker Financial Report" for this user.';
+        document.getElementById('client-report').insertBefore(noticeDiv, document.getElementById('client-report').firstChild.nextSibling);
+    }
 
     document.getElementById('client-balance').textContent =
         `RM ${data.wallet.current_balance.toFixed(2)}`;
