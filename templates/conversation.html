@@ -345,7 +345,7 @@
                 <div class="message-sender">{{ msg.sender.full_name or msg.sender.username }}{% if msg.sender.username == 'support' %}<span class="support-badge">SUPPORT</span>{% endif %}</div>
                 {% endif %}
                 <div class="message-bubble">{{ msg.content }}</div>
-                <span class="message-time">{{ msg.created_at.strftime('%b %d, %H:%M') }}</span>
+                <span class="message-time">{{ msg.created_at.strftime('%d %b, %H:%M') }}</span>
             </div>
             {% endfor %}
         {% else %}
@@ -419,8 +419,8 @@ function appendMessage(msg, isSent) {
     msgEl.dataset.id = msg.id;
     
     const date = new Date(msg.created_at);
-    const timeStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + 
-                    date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const timeStr = date.toLocaleDateString('ms-MY', { month: 'short', day: 'numeric' }) + ', ' +
+                    date.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', hour12: false });
     
     let senderHtml = '';
     if (!isSent && msg.sender_name) {

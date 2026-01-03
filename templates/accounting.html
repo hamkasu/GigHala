@@ -749,7 +749,7 @@ async function loadInvoices() {
                         <td>RM ${inv.amount.toFixed(2)}</td>
                         <td>RM ${inv.total_amount.toFixed(2)}</td>
                         <td><span class="badge badge-${statusClass}">${inv.status}</span></td>
-                        <td>${new Date(inv.created_at).toLocaleDateString()}</td>
+                        <td>${new Date(inv.created_at).toLocaleDateString('ms-MY')}</td>
                     </tr>
                 `;
             });
@@ -800,7 +800,7 @@ async function loadPayouts() {
                         <td>RM ${payout.net_amount.toFixed(2)}</td>
                         <td>${payout.payment_method || 'N/A'}</td>
                         <td><span class="badge badge-${statusClass}">${payout.status}</span></td>
-                        <td>${new Date(payout.requested_at).toLocaleDateString()}</td>
+                        <td>${new Date(payout.requested_at).toLocaleDateString('ms-MY')}</td>
                     </tr>
                 `;
             });

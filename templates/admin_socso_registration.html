@@ -708,7 +708,7 @@
                     // Portal submission status badge
                     if (user.socso_submitted_to_portal) {
                         const submissionDate = user.socso_portal_submission_date ?
-                            new Date(user.socso_portal_submission_date).toLocaleDateString() : '';
+                            new Date(user.socso_portal_submission_date).toLocaleDateString('ms-MY') : '';
                         statusBadges += `<span class="status-badge" style="background: #dbeafe; color: #1e40af; margin-left: 8px;" title="Submitted: ${submissionDate}">📤 Submitted to Portal</span>`;
                         submissionButtons = `
                             <button class="btn-register" onclick="unmarkAsSubmitted(${user.id})" style="background: #ef4444; margin-left: 8px;" title="Undo submission">

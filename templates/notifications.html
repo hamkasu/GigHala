@@ -148,7 +148,7 @@
                     {% if notif.message %}
                     <div class="notification-message">{{ notif.message }}</div>
                     {% endif %}
-                    <div class="notification-time">{{ notif.created_at.strftime('%b %d, %Y at %H:%M') }}</div>
+                    <div class="notification-time">{{ notif.created_at.strftime('%d %b, %Y at %H:%M') }}</div>
                 </div>
                 {% if not notif.is_read %}
                 <div class="unread-dot"></div>
