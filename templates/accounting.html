@@ -115,13 +115,11 @@
         text-transform: uppercase;
         color: var(--text-gray);
         letter-spacing: 0.5px;
-        white-space: nowrap;
     }
 
     .data-table td {
         padding: 14px 16px;
         border-top: 1px solid var(--border);
-        white-space: nowrap;
     }
 
     .data-table tr:hover {
@@ -1297,7 +1295,7 @@ function displayWorkerReport(data) {
             <thead>
                 <tr>
                     <th style="white-space: nowrap;">Gig ID</th>
-                    <th style="white-space: nowrap;">Title</th>
+                    <th>Title</th>
                     <th style="white-space: nowrap;">Budget</th>
                     <th style="white-space: nowrap;">Earned</th>
                     <th style="white-space: nowrap;">Commission</th>
@@ -1308,7 +1306,7 @@ function displayWorkerReport(data) {
                 ${data.gigs.gig_details.map(gig => `
                     <tr>
                         <td style="white-space: nowrap;">${gig.gig_id}</td>
-                        <td style="white-space: nowrap;">${gig.title}</td>
+                        <td>${gig.title}</td>
                         <td style="white-space: nowrap;">RM ${gig.budget.toFixed(2)}</td>
                         <td style="white-space: nowrap;">RM ${gig.earned.toFixed(2)}</td>
                         <td style="white-space: nowrap;">RM ${gig.commission.toFixed(2)}</td>
@@ -1448,7 +1446,7 @@ function displayClientReport(data) {
             <thead>
                 <tr>
                     <th style="white-space: nowrap;">Gig ID</th>
-                    <th style="white-space: nowrap;">Title</th>
+                    <th>Title</th>
                     <th style="white-space: nowrap;">Status</th>
                     <th style="white-space: nowrap;">Budget</th>
                     <th style="white-space: nowrap;">Spent</th>
@@ -1460,7 +1458,7 @@ function displayClientReport(data) {
                 ${data.gigs.gig_details.map(gig => `
                     <tr>
                         <td style="white-space: nowrap;">${gig.gig_id}</td>
-                        <td style="white-space: nowrap;">${gig.title}</td>
+                        <td>${gig.title}</td>
                         <td style="white-space: nowrap;"><span class="badge badge-${gig.status}">${gig.status}</span></td>
                         <td style="white-space: nowrap;">RM ${gig.budget.toFixed(2)}</td>
                         <td style="white-space: nowrap;">RM ${gig.spent.toFixed(2)}</td>
