@@ -34,3 +34,5 @@ psycopg2-binary
 python-dotenv
 sqlalchemy
 werkzeug
+weasyprint>=60.0
+openpyxl>=3.1.0

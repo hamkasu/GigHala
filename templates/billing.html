@@ -489,7 +489,10 @@
             <button class="tab" onclick="switchTab('payouts')">Payouts</button>
             <button class="tab" id="socsoTab" onclick="switchTab('socso')" style="display: none;">SOCSO Contributions</button>
         </div>
-        <button class="btn btn-primary" onclick="openPayoutModal()">💰 Request Payout</button>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-outline" onclick="openEarningsStatementModal()">📊 Earnings Statement</button>
+            <button class="btn btn-primary" onclick="openPayoutModal()">💰 Request Payout</button>
+        </div>
     </div>
 
     <div id="transactions-tab" class="tab-content active">
@@ -501,6 +504,25 @@
                     <option value="sent">Sent (Payments Made)</option>
                     <option value="received">Received (Earnings)</option>
                 </select>
+            </div>
+            <div class="filter-group">
+                <label>Start Date</label>
+                <input type="date" id="transactionStartDate" onchange="loadTransactions()">
+            </div>
+            <div class="filter-group">
+                <label>End Date</label>
+                <input type="date" id="transactionEndDate" onchange="loadTransactions()">
+            </div>
+            <div class="filter-group">
+                <label>Export</label>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="exportTransactions('csv')" title="Export to CSV">
+                        <span>📊 CSV</span>
+                    </button>
+                    <button class="btn btn-sm" onclick="exportTransactions('excel')" title="Export to Excel">
+                        <span>📈 Excel</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -548,6 +570,25 @@
                     <option value="cancelled">Cancelled</option>
                 </select>
             </div>
+            <div class="filter-group">
+                <label>Start Date</label>
+                <input type="date" id="invoiceStartDate" onchange="loadInvoices()">
+            </div>
+            <div class="filter-group">
+                <label>End Date</label>
+                <input type="date" id="invoiceEndDate" onchange="loadInvoices()">
+            </div>
+            <div class="filter-group">
+                <label>Export</label>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="exportInvoices('csv')" title="Export to CSV">
+                        <span>📊 CSV</span>
+                    </button>
+                    <button class="btn btn-sm" onclick="exportInvoices('excel')" title="Export to Excel">
+                        <span>📈 Excel</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div id="invoicesLoading" class="loading">
@@ -580,6 +621,28 @@
     </div>
 
     <div id="payouts-tab" class="tab-content">
+        <div class="filters">
+            <div class="filter-group">
+                <label>Start Date</label>
+                <input type="date" id="payoutStartDate" onchange="loadPayouts()">
+            </div>
+            <div class="filter-group">
+                <label>End Date</label>
+                <input type="date" id="payoutEndDate" onchange="loadPayouts()">
+            </div>
+            <div class="filter-group">
+                <label>Export</label>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="exportPayouts('csv')" title="Export to CSV">
+                        <span>📊 CSV</span>
+                    </button>
+                    <button class="btn btn-sm" onclick="exportPayouts('excel')" title="Export to Excel">
+                        <span>📈 Excel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="payoutsLoading" class="loading">
             <div class="spinner"></div>
             <p>Loading payouts...</p>
@@ -648,15 +711,24 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 20px; text-align: right;">
-                <a href="/billing/socso-statement" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                        <rect x="6" y="14" width="12" height="8"></rect>
-                    </svg>
-                    {{ t('print_statement') }}
-                </a>
+            <div style="margin-bottom: 20px;">
+                <h4 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Generate Reports</h4>
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <a href="/billing/socso-statement" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <span>📄 Print Current Statement</span>
+                    </a>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <select id="socsoYear" class="form-control" style="width: 120px;">
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                        <button class="btn btn-outline" onclick="downloadSOCSOAnnualSummary()" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <span>📊 Annual SOCSO Summary (PDF)</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <table id="socsoTable">
@@ -1248,6 +1320,140 @@
             button.disabled = false;
             button.innerHTML = originalText;
         }
+    }
+
+    // Export Functions
+    function exportTransactions(format) {
+        const type = document.getElementById('transactionType').value;
+        const startDate = document.getElementById('transactionStartDate').value;
+        const endDate = document.getElementById('transactionEndDate').value;
+
+        const params = new URLSearchParams({
+            format: format,
+            type: type
+        });
+
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+
+        window.location.href = `/api/billing/transactions/export?${params.toString()}`;
+    }
+
+    function exportInvoices(format) {
+        const status = document.getElementById('invoiceStatus').value;
+        const startDate = document.getElementById('invoiceStartDate').value;
+        const endDate = document.getElementById('invoiceEndDate').value;
+
+        const params = new URLSearchParams({
+            format: format,
+            status: status
+        });
+
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+
+        window.location.href = `/api/billing/invoices/export?${params.toString()}`;
+    }
+
+    function exportPayouts(format) {
+        const startDate = document.getElementById('payoutStartDate').value;
+        const endDate = document.getElementById('payoutEndDate').value;
+
+        const params = new URLSearchParams({
+            format: format
+        });
+
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+
+        window.location.href = `/api/billing/payouts/export?${params.toString()}`;
+    }
+
+    function downloadSOCSOAnnualSummary() {
+        const year = document.getElementById('socsoYear').value;
+        window.location.href = `/api/billing/socso-annual-summary?year=${year}`;
+    }
+
+    function openEarningsStatementModal() {
+        const modalHTML = `
+            <div id="earningsModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+                <div style="background: white; padding: 32px; border-radius: 12px; max-width: 500px; width: 90%;">
+                    <h3 style="margin: 0 0 24px 0; font-size: 20px;">Generate Earnings Statement</h3>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Period</label>
+                        <select id="earningsPeriod" class="form-control">
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div id="monthSelector" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Month</label>
+                        <input type="month" id="earningsMonth" class="form-control" value="${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}">
+                    </div>
+                    <div id="yearSelector" style="margin-bottom: 16px; display: none;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Year</label>
+                        <select id="earningsYear" class="form-control">
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Format</label>
+                        <select id="earningsFormat" class="form-control">
+                            <option value="pdf">PDF</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                        <button class="btn btn-outline" onclick="closeEarningsStatementModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="downloadEarningsStatement()">📊 Generate</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Toggle month/year selector based on period
+        document.getElementById('earningsPeriod').addEventListener('change', function(e) {
+            if (e.target.value === 'monthly') {
+                document.getElementById('monthSelector').style.display = 'block';
+                document.getElementById('yearSelector').style.display = 'none';
+            } else {
+                document.getElementById('monthSelector').style.display = 'none';
+                document.getElementById('yearSelector').style.display = 'block';
+            }
+        });
+    }
+
+    function closeEarningsStatementModal() {
+        const modal = document.getElementById('earningsModal');
+        if (modal) modal.remove();
+    }
+
+    function downloadEarningsStatement() {
+        const period = document.getElementById('earningsPeriod').value;
+        const format = document.getElementById('earningsFormat').value;
+
+        const params = new URLSearchParams({
+            period: period,
+            format: format
+        });
+
+        if (period === 'monthly') {
+            const monthValue = document.getElementById('earningsMonth').value; // Format: YYYY-MM
+            const [year, month] = monthValue.split('-');
+            params.append('year', year);
+            params.append('month', month);
+        } else {
+            const year = document.getElementById('earningsYear').value;
+            params.append('year', year);
+        }
+
+        window.location.href = `/api/billing/earnings-statement?${params.toString()}`;
+        closeEarningsStatementModal();
     }
 
     loadWalletData();
