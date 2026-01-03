@@ -96,7 +96,7 @@
             <div class="dispute-item">
                 <div class="dispute-info">
                     <div class="dispute-title">{{ d.title }}</div>
-                    <div class="dispute-meta">{{ d.dispute_number }} &bull; {{ d.dispute_type.replace('_', ' ').title() }} &bull; {{ d.created_at.strftime('%b %d, %Y') }}</div>
+                    <div class="dispute-meta">{{ d.dispute_number }} &bull; {{ d.dispute_type.replace('_', ' ').title() }} &bull; {{ d.created_at.strftime('%d %b, %Y') }}</div>
                 </div>
                 <span class="status-badge status-{{ d.status }}">{{ d.status.replace('_', ' ').title() }}</span>
                 <a href="/dispute/{{ d.id }}" class="btn-view">View & Resolve</a>
@@ -114,7 +114,7 @@
             <div class="dispute-item">
                 <div class="dispute-info">
                     <div class="dispute-title">{{ d.title }}</div>
-                    <div class="dispute-meta">{{ d.dispute_number }} &bull; Resolved {{ d.resolved_at.strftime('%b %d, %Y') if d.resolved_at else 'N/A' }}</div>
+                    <div class="dispute-meta">{{ d.dispute_number }} &bull; Resolved {{ d.resolved_at.strftime('%d %b, %Y') if d.resolved_at else 'N/A' }}</div>
                 </div>
                 <span class="status-badge status-{{ d.status }}">{{ d.status.replace('_', ' ').title() }}</span>
                 <a href="/dispute/{{ d.id }}" class="btn-view">View</a>

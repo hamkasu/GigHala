@@ -283,7 +283,7 @@
                 {% if review.comment %}
                 <p class="review-comment">{{ review.comment }}</p>
                 {% endif %}
-                <div class="review-date">{{ review.created_at.strftime('%b %d, %Y') }}</div>
+                <div class="review-date">{{ review.created_at.strftime('%d %b, %Y') }}</div>
             </div>
             {% endfor %}
         {% else %}

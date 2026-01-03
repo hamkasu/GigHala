@@ -193,7 +193,7 @@
         </div>
         <div class="dispute-meta">
             <span>Type: <strong>{{ dispute.dispute_type.replace('_', ' ').title() }}</strong></span>
-            <span>Filed: <strong>{{ dispute.created_at.strftime('%b %d, %Y') }}</strong></span>
+            <span>Filed: <strong>{{ dispute.created_at.strftime('%d %b, %Y') }}</strong></span>
             {% if gig %}
             <span>Gig: <a href="/gig/{{ gig.id }}" style="color: var(--primary);">{{ gig.title[:40] }}{% if gig.title|length > 40 %}...{% endif %}</a></span>
             {% endif %}
@@ -236,7 +236,7 @@
                             {{ item.sender.full_name or item.sender.username if item.sender else 'Unknown' }}
                             {% if item.message.is_admin %} (Admin){% endif %}
                         </span>
-                        <span class="message-time">{{ item.message.created_at.strftime('%b %d, %Y at %H:%M') }}</span>
+                        <span class="message-time">{{ item.message.created_at.strftime('%d %b, %Y at %H:%M') }}</span>
                     </div>
                     <div class="message-text">{{ item.message.message }}</div>
                 </div>

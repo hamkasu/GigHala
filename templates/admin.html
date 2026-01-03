@@ -2493,7 +2493,7 @@
                         ${payout.account_number ? `****${payout.account_number.slice(-4)}` : 'N/A'}
                     </td>
                     <td><span class="badge ${payout.status}">${payout.status.toUpperCase()}</span></td>
-                    <td>${new Date(payout.requested_at).toLocaleDateString()}</td>
+                    <td>${new Date(payout.requested_at).toLocaleDateString('ms-MY')}</td>
                     <td>
                         <button class="btn btn-sm btn-primary" onclick="viewPayoutDetails(${payout.id})">View</button>
                     </td>

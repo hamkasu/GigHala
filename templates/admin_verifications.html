@@ -118,7 +118,7 @@
             <div class="verification-item" id="verification-{{ v.id }}">
                 <div class="user-info">
                     <div class="user-name">{{ v.full_name }}</div>
-                    <div class="user-meta">IC: {{ v.ic_number[:4] }}****{{ v.ic_number[-4:] }} &bull; Submitted {{ v.created_at.strftime('%b %d, %Y') }}</div>
+                    <div class="user-meta">IC: {{ v.ic_number[:4] }}****{{ v.ic_number[-4:] }} &bull; Submitted {{ v.created_at.strftime('%d %b, %Y') }}</div>
                 </div>
                 <div class="ic-preview">
                     {% if v.ic_front_image %}
@@ -157,7 +157,7 @@
             <div class="verification-item">
                 <div class="user-info">
                     <div class="user-name">{{ v.full_name }}</div>
-                    <div class="user-meta">{{ v.updated_at.strftime('%b %d, %Y') if v.updated_at else v.created_at.strftime('%b %d, %Y') }}</div>
+                    <div class="user-meta">{{ v.updated_at.strftime('%d %b, %Y') if v.updated_at else v.created_at.strftime('%d %b, %Y') }}</div>
                 </div>
                 <span class="status-badge status-{{ v.status }}">{{ v.status.title() }}</span>
             </div>

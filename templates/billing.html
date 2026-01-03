@@ -933,7 +933,7 @@
 
                     return `
                     <tr>
-                        <td>${new Date(txn.transaction_date || txn.date).toLocaleDateString()}</td>
+                        <td>${new Date(txn.transaction_date || txn.date).toLocaleDateString('ms-MY')}</td>
                         <td>${txn.gig_title ? txn.gig_title : 'Payment for Gig #' + (txn.gig_id || 'N/A')}</td>
                         <td>MYR ${txn.amount.toFixed(2)}</td>
                         <td>${isReceived ? 'MYR ' + platformFee.toFixed(2) : '-'}</td>
@@ -999,7 +999,7 @@
                         <td><strong style="color: var(--primary);">${inv.gig_code || 'GIG-' + inv.gig_id}</strong> - ${inv.gig_title || 'Gig #' + inv.gig_id}</td>
                         <td>MYR ${inv.total_amount.toFixed(2)}</td>
                         <td><span class="badge ${inv.status}">${inv.status}</span></td>
-                        <td>${new Date(inv.issue_date || inv.created_at).toLocaleDateString()}</td>
+                        <td>${new Date(inv.issue_date || inv.created_at).toLocaleDateString('ms-MY')}</td>
                         <td>
                             <button class="btn-dm" onclick="startConversation(${inv.client_id}, ${inv.gig_id}, 'client', '${inv.client_name}')" title="Message Client (${inv.client_name})">
                                 💬 Client
@@ -1067,7 +1067,7 @@
                         <td>MYR ${p.amount.toFixed(2)}</td>
                         <td>${p.payout_method || p.payment_method || 'N/A'}</td>
                         <td><span class="badge ${p.status}">${p.status.toUpperCase()}</span></td>
-                        <td>${new Date(p.requested_at).toLocaleDateString()}</td>
+                        <td>${new Date(p.requested_at).toLocaleDateString('ms-MY')}</td>
                     </tr>
                 `).join('');
             }
@@ -1173,7 +1173,7 @@
             } else {
                 tbody.innerHTML = data.contributions.map(c => `
                     <tr>
-                        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td>${new Date(c.created_at).toLocaleDateString('ms-MY')}</td>
                         <td><span class="badge">${c.contribution_type}</span></td>
                         <td>MYR ${c.gross_amount.toFixed(2)}</td>
                         <td>MYR ${c.platform_commission.toFixed(2)}</td>
