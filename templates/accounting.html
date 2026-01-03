@@ -98,7 +98,7 @@
         background: var(--bg-white);
         border-radius: var(--radius-lg);
         border: 1px solid var(--border);
-        overflow: hidden;
+        overflow-x: auto;
     }
 
     .data-table table {
@@ -115,11 +115,13 @@
         text-transform: uppercase;
         color: var(--text-gray);
         letter-spacing: 0.5px;
+        white-space: nowrap;
     }
 
     .data-table td {
         padding: 14px 16px;
         border-top: 1px solid var(--border);
+        white-space: nowrap;
     }
 
     .data-table tr:hover {
@@ -1190,29 +1192,32 @@ function displayPlatformReport(data) {
     pmContainer.innerHTML = '<h4 style="color: var(--text-gray); margin: 20px 0 12px 0;">Payment Methods</h4>';
 
     if (Object.keys(data.transactions.payment_methods).length > 0) {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowX = 'auto';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>Payment Method</th>
-                    <th>Transactions</th>
-                    <th>Amount</th>
-                    <th>Commission</th>
+                    <th style="white-space: nowrap;">Payment Method</th>
+                    <th style="white-space: nowrap;">Transactions</th>
+                    <th style="white-space: nowrap;">Amount</th>
+                    <th style="white-space: nowrap;">Commission</th>
                 </tr>
             </thead>
             <tbody>
                 ${Object.entries(data.transactions.payment_methods).map(([method, stats]) => `
                     <tr>
-                        <td style="text-transform: capitalize;">${method}</td>
-                        <td>${stats.count}</td>
-                        <td>RM ${stats.amount.toFixed(2)}</td>
-                        <td>RM ${stats.commission.toFixed(2)}</td>
+                        <td style="text-transform: capitalize; white-space: nowrap;">${method}</td>
+                        <td style="white-space: nowrap;">${stats.count}</td>
+                        <td style="white-space: nowrap;">RM ${stats.amount.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${stats.commission.toFixed(2)}</td>
                     </tr>
                 `).join('')}
             </tbody>
         `;
-        pmContainer.appendChild(table);
+        tableWrapper.appendChild(table);
+        pmContainer.appendChild(tableWrapper);
     } else {
         pmContainer.innerHTML += '<p style="color: var(--text-gray);">No payment data available</p>';
     }
@@ -1284,33 +1289,36 @@ function displayWorkerReport(data) {
     gigContainer.innerHTML = '<h4 style="color: var(--text-gray); margin: 20px 0 12px 0;">Completed Gigs</h4>';
 
     if (data.gigs.gig_details.length > 0) {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowX = 'auto';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>Gig ID</th>
-                    <th>Title</th>
-                    <th>Budget</th>
-                    <th>Earned</th>
-                    <th>Commission</th>
-                    <th>Completed</th>
+                    <th style="white-space: nowrap;">Gig ID</th>
+                    <th style="white-space: nowrap;">Title</th>
+                    <th style="white-space: nowrap;">Budget</th>
+                    <th style="white-space: nowrap;">Earned</th>
+                    <th style="white-space: nowrap;">Commission</th>
+                    <th style="white-space: nowrap;">Completed</th>
                 </tr>
             </thead>
             <tbody>
                 ${data.gigs.gig_details.map(gig => `
                     <tr>
-                        <td>${gig.gig_id}</td>
-                        <td>${gig.title}</td>
-                        <td>RM ${gig.budget.toFixed(2)}</td>
-                        <td>RM ${gig.earned.toFixed(2)}</td>
-                        <td>RM ${gig.commission.toFixed(2)}</td>
-                        <td>${gig.completed_at || 'N/A'}</td>
+                        <td style="white-space: nowrap;">${gig.gig_id}</td>
+                        <td style="white-space: nowrap;">${gig.title}</td>
+                        <td style="white-space: nowrap;">RM ${gig.budget.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${gig.earned.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${gig.commission.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">${gig.completed_at || 'N/A'}</td>
                     </tr>
                 `).join('')}
             </tbody>
         `;
-        gigContainer.appendChild(table);
+        tableWrapper.appendChild(table);
+        gigContainer.appendChild(tableWrapper);
     } else {
         gigContainer.innerHTML += '<p style="color: var(--text-gray);">No completed gigs in this period</p>';
     }
@@ -1319,33 +1327,36 @@ function displayWorkerReport(data) {
     payoutContainer.innerHTML = '<h4 style="color: var(--text-gray); margin: 20px 0 12px 0;">Payouts</h4>';
 
     if (data.payouts.payout_details.length > 0) {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowX = 'auto';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>Payout #</th>
-                    <th>Amount</th>
-                    <th>Fee</th>
-                    <th>Net Amount</th>
-                    <th>Method</th>
-                    <th>Completed</th>
+                    <th style="white-space: nowrap;">Payout #</th>
+                    <th style="white-space: nowrap;">Amount</th>
+                    <th style="white-space: nowrap;">Fee</th>
+                    <th style="white-space: nowrap;">Net Amount</th>
+                    <th style="white-space: nowrap;">Method</th>
+                    <th style="white-space: nowrap;">Completed</th>
                 </tr>
             </thead>
             <tbody>
                 ${data.payouts.payout_details.map(payout => `
                     <tr>
-                        <td>${payout.payout_number}</td>
-                        <td>RM ${payout.amount.toFixed(2)}</td>
-                        <td>RM ${payout.fee.toFixed(2)}</td>
-                        <td>RM ${payout.net_amount.toFixed(2)}</td>
-                        <td style="text-transform: capitalize;">${payout.payment_method}</td>
-                        <td>${payout.completed_at || 'N/A'}</td>
+                        <td style="white-space: nowrap;">${payout.payout_number}</td>
+                        <td style="white-space: nowrap;">RM ${payout.amount.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${payout.fee.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${payout.net_amount.toFixed(2)}</td>
+                        <td style="text-transform: capitalize; white-space: nowrap;">${payout.payment_method}</td>
+                        <td style="white-space: nowrap;">${payout.completed_at || 'N/A'}</td>
                     </tr>
                 `).join('')}
             </tbody>
         `;
-        payoutContainer.appendChild(table);
+        tableWrapper.appendChild(table);
+        payoutContainer.appendChild(tableWrapper);
     } else {
         payoutContainer.innerHTML += '<p style="color: var(--text-gray);">No payouts in this period</p>';
     }
@@ -1397,27 +1408,30 @@ function displayClientReport(data) {
     pmContainer.innerHTML = '<h4 style="color: var(--text-gray); margin: 20px 0 12px 0;">Payment Methods Used</h4>';
 
     if (Object.keys(data.spending.payment_methods).length > 0) {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowX = 'auto';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>Payment Method</th>
-                    <th>Transactions</th>
-                    <th>Amount</th>
+                    <th style="white-space: nowrap;">Payment Method</th>
+                    <th style="white-space: nowrap;">Transactions</th>
+                    <th style="white-space: nowrap;">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 ${Object.entries(data.spending.payment_methods).map(([method, stats]) => `
                     <tr>
-                        <td style="text-transform: capitalize;">${method}</td>
-                        <td>${stats.count}</td>
-                        <td>RM ${stats.amount.toFixed(2)}</td>
+                        <td style="text-transform: capitalize; white-space: nowrap;">${method}</td>
+                        <td style="white-space: nowrap;">${stats.count}</td>
+                        <td style="white-space: nowrap;">RM ${stats.amount.toFixed(2)}</td>
                     </tr>
                 `).join('')}
             </tbody>
         `;
-        pmContainer.appendChild(table);
+        tableWrapper.appendChild(table);
+        pmContainer.appendChild(tableWrapper);
     } else {
         pmContainer.innerHTML += '<p style="color: var(--text-gray);">No payment data available</p>';
     }
@@ -1426,35 +1440,38 @@ function displayClientReport(data) {
     gigContainer.innerHTML = '<h4 style="color: var(--text-gray); margin: 20px 0 12px 0;">Gigs</h4>';
 
     if (data.gigs.gig_details.length > 0) {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowX = 'auto';
         const table = document.createElement('table');
         table.style.width = '100%';
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>Gig ID</th>
-                    <th>Title</th>
-                    <th>Status</th>
-                    <th>Budget</th>
-                    <th>Spent</th>
-                    <th>Commission</th>
-                    <th>Created</th>
+                    <th style="white-space: nowrap;">Gig ID</th>
+                    <th style="white-space: nowrap;">Title</th>
+                    <th style="white-space: nowrap;">Status</th>
+                    <th style="white-space: nowrap;">Budget</th>
+                    <th style="white-space: nowrap;">Spent</th>
+                    <th style="white-space: nowrap;">Commission</th>
+                    <th style="white-space: nowrap;">Created</th>
                 </tr>
             </thead>
             <tbody>
                 ${data.gigs.gig_details.map(gig => `
                     <tr>
-                        <td>${gig.gig_id}</td>
-                        <td>${gig.title}</td>
-                        <td><span class="badge badge-${gig.status}">${gig.status}</span></td>
-                        <td>RM ${gig.budget.toFixed(2)}</td>
-                        <td>RM ${gig.spent.toFixed(2)}</td>
-                        <td>RM ${gig.commission.toFixed(2)}</td>
-                        <td>${gig.created_at || 'N/A'}</td>
+                        <td style="white-space: nowrap;">${gig.gig_id}</td>
+                        <td style="white-space: nowrap;">${gig.title}</td>
+                        <td style="white-space: nowrap;"><span class="badge badge-${gig.status}">${gig.status}</span></td>
+                        <td style="white-space: nowrap;">RM ${gig.budget.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${gig.spent.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${gig.commission.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">${gig.created_at || 'N/A'}</td>
                     </tr>
                 `).join('')}
             </tbody>
         `;
-        gigContainer.appendChild(table);
+        tableWrapper.appendChild(table);
+        gigContainer.appendChild(tableWrapper);
     } else {
         gigContainer.innerHTML += '<p style="color: var(--text-gray);">No gigs in this period</p>';
     }
@@ -1484,31 +1501,31 @@ function displaySOSCOReport(data) {
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th>Freelancer</th>
-                    <th>IC Number</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Transactions</th>
-                    <th>Net Earnings</th>
-                    <th>SOCSO Amount</th>
-                    <th>Final Payout</th>
-                    <th>Remitted</th>
+                    <th style="white-space: nowrap;">Month</th>
+                    <th style="white-space: nowrap;">Freelancer</th>
+                    <th style="white-space: nowrap;">IC Number</th>
+                    <th style="white-space: nowrap;">Email</th>
+                    <th style="white-space: nowrap;">Phone</th>
+                    <th style="white-space: nowrap;">Transactions</th>
+                    <th style="white-space: nowrap;">Net Earnings</th>
+                    <th style="white-space: nowrap;">SOCSO Amount</th>
+                    <th style="white-space: nowrap;">Final Payout</th>
+                    <th style="white-space: nowrap;">Remitted</th>
                 </tr>
             </thead>
             <tbody>
                 ${data.report.map(record => `
                     <tr>
-                        <td>${record.contribution_month}</td>
-                        <td>${record.full_name}</td>
-                        <td>${record.ic_number || 'N/A'}</td>
-                        <td>${record.email}</td>
-                        <td>${record.phone || 'N/A'}</td>
-                        <td>${record.transaction_count}</td>
-                        <td>RM ${record.total_net_earnings.toFixed(2)}</td>
-                        <td>RM ${record.total_socso_amount.toFixed(2)}</td>
-                        <td>RM ${record.total_final_payout.toFixed(2)}</td>
-                        <td>${record.all_remitted ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td>
+                        <td style="white-space: nowrap;">${record.contribution_month}</td>
+                        <td style="white-space: nowrap;">${record.full_name}</td>
+                        <td style="white-space: nowrap;">${record.ic_number || 'N/A'}</td>
+                        <td style="white-space: nowrap;">${record.email}</td>
+                        <td style="white-space: nowrap;">${record.phone || 'N/A'}</td>
+                        <td style="white-space: nowrap;">${record.transaction_count}</td>
+                        <td style="white-space: nowrap;">RM ${record.total_net_earnings.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${record.total_socso_amount.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">RM ${record.total_final_payout.toFixed(2)}</td>
+                        <td style="white-space: nowrap;">${record.all_remitted ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-warning">No</span>'}</td>
                     </tr>
                 `).join('')}
             </tbody>
