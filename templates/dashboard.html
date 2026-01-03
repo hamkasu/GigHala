@@ -855,8 +855,8 @@
     {% if user.user_type in ['freelancer', 'both'] %}
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Active Gigs</h2>
-            <a href="/gigs" class="view-all">View All</a>
+            <h2 class="section-title">{{ t('active_gigs') }}</h2>
+            <a href="/gigs" class="view-all">{{ t('view_all') }}</a>
         </div>
 
         {% if active_gigs %}
@@ -873,16 +873,16 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">📋</div>
-                <p>No active gigs</p>
-                <a href="/gigs" class="btn btn-primary" style="margin-top: 12px;">Browse Gigs</a>
+                <p>{{ t('no_active_gigs') }}</p>
+                <a href="/gigs" class="btn btn-primary" style="margin-top: 12px;">{{ t('browse_gigs') }}</a>
             </div>
         {% endif %}
     </div>
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Recent Applications</h2>
-            <a href="/gigs" class="view-all">View All</a>
+            <h2 class="section-title">{{ t('recent_applications') }}</h2>
+            <a href="/gigs" class="view-all">{{ t('view_all') }}</a>
         </div>
 
         {% if applications %}
@@ -908,8 +908,8 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">✉️</div>
-                <p>No applications yet</p>
-                <a href="/gigs" class="btn btn-primary" style="margin-top: 12px;">Browse Gigs</a>
+                <p>{{ t('no_applications_yet') }}</p>
+                <a href="/gigs" class="btn btn-primary" style="margin-top: 12px;">{{ t('browse_gigs') }}</a>
             </div>
         {% endif %}
     </div>
@@ -918,8 +918,8 @@
     {% if user.user_type in ['client', 'both'] %}
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Your Posted Gigs</h2>
-            <a href="/gigs" class="view-all">View All</a>
+            <h2 class="section-title">{{ t('your_posted_gigs') }}</h2>
+            <a href="/gigs" class="view-all">{{ t('view_all') }}</a>
         </div>
 
         {% if posted_gigs %}
@@ -938,8 +938,8 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">📢</div>
-                <p>No posted gigs</p>
-                <a href="/post-gig" class="btn btn-primary" style="margin-top: 12px;">Post a Gig</a>
+                <p>{{ t('no_posted_gigs') }}</p>
+                <a href="/post-gig" class="btn btn-primary" style="margin-top: 12px;">{{ t('post_gig') }}</a>
             </div>
         {% endif %}
     </div>
@@ -947,8 +947,8 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">Recent Transactions</h2>
-            <a href="/billing" class="view-all">View All</a>
+            <h2 class="section-title">{{ t('recent_transactions') }}</h2>
+            <a href="/billing" class="view-all">{{ t('view_all') }}</a>
         </div>
 
         {% if recent_transactions %}
@@ -956,9 +956,9 @@
             <div class="transaction-item">
                 <div class="gig-title">
                     {% if txn.client_id == user.id %}
-                    Payment Sent
+                    {{ t('payment_sent') }}
                     {% else %}
-                    Payment Received
+                    {{ t('payment_received') }}
                     {% endif %}
                 </div>
                 <div class="gig-meta">
@@ -971,7 +971,7 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">💸</div>
-                <p>No transactions yet</p>
+                <p>{{ t('no_transactions_yet') }}</p>
             </div>
         {% endif %}
     </div>
@@ -979,14 +979,14 @@
     {% if user.user_type in ['freelancer', 'both'] %}
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">SOCSO Deductions (Gig Workers Bill 2025)</h2>
-            <a href="/billing" class="view-all">View All</a>
+            <h2 class="section-title">{{ t('socso_deductions') }}</h2>
+            <a href="/billing" class="view-all">{{ t('view_all') }}</a>
         </div>
 
         <div id="socsoDeductionsContainer">
             <div class="empty-state">
                 <div class="empty-state-icon">🏥</div>
-                <p>No SOCSO deductions yet</p>
+                <p>{{ t('no_socso_deductions') }}</p>
             </div>
         </div>
     </div>
@@ -994,8 +994,8 @@
 
     <div class="section">
         <div class="section-header">
-            <h2 class="section-title">{{ t('recent_invoices') if t('recent_invoices') != 'recent_invoices' else 'Recent Invoices' }}</h2>
-            <a href="/documents" class="view-all">{{ t('view_all') if t('view_all') != 'view_all' else 'View All' }}</a>
+            <h2 class="section-title">{{ t('recent_invoices') }}</h2>
+            <a href="/documents" class="view-all">{{ t('view_all') }}</a>
         </div>
 
         {% if recent_invoices %}
@@ -1017,7 +1017,7 @@
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">📄</div>
-                <p>{{ t('no_invoices_yet') if t('no_invoices_yet') != 'no_invoices_yet' else 'No invoices yet' }}</p>
+                <p>{{ t('no_invoices_yet') }}</p>
             </div>
         {% endif %}
     </div>
@@ -1278,7 +1278,8 @@
         review_submitted: "{{ t('review_submitted') }}",
         review_failed: "{{ t('review_failed') }}",
         error_occurred: "{{ t('error_occurred') }}",
-        logout_confirm: "{{ t('logout_confirm') }}"
+        logout_confirm: "{{ t('logout_confirm') }}",
+        no_socso_deductions: "{{ t('no_socso_deductions') }}"
     };
 
     let currentGigId = null;
@@ -1498,7 +1499,7 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">🏥</div>
-                        <p>No SOCSO deductions yet</p>
+                        <p>${i18n.no_socso_deductions}</p>
                     </div>
                 `;
                 return;
