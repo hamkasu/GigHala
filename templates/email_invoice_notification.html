@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Invoice Received - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            color: #ffffff;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .invoice-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid #6366f1;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .invoice-number {
+            font-size: 14px;
+            color: #666666;
+            margin-bottom: 5px;
+        }
+        .invoice-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #6366f1;
+            margin: 10px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .status-paid {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .gig-info {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .gig-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin: 0 0 15px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #666666;
+        }
+        .detail-value {
+            color: #333333;
+            font-weight: 500;
+        }
+        .breakdown-section {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .breakdown-section h3 {
+            font-size: 16px;
+            color: #333333;
+            margin: 0 0 15px 0;
+            font-weight: 600;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            margin: 20px 10px 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        }
+        .button-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        .button-secondary:hover {
+            background: #d1d5db;
+        }
+        .alert-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #991b1b;
+            border-radius: 4px;
+        }
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #1e40af;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 5px 0;
+        }
+        .footer-links {
+            margin-top: 15px;
+        }
+        .footer-links a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 12px;
+        }
+        .footer-links a:hover {
+            color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-icon">📄</div>
+            <h1>New Invoice Received</h1>
+            <p>{{ freelancer_name }} has submitted an invoice for your review</p>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Hi {{ recipient_name }},</p>
+
+            <p>{{ freelancer_name }} has completed the work and submitted an invoice for <strong>"{{ gig_title }}"</strong>.</p>
+
+            <div class="invoice-box">
+                <div class="invoice-number">Invoice Number</div>
+                <div style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px;">
+                    {{ invoice_number }}
+                </div>
+                <div class="invoice-amount">MYR {{ invoice_amount }}</div>
+                <span class="status-badge status-pending">{{ invoice_status }}</span>
+            </div>
+
+            <div class="gig-info">
+                <div class="gig-title">{{ gig_title }}</div>
+                <div class="detail-row">
+                    <span class="detail-label">Freelancer</span>
+                    <span class="detail-value">{{ freelancer_name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Invoice Date</span>
+                    <span class="detail-value">{{ invoice_date }}</span>
+                </div>
+                {% if due_date %}
+                <div class="detail-row">
+                    <span class="detail-label">Due Date</span>
+                    <span class="detail-value">{{ due_date }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="breakdown-section">
+                <h3>Amount Breakdown</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Work Amount</span>
+                    <span class="detail-value">MYR {{ work_amount }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Platform Fee ({{ platform_fee_percentage }}%)</span>
+                    <span class="detail-value">MYR {{ platform_fee }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><strong>Total to Pay</strong></span>
+                    <span class="detail-value" style="color: #6366f1; font-weight: 600;">MYR {{ invoice_amount }}</span>
+                </div>
+            </div>
+
+            {% if work_description %}
+            <div class="info-box">
+                <strong>Work Summary:</strong> {{ work_description }}
+            </div>
+            {% endif %}
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ invoice_url }}" class="button">Review Invoice</a>
+                <a href="{{ gig_url }}" class="button button-secondary">View Gig Details</a>
+            </div>
+
+            {% if escrow_funded %}
+            <p style="color: #666666; font-size: 14px;">
+                <strong>Escrow Status:</strong> The escrow for this gig has been funded. Once you approve the work and release the escrow, the payment will be automatically processed.
+            </p>
+            {% else %}
+            <div class="alert-box">
+                <strong>Action Required:</strong> Please review the invoice and fund the escrow to release payment to the freelancer.
+            </div>
+            {% endif %}
+
+            <p style="margin-top: 30px; color: #666666; font-size: 14px;">
+                Please review the submitted work and invoice carefully. If you have any questions or concerns, you can contact the freelancer through the messaging system.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>GigHala</strong> - Your Trusted Halal Gig Platform</p>
+            <p>Platform Mesra Halal untuk Kerja Gig</p>
+            <div class="footer-links">
+                <a href="{{ support_url }}">Support</a>
+                <a href="{{ settings_url }}">Settings</a>
+                <a href="{{ terms_url }}">Terms</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

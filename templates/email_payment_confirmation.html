@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Received - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            color: #ffffff;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .amount-box {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .amount-label {
+            font-size: 14px;
+            color: #666666;
+            margin-bottom: 5px;
+        }
+        .amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #10b981;
+            margin: 10px 0;
+        }
+        .details-section {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .details-section h3 {
+            font-size: 16px;
+            color: #333333;
+            margin: 0 0 15px 0;
+            font-weight: 600;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #666666;
+        }
+        .detail-value {
+            color: #333333;
+            font-weight: 500;
+        }
+        .detail-value.highlight {
+            color: #10b981;
+            font-weight: 600;
+        }
+        .gig-info {
+            background-color: #f0f4ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .gig-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin: 0 0 10px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        .info-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #92400e;
+            border-radius: 4px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 5px 0;
+        }
+        .footer-links {
+            margin-top: 15px;
+        }
+        .footer-links a {
+            color: #6b7280;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 12px;
+        }
+        .footer-links a:hover {
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="header-icon">💰</div>
+            <h1>Payment Received!</h1>
+            <p>Your payment has been successfully processed</p>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Hi {{ recipient_name }},</p>
+
+            <p>Great news! Your payment for <strong>"{{ gig_title }}"</strong> has been successfully released and credited to your wallet.</p>
+
+            <div class="amount-box">
+                <div class="amount-label">Amount Received</div>
+                <div class="amount">MYR {{ final_amount }}</div>
+            </div>
+
+            <div class="details-section">
+                <h3>Payment Breakdown</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Gross Amount</span>
+                    <span class="detail-value">MYR {{ gross_amount }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Platform Fee ({{ platform_fee_percentage }}%)</span>
+                    <span class="detail-value">- MYR {{ platform_fee }}</span>
+                </div>
+                {% if socso_amount and socso_amount > 0 %}
+                <div class="detail-row">
+                    <span class="detail-label">SOCSO Contribution</span>
+                    <span class="detail-value">- MYR {{ socso_amount }}</span>
+                </div>
+                {% endif %}
+                <div class="detail-row">
+                    <span class="detail-label"><strong>Net Payment</strong></span>
+                    <span class="detail-value highlight">MYR {{ final_amount }}</span>
+                </div>
+            </div>
+
+            {% if receipt_number %}
+            <div class="details-section">
+                <h3>Transaction Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Receipt Number</span>
+                    <span class="detail-value">{{ receipt_number }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Payment Date</span>
+                    <span class="detail-value">{{ payment_date }}</span>
+                </div>
+                {% if payment_reference %}
+                <div class="detail-row">
+                    <span class="detail-label">Reference</span>
+                    <span class="detail-value">{{ payment_reference }}</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if socso_amount and socso_amount > 0 %}
+            <div class="info-box">
+                <strong>SOCSO Contribution:</strong> Your SOCSO contribution of MYR {{ socso_amount }} ensures your social security protection as mandated by the Gig Workers Bill 2025.
+            </div>
+            {% endif %}
+
+            <div style="text-align: center;">
+                <a href="{{ wallet_url }}" class="button">View Wallet</a>
+                {% if receipt_url %}
+                <a href="{{ receipt_url }}" class="button" style="background: #6366f1; margin-left: 10px;">View Receipt</a>
+                {% endif %}
+            </div>
+
+            <p style="margin-top: 30px; color: #666666; font-size: 14px;">
+                The amount has been credited to your GigHala wallet. You can withdraw it anytime from your wallet dashboard.
+            </p>
+
+            <p style="color: #666666; font-size: 14px;">
+                Thank you for your excellent work!
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>GigHala</strong> - Your Trusted Halal Gig Platform</p>
+            <p>Platform Mesra Halal untuk Kerja Gig</p>
+            <div class="footer-links">
+                <a href="{{ support_url }}">Support</a>
+                <a href="{{ settings_url }}">Settings</a>
+                <a href="{{ terms_url }}">Terms</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
