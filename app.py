@@ -15863,14 +15863,22 @@ def messages():
         last_message = Message.query.filter_by(conversation_id=conv.id).order_by(Message.created_at.desc()).first()
         unread_count = Message.query.filter_by(conversation_id=conv.id, is_read=False).filter(Message.sender_id != user_id).count()
         gig = Gig.query.get(conv.gig_id) if conv.gig_id else None
-        
+
+        # Determine message type for color coding
+        message_type = 'dm'  # Default to direct message
+        if other_user and other_user.admin_role:
+            message_type = 'support'  # Support/Admin message
+        elif gig:
+            message_type = 'gig'  # Gig-related message
+
         conversation_list.append({
             'id': conv.id,
             'other_user': other_user,
             'last_message': last_message,
             'unread_count': unread_count,
             'gig': gig,
-            'last_message_at': conv.last_message_at
+            'last_message_at': conv.last_message_at,
+            'message_type': message_type
         })
     
     return render_template('messages.html', user=user, conversations=conversation_list, active_page='messages', lang=get_user_language(), t=t)

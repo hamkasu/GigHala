@@ -131,6 +131,57 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
     }
+
+    /* Color coding for different message types */
+    :root {
+        --color-dm: #2196F3;        /* Blue for Direct Messages */
+        --color-gig: #00C853;       /* Green for Gig-related messages */
+        --color-support: #FF9800;   /* Orange for Support messages */
+    }
+
+    /* Avatar colors based on message type */
+    .avatar.type-dm {
+        background: var(--color-dm);
+    }
+    .avatar.type-gig {
+        background: var(--color-gig);
+    }
+    .avatar.type-support {
+        background: var(--color-support);
+    }
+
+    /* Conversation gig color based on message type */
+    .conversation-gig.type-dm {
+        color: var(--color-dm);
+    }
+    .conversation-gig.type-gig {
+        color: var(--color-gig);
+    }
+    .conversation-gig.type-support {
+        color: var(--color-support);
+    }
+
+    /* Unread background based on message type */
+    .conversation-item.unread.type-dm {
+        background: rgba(33, 150, 243, 0.05);
+    }
+    .conversation-item.unread.type-gig {
+        background: rgba(0, 200, 83, 0.05);
+    }
+    .conversation-item.unread.type-support {
+        background: rgba(255, 152, 0, 0.05);
+    }
+
+    /* Unread badge based on message type */
+    .unread-badge.type-dm {
+        background: var(--color-dm);
+    }
+    .unread-badge.type-gig {
+        background: var(--color-gig);
+    }
+    .unread-badge.type-support {
+        background: var(--color-support);
+    }
 </style>
 {% endblock %}
 
@@ -152,8 +203,8 @@
     <div class="conversation-list">
         {% if conversations %}
             {% for conv in conversations %}
-            <a href="/messages/{{ conv.id }}" class="conversation-item {% if conv.unread_count > 0 %}unread{% endif %}">
-                <div class="avatar">
+            <a href="/messages/{{ conv.id }}" class="conversation-item type-{{ conv.message_type }} {% if conv.unread_count > 0 %}unread{% endif %}">
+                <div class="avatar type-{{ conv.message_type }}">
                     {{ conv.other_user.username[0].upper() if conv.other_user else '?' }}
                 </div>
                 <div class="conversation-content">
@@ -173,11 +224,11 @@
                         {% endif %}
                     </div>
                     {% if conv.gig %}
-                    <div class="conversation-gig">Re: {{ conv.gig.gig_code or 'GIG' }} - {{ conv.gig.title }}</div>
+                    <div class="conversation-gig type-{{ conv.message_type }}">Re: {{ conv.gig.gig_code or 'GIG' }} - {{ conv.gig.title }}</div>
                     {% endif %}
                 </div>
                 {% if conv.unread_count > 0 %}
-                <span class="unread-badge">{{ conv.unread_count }}</span>
+                <span class="unread-badge type-{{ conv.message_type }}">{{ conv.unread_count }}</span>
                 {% endif %}
             </a>
             {% endfor %}
