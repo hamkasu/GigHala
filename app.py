@@ -14987,14 +14987,19 @@ def admin_client_financial_report(client_id):
 @app.route('/api/admin/reports/workers', methods=['GET'])
 @admin_required
 def admin_get_workers_list():
-    """Get list of workers for report selection"""
+    """Get list of workers for report selection (includes dual role users)"""
     try:
-        workers = User.query.filter_by(user_type='freelancer').order_by(User.username).all()
+        # Include both freelancers and dual role users
+        workers = User.query.filter(
+            (User.user_type == 'freelancer') | (User.user_type == 'both')
+        ).order_by(User.username).all()
 
         workers_list = [{
             'id': w.id,
             'username': w.username,
             'email': w.email,
+            'user_type': w.user_type,
+            'is_dual_role': w.user_type == 'both',
             'total_earnings': float(w.total_earnings or 0),
             'completed_gigs': w.completed_gigs or 0
         } for w in workers]
@@ -15007,14 +15012,19 @@ def admin_get_workers_list():
 @app.route('/api/admin/reports/clients', methods=['GET'])
 @admin_required
 def admin_get_clients_list():
-    """Get list of clients for report selection"""
+    """Get list of clients for report selection (includes dual role users)"""
     try:
-        clients = User.query.filter_by(user_type='client').order_by(User.username).all()
+        # Include both clients and dual role users
+        clients = User.query.filter(
+            (User.user_type == 'client') | (User.user_type == 'both')
+        ).order_by(User.username).all()
 
         clients_list = [{
             'id': c.id,
             'username': c.username,
-            'email': c.email
+            'email': c.email,
+            'user_type': c.user_type,
+            'is_dual_role': c.user_type == 'both'
         } for c in clients]
 
         # Get spending for each client
