@@ -4010,11 +4010,12 @@ def my_applications():
     user_id = session['user_id']
     user = User.query.get(user_id)
 
-    # Get all applications made by the user
+    # Get all pending applications made by the user
     applications_list = []
     if user.user_type in ['freelancer', 'both']:
         applications_raw = Application.query.filter_by(
-            freelancer_id=user_id
+            freelancer_id=user_id,
+            status='pending'
         ).order_by(Application.created_at.desc()).all()
 
         for app in applications_raw:

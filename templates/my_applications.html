@@ -211,7 +211,7 @@
 <main class="main-content">
     <div class="page-header">
         <h1>{{ 'Permohonan Saya' if lang == 'ms' else 'My Applications' }}</h1>
-        <p>{{ 'Senarai semua permohonan gig yang telah dihantar' if lang == 'ms' else 'List of all gig applications you have submitted' }}</p>
+        <p>{{ 'Senarai permohonan gig yang sedang menunggu' if lang == 'ms' else 'List of pending gig applications' }}</p>
     </div>
 
     {% if applications %}
@@ -284,8 +284,8 @@
     <div class="gigs-table-container">
         <div class="empty-state">
             <div class="empty-state-icon">📋</div>
-            <h3>{{ 'Tiada Permohonan' if lang == 'ms' else 'No Applications' }}</h3>
-            <p>{{ 'Anda belum memohon apa-apa gig lagi. Mula cari gig dan hantar permohonan anda!' if lang == 'ms' else "You haven't applied to any gigs yet. Start browsing and submit your applications!" }}</p>
+            <h3>{{ 'Tiada Permohonan Tertangguh' if lang == 'ms' else 'No Pending Applications' }}</h3>
+            <p>{{ 'Anda tidak mempunyai permohonan gig yang sedang menunggu pada masa ini.' if lang == 'ms' else "You don't have any pending gig applications at the moment." }}</p>
             <a href="/gigs" class="action-btn primary">{{ 'Cari Gig' if lang == 'ms' else 'Browse Gigs' }}</a>
         </div>
     </div>
