@@ -21,6 +21,7 @@ from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
 from twilio.rest import Client
 from email_service import email_service
+from sms_service import send_notification_sms
 from scheduled_jobs import init_scheduler
 import pyotp
 from halal_compliance import (
@@ -7111,6 +7112,46 @@ def submit_freelancer_invoice(gig_id):
         db.session.add(notification)
         db.session.commit()
 
+        # Send email notification to client about invoice submission
+        client = User.query.get(gig.client_id)
+        freelancer = User.query.get(gig.freelancer_id)
+        if client and client.email:
+            try:
+                escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+                platform_fee = invoice.platform_fee if invoice.platform_fee else (calculate_commission(invoice.total_amount) if invoice.total_amount else 0)
+                platform_fee_percentage = round((platform_fee / invoice.total_amount) * 100, 1) if invoice.total_amount and invoice.total_amount > 0 else 10
+
+                html_content = render_template('email_invoice_notification.html',
+                    recipient_name=client.full_name or client.username,
+                    freelancer_name=freelancer.full_name or freelancer.username if freelancer else "Freelancer",
+                    gig_title=gig.title,
+                    invoice_number=freelancer_invoice_number,
+                    invoice_amount=f"{invoice.total_amount:.2f}" if invoice.total_amount else "0.00",
+                    invoice_status="Pending Approval",
+                    invoice_date=(freelancer_invoice_date or datetime.utcnow()).strftime('%d %B %Y'),
+                    due_date=None,
+                    work_amount=f"{invoice.subtotal:.2f}" if invoice.subtotal else f"{invoice.total_amount:.2f}",
+                    platform_fee=f"{platform_fee:.2f}",
+                    platform_fee_percentage=platform_fee_percentage,
+                    work_description=invoice_notes[:200] if invoice_notes else None,
+                    invoice_url=request.host_url.rstrip('/') + f'/invoice/{invoice.id}',
+                    gig_url=request.host_url.rstrip('/') + f'/gig/{gig.id}',
+                    escrow_funded=(escrow and escrow.status == 'funded') if escrow else False,
+                    support_url=request.host_url.rstrip('/') + '/support',
+                    settings_url=request.host_url.rstrip('/') + '/settings',
+                    terms_url=request.host_url.rstrip('/') + '/terms'
+                )
+
+                email_service.send_single_email(
+                    to_email=client.email,
+                    to_name=client.full_name or client.username,
+                    subject=f"New Invoice from {freelancer.full_name or freelancer.username if freelancer else 'Freelancer'}",
+                    html_content=html_content
+                )
+                app.logger.info(f"Sent invoice notification email to client {client.id}")
+            except Exception as e:
+                app.logger.error(f"Failed to send invoice notification email: {str(e)}")
+
         return jsonify({
             'message': 'Invoice submitted successfully! Client can now release payment.',
             'invoice': {
@@ -8189,48 +8230,28 @@ def release_escrow(gig_id):
         if freelancer:
             try:
                 subject = "Payment Received!"
-                message = f"Great news! You've received payment for '{gig.title}'. MYR {final_payout_amount:.2f} has been credited to your wallet."
 
-                html_content = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #27ae60; color: white; padding: 20px; text-align: center; }}
-                        .content {{ padding: 20px; background-color: #f9f9f9; }}
-                        .amount {{ font-size: 24px; color: #27ae60; font-weight: bold; margin: 10px 0; }}
-                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h2>💰 Payment Received!</h2>
-                        </div>
-                        <div class="content">
-                            <p>Hi {freelancer.full_name or freelancer.username},</p>
-                            <p>Congratulations! Payment for <strong>"{gig.title}"</strong> has been successfully released.</p>
-                            <div class="amount">MYR {final_payout_amount:.2f}</div>
-                            <p><strong>Breakdown:</strong></p>
-                            <ul>
-                                <li>Gross Amount: MYR {escrow.amount:.2f}</li>
-                                <li>Platform Fee: MYR {escrow.platform_fee:.2f}</li>
-                                {f'<li>SOCSO Contribution: MYR {socso_amount:.2f}</li>' if socso_amount > 0 else ''}
-                                <li><strong>Net Payment: MYR {final_payout_amount:.2f}</strong></li>
-                            </ul>
-                            {f'<p><strong>Receipt Number:</strong> {freelancer_receipt.receipt_number if freelancer_receipt else existing_client_receipt.receipt_number}</p>' if freelancer_receipt or existing_client_receipt else ''}
-                            <p>The amount has been credited to your GigHala wallet. You can withdraw it anytime.</p>
-                            <p>Thank you for your excellent work!</p>
-                        </div>
-                        <div class="footer">
-                            <p>GigHala - Your Trusted Halal Gig Platform</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """
+                # Calculate platform fee percentage
+                platform_fee_percentage = round((escrow.platform_fee / escrow.amount) * 100, 1) if escrow.amount > 0 else 0
+
+                # Render email from template
+                html_content = render_template('email_payment_confirmation.html',
+                    recipient_name=freelancer.full_name or freelancer.username,
+                    gig_title=gig.title,
+                    final_amount=f"{final_payout_amount:.2f}",
+                    gross_amount=f"{escrow.amount:.2f}",
+                    platform_fee=f"{escrow.platform_fee:.2f}",
+                    platform_fee_percentage=platform_fee_percentage,
+                    socso_amount=f"{socso_amount:.2f}" if socso_amount > 0 else None,
+                    receipt_number=freelancer_receipt.receipt_number if freelancer_receipt else (existing_client_receipt.receipt_number if existing_client_receipt else None),
+                    payment_date=datetime.utcnow().strftime('%d %B %Y'),
+                    payment_reference=escrow.payment_reference,
+                    wallet_url=request.host_url.rstrip('/') + '/wallet',
+                    receipt_url=request.host_url.rstrip('/') + f'/receipt/{freelancer_receipt.id}' if freelancer_receipt else None,
+                    support_url=request.host_url.rstrip('/') + '/support',
+                    settings_url=request.host_url.rstrip('/') + '/settings',
+                    terms_url=request.host_url.rstrip('/') + '/terms'
+                )
 
                 text_content = f"""
 Payment Received!
@@ -8271,41 +8292,28 @@ GigHala - Your Trusted Halal Gig Platform
         if client:
             try:
                 subject = "Payment Completed"
-                message = f"Payment for '{gig.title}' has been successfully processed. Thank you for using GigHala!"
 
-                html_content = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #3498db; color: white; padding: 20px; text-align: center; }}
-                        .content {{ padding: 20px; background-color: #f9f9f9; }}
-                        .amount {{ font-size: 24px; color: #3498db; font-weight: bold; margin: 10px 0; }}
-                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h2>✅ Payment Completed</h2>
-                        </div>
-                        <div class="content">
-                            <p>Hi {client.full_name or client.username},</p>
-                            <p>Payment for <strong>"{gig.title}"</strong> has been successfully released to {freelancer.full_name or freelancer.username}.</p>
-                            <div class="amount">MYR {escrow.amount:.2f}</div>
-                            {f'<p><strong>Receipt Number:</strong> {client_receipt.receipt_number if client_receipt else existing_client_receipt.receipt_number}</p>' if client_receipt or existing_client_receipt else ''}
-                            <p>Thank you for using GigHala! We hope you had a great experience.</p>
-                            <p>Feel free to post more gigs or leave a review for the freelancer.</p>
-                        </div>
-                        <div class="footer">
-                            <p>GigHala - Your Trusted Halal Gig Platform</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-                """
+                # Calculate platform fee percentage
+                platform_fee_percentage = round((escrow.platform_fee / escrow.amount) * 100, 1) if escrow.amount > 0 else 0
+
+                # Render email from template (client's payment confirmation)
+                html_content = render_template('email_payment_confirmation.html',
+                    recipient_name=client.full_name or client.username,
+                    gig_title=gig.title,
+                    final_amount=f"{escrow.amount:.2f}",
+                    gross_amount=f"{escrow.amount:.2f}",
+                    platform_fee=f"{escrow.platform_fee:.2f}",
+                    platform_fee_percentage=platform_fee_percentage,
+                    socso_amount=None,  # Client doesn't pay SOCSO
+                    receipt_number=client_receipt.receipt_number if client_receipt else (existing_client_receipt.receipt_number if existing_client_receipt else None),
+                    payment_date=datetime.utcnow().strftime('%d %B %Y'),
+                    payment_reference=escrow.payment_reference,
+                    wallet_url=request.host_url.rstrip('/') + '/wallet',
+                    receipt_url=request.host_url.rstrip('/') + f'/receipt/{client_receipt.id}' if client_receipt else None,
+                    support_url=request.host_url.rstrip('/') + '/support',
+                    settings_url=request.host_url.rstrip('/') + '/settings',
+                    terms_url=request.host_url.rstrip('/') + '/terms'
+                )
 
                 text_content = f"""
 Payment Completed
@@ -8336,16 +8344,22 @@ GigHala - Your Trusted Halal Gig Platform
             except Exception as e:
                 app.logger.error(f"Failed to send payment completed email to client: {str(e)}")
 
-        # Send SMS notifications if users have verified phone numbers (Phase 1)
+        # Send SMS notifications for critical payments (>= RM500)
         # Notify freelancer about payment received
-        if freelancer and freelancer.phone and freelancer.phone_verified:
-            sms_message = f"GigHala: Payment received! MYR {final_payout_amount:.2f} for '{gig.title}'. Check your dashboard for details."
-            send_transaction_sms_notification(freelancer.phone, sms_message)
+        if freelancer and freelancer.phone:
+            # Send SMS for large payments (>= RM500) or if phone is verified
+            if final_payout_amount >= 500 or freelancer.phone_verified:
+                sms_message = f"GigHala: Payment received! MYR {final_payout_amount:.2f} for '{gig.title}'. Check your dashboard for details."
+                send_transaction_sms_notification(freelancer.phone, sms_message)
+                app.logger.info(f"Sent payment SMS to freelancer {freelancer.id} (amount: MYR {final_payout_amount:.2f})")
 
         # Notify client about payment completion
-        if client and client.phone and client.phone_verified:
-            sms_message = f"GigHala: Payment of MYR {escrow.amount:.2f} processed for '{gig.title}'. Thank you!"
-            send_transaction_sms_notification(client.phone, sms_message)
+        if client and client.phone:
+            # Send SMS for large payments (>= RM500) or if phone is verified
+            if escrow.amount >= 500 or client.phone_verified:
+                sms_message = f"GigHala: Payment of MYR {escrow.amount:.2f} processed for '{gig.title}'. Thank you!"
+                send_transaction_sms_notification(client.phone, sms_message)
+                app.logger.info(f"Sent payment SMS to client {client.id} (amount: MYR {escrow.amount:.2f})")
 
         return jsonify({
             'message': 'Payment completed! Invoice marked as paid and receipt created.',
@@ -11917,6 +11931,52 @@ def request_payout():
             }
         )
 
+        # Send withdrawal request confirmation email
+        if user.email:
+            try:
+                html_content = render_template('email_withdrawal_confirmation.html',
+                    recipient_name=user.full_name or user.username,
+                    withdrawal_status="Processing",
+                    status_message="Your withdrawal request has been received",
+                    main_message="We have received your withdrawal request and it is currently being processed.",
+                    withdrawal_amount=f"{amount:.2f}",
+                    transaction_id=payout_number,
+                    request_date=datetime.utcnow().strftime('%d %B %Y, %H:%M'),
+                    processing_date=None,
+                    completion_date=None,
+                    bank_name=bank_name,
+                    bank_account_number=account_number,
+                    account_holder_name=account_name,
+                    withdrawal_fee=f"{fee:.2f}",
+                    requested_amount=f"{amount:.2f}",
+                    estimated_completion=(datetime.utcnow() + timedelta(days=3)).strftime('%d %B %Y'),
+                    wallet_url=request.host_url.rstrip('/') + '/wallet',
+                    transaction_url=request.host_url.rstrip('/') + '/payments',
+                    support_url=request.host_url.rstrip('/') + '/support',
+                    support_contact='support@gighala.com',
+                    settings_url=request.host_url.rstrip('/') + '/settings',
+                    terms_url=request.host_url.rstrip('/') + '/terms'
+                )
+
+                email_service.send_single_email(
+                    to_email=user.email,
+                    to_name=user.full_name or user.username,
+                    subject=f"Withdrawal Request Received - {payout_number}",
+                    html_content=html_content
+                )
+                app.logger.info(f"Sent withdrawal request email to user {user_id}")
+            except Exception as e:
+                app.logger.error(f"Failed to send withdrawal request email: {str(e)}")
+
+        # Send SMS notification for large withdrawals (>= RM500)
+        if user.phone and (amount >= 500 or user.phone_verified):
+            try:
+                sms_message = f"GigHala: Withdrawal request of MYR {amount:.2f} received. Ref: {payout_number}. Processing time: 1-3 business days."
+                send_transaction_sms_notification(user.phone, sms_message)
+                app.logger.info(f"Sent withdrawal request SMS to user {user_id} (amount: MYR {amount:.2f})")
+            except Exception as e:
+                app.logger.error(f"Failed to send withdrawal request SMS: {str(e)}")
+
         return jsonify({
             'message': 'Payout request submitted successfully',
             'payout_number': payout_number,
@@ -14442,6 +14502,52 @@ def admin_update_payout(payout_id):
                     reference_number=payout.payout_number
                 )
                 db.session.add(history)
+
+                # Send withdrawal completion notification email
+                user = User.query.get(payout.freelancer_id)
+                if user and user.email:
+                    try:
+                        html_content = render_template('email_withdrawal_confirmation.html',
+                            recipient_name=user.full_name or user.username,
+                            withdrawal_status="Completed",
+                            status_message="Your withdrawal has been successfully processed",
+                            main_message=f"Great news! Your withdrawal of MYR {payout.amount:.2f} has been successfully transferred to your bank account.",
+                            withdrawal_amount=f"{payout.net_amount:.2f}",
+                            transaction_id=payout.payout_number,
+                            request_date=payout.created_at.strftime('%d %B %Y, %H:%M') if payout.created_at else None,
+                            processing_date=payout.processed_at.strftime('%d %B %Y, %H:%M') if payout.processed_at else None,
+                            completion_date=datetime.utcnow().strftime('%d %B %Y, %H:%M'),
+                            bank_name=payout.bank_name,
+                            bank_account_number=payout.account_number,
+                            account_holder_name=payout.account_name,
+                            withdrawal_fee=f"{payout.fee:.2f}" if payout.fee else "0.00",
+                            requested_amount=f"{payout.amount:.2f}",
+                            wallet_url=request.host_url.rstrip('/') + '/wallet',
+                            transaction_url=request.host_url.rstrip('/') + '/payments',
+                            support_url=request.host_url.rstrip('/') + '/support',
+                            support_contact='support@gighala.com',
+                            settings_url=request.host_url.rstrip('/') + '/settings',
+                            terms_url=request.host_url.rstrip('/') + '/terms'
+                        )
+
+                        email_service.send_single_email(
+                            to_email=user.email,
+                            to_name=user.full_name or user.username,
+                            subject=f"Withdrawal Completed - {payout.payout_number}",
+                            html_content=html_content
+                        )
+                        app.logger.info(f"Sent withdrawal completion email to user {user.id}")
+                    except Exception as e:
+                        app.logger.error(f"Failed to send withdrawal completion email: {str(e)}")
+
+                # Send SMS notification for large withdrawals (>= RM500)
+                if user and user.phone and (payout.amount >= 500 or user.phone_verified):
+                    try:
+                        sms_message = f"GigHala: Withdrawal of MYR {payout.net_amount:.2f} completed! Ref: {payout.payout_number}. Funds transferred to your bank account."
+                        send_transaction_sms_notification(user.phone, sms_message)
+                        app.logger.info(f"Sent withdrawal completion SMS to user {user.id} (amount: MYR {payout.net_amount:.2f})")
+                    except Exception as e:
+                        app.logger.error(f"Failed to send withdrawal completion SMS: {str(e)}")
 
         if new_status in ['failed', 'cancelled']:
             # Return balance to wallet
