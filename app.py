@@ -2162,6 +2162,54 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def billing_admin_required(f):
+    """Decorator to require billing/accountant admin authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            # Log unauthorized access attempt
+            from security_logger import security_logger
+            if security_logger:
+                security_logger.log_authorization(
+                    resource_type='billing_endpoint',
+                    resource_id=f.__name__,
+                    action=f'Attempted to access billing endpoint: {f.__name__}',
+                    status='blocked',
+                    message='Unauthorized - not logged in'
+                )
+            return jsonify({'error': 'Unauthorized - Please login'}), 401
+
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            # Log permission denied
+            from security_logger import security_logger
+            if security_logger:
+                security_logger.log_authorization(
+                    resource_type='billing_endpoint',
+                    resource_id=f.__name__,
+                    action=f'Non-admin user attempted to access billing endpoint: {f.__name__}',
+                    status='blocked',
+                    message=f'Forbidden - User {user.username if user else "unknown"} is not an admin'
+                )
+            return jsonify({'error': 'Forbidden - Admin access required'}), 403
+
+        # Check if user has billing or super_admin role
+        if user.admin_role not in ['super_admin', 'billing']:
+            # Log permission denied
+            from security_logger import security_logger
+            if security_logger:
+                security_logger.log_authorization(
+                    resource_type='billing_endpoint',
+                    resource_id=f.__name__,
+                    action=f'Admin user without billing role attempted to access billing endpoint: {f.__name__}',
+                    status='blocked',
+                    message=f'Forbidden - User {user.username} (role: {user.admin_role}) does not have billing access'
+                )
+            return jsonify({'error': 'Forbidden - Billing/Accounting access required'}), 403
+
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Database Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2190,6 +2238,8 @@ class User(UserMixin, db.Model):
     password_reset_expires = db.Column(db.DateTime)  # When password reset token expires
     halal_verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
+    admin_role = db.Column(db.String(50))  # super_admin, billing, moderator, etc.
+    admin_permissions = db.Column(db.Text)  # JSON string of specific permissions
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
     ic_number = db.Column(db.String(20))
     # Bank account details for payment transfers
@@ -13727,6 +13777,232 @@ def admin_get_clients_list():
         app.logger.error(f"Get clients list error: {str(e)}")
         return jsonify({'error': 'Failed to get clients list'}), 500
 
+# ==================== ACCOUNTING/BILLING ADMIN ROUTES ====================
+
+@app.route('/api/accounting/invoices', methods=['GET'])
+@billing_admin_required
+def accounting_get_invoices():
+    """Accounting: Get all invoices with filters"""
+    try:
+        status_filter = request.args.get('status', 'all')
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+
+        query = Invoice.query
+        if status_filter != 'all':
+            query = query.filter_by(status=status_filter)
+
+        total_count = query.count()
+        invoices = query.order_by(Invoice.created_at.desc()).limit(limit).offset(offset).all()
+
+        invoice_list = []
+        for inv in invoices:
+            client = User.query.get(inv.client_id)
+            freelancer = User.query.get(inv.freelancer_id)
+            invoice_list.append({
+                'id': inv.id,
+                'invoice_number': inv.invoice_number,
+                'client_name': client.username if client else 'Unknown',
+                'freelancer_name': freelancer.username if freelancer else 'Unknown',
+                'amount': float(inv.amount),
+                'total_amount': float(inv.total_amount),
+                'status': inv.status,
+                'created_at': inv.created_at.isoformat() if inv.created_at else None,
+                'paid_at': inv.paid_at.isoformat() if inv.paid_at else None
+            })
+
+        return jsonify({
+            'invoices': invoice_list,
+            'total_count': total_count,
+            'limit': limit,
+            'offset': offset
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Accounting get invoices error: {str(e)}")
+        return jsonify({'error': 'Failed to get invoices'}), 500
+
+@app.route('/api/accounting/payouts', methods=['GET'])
+@billing_admin_required
+def accounting_get_payouts():
+    """Accounting: Get all payout requests"""
+    try:
+        status_filter = request.args.get('status', 'all')
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+
+        query = Payout.query
+        if status_filter != 'all':
+            query = query.filter_by(status=status_filter)
+
+        total_count = query.count()
+        payouts = query.order_by(Payout.requested_at.desc()).limit(limit).offset(offset).all()
+
+        payout_list = []
+        for payout in payouts:
+            freelancer = User.query.get(payout.freelancer_id)
+            payout_list.append({
+                'id': payout.id,
+                'payout_number': payout.payout_number,
+                'freelancer_name': freelancer.username if freelancer else 'Unknown',
+                'amount': float(payout.amount),
+                'net_amount': float(payout.net_amount),
+                'status': payout.status,
+                'payment_method': payout.payment_method,
+                'requested_at': payout.requested_at.isoformat() if payout.requested_at else None,
+                'completed_at': payout.completed_at.isoformat() if payout.completed_at else None
+            })
+
+        return jsonify({
+            'payouts': payout_list,
+            'total_count': total_count,
+            'limit': limit,
+            'offset': offset
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Accounting get payouts error: {str(e)}")
+        return jsonify({'error': 'Failed to get payouts'}), 500
+
+@app.route('/api/accounting/revenue-summary', methods=['GET'])
+@billing_admin_required
+def accounting_revenue_summary():
+    """Accounting: Get revenue summary for specified period"""
+    try:
+        period = request.args.get('period', 'month')  # day, week, month, year
+
+        # Calculate date range based on period
+        now = datetime.utcnow()
+        if period == 'day':
+            start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == 'week':
+            start_date = now - timedelta(days=now.weekday())
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == 'month':
+            start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        elif period == 'year':
+            start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            return jsonify({'error': 'Invalid period'}), 400
+
+        # Get completed transactions in period
+        transactions = Transaction.query.filter(
+            Transaction.transaction_date >= start_date,
+            Transaction.status == 'completed'
+        ).all()
+
+        total_revenue = sum(float(t.commission) for t in transactions)
+        total_transaction_amount = sum(float(t.amount) for t in transactions)
+        transaction_count = len(transactions)
+
+        # Get paid invoices in period
+        invoices = Invoice.query.filter(
+            Invoice.paid_at >= start_date,
+            Invoice.status == 'paid'
+        ).all()
+
+        total_invoiced = sum(float(inv.total_amount) for inv in invoices)
+        invoice_count = len(invoices)
+
+        # Get completed payouts in period
+        payouts = Payout.query.filter(
+            Payout.completed_at >= start_date,
+            Payout.status == 'completed'
+        ).all()
+
+        total_paid_out = sum(float(p.net_amount) for p in payouts)
+        payout_count = len(payouts)
+
+        return jsonify({
+            'period': period,
+            'start_date': start_date.isoformat(),
+            'revenue': {
+                'total': total_revenue,
+                'transaction_count': transaction_count,
+                'total_transaction_amount': total_transaction_amount
+            },
+            'invoices': {
+                'total': total_invoiced,
+                'count': invoice_count
+            },
+            'payouts': {
+                'total': total_paid_out,
+                'count': payout_count
+            },
+            'net_revenue': total_revenue
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Accounting revenue summary error: {str(e)}")
+        return jsonify({'error': 'Failed to get revenue summary'}), 500
+
+@app.route('/api/accounting/user-roles', methods=['GET'])
+@admin_required
+def accounting_get_user_roles():
+    """Get all admin users and their roles"""
+    try:
+        admin_users = User.query.filter_by(is_admin=True).order_by(User.username).all()
+
+        user_list = []
+        for user in admin_users:
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'admin_role': user.admin_role,
+                'admin_permissions': user.admin_permissions
+            })
+
+        return jsonify({'users': user_list}), 200
+    except Exception as e:
+        app.logger.error(f"Get user roles error: {str(e)}")
+        return jsonify({'error': 'Failed to get user roles'}), 500
+
+@app.route('/api/accounting/user-roles/<int:user_id>', methods=['PUT'])
+@admin_required
+def accounting_update_user_role(user_id):
+    """Update admin user's role - only super_admin can do this"""
+    try:
+        current_user = User.query.get(session['user_id'])
+
+        # Only super_admin can modify roles
+        if current_user.admin_role != 'super_admin':
+            return jsonify({'error': 'Only super admins can modify user roles'}), 403
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.get_json()
+        new_role = data.get('admin_role')
+        new_permissions = data.get('admin_permissions')
+
+        # Validate role
+        valid_roles = ['super_admin', 'billing', 'moderator', None]
+        if new_role not in valid_roles:
+            return jsonify({'error': 'Invalid role'}), 400
+
+        user.admin_role = new_role
+        if new_permissions is not None:
+            user.admin_permissions = new_permissions
+
+        # If setting a role, ensure is_admin is True
+        if new_role:
+            user.is_admin = True
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'User role updated successfully',
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'admin_role': user.admin_role,
+                'admin_permissions': user.admin_permissions
+            }
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Update user role error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update user role'}), 500
+
 # ==================== ADMIN SETTINGS ROUTES ====================
 
 @app.route('/api/admin/settings/payment-gateway', methods=['GET'])
@@ -16309,13 +16585,34 @@ def admin_feedback():
         'resolved': PlatformFeedback.query.filter_by(status='resolved').count()
     }
     
-    return render_template('admin_feedback.html', 
-                         user=user, 
-                         feedbacks=feedback_list, 
+    return render_template('admin_feedback.html',
+                         user=user,
+                         feedbacks=feedback_list,
                          stats=stats,
                          current_filter=status_filter,
-                         active_page='admin', 
-                         lang=get_user_language(), 
+                         active_page='admin',
+                         lang=get_user_language(),
+                         t=t)
+
+@app.route('/admin/accounting')
+@page_login_required
+def admin_accounting():
+    """Admin page for accounting/billing management - requires billing or super_admin role"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    # Check if user has admin access
+    if not user.is_admin:
+        return redirect('/dashboard')
+
+    # Check if user has billing or super_admin role
+    if user.admin_role not in ['super_admin', 'billing']:
+        return redirect('/dashboard')
+
+    return render_template('accounting.html',
+                         user=user,
+                         active_page='accounting',
+                         lang=get_user_language(),
                          t=t)
 
 @app.route('/api/admin/feedback/<int:feedback_id>/respond', methods=['POST'])
