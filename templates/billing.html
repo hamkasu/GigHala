@@ -420,6 +420,31 @@
             padding: 10px 8px;
         }
     }
+
+    .btn-dm {
+        padding: 6px 12px;
+        font-size: 12px;
+        border: 1px solid var(--border);
+        background: var(--bg-white);
+        color: var(--text-dark);
+        border-radius: var(--radius);
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-right: 4px;
+        white-space: nowrap;
+    }
+
+    .btn-dm:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 200, 83, 0.2);
+    }
+
+    .btn-dm:active {
+        transform: translateY(0);
+    }
 </style>
 {% endblock %}
 
@@ -539,6 +564,7 @@
                         <th>Amount</th>
                         <th>Status</th>
                         <th>Date</th>
+                        <th>DM</th>
                     </tr>
                 </thead>
                 <tbody id="invoicesBody"></tbody>
@@ -902,6 +928,14 @@
                         <td>MYR ${inv.total_amount.toFixed(2)}</td>
                         <td><span class="badge ${inv.status}">${inv.status}</span></td>
                         <td>${new Date(inv.issue_date || inv.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn-dm" onclick="startConversation(${inv.client_id}, ${inv.gig_id}, 'client', '${inv.client_name}')" title="Message Client (${inv.client_name})">
+                                💬 Client
+                            </button>
+                            <button class="btn-dm" onclick="startConversation(${inv.freelancer_id}, ${inv.gig_id}, 'worker', '${inv.freelancer_name}')" title="Message Worker (${inv.freelancer_name})">
+                                💬 Worker
+                            </button>
+                        </td>
                     </tr>
                 `).join('');
             }
@@ -1174,6 +1208,45 @@
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Submit Payout Request';
             }
+        }
+    }
+
+    async function startConversation(userId, gigId, userType, userName) {
+        try {
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '⏳';
+
+            // Start conversation with the user
+            const response = await fetch('/api/messages/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    gig_id: gigId
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.conversation_id) {
+                // Redirect to the conversation
+                window.location.href = `/messages/${data.conversation_id}`;
+            } else {
+                // Show error
+                alert(data.error || `Failed to start conversation with ${userType}`);
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Error starting conversation:', error);
+            alert('An error occurred while starting the conversation. Please try again.');
+            button.disabled = false;
+            button.innerHTML = originalText;
         }
     }
 
