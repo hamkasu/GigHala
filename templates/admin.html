@@ -932,6 +932,90 @@
                 <p>No SOCSO contributions found for the selected period</p>
             </div>
         </div>
+
+        <!-- Borang 8A Generator Section -->
+        <div class="data-table" style="margin-top: 24px;">
+            <div class="table-header">
+                <h2>🗂️ Generate Borang 8A (Monthly Submission Form)</h2>
+            </div>
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <p style="color: #92400e; font-size: 13px; margin: 0;">
+                    <strong>⚠️ Monthly Submission Deadline:</strong> Borang 8A must be submitted to PERKESO ASSIST Portal by the 15th of each month for the previous month's contributions.
+                </p>
+            </div>
+
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+                <h3 style="margin-top: 0; color: #003366;">Generate SOCSO Borang 8A</h3>
+                <p style="color: #666; margin-bottom: 24px;">
+                    Official monthly SOCSO contribution report for ASSIST Portal submission.
+                </p>
+
+                <!-- Employer Settings Check -->
+                <div id="borang8aSettingsWarning" style="background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin-bottom: 20px; display: none;">
+                    <p style="color: #991b1b; font-weight: 600; margin: 0 0 10px 0;">⚠️ Employer Settings Required</p>
+                    <p style="color: #7f1d1d; font-size: 13px; margin: 0;">
+                        Please configure your SOCSO Employer Code and SSM Number in Settings before generating Borang 8A.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <label for="borang8aYear" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Year</label>
+                        <select id="borang8aYear" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                            <option value="">Select Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="borang8aMonth" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Month</label>
+                        <select id="borang8aMonth" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                            <option value="">Select Month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn-sm btn-view" onclick="viewBorang8A()" style="background: #003366; color: white; padding: 12px 24px; display: flex; align-items: center; gap: 8px;">
+                        <span>📄</span> View Printable Form
+                    </button>
+                    <button class="btn-sm btn-view" onclick="downloadBorang8ATXT()" style="background: #10b981; color: white; padding: 12px 24px; display: flex; align-items: center; gap: 8px;">
+                        <span>📥</span> Download TXT File
+                    </button>
+                    <button class="btn-sm btn-view" onclick="previewBorang8AData()" style="background: #6366f1; color: white; padding: 12px 24px; display: flex; align-items: center; gap: 8px;">
+                        <span>👁️</span> Preview Data
+                    </button>
+                </div>
+
+                <div id="borang8aPreview" style="display: none; margin-top: 24px; padding: 20px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: #003366;">Borang 8A Preview</h4>
+                    <div id="borang8aPreviewContent"></div>
+                </div>
+            </div>
+
+            <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 16px; margin-top: 20px;">
+                <h4 style="margin: 0 0 12px 0; color: #1e40af;">📋 Submission Instructions</h4>
+                <ol style="margin: 0; padding-left: 20px; color: #1e3a8a; font-size: 13px;">
+                    <li>Generate Borang 8A for the previous month</li>
+                    <li>Review the printable form for accuracy</li>
+                    <li>Download the TXT file for ASSIST Portal upload</li>
+                    <li>Login to <a href="https://assist.perkeso.gov.my/employer/login" target="_blank" style="color: #2563eb;">ASSIST Portal</a></li>
+                    <li>Navigate to "Bulk Contribution Upload" or "Borang 8A Submission"</li>
+                    <li>Upload the TXT file and complete the submission</li>
+                    <li>Keep the submission reference number for records</li>
+                </ol>
+            </div>
+        </div>
 </div>
 
 <div id="messaging-tab" class="tab-content">
@@ -1674,6 +1758,7 @@
         else if (tabName === 'socso') {
             loadSocsoReport();
             loadSocsoUserTotals();
+            initBorang8AYearSelector();
         }
         else if (tabName === 'messaging') initMessaging();
         else if (tabName === 'settings') loadSettings();
@@ -2008,6 +2093,183 @@
         let url = `/api/admin/socso/monthly-report?year=${year}&format=csv`;
         if (month) url += `&month=${month}`;
         window.location.href = url;
+    }
+
+    // Borang 8A Functions
+    function initBorang8AYearSelector() {
+        const yearSelect = document.getElementById('borang8aYear');
+        const currentYear = new Date().getFullYear();
+
+        for (let year = currentYear; year >= currentYear - 3; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+
+        // Set default to current year
+        yearSelect.value = currentYear;
+
+        // Set default month to previous month
+        const monthSelect = document.getElementById('borang8aMonth');
+        const currentMonth = new Date().getMonth(); // 0-11
+        const previousMonth = currentMonth === 0 ? 12 : currentMonth;
+        monthSelect.value = previousMonth;
+    }
+
+    function viewBorang8A() {
+        const year = document.getElementById('borang8aYear').value;
+        const month = document.getElementById('borang8aMonth').value;
+
+        if (!year || !month) {
+            alert('Please select both year and month');
+            return;
+        }
+
+        const url = `/api/admin/socso/borang-8a?year=${year}&month=${month}&format=html`;
+        window.open(url, '_blank');
+    }
+
+    function downloadBorang8ATXT() {
+        const year = document.getElementById('borang8aYear').value;
+        const month = document.getElementById('borang8aMonth').value;
+
+        if (!year || !month) {
+            alert('Please select both year and month');
+            return;
+        }
+
+        const url = `/api/admin/socso/borang-8a?year=${year}&month=${month}&format=txt`;
+        window.location.href = url;
+    }
+
+    async function previewBorang8AData() {
+        const year = document.getElementById('borang8aYear').value;
+        const month = document.getElementById('borang8aMonth').value;
+
+        if (!year || !month) {
+            alert('Please select both year and month');
+            return;
+        }
+
+        const previewDiv = document.getElementById('borang8aPreview');
+        const contentDiv = document.getElementById('borang8aPreviewContent');
+
+        try {
+            const url = `/api/admin/socso/borang-8a?year=${year}&month=${month}&format=json`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (response.status === 404) {
+                contentDiv.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #991b1b;">
+                        <p><strong>No Data Found</strong></p>
+                        <p>${data.message || 'No SOCSO contributions found for the selected period'}</p>
+                    </div>
+                `;
+                previewDiv.style.display = 'block';
+                return;
+            }
+
+            if (response.status === 400) {
+                const warningDiv = document.getElementById('borang8aSettingsWarning');
+                warningDiv.style.display = 'block';
+                contentDiv.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #991b1b;">
+                        <p><strong>Configuration Required</strong></p>
+                        <p>${data.message || 'Please configure SOCSO employer settings'}</p>
+                    </div>
+                `;
+                previewDiv.style.display = 'block';
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load Borang 8A data');
+            }
+
+            // Hide warning if settings are complete
+            document.getElementById('borang8aSettingsWarning').style.display = 'none';
+
+            // Display preview
+            contentDiv.innerHTML = `
+                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <h5 style="margin: 0 0 12px 0; color: #374151;">Employer Information</h5>
+                    <div style="display: grid; grid-template-columns: 150px 1fr; gap: 8px; font-size: 13px;">
+                        <strong>Employer Code:</strong><span>${data.employer.employer_code}</span>
+                        <strong>SSM Number:</strong><span>${data.employer.ssm_number}</span>
+                        <strong>Company:</strong><span>${data.employer.company_name}</span>
+                        <strong>Period:</strong><span>${data.period.month_name} ${data.period.year}</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+                    <h5 style="margin: 0 0 12px 0; color: #374151;">Summary</h5>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div style="background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                            <div style="font-size: 12px; color: #6b7280;">Total Employees</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #003366;">${data.summary.total_employees}</div>
+                        </div>
+                        <div style="background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                            <div style="font-size: 12px; color: #6b7280;">New Employees</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #10b981;">${data.summary.new_employees}</div>
+                        </div>
+                        <div style="background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                            <div style="font-size: 12px; color: #6b7280;">Total Wages</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #374151;">RM ${data.summary.total_wages.toFixed(2)}</div>
+                        </div>
+                        <div style="background: white; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                            <div style="font-size: 12px; color: #6b7280;">Total Contribution</div>
+                            <div style="font-size: 20px; font-weight: 700; color: #003366;">RM ${data.summary.total_contribution.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h5 style="margin: 0 0 12px 0; color: #374151;">Employees (${data.employees.length})</h5>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <thead style="position: sticky; top: 0; background: #f9fafb;">
+                                <tr style="border-bottom: 2px solid #e5e7eb;">
+                                    <th style="padding: 8px; text-align: left;">Name</th>
+                                    <th style="padding: 8px; text-align: left;">IC Number</th>
+                                    <th style="padding: 8px; text-align: right;">Wages</th>
+                                    <th style="padding: 8px; text-align: right;">Contribution</th>
+                                    <th style="padding: 8px; text-align: center;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.employees.map(emp => `
+                                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                                        <td style="padding: 8px;">${emp.full_name}</td>
+                                        <td style="padding: 8px;">${emp.ic_number}</td>
+                                        <td style="padding: 8px; text-align: right;">RM ${emp.monthly_wages.toFixed(2)}</td>
+                                        <td style="padding: 8px; text-align: right;">RM ${emp.contribution_amount.toFixed(2)}</td>
+                                        <td style="padding: 8px; text-align: center;">
+                                            ${emp.employment_status === 'B' ? '<span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">NEW</span>' :
+                                              emp.employment_status === 'H' ? '<span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">TERMINATED</span>' :
+                                              '-'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            previewDiv.style.display = 'block';
+
+        } catch (error) {
+            console.error('Error loading Borang 8A preview:', error);
+            contentDiv.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #991b1b;">
+                    <p><strong>Error</strong></p>
+                    <p>${error.message}</p>
+                </div>
+            `;
+            previewDiv.style.display = 'block';
+        }
     }
 
     async function loadDashboard() {

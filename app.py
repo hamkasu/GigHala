@@ -33,6 +33,7 @@ import qrcode
 import io
 import base64
 import random
+import calendar
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 PROCESSING_FEE_PERCENT = 0.029
@@ -11769,6 +11770,227 @@ def admin_mark_socso_remitted():
         db.session.rollback()
         app.logger.error(f"Mark SOCSO remitted error: {str(e)}")
         return jsonify({'error': 'Failed to mark contributions as remitted'}), 500
+
+@app.route('/api/admin/socso/borang-8a', methods=['GET'])
+@admin_required
+def admin_generate_borang_8a():
+    """
+    Admin endpoint: Generate SOCSO Borang 8A (Monthly Contribution Report)
+
+    This generates the official SOCSO Form 8A for monthly submission to PERKESO
+    via the ASSIST Portal. Must be submitted by the 15th of each month.
+
+    Query Parameters:
+    - year (int): Contribution year (default: current year)
+    - month (int): Contribution month 1-12 (default: previous month)
+    - format (str): 'json', 'txt', or 'html' (default: 'json')
+
+    Text File Format (for ASSIST Portal upload):
+    Fixed-width format with fields: Employer Code, SSM Number, IC Number,
+    Employee Name, Contribution Month, Contribution Amount, Employment Date, Status
+    """
+    try:
+        # Get query parameters
+        current_date = datetime.utcnow()
+        year = request.args.get('year', current_date.year, type=int)
+        month = request.args.get('month', type=int)
+
+        # Default to previous month if not specified
+        if not month:
+            if current_date.month == 1:
+                month = 12
+                year = current_date.year - 1
+            else:
+                month = current_date.month - 1
+
+        export_format = request.args.get('format', 'json')  # json, txt, or html
+
+        # Get employer settings
+        employer_code = get_site_setting('socso_employer_code', '')
+        ssm_number = get_site_setting('socso_ssm_number', '')
+        company_name = get_site_setting('socso_company_name', 'GigHala Sdn Bhd')
+        company_address = get_site_setting('socso_company_address', '')
+        company_phone = get_site_setting('socso_company_phone', '')
+        company_email = get_site_setting('socso_company_email', 'compliance@gighala.com')
+
+        # Validate required settings
+        if not employer_code or not ssm_number:
+            return jsonify({
+                'error': 'Employer SOCSO settings incomplete',
+                'message': 'Please configure SOCSO Employer Code and SSM Number in settings',
+                'missing': {
+                    'employer_code': not employer_code,
+                    'ssm_number': not ssm_number
+                }
+            }), 400
+
+        # Build query for monthly contributions
+        contribution_month = f"{year}-{month:02d}"
+
+        # Get all workers with contributions for this month
+        # Group by worker to get total monthly contribution
+        query = db.session.query(
+            User.id.label('freelancer_id'),
+            User.full_name,
+            User.ic_number,
+            User.socso_membership_number,
+            User.created_at.label('employment_date'),
+            db.func.sum(SocsoContribution.socso_amount).label('total_contribution'),
+            db.func.sum(SocsoContribution.net_earnings).label('total_wages'),
+            db.func.count(SocsoContribution.id).label('transaction_count'),
+            db.func.min(SocsoContribution.created_at).label('first_contribution_date')
+        ).join(User, SocsoContribution.freelancer_id == User.id)\
+         .filter(SocsoContribution.contribution_month == contribution_month)\
+         .group_by(
+            User.id,
+            User.full_name,
+            User.ic_number,
+            User.socso_membership_number,
+            User.created_at
+        ).order_by(User.full_name)
+
+        results = query.all()
+
+        if not results:
+            return jsonify({
+                'error': 'No SOCSO contributions found',
+                'message': f'No contributions found for {contribution_month}',
+                'year': year,
+                'month': month
+            }), 404
+
+        # Format employee data
+        employees = []
+        total_contribution = 0
+        total_wages = 0
+
+        for row in results:
+            # Determine employment status
+            # B = New (first contribution this month)
+            # H = Terminated (future: need termination tracking)
+            # Blank = Existing employee
+            employment_status = ''
+
+            # Check if this is their first ever contribution
+            first_ever = SocsoContribution.query.filter_by(
+                freelancer_id=row.freelancer_id
+            ).order_by(SocsoContribution.created_at.asc()).first()
+
+            if first_ever and first_ever.contribution_month == contribution_month:
+                employment_status = 'B'  # New employee
+
+            employee_data = {
+                'ic_number': row.ic_number or '',
+                'socso_number': row.socso_membership_number or '',
+                'full_name': row.full_name or 'Unknown',
+                'employment_date': row.employment_date.strftime('%Y-%m-%d') if row.employment_date else '',
+                'monthly_wages': float(row.total_wages or 0),
+                'contribution_amount': float(row.total_contribution or 0),
+                'employment_status': employment_status,
+                'transaction_count': row.transaction_count
+            }
+
+            employees.append(employee_data)
+            total_contribution += employee_data['contribution_amount']
+            total_wages += employee_data['monthly_wages']
+
+        # Prepare Borang 8A data
+        borang_8a_data = {
+            'form_info': {
+                'form_name': 'Borang 8A - Senarai Pekerja dan Caruman Bulanan',
+                'form_name_en': 'Form 8A - Monthly List of Employees and Contributions',
+                'submission_deadline': f'15th of {calendar.month_name[(month % 12) + 1]} {year if month < 12 else year + 1}'
+            },
+            'employer': {
+                'employer_code': employer_code,
+                'ssm_number': ssm_number,
+                'company_name': company_name,
+                'company_address': company_address,
+                'company_phone': company_phone,
+                'company_email': company_email
+            },
+            'period': {
+                'month': month,
+                'year': year,
+                'month_name': calendar.month_name[month],
+                'contribution_month': contribution_month
+            },
+            'employees': employees,
+            'summary': {
+                'total_employees': len(employees),
+                'total_wages': round(total_wages, 2),
+                'total_contribution': round(total_contribution, 2),
+                'new_employees': len([e for e in employees if e['employment_status'] == 'B']),
+                'terminated_employees': len([e for e in employees if e['employment_status'] == 'H'])
+            },
+            'generated_at': current_date.isoformat(),
+            'generated_by': session.get('username', 'admin')
+        }
+
+        # Export as Text File for ASSIST Portal
+        if export_format == 'txt':
+            import io
+            from flask import make_response
+
+            output = io.StringIO()
+
+            # PERKESO Text File Format (fixed-width fields)
+            # Note: This is a standard format based on PERKESO specifications
+            # Field positions may need adjustment based on actual PERKESO requirements
+
+            # Header line (optional, for reference)
+            output.write(f"# Borang 8A - {company_name}\n")
+            output.write(f"# Period: {borang_8a_data['period']['month_name']} {year}\n")
+            output.write(f"# Employer Code: {employer_code}\n")
+            output.write(f"# SSM Number: {ssm_number}\n")
+            output.write("#\n")
+
+            # Employee records
+            for emp in employees:
+                # Format: Employer Code | SSM | IC Number | Name | Month | Contribution | Employment Date | Status
+                # Using pipe-delimited format for clarity (PERKESO may require specific fixed-width)
+                line = "|".join([
+                    employer_code.ljust(15),
+                    ssm_number.ljust(20),
+                    emp['ic_number'].ljust(20),
+                    emp['full_name'][:60].ljust(60),
+                    contribution_month.ljust(7),
+                    f"{emp['contribution_amount']:.2f}".rjust(10),
+                    f"{emp['monthly_wages']:.2f}".rjust(12),
+                    emp['employment_date'].ljust(10),
+                    emp['employment_status'].ljust(1)
+                ])
+                output.write(line + "\n")
+
+            # Create response
+            txt_output = output.getvalue()
+            response = make_response(txt_output)
+            filename = f"borang_8a_{year}_{month:02d}.txt"
+
+            response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+            response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+
+            # Update last submission date
+            set_site_setting('socso_last_submission_date', current_date.isoformat())
+
+            return response
+
+        # Export as HTML (printable format)
+        elif export_format == 'html':
+            return render_template(
+                'borang_8a_print.html',
+                data=borang_8a_data,
+                lang=session.get('language', 'en')
+            )
+
+        # Return JSON (default)
+        return jsonify(borang_8a_data), 200
+
+    except Exception as e:
+        app.logger.error(f"Generate Borang 8A error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to generate Borang 8A', 'details': str(e)}), 500
 
 @app.route('/api/billing/complete-gig/<int:gig_id>', methods=['POST'])
 @login_required
