@@ -12211,11 +12211,14 @@ def admin_socso_monthly_report():
         # Format results
         report_data = []
         for row in results:
+            # Format name to proper case (Title Case)
+            full_name = row.full_name.title() if row.full_name else ''
+
             report_data.append({
                 'contribution_month': row.contribution_month,
                 'contribution_year': row.contribution_year,
                 'freelancer_id': row.freelancer_id,
-                'full_name': row.full_name,
+                'full_name': full_name,
                 'ic_number': row.ic_number,
                 'socso_membership_number': row.socso_membership_number,
                 'email': row.email,
@@ -12268,7 +12271,7 @@ def admin_socso_monthly_report():
                     row['contribution_month'],
                     row['contribution_year'],
                     row['ic_number'],
-                    row['socso_membership_number'] or '',
+                    row['socso_membership_number'] or 'N/A',
                     row['full_name'],
                     row['email'],
                     row['phone'],
@@ -12362,9 +12365,12 @@ def admin_socso_user_totals():
         # Format results
         totals_data = []
         for row in results:
+            # Format name to proper case (Title Case)
+            full_name = row.full_name.title() if row.full_name else ''
+
             totals_data.append({
                 'freelancer_id': row.freelancer_id,
-                'full_name': row.full_name,
+                'full_name': full_name,
                 'ic_number': row.ic_number,
                 'socso_membership_number': row.socso_membership_number,
                 'email': row.email,
@@ -12469,11 +12475,14 @@ def admin_socso_user_totals_export():
         # Data rows
         total_socso = 0
         for row in results:
+            # Format name to proper case (Title Case)
+            full_name = row.full_name.title() if row.full_name else ''
+
             total_socso += float(row.total_socso or 0)
             writer.writerow([
                 row.ic_number,
-                row.socso_membership_number or '',
-                row.full_name,
+                row.socso_membership_number or 'N/A',
+                full_name,
                 row.email,
                 row.phone,
                 row.transaction_count,
