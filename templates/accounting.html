@@ -1,0 +1,628 @@
+{% extends "base.html" %}
+
+{% block title %}Accounting Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        padding: 28px 32px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 28px;
+    }
+
+    .admin-header h1 {
+        margin: 0 0 6px 0;
+        font-size: 28px;
+    }
+
+    .admin-header p {
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .admin-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 12px 20px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-gray);
+        transition: all 0.2s;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab-btn:hover {
+        color: #6366f1;
+    }
+
+    .tab-btn.active {
+        color: #6366f1;
+        border-bottom-color: #6366f1;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        border-left: 4px solid #6366f1;
+    }
+
+    .stat-card h3 {
+        margin: 0 0 6px 0;
+        color: var(--text-gray);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #6366f1;
+        margin-bottom: 4px;
+    }
+
+    .stat-card .label {
+        color: var(--text-light);
+        font-size: 12px;
+    }
+
+    .data-table {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .data-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        background: var(--bg-gray);
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-gray);
+        letter-spacing: 0.5px;
+    }
+
+    .data-table td {
+        padding: 14px 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .data-table tr:hover {
+        background: var(--bg-gray);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-info {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-bar select,
+    .filter-bar button {
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+
+    .filter-bar button {
+        background: #6366f1;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    .filter-bar button:hover {
+        background: #4f46e5;
+    }
+
+    .role-form {
+        background: var(--bg-white);
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+
+    .role-form label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-gray);
+    }
+
+    .role-form select,
+    .role-form input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        margin-bottom: 16px;
+    }
+
+    .role-form button {
+        padding: 10px 20px;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .role-form button:hover {
+        background: #4f46e5;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-gray);
+    }
+
+    .period-selector {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .period-btn {
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        background: white;
+        cursor: pointer;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+
+    .period-btn.active {
+        background: #6366f1;
+        color: white;
+        border-color: #6366f1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 24px;">
+    <div class="admin-header">
+        <h1>💰 Accounting & Billing Dashboard</h1>
+        <p>Manage invoices, payouts, and financial reports</p>
+    </div>
+
+    <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+        <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
+        <button class="tab-btn" onclick="switchTab('payouts')">Payouts</button>
+        <button class="tab-btn" onclick="switchTab('revenue')">Revenue</button>
+        <button class="tab-btn" onclick="switchTab('roles')">User Roles</button>
+    </div>
+
+    <!-- Overview Tab -->
+    <div id="overview-tab" class="tab-content active">
+        <h2 style="margin-bottom: 16px;">Financial Overview</h2>
+        <div class="stats-grid" id="overview-stats">
+            <div class="loading">Loading overview...</div>
+        </div>
+    </div>
+
+    <!-- Invoices Tab -->
+    <div id="invoices-tab" class="tab-content">
+        <h2 style="margin-bottom: 16px;">Invoice Management</h2>
+        <div class="filter-bar">
+            <select id="invoice-status-filter" onchange="loadInvoices()">
+                <option value="all">All Statuses</option>
+                <option value="draft">Draft</option>
+                <option value="issued">Issued</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <button onclick="loadInvoices()">Refresh</button>
+        </div>
+        <div class="data-table" id="invoices-table">
+            <div class="loading">Loading invoices...</div>
+        </div>
+    </div>
+
+    <!-- Payouts Tab -->
+    <div id="payouts-tab" class="tab-content">
+        <h2 style="margin-bottom: 16px;">Payout Management</h2>
+        <div class="filter-bar">
+            <select id="payout-status-filter" onchange="loadPayouts()">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+            </select>
+            <button onclick="loadPayouts()">Refresh</button>
+        </div>
+        <div class="data-table" id="payouts-table">
+            <div class="loading">Loading payouts...</div>
+        </div>
+    </div>
+
+    <!-- Revenue Tab -->
+    <div id="revenue-tab" class="tab-content">
+        <h2 style="margin-bottom: 16px;">Revenue Summary</h2>
+        <div class="period-selector">
+            <button class="period-btn active" onclick="selectPeriod('day')">Today</button>
+            <button class="period-btn" onclick="selectPeriod('week')">This Week</button>
+            <button class="period-btn" onclick="selectPeriod('month')">This Month</button>
+            <button class="period-btn" onclick="selectPeriod('year')">This Year</button>
+        </div>
+        <div class="stats-grid" id="revenue-stats">
+            <div class="loading">Loading revenue data...</div>
+        </div>
+    </div>
+
+    <!-- Roles Tab -->
+    <div id="roles-tab" class="tab-content">
+        <h2 style="margin-bottom: 16px;">Admin Role Management</h2>
+        <p style="margin-bottom: 20px; color: var(--text-gray);">
+            Manage admin user roles and permissions. Only super admins can modify roles.
+        </p>
+        <div class="data-table" id="roles-table">
+            <div class="loading">Loading user roles...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPeriod = 'month';
+
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+
+    // Load data for the tab
+    if (tabName === 'overview') loadOverview();
+    else if (tabName === 'invoices') loadInvoices();
+    else if (tabName === 'payouts') loadPayouts();
+    else if (tabName === 'revenue') loadRevenue();
+    else if (tabName === 'roles') loadRoles();
+}
+
+async function loadOverview() {
+    try {
+        const response = await fetch('/api/accounting/revenue-summary?period=month');
+        const data = await response.json();
+
+        const html = `
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="value">RM ${data.revenue.total.toFixed(2)}</div>
+                <div class="label">This Month</div>
+            </div>
+            <div class="stat-card">
+                <h3>Transactions</h3>
+                <div class="value">${data.revenue.transaction_count}</div>
+                <div class="label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <h3>Invoices</h3>
+                <div class="value">${data.invoices.count}</div>
+                <div class="label">RM ${data.invoices.total.toFixed(2)}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Payouts</h3>
+                <div class="value">${data.payouts.count}</div>
+                <div class="label">RM ${data.payouts.total.toFixed(2)}</div>
+            </div>
+        `;
+
+        document.getElementById('overview-stats').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading overview:', error);
+        document.getElementById('overview-stats').innerHTML = '<div class="loading">Error loading overview</div>';
+    }
+}
+
+async function loadInvoices() {
+    const status = document.getElementById('invoice-status-filter').value;
+    try {
+        const response = await fetch(`/api/accounting/invoices?status=${status}&limit=50`);
+        const data = await response.json();
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Client</th>
+                        <th>Freelancer</th>
+                        <th>Amount</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (data.invoices.length === 0) {
+            html += '<tr><td colspan="7" style="text-align: center;">No invoices found</td></tr>';
+        } else {
+            data.invoices.forEach(inv => {
+                const statusClass = inv.status === 'paid' ? 'success' :
+                                   inv.status === 'issued' ? 'info' :
+                                   inv.status === 'cancelled' ? 'danger' : 'warning';
+                html += `
+                    <tr>
+                        <td><strong>${inv.invoice_number}</strong></td>
+                        <td>${inv.client_name}</td>
+                        <td>${inv.freelancer_name}</td>
+                        <td>RM ${inv.amount.toFixed(2)}</td>
+                        <td>RM ${inv.total_amount.toFixed(2)}</td>
+                        <td><span class="badge badge-${statusClass}">${inv.status}</span></td>
+                        <td>${new Date(inv.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        html += '</tbody></table>';
+        document.getElementById('invoices-table').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading invoices:', error);
+        document.getElementById('invoices-table').innerHTML = '<div class="loading">Error loading invoices</div>';
+    }
+}
+
+async function loadPayouts() {
+    const status = document.getElementById('payout-status-filter').value;
+    try {
+        const response = await fetch(`/api/accounting/payouts?status=${status}&limit=50`);
+        const data = await response.json();
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payout #</th>
+                        <th>Freelancer</th>
+                        <th>Amount</th>
+                        <th>Net Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Requested</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (data.payouts.length === 0) {
+            html += '<tr><td colspan="7" style="text-align: center;">No payouts found</td></tr>';
+        } else {
+            data.payouts.forEach(payout => {
+                const statusClass = payout.status === 'completed' ? 'success' :
+                                   payout.status === 'processing' ? 'info' :
+                                   payout.status === 'failed' ? 'danger' : 'warning';
+                html += `
+                    <tr>
+                        <td><strong>${payout.payout_number}</strong></td>
+                        <td>${payout.freelancer_name}</td>
+                        <td>RM ${payout.amount.toFixed(2)}</td>
+                        <td>RM ${payout.net_amount.toFixed(2)}</td>
+                        <td>${payout.payment_method || 'N/A'}</td>
+                        <td><span class="badge badge-${statusClass}">${payout.status}</span></td>
+                        <td>${new Date(payout.requested_at).toLocaleDateString()}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        html += '</tbody></table>';
+        document.getElementById('payouts-table').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading payouts:', error);
+        document.getElementById('payouts-table').innerHTML = '<div class="loading">Error loading payouts</div>';
+    }
+}
+
+function selectPeriod(period) {
+    currentPeriod = period;
+    document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    loadRevenue();
+}
+
+async function loadRevenue() {
+    try {
+        const response = await fetch(`/api/accounting/revenue-summary?period=${currentPeriod}`);
+        const data = await response.json();
+
+        const html = `
+            <div class="stat-card">
+                <h3>Platform Revenue</h3>
+                <div class="value">RM ${data.revenue.total.toFixed(2)}</div>
+                <div class="label">${data.revenue.transaction_count} transactions</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Transaction Volume</h3>
+                <div class="value">RM ${data.revenue.total_transaction_amount.toFixed(2)}</div>
+                <div class="label">Gross Amount</div>
+            </div>
+            <div class="stat-card">
+                <h3>Invoices Paid</h3>
+                <div class="value">RM ${data.invoices.total.toFixed(2)}</div>
+                <div class="label">${data.invoices.count} invoices</div>
+            </div>
+            <div class="stat-card">
+                <h3>Payouts Completed</h3>
+                <div class="value">RM ${data.payouts.total.toFixed(2)}</div>
+                <div class="label">${data.payouts.count} payouts</div>
+            </div>
+        `;
+
+        document.getElementById('revenue-stats').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading revenue:', error);
+        document.getElementById('revenue-stats').innerHTML = '<div class="loading">Error loading revenue</div>';
+    }
+}
+
+async function loadRoles() {
+    try {
+        const response = await fetch('/api/accounting/user-roles');
+        const data = await response.json();
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Permissions</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        if (data.users.length === 0) {
+            html += '<tr><td colspan="5" style="text-align: center;">No admin users found</td></tr>';
+        } else {
+            data.users.forEach(user => {
+                const role = user.admin_role || 'none';
+                html += `
+                    <tr>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.email}</td>
+                        <td>${role}</td>
+                        <td>${user.admin_permissions || 'N/A'}</td>
+                        <td>
+                            <button onclick="editRole(${user.id}, '${user.username}', '${role}')"
+                                    style="padding: 6px 12px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        html += '</tbody></table>';
+        document.getElementById('roles-table').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading roles:', error);
+        document.getElementById('roles-table').innerHTML = '<div class="loading">Error loading roles</div>';
+    }
+}
+
+function editRole(userId, username, currentRole) {
+    const newRole = prompt(`Change role for ${username}.\n\nAvailable roles:\n- super_admin\n- billing\n- moderator\n- (leave empty to remove role)\n\nCurrent role: ${currentRole}`, currentRole);
+
+    if (newRole === null) return; // User cancelled
+
+    updateUserRole(userId, newRole || null);
+}
+
+async function updateUserRole(userId, role) {
+    try {
+        const response = await fetch(`/api/accounting/user-roles/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                admin_role: role,
+                admin_permissions: role === 'super_admin' ? '["*"]' : null
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Role updated successfully!');
+            loadRoles();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error updating role:', error);
+        alert('Failed to update role');
+    }
+}
+
+// Load overview on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadOverview();
+});
+</script>
+{% endblock %}
