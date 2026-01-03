@@ -885,7 +885,7 @@
             <div id="socsoReportContent" style="display: none;">
                 <table>
                     <thead>
-                        <tr><th>Month</th><th>Freelancer</th><th>IC Number</th><th>Email</th><th>Transactions</th><th>Net Earnings</th><th>SOCSO</th><th>Status</th></tr>
+                        <tr><th>Month</th><th>Freelancer</th><th>IC Number</th><th>SOCSO Number</th><th>Email</th><th>Transactions</th><th>Net Earnings</th><th>SOCSO</th><th>Status</th></tr>
                     </thead>
                     <tbody id="socsoReportBody"></tbody>
                 </table>
@@ -917,6 +917,7 @@
                         <tr>
                             <th>Freelancer</th>
                             <th>IC Number</th>
+                            <th>SOCSO Number</th>
                             <th>Email</th>
                             <th>Total Transactions</th>
                             <th>Total Net Earnings</th>
@@ -2174,6 +2175,7 @@
                         <td>${row.contribution_month}</td>
                         <td>${row.full_name}</td>
                         <td>${row.ic_number}</td>
+                        <td>${row.socso_membership_number || 'N/A'}</td>
                         <td>${row.email}</td>
                         <td>${row.transaction_count}</td>
                         <td>RM ${row.total_net_earnings.toFixed(2)}</td>
@@ -2214,6 +2216,7 @@
                     tbody.innerHTML += `<tr>
                         <td>${row.full_name}</td>
                         <td>${row.ic_number}</td>
+                        <td>${row.socso_membership_number || 'N/A'}</td>
                         <td>${row.email}</td>
                         <td>${row.transaction_count}</td>
                         <td>RM ${row.total_net_earnings.toFixed(2)}</td>
