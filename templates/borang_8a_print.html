@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block title %}Borang 8A - {{ data.period.month_name }} {{ data.period.year }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .borang-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+    }
+
+    .borang-card {
+        background: var(--bg-white);
+        border: 2px solid #000;
+        padding: 40px;
+    }
+
+    .borang-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px double #000;
+    }
+
+    .perkeso-logo {
+        font-size: 32px;
+        font-weight: 800;
+        color: #003366;
+        margin-bottom: 10px;
+    }
+
+    .form-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 10px 0;
+    }
+
+    .form-subtitle {
+        font-size: 18px;
+        color: #666;
+    }
+
+    .form-number {
+        font-size: 14px;
+        font-weight: 600;
+        color: #003366;
+        margin-top: 5px;
+    }
+
+    .section {
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #f0f0f0;
+        padding: 10px 15px;
+        border-left: 4px solid #003366;
+        margin-bottom: 15px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .info-value {
+        color: #000;
+    }
+
+    .employees-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        font-size: 12px;
+    }
+
+    .employees-table th {
+        background: #003366;
+        color: white;
+        padding: 10px 8px;
+        text-align: left;
+        font-weight: 600;
+        border: 1px solid #000;
+    }
+
+    .employees-table td {
+        padding: 8px;
+        border: 1px solid #000;
+    }
+
+    .employees-table tbody tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+
+    .amount {
+        text-align: right;
+        font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+        font-weight: 600;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-new {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-terminated {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .summary-box {
+        background: #f0f9ff;
+        border: 2px solid #003366;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 30px 0;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 16px;
+    }
+
+    .summary-row.total {
+        border-top: 2px solid #003366;
+        margin-top: 10px;
+        padding-top: 15px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #003366;
+    }
+
+    .deadline-notice {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 15px;
+        margin: 20px 0;
+        font-weight: 600;
+    }
+
+    .footer-info {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 2px solid #000;
+        font-size: 12px;
+        color: #666;
+    }
+
+    .signature-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-top: 60px;
+    }
+
+    .signature-box {
+        text-align: center;
+    }
+
+    .signature-line {
+        border-top: 1px solid #000;
+        margin-top: 60px;
+        padding-top: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 12px 32px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        border: none;
+        font-size: 16px;
+    }
+
+    .btn-primary {
+        background: #003366;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #002244;
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 2px solid #003366;
+        color: #003366;
+    }
+
+    .btn-outline:hover {
+        background: #f0f0f0;
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+    }
+
+    @media print {
+        .action-buttons, .header, .footer, .mobile-bottom-nav, .deadline-notice {
+            display: none !important;
+        }
+
+        .borang-container {
+            max-width: 100%;
+        }
+
+        .borang-card {
+            border: 2px solid #000;
+            box-shadow: none;
+        }
+
+        .employees-table {
+            font-size: 10px;
+        }
+
+        .employees-table th,
+        .employees-table td {
+            padding: 6px 4px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .borang-card {
+            padding: 20px;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .employees-table {
+            font-size: 10px;
+        }
+
+        .employees-table th,
+        .employees-table td {
+            padding: 6px 4px;
+        }
+
+        .signature-section {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <div class="borang-container">
+        <div class="borang-card">
+            <!-- Header -->
+            <div class="borang-header">
+                <div class="perkeso-logo">PERKESO</div>
+                <div class="form-title">{{ data.form_info.form_name }}</div>
+                <div class="form-subtitle">{{ data.form_info.form_name_en }}</div>
+                <div class="form-number">BORANG 8A</div>
+            </div>
+
+            <!-- Deadline Notice -->
+            <div class="deadline-notice">
+                <strong>⚠️ {{ 'Tarikh Akhir Penghantaran' if lang == 'ms' else 'Submission Deadline' }}:</strong>
+                {{ data.form_info.submission_deadline }}
+            </div>
+
+            <!-- Employer Information -->
+            <div class="section">
+                <div class="section-title">
+                    {{ 'Maklumat Majikan' if lang == 'ms' else 'Employer Information' }}
+                </div>
+                <div class="info-grid">
+                    <div class="info-label">{{ 'Kod Majikan' if lang == 'ms' else 'Employer Code' }}:</div>
+                    <div class="info-value">{{ data.employer.employer_code }}</div>
+
+                    <div class="info-label">{{ 'No. SSM/MyCoID' if lang == 'ms' else 'SSM/MyCoID Number' }}:</div>
+                    <div class="info-value">{{ data.employer.ssm_number }}</div>
+
+                    <div class="info-label">{{ 'Nama Syarikat' if lang == 'ms' else 'Company Name' }}:</div>
+                    <div class="info-value">{{ data.employer.company_name }}</div>
+
+                    {% if data.employer.company_address %}
+                    <div class="info-label">{{ 'Alamat' if lang == 'ms' else 'Address' }}:</div>
+                    <div class="info-value">{{ data.employer.company_address }}</div>
+                    {% endif %}
+
+                    {% if data.employer.company_phone %}
+                    <div class="info-label">{{ 'Telefon' if lang == 'ms' else 'Phone' }}:</div>
+                    <div class="info-value">{{ data.employer.company_phone }}</div>
+                    {% endif %}
+
+                    <div class="info-label">{{ 'Email' if lang == 'ms' else 'Email' }}:</div>
+                    <div class="info-value">{{ data.employer.company_email }}</div>
+                </div>
+            </div>
+
+            <!-- Period Information -->
+            <div class="section">
+                <div class="section-title">
+                    {{ 'Tempoh Caruman' if lang == 'ms' else 'Contribution Period' }}
+                </div>
+                <div class="info-grid">
+                    <div class="info-label">{{ 'Bulan/Tahun' if lang == 'ms' else 'Month/Year' }}:</div>
+                    <div class="info-value">{{ data.period.month_name }} {{ data.period.year }}</div>
+
+                    <div class="info-label">{{ 'Tempoh' if lang == 'ms' else 'Period' }}:</div>
+                    <div class="info-value">{{ data.period.contribution_month }}</div>
+                </div>
+            </div>
+
+            <!-- Employee List -->
+            <div class="section">
+                <div class="section-title">
+                    {{ 'Senarai Pekerja dan Caruman' if lang == 'ms' else 'List of Employees and Contributions' }}
+                </div>
+
+                <table class="employees-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;">{{ 'Bil' if lang == 'ms' else 'No.' }}</th>
+                            <th>{{ 'No. MyKad/Pasport' if lang == 'ms' else 'IC/Passport Number' }}</th>
+                            <th>{{ 'Nama Pekerja' if lang == 'ms' else 'Employee Name' }}</th>
+                            <th class="amount">{{ 'Gaji Bulanan (RM)' if lang == 'ms' else 'Monthly Wages (RM)' }}</th>
+                            <th class="amount">{{ 'Caruman (RM)' if lang == 'ms' else 'Contribution (RM)' }}</th>
+                            <th style="width: 80px; text-align: center;">{{ 'Status' if lang == 'ms' else 'Status' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp in data.employees %}
+                        <tr>
+                            <td style="text-align: center;">{{ loop.index }}</td>
+                            <td>{{ emp.ic_number }}</td>
+                            <td>{{ emp.full_name }}</td>
+                            <td class="amount">{{ "%.2f"|format(emp.monthly_wages) }}</td>
+                            <td class="amount">{{ "%.2f"|format(emp.contribution_amount) }}</td>
+                            <td style="text-align: center;">
+                                {% if emp.employment_status == 'B' %}
+                                <span class="status-badge status-new">{{ 'BARU' if lang == 'ms' else 'NEW' }}</span>
+                                {% elif emp.employment_status == 'H' %}
+                                <span class="status-badge status-terminated">{{ 'BERHENTI' if lang == 'ms' else 'TERMINATED' }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>{{ 'Jumlah Pekerja' if lang == 'ms' else 'Total Employees' }}:</span>
+                    <span>{{ data.summary.total_employees }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>{{ 'Pekerja Baru Bulan Ini' if lang == 'ms' else 'New Employees This Month' }}:</span>
+                    <span>{{ data.summary.new_employees }}</span>
+                </div>
+                {% if data.summary.terminated_employees > 0 %}
+                <div class="summary-row">
+                    <span>{{ 'Pekerja Berhenti Bulan Ini' if lang == 'ms' else 'Terminated Employees This Month' }}:</span>
+                    <span>{{ data.summary.terminated_employees }}</span>
+                </div>
+                {% endif %}
+                <div class="summary-row">
+                    <span>{{ 'Jumlah Gaji Bulanan' if lang == 'ms' else 'Total Monthly Wages' }}:</span>
+                    <span>RM {{ "%.2f"|format(data.summary.total_wages) }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>{{ 'JUMLAH CARUMAN BULANAN' if lang == 'ms' else 'TOTAL MONTHLY CONTRIBUTION' }}:</span>
+                    <span>RM {{ "%.2f"|format(data.summary.total_contribution) }}</span>
+                </div>
+            </div>
+
+            <!-- Signature Section -->
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line">
+                        <strong>{{ 'Tandatangan Majikan' if lang == 'ms' else 'Employer Signature' }}</strong><br>
+                        {{ 'Nama & Jawatan' if lang == 'ms' else 'Name & Position' }}
+                    </div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line">
+                        <strong>{{ 'Tarikh' if lang == 'ms' else 'Date' }}</strong><br>
+                        &nbsp;
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Information -->
+            <div class="footer-info">
+                <p><strong>{{ 'Nota' if lang == 'ms' else 'Notes' }}:</strong></p>
+                <ul>
+                    <li>{{ 'Borang ini mesti dikemukakan kepada PERKESO selewat-lewatnya pada 15 haribulan berikutnya' if lang == 'ms' else 'This form must be submitted to PERKESO by the 15th of the following month' }}</li>
+                    <li>{{ 'Status: B = Pekerja Baru, H = Pekerja Berhenti' if lang == 'ms' else 'Status: B = New Employee, H = Terminated Employee' }}</li>
+                    <li>{{ 'Penghantaran boleh dibuat melalui Portal ASSIST: https://assist.perkeso.gov.my' if lang == 'ms' else 'Submission can be made via ASSIST Portal: https://assist.perkeso.gov.my' }}</li>
+                </ul>
+                <p style="margin-top: 20px;">
+                    <strong>{{ 'Dijana oleh' if lang == 'ms' else 'Generated by' }}:</strong> {{ data.employer.company_name }}<br>
+                    <strong>{{ 'Tarikh Jana' if lang == 'ms' else 'Generated on' }}:</strong> {{ data.generated_at[:10] }}<br>
+                    <strong>{{ 'Dijana oleh pengguna' if lang == 'ms' else 'Generated by user' }}:</strong> {{ data.generated_by }}
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="/admin" class="btn btn-outline">
+                    {{ 'Kembali ke Admin' if lang == 'ms' else 'Back to Admin' }}
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    {{ 'Cetak Borang' if lang == 'ms' else 'Print Form' }}
+                </button>
+                <a href="/api/admin/socso/borang-8a?year={{ data.period.year }}&month={{ data.period.month }}&format=txt" class="btn btn-success" download>
+                    {{ 'Muat Turun Fail TXT' if lang == 'ms' else 'Download TXT File' }}
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
