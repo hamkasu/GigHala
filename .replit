@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["fontconfig", "freetype", "ghostscript", "glib", "harfbuzz", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "pango", "postgresql", "tcl", "tk", "zlib"]
+packages = ["fontconfig", "freetype", "ghostscript", "glib", "glibcLocales", "harfbuzz", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "openssl", "pango", "postgresql", "tcl", "tk", "zlib"]
 
 [workflows]
 runButton = "Project"
