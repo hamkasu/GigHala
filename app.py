@@ -13824,7 +13824,7 @@ def export_earnings_statement():
             # User information
             user_name = user.full_name or user.username
             user_data = [
-                ['<b>Freelancer Details</b>', ''],
+                ['Freelancer Details', ''],
                 ['Name:', user_name],
                 ['Email:', user.email],
             ]
@@ -13849,7 +13849,7 @@ def export_earnings_statement():
             elements.append(Spacer(1, 0.8*cm))
 
             # Transaction details heading
-            elements.append(Paragraph('<b>Transaction Details</b>', styles['Heading3']))
+            elements.append(Paragraph('Transaction Details', styles['Heading3']))
             elements.append(Spacer(1, 0.3*cm))
 
             # Transaction table
@@ -13885,11 +13885,11 @@ def export_earnings_statement():
 
             # Summary
             summary_data = [
-                ['<b>Summary</b>', ''],
+                ['Summary', ''],
                 ['Total Gross Earnings:', f'MYR {total_gross:.2f}'],
                 ['Total Platform Commission:', f'MYR {total_commission:.2f}'],
                 ['Total SOCSO Contribution:', f'MYR {total_socso:.2f}'],
-                ['<b>Total Net Earnings:</b>', f'<b>MYR {total_net:.2f}</b>'],
+                ['Total Net Earnings:', f'MYR {total_net:.2f}'],
                 ['Number of Transactions:', str(len(transactions))],
             ]
 
@@ -13900,7 +13900,9 @@ def export_earnings_statement():
                 ('ALIGN', (0, 0), (0, -1), 'LEFT'),
                 ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTNAME', (0, 4), (-1, 4), 'Helvetica-Bold'),  # Bold for Total Net Earnings row
                 ('FONTSIZE', (0, 0), (-1, -1), 11),
+                ('FONTSIZE', (0, 4), (-1, 4), 13),  # Larger font for Total Net Earnings
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
                 ('LINEABOVE', (0, 4), (-1, 4), 2, colors.HexColor('#4F81BD')),
