@@ -1087,7 +1087,7 @@
                 
                 <div id="selected-users-section" style="display: none; margin-bottom: 16px;">
                     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Select Users</label>
-                    <input type="text" id="user-search" placeholder="Search users..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; margin-bottom: 8px;">
+                    <input type="text" id="email-user-search" placeholder="Search users..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; margin-bottom: 8px;">
                     <div id="user-list" style="border: 1px solid var(--border); border-radius: 8px; max-height: 200px; overflow-y: auto; padding: 8px;"></div>
                     <div id="selected-users-count" style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">0 users selected</div>
                 </div>
@@ -2789,49 +2789,6 @@
         }
     }
 
-    // ==================== LANDSCAPE MODE POPUP ====================
-
-    function checkOrientation() {
-        const dontShow = localStorage.getItem('hideLandscapePopup');
-        if (dontShow === 'true') return;
-
-        const isPortrait = window.matchMedia("(orientation: portrait)").matches;
-        const isMobileOrTablet = window.matchMedia("(max-width: 1024px)").matches;
-
-        if (isPortrait && isMobileOrTablet) {
-            document.getElementById('landscape-popup').style.display = 'flex';
-        } else {
-            document.getElementById('landscape-popup').style.display = 'none';
-        }
-    }
-
-    function closeLandscapePopup() {
-        const dontShowAgain = document.getElementById('dont-show-landscape').checked;
-        if (dontShowAgain) {
-            localStorage.setItem('hideLandscapePopup', 'true');
-        }
-        document.getElementById('landscape-popup').style.display = 'none';
-    }
-
-    // Check orientation on load and orientation change
-    window.addEventListener('load', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-    window.addEventListener('resize', checkOrientation);
-
-    // ==================== EMAIL FUNCTIONALITY ====================
-    let allUsers = [];
-    let selectedUserIds = new Set();
-
-    async function loadAllUsers() {
-        try {
-            const response = await fetch('/api/admin/users?per_page=10000');
-            const data = await response.json();
-            allUsers = data.users || [];
-        } catch (error) {
-            console.error('Error loading users:', error);
-        }
-    }
-
     function updateRecipientInfo() {
         const type = document.getElementById('email-recipient-type').value;
         const selectedSection = document.getElementById('selected-users-section');
@@ -2853,20 +2810,20 @@
     }
 
     function renderUserList() {
-        const search = document.getElementById('user-search').value.toLowerCase();
+        const search = document.getElementById('email-user-search').value.toLowerCase();
         const userList = document.getElementById('user-list');
-        const filtered = allUsers.filter(u => 
-            u.username.toLowerCase().includes(search) || 
+        const filtered = allUsers.filter(u =>
+            u.username.toLowerCase().includes(search) ||
             u.email.toLowerCase().includes(search)
         );
-        
+
         userList.innerHTML = filtered.map(user => `
             <label style="display: flex; align-items: center; padding: 6px; cursor: pointer;">
                 <input type="checkbox" value="${user.id}" onchange="toggleUser(${user.id}, this.checked)" style="margin-right: 8px;">
                 <span style="flex: 1; font-size: 13px;">${user.username} (${user.email})</span>
             </label>
         `).join('');
-        
+
         updateSelectedCount();
     }
 
@@ -2883,7 +2840,7 @@
         document.getElementById('selected-users-count').textContent = `${selectedUserIds.size} users selected`;
     }
 
-    document.getElementById('user-search')?.addEventListener('input', renderUserList);
+    document.getElementById('email-user-search')?.addEventListener('input', renderUserList);
 
     async function sendEmailBroadcast(event) {
         event.preventDefault();
