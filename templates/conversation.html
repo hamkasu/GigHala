@@ -330,7 +330,7 @@
         <div class="avatar">{{ other_user.username[0].upper() }}</div>
         <div class="chat-user-info">
             <h2>{{ other_user.full_name or other_user.username }}</h2>
-            <p>@{{ other_user.username }}</p>
+            <p>@{{ other_user.username }}{% if gig %} | Gig ID: {{ gig.gig_code or '#' ~ gig.id }}{% endif %}</p>
         </div>
         {% if gig %}
         <a href="/gig/{{ gig.id }}" class="chat-gig-badge">{{ gig.gig_code or 'GIG' }} - {{ gig.title[:25] }}{% if gig.title|length > 25 %}...{% endif %}</a>
