@@ -10413,22 +10413,52 @@ def check_admin():
 def admin_stats():
     """Get admin dashboard statistics"""
     try:
-        total_users = User.query.count()
-        total_freelancers = User.query.filter_by(user_type='freelancer').count()
-        total_clients = User.query.filter_by(user_type='client').count()
-        verified_users = User.query.filter_by(is_verified=True).count()
-        halal_verified_users = User.query.filter_by(halal_verified=True).count()
+        app.logger.info("Starting admin stats query...")
 
-        total_gigs = Gig.query.count()
-        open_gigs = Gig.query.filter_by(status='open').count()
-        in_progress_gigs = Gig.query.filter_by(status='in_progress').count()
-        completed_gigs = Gig.query.filter_by(status='completed').count()
-        halal_gigs = Gig.query.filter_by(halal_compliant=True).count()
+        # User statistics - optimize with single query
+        app.logger.info("Querying user statistics...")
+        user_stats = db.session.query(
+            db.func.count(User.id).label('total'),
+            db.func.sum(db.case((User.user_type == 'freelancer', 1), else_=0)).label('freelancers'),
+            db.func.sum(db.case((User.user_type == 'client', 1), else_=0)).label('clients'),
+            db.func.sum(db.case((User.is_verified == True, 1), else_=0)).label('verified'),
+            db.func.sum(db.case((User.halal_verified == True, 1), else_=0)).label('halal_verified')
+        ).first()
 
-        total_applications = Application.query.count()
-        pending_applications = Application.query.filter_by(status='pending').count()
+        total_users = user_stats.total or 0
+        total_freelancers = user_stats.freelancers or 0
+        total_clients = user_stats.clients or 0
+        verified_users = user_stats.verified or 0
+        halal_verified_users = user_stats.halal_verified or 0
+
+        # Gig statistics - optimize with single query
+        app.logger.info("Querying gig statistics...")
+        gig_stats = db.session.query(
+            db.func.count(Gig.id).label('total'),
+            db.func.sum(db.case((Gig.status == 'open', 1), else_=0)).label('open'),
+            db.func.sum(db.case((Gig.status == 'in_progress', 1), else_=0)).label('in_progress'),
+            db.func.sum(db.case((Gig.status == 'completed', 1), else_=0)).label('completed'),
+            db.func.sum(db.case((Gig.halal_compliant == True, 1), else_=0)).label('halal')
+        ).first()
+
+        total_gigs = gig_stats.total or 0
+        open_gigs = gig_stats.open or 0
+        in_progress_gigs = gig_stats.in_progress or 0
+        completed_gigs = gig_stats.completed or 0
+        halal_gigs = gig_stats.halal or 0
+
+        # Application statistics
+        app.logger.info("Querying application statistics...")
+        app_stats = db.session.query(
+            db.func.count(Application.id).label('total'),
+            db.func.sum(db.case((Application.status == 'pending', 1), else_=0)).label('pending')
+        ).first()
+
+        total_applications = app_stats.total or 0
+        pending_applications = app_stats.pending or 0
 
         # Financial statistics
+        app.logger.info("Querying financial statistics...")
         # Total payout: Sum of all released escrows (amount paid to workers)
         total_payout = db.session.query(db.func.sum(Escrow.amount)).filter(
             Escrow.status == 'released'
@@ -10443,6 +10473,7 @@ def admin_stats():
         ).scalar() or 0
 
         # SOCSO statistics (Gig Workers Bill 2025 compliance)
+        app.logger.info("Querying SOCSO statistics...")
         total_socso_collected = db.session.query(
             db.func.sum(SocsoContribution.socso_amount)
         ).scalar() or 0
@@ -10453,10 +10484,11 @@ def admin_stats():
 
         total_socso_pending = float(total_socso_collected) - float(total_socso_remitted)
 
-        # SOCSO registered freelancers
+        # SOCSO registered freelancers - fixed query
+        app.logger.info("Querying SOCSO registered freelancers...")
         socso_registered_freelancers = User.query.filter(
             User.socso_consent == True,
-            User.user_type.in_(['freelancer', 'both'])
+            db.or_(User.user_type == 'freelancer', User.user_type == 'both')
         ).count()
 
         # Current month SOCSO
@@ -10466,11 +10498,14 @@ def admin_stats():
         ).filter(SocsoContribution.contribution_month == current_month).scalar() or 0
 
         # Recent users (last 7 days)
+        app.logger.info("Querying recent statistics...")
         week_ago = datetime.utcnow() - timedelta(days=7)
         recent_users = User.query.filter(User.created_at >= week_ago).count()
 
         # Recent gigs (last 7 days)
         recent_gigs = Gig.query.filter(Gig.created_at >= week_ago).count()
+
+        app.logger.info("Admin stats query completed successfully")
 
         return jsonify({
             'users': {
