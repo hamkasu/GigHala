@@ -1183,12 +1183,14 @@
 
     <header class="header">
         <div class="header-top">
-            <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+            <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
-                    <span>GigHala</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                        <span>GigHala</span>
+                        <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.6);">powered by Calmic</span>
+                    </div>
                 </div>
-                <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.6); margin-left: 0;">powered by Calmic</span>
             </a>
             <a href="https://gighala.calmic.com.my/" class="logo" style="margin-left: 12px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 12px;">
                 <img src="/static/images/payhalal-logo.png" alt="PayHala" style="height: 18px; width: auto;">
