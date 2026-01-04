@@ -13735,11 +13735,10 @@ def export_invoice_pdf(invoice_id):
 @app.route('/api/billing/earnings-statement', methods=['GET'])
 @login_required
 def export_earnings_statement():
-    """Export monthly/yearly earnings statement for freelancers (PDF)"""
+    """Export monthly/yearly earnings statement for freelancers (PDF/CSV)"""
     try:
-        from weasyprint import HTML
-        from flask import make_response, render_template_string
-        from sqlalchemy import func, extract
+        from flask import make_response
+        from sqlalchemy import extract
         import io
 
         user_id = session['user_id']
@@ -13748,7 +13747,7 @@ def export_earnings_statement():
         month = request.args.get('month', datetime.now().month, type=int)
         export_format = request.args.get('format', 'pdf')  # pdf or csv
 
-        app.logger.info(f"Export earnings statement - user_id={user_id}, period={period}, year={year}")
+        app.logger.info(f"Export earnings statement - user_id={user_id}, period={period}, year={year}, format={export_format}")
 
         # Get all transactions for freelancer
         if period == 'monthly':
@@ -13777,202 +13776,152 @@ def export_earnings_statement():
 
         # Get user details
         user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
 
         if export_format == 'pdf':
-            # Render PDF
-            html_template = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        @page {
-            size: A4;
-            margin: 2cm;
-        }
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            color: #333;
-            line-height: 1.6;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #4F81BD;
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: 800;
-            color: #4F81BD;
-            margin-bottom: 10px;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        .period {
-            font-size: 18px;
-            color: #666;
-        }
-        .user-info {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 8px;
-        }
-        .user-info h3 {
-            margin-top: 0;
-            color: #4F81BD;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-        th {
-            text-align: left;
-            padding: 12px;
-            background: #4F81BD;
-            color: white;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        .amount {
-            text-align: right;
-        }
-        .summary {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 8px;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 16px;
-        }
-        .summary-row.grand-total {
-            font-size: 20px;
-            font-weight: 700;
-            color: #4F81BD;
-            padding-top: 16px;
-            margin-top: 8px;
-            border-top: 2px solid #333;
-        }
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo">GigHala</div>
-        <h1>Earnings Statement</h1>
-        <div class="period">{{ period_title }}</div>
-    </div>
+            # Generate PDF using ReportLab (pure Python, no system dependencies)
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib import colors
+            from reportlab.lib.units import cm
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
-    <div class="user-info">
-        <h3>Freelancer Details</h3>
-        <p><strong>Name:</strong> {{ user_name }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        {% if user.ic_number %}
-        <p><strong>IC Number:</strong> {{ user.ic_number }}</p>
-        {% endif %}
-        {% if user.socso_membership_number %}
-        <p><strong>SOCSO Number:</strong> {{ user.socso_membership_number }}</p>
-        {% endif %}
-    </div>
+            buffer = io.BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm,
+                                   topMargin=2*cm, bottomMargin=2*cm)
 
-    <h2>Transaction Details</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Gig</th>
-                <th class="amount">Gross Amount</th>
-                <th class="amount">Commission</th>
-                <th class="amount">SOCSO</th>
-                <th class="amount">Net Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in transactions %}
-            <tr>
-                <td>{{ t.transaction_date.strftime('%d/%m/%Y') }}</td>
-                <td>{{ t.gig.title if t.gig else 'N/A' }}</td>
-                <td class="amount">MYR {{ "%.2f"|format(t.amount) }}</td>
-                <td class="amount">MYR {{ "%.2f"|format(t.commission) }}</td>
-                <td class="amount">MYR {{ "%.2f"|format(t.socso_amount or 0) }}</td>
-                <td class="amount">MYR {{ "%.2f"|format(t.net_amount) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            # Container for PDF elements
+            elements = []
+            styles = getSampleStyleSheet()
 
-    <div class="summary">
-        <h3>Summary</h3>
-        <div class="summary-row">
-            <span>Total Gross Earnings:</span>
-            <span>MYR {{ "%.2f"|format(total_gross) }}</span>
-        </div>
-        <div class="summary-row">
-            <span>Total Platform Commission:</span>
-            <span>MYR {{ "%.2f"|format(total_commission) }}</span>
-        </div>
-        <div class="summary-row">
-            <span>Total SOCSO Contribution:</span>
-            <span>MYR {{ "%.2f"|format(total_socso) }}</span>
-        </div>
-        <div class="summary-row grand-total">
-            <span>Total Net Earnings:</span>
-            <span>MYR {{ "%.2f"|format(total_net) }}</span>
-        </div>
-        <div class="summary-row">
-            <span>Number of Transactions:</span>
-            <span>{{ transactions|length }}</span>
-        </div>
-    </div>
-
-    <div class="footer">
-        <p>This statement is generated electronically by GigHala.</p>
-        <p>Generated on: {{ now.strftime('%d %B %Y at %H:%M') }}</p>
-    </div>
-</body>
-</html>
-            '''
-
-            # Add gig to each transaction for template
-            for t in transactions:
-                t.gig = Gig.query.get(t.gig_id) if t.gig_id else None
-
-            html_content = render_template_string(
-                html_template,
-                period_title=period_title,
-                user=user,
-                user_name=user.full_name or user.username,
-                transactions=transactions,
-                total_gross=total_gross,
-                total_commission=total_commission,
-                total_socso=total_socso,
-                total_net=total_net,
-                now=datetime.now()
+            # Custom styles
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=28,
+                textColor=colors.HexColor('#4F81BD'),
+                alignment=TA_CENTER,
+                spaceAfter=10
             )
 
-            # Generate PDF
-            pdf_file = HTML(string=html_content).write_pdf()
+            heading_style = ParagraphStyle(
+                'CustomHeading',
+                parent=styles['Heading2'],
+                fontSize=18,
+                textColor=colors.HexColor('#4F81BD'),
+                alignment=TA_CENTER,
+                spaceAfter=20
+            )
 
-            response = make_response(pdf_file)
+            # Header
+            elements.append(Paragraph('<b>GigHala</b>', title_style))
+            elements.append(Paragraph('Earnings Statement', heading_style))
+            elements.append(Paragraph(period_title, styles['Normal']))
+            elements.append(Spacer(1, 0.5*cm))
+
+            # User information
+            user_name = user.full_name or user.username
+            user_data = [
+                ['<b>Freelancer Details</b>', ''],
+                ['Name:', user_name],
+                ['Email:', user.email],
+            ]
+
+            if user.ic_number:
+                user_data.append(['IC Number:', user.ic_number])
+            if user.socso_membership_number:
+                user_data.append(['SOCSO Number:', user.socso_membership_number])
+
+            user_table = Table(user_data, colWidths=[5*cm, 10*cm])
+            user_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f5f5f5')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#4F81BD')),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
+            elements.append(user_table)
+            elements.append(Spacer(1, 0.8*cm))
+
+            # Transaction details heading
+            elements.append(Paragraph('<b>Transaction Details</b>', styles['Heading3']))
+            elements.append(Spacer(1, 0.3*cm))
+
+            # Transaction table
+            transaction_data = [['Date', 'Gig', 'Gross', 'Commission', 'SOCSO', 'Net Amount']]
+
+            for t in transactions:
+                gig = Gig.query.get(t.gig_id) if t.gig_id else None
+                transaction_data.append([
+                    t.transaction_date.strftime('%d/%m/%Y'),
+                    (gig.title if gig else 'N/A')[:30],  # Truncate long titles
+                    f'MYR {t.amount:.2f}',
+                    f'MYR {t.commission:.2f}',
+                    f'MYR {t.socso_amount or 0:.2f}',
+                    f'MYR {t.net_amount:.2f}'
+                ])
+
+            trans_table = Table(transaction_data, colWidths=[2.5*cm, 5*cm, 2.5*cm, 2.5*cm, 2*cm, 2.5*cm])
+            trans_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4F81BD')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+            ]))
+            elements.append(trans_table)
+            elements.append(Spacer(1, 0.8*cm))
+
+            # Summary
+            summary_data = [
+                ['<b>Summary</b>', ''],
+                ['Total Gross Earnings:', f'MYR {total_gross:.2f}'],
+                ['Total Platform Commission:', f'MYR {total_commission:.2f}'],
+                ['Total SOCSO Contribution:', f'MYR {total_socso:.2f}'],
+                ['<b>Total Net Earnings:</b>', f'<b>MYR {total_net:.2f}</b>'],
+                ['Number of Transactions:', str(len(transactions))],
+            ]
+
+            summary_table = Table(summary_data, colWidths=[10*cm, 5*cm])
+            summary_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f5f5f5')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor('#4F81BD')),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('LINEABOVE', (0, 4), (-1, 4), 2, colors.HexColor('#4F81BD')),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
+            elements.append(summary_table)
+            elements.append(Spacer(1, 1*cm))
+
+            # Footer
+            footer_text = f"This statement is generated electronically by GigHala.<br/>Generated on: {datetime.now().strftime('%d %B %Y at %H:%M')}"
+            footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9,
+                                         textColor=colors.grey, alignment=TA_CENTER)
+            elements.append(Paragraph(footer_text, footer_style))
+
+            # Build PDF
+            doc.build(elements)
+            pdf_data = buffer.getvalue()
+            buffer.close()
+
+            response = make_response(pdf_data)
             filename = f"earnings_statement_{period_title.replace(' ', '_')}.pdf"
             response.headers['Content-Disposition'] = f'attachment; filename={filename}'
             response.headers['Content-Type'] = 'application/pdf'
