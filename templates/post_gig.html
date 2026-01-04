@@ -355,6 +355,108 @@
         10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
         20%, 40%, 60%, 80% { transform: translateX(5px); }
     }
+
+    /* AI Halal Compliance Status Badge */
+    .ai-compliance-status {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    .compliance-badge {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border: 2px solid;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .compliance-badge.checking {
+        border-color: #94A3B8;
+        background: #F8FAFC;
+    }
+
+    .compliance-badge.approved {
+        border-color: #10B981;
+        background: #ECFDF5;
+    }
+
+    .compliance-badge.flagged {
+        border-color: #F59E0B;
+        background: #FFFBEB;
+    }
+
+    .compliance-badge.rejected {
+        border-color: #EF4444;
+        background: #FEF2F2;
+    }
+
+    .badge-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+        animation: pulse 2s infinite;
+    }
+
+    .compliance-badge.approved .badge-icon {
+        animation: none;
+    }
+
+    .compliance-badge.rejected .badge-icon {
+        animation: shake 0.5s ease;
+    }
+
+    .badge-content {
+        flex: 1;
+    }
+
+    .badge-title {
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .compliance-badge.checking .badge-title {
+        color: #475569;
+    }
+
+    .compliance-badge.approved .badge-title {
+        color: #047857;
+    }
+
+    .compliance-badge.flagged .badge-title {
+        color: #D97706;
+    }
+
+    .compliance-badge.rejected .badge-title {
+        color: #DC2626;
+    }
+
+    .badge-message {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #64748B;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -399,6 +501,17 @@
                     </label>
                     <textarea class="form-textarea" id="description" name="description"
                               placeholder="{{ t('description_placeholder') }}" required>{{ form_data.description if form_data else '' }}</textarea>
+                </div>
+
+                <!-- AI Halal Compliance Status Badge -->
+                <div id="ai-compliance-status" class="ai-compliance-status" style="display: none; margin-bottom: 20px;">
+                    <div class="compliance-badge" id="compliance-badge">
+                        <div class="badge-icon" id="badge-icon"></div>
+                        <div class="badge-content">
+                            <div class="badge-title" id="badge-title">Checking compliance...</div>
+                            <div class="badge-message" id="badge-message"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -903,6 +1016,142 @@
         container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
         container.scrollIntoView({ behavior: 'smooth' });
     }
+
+    // ======================================================================
+    // AI-POWERED HALAL COMPLIANCE CHECK - Real-time validation
+    // ======================================================================
+
+    let complianceCheckTimeout = null;
+    let lastCheckContent = '';
+
+    // Get form field elements
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    const categoryInputs = document.querySelectorAll('input[name="category"]');
+
+    // Add event listeners for real-time checking
+    titleInput.addEventListener('input', debounceComplianceCheck);
+    descriptionInput.addEventListener('input', debounceComplianceCheck);
+    categoryInputs.forEach(input => {
+        input.addEventListener('change', debounceComplianceCheck);
+    });
+
+    function debounceComplianceCheck() {
+        // Clear existing timeout
+        if (complianceCheckTimeout) {
+            clearTimeout(complianceCheckTimeout);
+        }
+
+        // Set new timeout for debounced check (wait 1.5 seconds after user stops typing)
+        complianceCheckTimeout = setTimeout(checkHalalCompliance, 1500);
+
+        // Show "checking" status immediately
+        showComplianceStatus('checking');
+    }
+
+    async function checkHalalCompliance() {
+        const title = titleInput.value.trim();
+        const description = descriptionInput.value.trim();
+        const category = document.querySelector('input[name="category"]:checked')?.value || '';
+
+        // Don't check if content is too short
+        if (title.length + description.length < 10) {
+            hideComplianceStatus();
+            return;
+        }
+
+        // Don't re-check if content hasn't changed
+        const currentContent = title + '|' + description + '|' + category;
+        if (currentContent === lastCheckContent) {
+            return;
+        }
+        lastCheckContent = currentContent;
+
+        try {
+            showComplianceStatus('checking');
+
+            const response = await fetch('/api/check-halal-compliance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    category: category,
+                    skills: skills.join(' ')
+                })
+            });
+
+            const result = await response.json();
+
+            // Update UI based on result
+            if (result.action === 'approve') {
+                showComplianceStatus('approved', result);
+            } else if (result.action === 'flag') {
+                showComplianceStatus('flagged', result);
+            } else if (result.action === 'reject') {
+                showComplianceStatus('rejected', result);
+            } else {
+                showComplianceStatus('checking', result);
+            }
+
+        } catch (error) {
+            console.error('Compliance check error:', error);
+            // Silently fail - don't block the user
+            hideComplianceStatus();
+        }
+    }
+
+    function showComplianceStatus(status, result = null) {
+        const statusContainer = document.getElementById('ai-compliance-status');
+        const badge = document.getElementById('compliance-badge');
+        const icon = document.getElementById('badge-icon');
+        const title = document.getElementById('badge-title');
+        const message = document.getElementById('badge-message');
+
+        // Reset classes
+        badge.className = 'compliance-badge';
+        badge.classList.add(status);
+
+        // Update content based on status
+        if (status === 'checking') {
+            icon.innerHTML = '🔍';
+            title.textContent = 'Checking halal compliance... / Menyemak pematuhan halal...';
+            message.textContent = 'AI is analyzing your content for Shariah compliance.';
+        } else if (status === 'approved') {
+            icon.innerHTML = '✅';
+            title.textContent = 'Halal-compliant! / Patuh halal!';
+            message.innerHTML = `<strong>Your gig meets Islamic Shariah requirements.</strong><br>` +
+                (result?.confidence ? `AI confidence: ${(result.confidence * 100).toFixed(0)}%` : '');
+        } else if (status === 'flagged') {
+            icon.innerHTML = '⚠️';
+            title.textContent = 'Flagged for review / Ditandakan untuk semakan';
+            message.innerHTML = `<strong>Your gig will be reviewed by our admin team.</strong><br>` +
+                `${result?.reason || 'Content may need verification for halal compliance.'}`;
+        } else if (status === 'rejected') {
+            icon.innerHTML = '❌';
+            title.textContent = 'Contains haram elements / Mengandungi unsur haram';
+            message.innerHTML = `<strong>Your gig violates Shariah principles and cannot be posted.</strong><br>` +
+                `${result?.reason || 'Please review and modify your content.'}`;
+            if (result?.violations && result.violations.length > 0) {
+                message.innerHTML += `<br><br><strong>Violations:</strong><br>• ${result.violations.slice(0, 3).join('<br>• ')}`;
+            }
+        }
+
+        // Show the status
+        statusContainer.style.display = 'block';
+    }
+
+    function hideComplianceStatus() {
+        const statusContainer = document.getElementById('ai-compliance-status');
+        statusContainer.style.display = 'none';
+        lastCheckContent = '';
+    }
+
+    // ======================================================================
+    // END OF AI COMPLIANCE CHECK
+    // ======================================================================
 
     // HALAL COMPLIANCE VALIDATION - Prohibited keywords (subset for client-side checking)
     const prohibitedKeywords = [
