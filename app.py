@@ -31,6 +31,7 @@ from halal_compliance import (
     get_halal_guidelines_text,
     HALAL_APPROVED_CATEGORY_SLUGS
 )
+from groq_moderation import ai_halal_moderation, get_cached_moderation
 import qrcode
 import io
 import base64
@@ -2370,6 +2371,7 @@ class Gig(db.Model):
     blocked_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who blocked it
     block_reason = db.Column(db.Text)  # Reason for blocking
     report_count = db.Column(db.Integer, default=0)  # Number of reports received
+    ai_moderation_result = db.Column(db.Text)  # JSON result from AI halal compliance check
 
 class GigReport(db.Model):
     """User reports for flagging inappropriate or haram content in gigs"""
@@ -3536,6 +3538,58 @@ def post_gig():
                 flash(error_msg, 'error')
                 return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
 
+            # AI-POWERED HALAL MODERATION
+            # Additional layer of protection using Groq AI to detect nuanced haram content
+            ai_moderation_result = get_cached_moderation(title, description)
+            ai_moderation_json = json.dumps(ai_moderation_result)
+
+            # Determine if gig should be auto-rejected or flagged based on AI assessment
+            ai_action = ai_moderation_result.get('action', 'flag')
+
+            if ai_action == 'reject':
+                # AI detected clear haram content - auto-reject
+                from security_logger import log_security_event
+                log_security_event(
+                    event_type='ai_moderation_reject',
+                    user_id=user_id,
+                    details={
+                        'action': 'create_gig',
+                        'ai_reason': ai_moderation_result.get('reason', 'Haram content detected'),
+                        'violations': ai_moderation_result.get('violations', []),
+                        'confidence': ai_moderation_result.get('confidence', 0),
+                        'title': title[:100],
+                        'category': category
+                    },
+                    ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+                )
+
+                error_msg = f"⚠️ Kandungan tidak patuh Shariah / Content violates Shariah\n\n{ai_moderation_result.get('reason', 'This gig contains prohibited (haram) elements.')}"
+                if ai_moderation_result.get('violations'):
+                    error_msg += f"\n\nPelanggaran / Violations:\n• " + "\n• ".join(ai_moderation_result['violations'][:3])
+
+                flash(error_msg, 'error')
+                return render_template('post_gig.html', user=user, categories=categories, active_page='post-gig', lang=get_user_language(), t=t, form_data=form_data)
+
+            # If AI flagged for review, we still create the gig but mark it for manual review
+            # Admins will review it before it goes live
+            gig_status = 'pending_review' if ai_action == 'flag' else 'open'
+
+            if ai_action == 'flag':
+                # Log flagged content for admin review
+                from security_logger import log_security_event
+                log_security_event(
+                    event_type='ai_moderation_flag',
+                    user_id=user_id,
+                    details={
+                        'action': 'create_gig',
+                        'ai_reason': ai_moderation_result.get('reason', 'Flagged for review'),
+                        'confidence': ai_moderation_result.get('confidence', 0),
+                        'title': title[:100],
+                        'category': category
+                    },
+                    ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+                )
+
             new_gig = Gig(
                 title=title,
                 description=description,
@@ -3546,12 +3600,14 @@ def post_gig():
                 duration=duration,
                 location=location,
                 is_remote=form_data['is_remote'],
+                status=gig_status,  # Set based on AI moderation result
                 client_id=user_id,
                 halal_compliant=form_data['halal_compliant'],
                 is_instant_payout=form_data['is_instant_payout'],
                 is_brand_partnership=form_data['is_brand_partnership'],
                 skills_required=json.dumps(skills_required),
-                deadline=deadline
+                deadline=deadline,
+                ai_moderation_result=ai_moderation_json  # Store AI result for audit
             )
             
             db.session.add(new_gig)
@@ -3605,8 +3661,12 @@ def post_gig():
                         db.session.add(gig_photo)
                 
                 db.session.commit()
-            
-            flash('Gig berjaya dipost!', 'success')
+
+            # Inform user about gig status
+            if gig_status == 'pending_review':
+                flash('Gig anda telah dihantar untuk semakan admin. / Your gig has been submitted for admin review. Kami akan semak kandungan untuk memastikan pematuhan Shariah sepenuhnya. / We will review the content to ensure full Shariah compliance.', 'warning')
+            else:
+                flash('Gig berjaya dipost! / Gig successfully posted!', 'success')
             return redirect('/dashboard')
             
         except Exception as e:
@@ -5939,6 +5999,59 @@ def create_gig():
                 'violations': halal_result['violations']
             }), 400
 
+        # AI-POWERED HALAL MODERATION
+        # Additional layer of protection using Groq AI to detect nuanced haram content
+        ai_moderation_result = get_cached_moderation(title, description)
+        ai_moderation_json = json.dumps(ai_moderation_result)
+
+        # Determine if gig should be auto-rejected or flagged based on AI assessment
+        ai_action = ai_moderation_result.get('action', 'flag')
+
+        if ai_action == 'reject':
+            # AI detected clear haram content - auto-reject
+            from security_logger import log_security_event
+            log_security_event(
+                event_type='ai_moderation_reject',
+                user_id=session['user_id'],
+                details={
+                    'action': 'create_gig_api',
+                    'ai_reason': ai_moderation_result.get('reason', 'Haram content detected'),
+                    'violations': ai_moderation_result.get('violations', []),
+                    'confidence': ai_moderation_result.get('confidence', 0),
+                    'title': title[:100],
+                    'category': category
+                },
+                ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+            )
+
+            return jsonify({
+                'error': 'AI moderation rejected',
+                'message_en': ai_moderation_result.get('reason', 'This gig contains prohibited (haram) elements.'),
+                'message_ms': 'Kandungan tidak patuh Shariah',
+                'violations': ai_moderation_result.get('violations', []),
+                'action': 'reject',
+                'confidence': ai_moderation_result.get('confidence', 0)
+            }), 400
+
+        # If AI flagged for review, we still create the gig but mark it for manual review
+        gig_status = 'pending_review' if ai_action == 'flag' else 'open'
+
+        if ai_action == 'flag':
+            # Log flagged content for admin review
+            from security_logger import log_security_event
+            log_security_event(
+                event_type='ai_moderation_flag',
+                user_id=session['user_id'],
+                details={
+                    'action': 'create_gig_api',
+                    'ai_reason': ai_moderation_result.get('reason', 'Flagged for review'),
+                    'confidence': ai_moderation_result.get('confidence', 0),
+                    'title': title[:100],
+                    'category': category
+                },
+                ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+            )
+
         # Geocode location to get coordinates
         latitude, longitude = None, None
         if location and not data.get('is_remote', True):
@@ -5956,25 +6069,151 @@ def create_gig():
             latitude=latitude,
             longitude=longitude,
             is_remote=bool(data.get('is_remote', True)),
+            status=gig_status,  # Set based on AI moderation result
             client_id=session['user_id'],
             halal_compliant=bool(data.get('halal_compliant', True)),
             is_instant_payout=bool(data.get('is_instant_payout', False)),
             is_brand_partnership=bool(data.get('is_brand_partnership', False)),
             skills_required=json.dumps(skills_required),
-            deadline=deadline
+            deadline=deadline,
+            ai_moderation_result=ai_moderation_json  # Store AI result for audit
         )
 
         db.session.add(new_gig)
         db.session.commit()
 
-        return jsonify({
+        # Return appropriate message based on moderation result
+        response = {
             'message': 'Gig created successfully',
-            'gig_id': new_gig.id
-        }), 201
+            'gig_id': new_gig.id,
+            'status': gig_status,
+            'ai_moderation': {
+                'action': ai_action,
+                'confidence': ai_moderation_result.get('confidence', 0),
+                'reason': ai_moderation_result.get('reason', '')
+            }
+        }
+
+        if gig_status == 'pending_review':
+            response['message'] = 'Gig submitted for admin review'
+            response['message_ms'] = 'Gig dihantar untuk semakan admin'
+
+        return jsonify(response), 201
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Create gig error: {str(e)}")
         return jsonify({'error': 'Failed to create gig. Please try again.'}), 500
+
+@app.route('/api/check-halal-compliance', methods=['POST'])
+@api_rate_limit(requests_per_minute=60)
+def check_halal_compliance():
+    """
+    Real-time halal compliance check endpoint for frontend validation.
+
+    This endpoint allows the frontend to check gig content as users type,
+    providing immediate feedback on whether their content is halal compliant.
+
+    It performs both keyword-based and AI-powered moderation checks.
+    """
+    try:
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+
+        # Require at least title or description
+        if not title and not description:
+            return jsonify({
+                'is_halal': True,
+                'action': 'approve',
+                'reason': 'No content to check',
+                'keyword_check': {'is_compliant': True, 'violations': []},
+                'ai_check': None
+            }), 200
+
+        # Sanitize inputs
+        title = sanitize_input(title, max_length=200) if title else ''
+        description = sanitize_input(description, max_length=5000) if description else ''
+
+        # First: Keyword-based compliance check
+        category = data.get('category', '')
+        skills = data.get('skills', '')
+
+        keyword_is_compliant, keyword_result = validate_gig_halal_compliance(
+            title=title,
+            description=description,
+            category=category,
+            skills=skills
+        )
+
+        # If keyword check fails, return immediately (no need for AI check)
+        if not keyword_is_compliant:
+            return jsonify({
+                'is_halal': False,
+                'action': 'reject',
+                'reason': keyword_result.get('message_en', 'Contains prohibited keywords'),
+                'reason_ms': keyword_result.get('message_ms', 'Mengandungi kata kunci yang dilarang'),
+                'violations': keyword_result.get('violations', {}),
+                'keyword_check': {
+                    'is_compliant': False,
+                    'violations': keyword_result.get('violations', {})
+                },
+                'ai_check': None,
+                'confidence': 1.0  # Keyword matches are 100% certain
+            }), 200
+
+        # Second: AI-powered moderation check
+        # Only run if there's sufficient content (at least 10 characters combined)
+        if len(title) + len(description) >= 10:
+            ai_result = get_cached_moderation(title, description)
+
+            return jsonify({
+                'is_halal': ai_result.get('is_halal', None),
+                'action': ai_result.get('action', 'flag'),
+                'reason': ai_result.get('reason', ''),
+                'violations': ai_result.get('violations', []),
+                'confidence': ai_result.get('confidence', 0),
+                'keyword_check': {
+                    'is_compliant': True,
+                    'violations': []
+                },
+                'ai_check': {
+                    'is_halal': ai_result.get('is_halal', None),
+                    'confidence': ai_result.get('confidence', 0),
+                    'reason': ai_result.get('reason', ''),
+                    'violations': ai_result.get('violations', []),
+                    'action': ai_result.get('action', 'flag'),
+                    'model': ai_result.get('model', 'unknown'),
+                    'success': ai_result.get('success', False)
+                }
+            }), 200
+        else:
+            # Not enough content for AI check
+            return jsonify({
+                'is_halal': True,
+                'action': 'approve',
+                'reason': 'Content too short for AI analysis',
+                'keyword_check': {
+                    'is_compliant': True,
+                    'violations': []
+                },
+                'ai_check': None,
+                'confidence': 0.5
+            }), 200
+
+    except Exception as e:
+        app.logger.error(f"Halal compliance check error: {str(e)}")
+        # On error, fail safe by flagging for review
+        return jsonify({
+            'is_halal': None,
+            'action': 'flag',
+            'reason': 'Unable to verify compliance. Please submit for review.',
+            'error': str(e),
+            'confidence': 0
+        }), 200  # Still return 200 to not break the frontend
 
 @app.route('/api/gigs/<int:gig_id>', methods=['GET'])
 def get_gig(gig_id):
@@ -11500,6 +11739,222 @@ def admin_unblock_gig(gig_id):
         db.session.rollback()
         app.logger.error(f"Admin unblock gig error: {str(e)}")
         return jsonify({'error': 'Failed to unblock gig'}), 500
+
+@app.route('/api/admin/ai-flagged-gigs', methods=['GET'])
+@admin_required
+def admin_get_ai_flagged_gigs():
+    """
+    Get all gigs flagged by AI moderation for manual review.
+
+    Returns gigs with status='pending_review' or where AI moderation
+    action='flag' or action='reject', ordered by creation date.
+    """
+    try:
+        # Query parameters
+        action = request.args.get('action', '')  # flag, reject, all
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+
+        # Base query for gigs with AI moderation results
+        query = Gig.query.filter(
+            Gig.ai_moderation_result.isnot(None)
+        )
+
+        # Filter by AI action if specified
+        if action == 'flag':
+            # Gigs flagged for review
+            query = query.filter(Gig.status == 'pending_review')
+        elif action == 'reject':
+            # Gigs auto-rejected by AI (might be in blocked status)
+            query = query.filter(Gig.status.in_(['blocked', 'pending_review']))
+        elif action == 'all':
+            # All gigs with AI moderation results that need attention
+            query = query.filter(
+                Gig.status.in_(['pending_review', 'blocked'])
+            )
+        else:
+            # Default: show flagged gigs (pending_review)
+            query = query.filter(Gig.status == 'pending_review')
+
+        # Order by creation date (newest first)
+        query = query.order_by(Gig.created_at.desc())
+
+        # Paginate
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+
+        flagged_gigs = []
+        for gig in paginated.items:
+            # Parse AI moderation result
+            ai_result = {}
+            if gig.ai_moderation_result:
+                try:
+                    ai_result = json.loads(gig.ai_moderation_result)
+                except:
+                    ai_result = {'error': 'Invalid JSON'}
+
+            # Get client info
+            client = User.query.get(gig.client_id)
+
+            flagged_gigs.append({
+                'id': gig.id,
+                'gig_code': gig.gig_code,
+                'title': gig.title,
+                'description': gig.description[:200] + '...' if len(gig.description) > 200 else gig.description,
+                'category': gig.category,
+                'status': gig.status,
+                'client_id': gig.client_id,
+                'client_name': client.full_name or client.username if client else 'Unknown',
+                'client_email': client.email if client else '',
+                'created_at': gig.created_at.isoformat(),
+                'ai_moderation': {
+                    'action': ai_result.get('action', 'unknown'),
+                    'is_halal': ai_result.get('is_halal', None),
+                    'confidence': ai_result.get('confidence', 0),
+                    'reason': ai_result.get('reason', ''),
+                    'violations': ai_result.get('violations', []),
+                    'model': ai_result.get('model', ''),
+                    'timestamp': ai_result.get('timestamp', '')
+                },
+                'report_count': gig.report_count or 0,
+                'views': gig.views or 0,
+                'applications': gig.applications or 0
+            })
+
+        return jsonify({
+            'gigs': flagged_gigs,
+            'total': paginated.total,
+            'page': page,
+            'per_page': per_page,
+            'pages': paginated.pages
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Admin get AI flagged gigs error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve AI-flagged gigs'}), 500
+
+@app.route('/api/admin/ai-flagged-gigs/<int:gig_id>/approve', methods=['POST'])
+@admin_required
+def admin_approve_flagged_gig(gig_id):
+    """
+    Approve a flagged gig after manual review.
+
+    Changes status from 'pending_review' to 'open' so it becomes visible.
+    """
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        data = request.json or {}
+
+        # Validate current status
+        if gig.status != 'pending_review':
+            return jsonify({'error': 'Gig is not pending review'}), 400
+
+        # Update status to open
+        gig.status = 'open'
+        gig.halal_verified = True  # Mark as verified by admin
+
+        # Optional: Add admin notes to AI moderation result
+        if gig.ai_moderation_result:
+            try:
+                ai_result = json.loads(gig.ai_moderation_result)
+                ai_result['admin_review'] = {
+                    'action': 'approved',
+                    'reviewed_by': session.get('user_id'),
+                    'reviewed_at': datetime.utcnow().isoformat(),
+                    'notes': data.get('notes', '')
+                }
+                gig.ai_moderation_result = json.dumps(ai_result)
+            except:
+                pass
+
+        db.session.commit()
+
+        # Log the approval
+        from security_logger import log_security_event
+        log_security_event(
+            event_type='admin_approve_flagged_gig',
+            user_id=session.get('user_id'),
+            details={
+                'gig_id': gig_id,
+                'gig_title': gig.title[:100],
+                'notes': data.get('notes', '')
+            },
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+        )
+
+        return jsonify({
+            'message': 'Gig approved successfully',
+            'gig_id': gig_id,
+            'new_status': 'open'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin approve flagged gig error: {str(e)}")
+        return jsonify({'error': 'Failed to approve gig'}), 500
+
+@app.route('/api/admin/ai-flagged-gigs/<int:gig_id>/reject', methods=['POST'])
+@admin_required
+def admin_reject_flagged_gig(gig_id):
+    """
+    Reject a flagged gig after manual review.
+
+    Changes status to 'blocked' and adds block reason.
+    """
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        data = request.json or {}
+
+        # Validate current status
+        if gig.status not in ['pending_review', 'open']:
+            return jsonify({'error': 'Gig cannot be rejected from current status'}), 400
+
+        # Update status to blocked
+        gig.status = 'blocked'
+        gig.blocked_at = datetime.utcnow()
+        gig.blocked_by = session.get('user_id')
+        gig.block_reason = data.get('reason', 'Rejected after AI moderation review - violates halal compliance')
+
+        # Update AI moderation result
+        if gig.ai_moderation_result:
+            try:
+                ai_result = json.loads(gig.ai_moderation_result)
+                ai_result['admin_review'] = {
+                    'action': 'rejected',
+                    'reviewed_by': session.get('user_id'),
+                    'reviewed_at': datetime.utcnow().isoformat(),
+                    'reason': data.get('reason', ''),
+                    'notes': data.get('notes', '')
+                }
+                gig.ai_moderation_result = json.dumps(ai_result)
+            except:
+                pass
+
+        db.session.commit()
+
+        # Log the rejection
+        from security_logger import log_security_event
+        log_security_event(
+            event_type='admin_reject_flagged_gig',
+            user_id=session.get('user_id'),
+            details={
+                'gig_id': gig_id,
+                'gig_title': gig.title[:100],
+                'reason': data.get('reason', ''),
+                'notes': data.get('notes', '')
+            },
+            ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
+        )
+
+        return jsonify({
+            'message': 'Gig rejected successfully',
+            'gig_id': gig_id,
+            'new_status': 'blocked'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin reject flagged gig error: {str(e)}")
+        return jsonify({'error': 'Failed to reject gig'}), 500
 
 @app.route('/api/admin/reports', methods=['GET'])
 @admin_required
