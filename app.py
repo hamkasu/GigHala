@@ -2298,6 +2298,60 @@ class User(UserMixin, db.Model):
     socso_submitted_to_portal = db.Column(db.Boolean, default=False)  # Whether submitted to SOCSO ASSIST Portal
     socso_portal_submission_date = db.Column(db.DateTime)  # When submitted to SOCSO portal
     socso_portal_reference_number = db.Column(db.String(50))  # Reference number from SOCSO portal (if any)
+    # Soft delete fields
+    is_deleted = db.Column(db.Boolean, default=False)  # Whether user has been deleted (soft delete)
+    deleted_at = db.Column(db.DateTime)  # When user was deleted
+
+    def soft_delete(self):
+        """Soft delete user by anonymizing their personal information"""
+        import secrets
+
+        # Mark as deleted
+        self.is_deleted = True
+        self.deleted_at = datetime.utcnow()
+
+        # Anonymize personal information
+        deleted_id = f"deleted_{self.id}_{secrets.token_hex(4)}"
+        self.full_name = "Deleted User"
+        self.username = deleted_id
+        self.email = f"{deleted_id}@deleted.gighala.com"
+        self.phone = None
+        self.bio = None
+        self.skills = None
+        self.location = None
+        self.latitude = None
+        self.longitude = None
+
+        # Clear sensitive information
+        self.password_hash = None
+        self.ic_number = None
+        self.bank_name = None
+        self.bank_account_number = None
+        self.bank_account_holder = None
+        self.date_of_birth = None
+        self.address_line1 = None
+        self.address_line2 = None
+        self.postcode = None
+        self.city = None
+        self.state = None
+
+        # Clear verification tokens
+        self.email_verification_token = None
+        self.password_reset_token = None
+        self.phone_verification_code = None
+        self.totp_secret = None
+
+        # Clear OAuth info
+        self.oauth_provider = None
+        self.oauth_id = None
+
+        db.session.commit()
+
+    def get_display_name(self):
+        """Get the display name for the user (returns 'Deleted User' if deleted)"""
+        if self.is_deleted:
+            return "Deleted User"
+        return self.full_name or self.username
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -3311,7 +3365,7 @@ def view_gig(gig_id):
                     gig_applications.append({
                         'id': app_item.id,
                         'freelancer_id': app_item.freelancer_id,
-                        'freelancer_name': freelancer.full_name or freelancer.username,
+                        'freelancer_name': freelancer.get_display_name(),
                         'freelancer_username': freelancer.username,
                         'freelancer_rating': freelancer.rating,
                         'freelancer_review_count': freelancer.review_count or 0,
@@ -3339,9 +3393,9 @@ def view_gig(gig_id):
                 review_data = {
                     'id': review.id,
                     'reviewer_id': review.reviewer_id,
-                    'reviewer_name': reviewer.full_name or reviewer.username if reviewer else 'Unknown',
+                    'reviewer_name': reviewer.get_display_name() if reviewer else 'Unknown',
                     'reviewee_id': review.reviewee_id,
-                    'reviewee_name': reviewee.full_name or reviewee.username if reviewee else 'Unknown',
+                    'reviewee_name': reviewee.get_display_name() if reviewee else 'Unknown',
                     'rating': review.rating,
                     'comment': review.comment,
                     'created_at': review.created_at
@@ -5725,7 +5779,7 @@ def get_gigs():
         for g in gigs:
             # Get client information
             client = User.query.get(g.client_id)
-            client_name = client.full_name if (client and client.full_name) else 'Client'
+            client_name = client.get_display_name() if client else 'Client'
 
             result.append({
                 'id': g.id,
@@ -5803,7 +5857,7 @@ def get_nearby_gigs():
         for g in gigs:
             # Get client information
             client = User.query.get(g.client_id)
-            client_name = client.full_name if (client and client.full_name) else 'Client'
+            client_name = client.get_display_name() if client else 'Client'
 
             # Calculate distance if gig has coordinates
             distance = None
@@ -9780,14 +9834,14 @@ def delete_review(review_id):
 def get_profile():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     user = User.query.get(session['user_id'])
-    
+
     return jsonify({
         'id': user.id,
         'username': user.username,
         'email': user.email,
-        'full_name': user.full_name,
+        'full_name': user.get_display_name(),
         'phone': user.phone,
         'user_type': user.user_type,
         'location': user.location,
@@ -9800,7 +9854,8 @@ def get_profile():
         'is_verified': user.is_verified,
         'halal_verified': user.halal_verified,
         'language': user.language,
-        'created_at': user.created_at.isoformat()
+        'created_at': user.created_at.isoformat(),
+        'is_deleted': user.is_deleted
     })
 
 @app.route('/api/profile', methods=['PUT'])
@@ -9848,6 +9903,31 @@ def update_profile():
         db.session.rollback()
         app.logger.error(f"Update profile error: {str(e)}")
         return jsonify({'error': 'Failed to update profile. Please try again.'}), 500
+
+@app.route('/api/profile', methods=['DELETE'])
+@login_required
+def delete_own_account():
+    """Allow users to delete their own account (soft delete)"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Check if already deleted
+        if user.is_deleted:
+            return jsonify({'error': 'Account is already deleted'}), 400
+
+        # Soft delete the user
+        user.soft_delete()
+
+        # Clear the session
+        session.clear()
+
+        return jsonify({'message': 'Account deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete own account error: {str(e)}")
+        return jsonify({'error': 'Failed to delete account'}), 500
 
 @app.route('/api/language', methods=['POST'])
 def switch_language():
@@ -10772,6 +10852,7 @@ def admin_get_users():
                 'username': u.username,
                 'email': u.email,
                 'full_name': u.full_name,
+                'display_name': u.get_display_name(),
                 'user_type': u.user_type,
                 'location': u.location,
                 'rating': u.rating,
@@ -10780,6 +10861,7 @@ def admin_get_users():
                 'is_verified': u.is_verified,
                 'halal_verified': u.halal_verified,
                 'is_admin': u.is_admin,
+                'is_deleted': u.is_deleted,
                 'created_at': u.created_at.isoformat()
             } for u in users.items],
             'total': users.total,
@@ -10802,6 +10884,7 @@ def admin_get_user(user_id):
                 'username': user.username,
                 'email': user.email,
                 'full_name': user.full_name,
+                'display_name': user.get_display_name(),
                 'phone': user.phone,
                 'ic_number': user.ic_number,
                 'user_type': user.user_type,
@@ -10816,6 +10899,8 @@ def admin_get_user(user_id):
                 'is_verified': user.is_verified,
                 'halal_verified': user.halal_verified,
                 'is_admin': user.is_admin,
+                'is_deleted': user.is_deleted,
+                'deleted_at': user.deleted_at.isoformat() if user.deleted_at else None,
                 'bank_name': user.bank_name,
                 'bank_account_number': user.bank_account_number,
                 'bank_account_holder': user.bank_account_holder,
@@ -10872,7 +10957,7 @@ def admin_update_user(user_id):
 @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_user(user_id):
-    """Delete a user (use with caution)"""
+    """Soft delete a user by anonymizing their data"""
     try:
         # Prevent deleting yourself
         if session['user_id'] == user_id:
@@ -10880,20 +10965,12 @@ def admin_delete_user(user_id):
 
         user = User.query.get_or_404(user_id)
 
-        # Delete associated data
-        Application.query.filter_by(freelancer_id=user_id).delete()
-        Review.query.filter(
-            (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
-        ).delete()
+        # Check if already deleted
+        if user.is_deleted:
+            return jsonify({'error': 'User is already deleted'}), 400
 
-        # Delete user's gigs and related applications
-        user_gigs = Gig.query.filter_by(client_id=user_id).all()
-        for gig in user_gigs:
-            Application.query.filter_by(gig_id=gig.id).delete()
-            db.session.delete(gig)
-
-        db.session.delete(user)
-        db.session.commit()
+        # Soft delete the user (anonymize data)
+        user.soft_delete()
 
         return jsonify({'message': 'User deleted successfully'}), 200
     except Exception as e:
@@ -17156,7 +17233,7 @@ def public_profile(username):
         review_details.append({
             'rating': review.rating,
             'comment': review.comment,
-            'reviewer_name': reviewer.full_name or reviewer.username if reviewer else 'Unknown',
+            'reviewer_name': reviewer.get_display_name() if reviewer else 'Unknown',
             'gig_title': gig.title if gig else 'Unknown Gig',
             'created_at': review.created_at
         })

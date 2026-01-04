@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ profile_user.full_name or profile_user.username }} - Profile{% endblock %}
+{% block title %}{{ profile_user.get_display_name() }} - Profile{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -207,7 +207,7 @@
             {{ profile_user.username[0].upper() }}
         </div>
         <div class="profile-info">
-            <h1 class="profile-name">{{ profile_user.full_name or profile_user.username }}</h1>
+            <h1 class="profile-name">{{ profile_user.get_display_name() }}</h1>
             <p class="profile-username">@{{ profile_user.username }}</p>
             
             <div class="profile-badges">

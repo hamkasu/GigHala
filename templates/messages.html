@@ -209,7 +209,7 @@
                 </div>
                 <div class="conversation-content">
                     <div class="conversation-header">
-                        <span class="conversation-name">{{ conv.other_user.full_name or conv.other_user.username if conv.other_user else 'Unknown User' }}</span>
+                        <span class="conversation-name">{{ conv.other_user.get_display_name() if conv.other_user else 'Unknown User' }}</span>
                         <span class="conversation-time">
                             {% if conv.last_message_at %}
                                 {{ conv.last_message_at.strftime('%d %b, %H:%M') }}
