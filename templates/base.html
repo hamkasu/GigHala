@@ -1185,7 +1185,7 @@
         <div class="header-top">
             <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo" style="flex-direction: column; align-items: flex-start; gap: 2px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; border-radius: 50%; object-fit: cover;">
+                    <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
                     <span>GigHala</span>
                 </div>
                 <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.6); margin-left: 0;">powered by Calmic</span>
