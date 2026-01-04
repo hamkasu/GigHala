@@ -16,12 +16,12 @@
 {% block og_title %}{{ gig.title }} - GigHala{% endblock %}
 {% block og_description %}{{ gig.description[:200] }}... Gaji: RM{{ gig.budget_min }}-{{ gig.budget_max }}{% endblock %}
 {% block og_url %}https://gighala.calmic.com.my/gig/{{ gig.id }}{% endblock %}
-{% block og_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.calmic.com.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.calmic.com.my/static/logo.png{% endif %}{% endblock %}
+{% block og_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.calmic.com.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.calmic.com.my/static/images/logo.png{% endif %}{% endblock %}
 
 {# Twitter Card Tags #}
 {% block twitter_title %}{{ gig.title }}{% endblock %}
 {% block twitter_description %}{{ gig.description[:150] }}... RM{{ gig.budget_min }}-{{ gig.budget_max }}{% endblock %}
-{% block twitter_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.calmic.com.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.calmic.com.my/static/logo.png{% endif %}{% endblock %}
+{% block twitter_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.calmic.com.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.calmic.com.my/static/images/logo.png{% endif %}{% endblock %}
 
 {# Structured Data: JobPosting Schema for SEO #}
 {% block structured_data %}
@@ -38,7 +38,7 @@
         "@type": "Organization",
         "name": "GigHala",
         "sameAs": "https://gighala.calmic.com.my",
-        "logo": "https://gighala.calmic.com.my/static/logo.png"
+        "logo": "https://gighala.calmic.com.my/static/images/logo.png"
     },
     "jobLocation": {
         "@type": "Place",
