@@ -6630,13 +6630,16 @@ def accept_application(application_id):
         for other_app in other_applications:
             other_app.status = 'rejected'
 
-        # Auto-create conversation between client and freelancer
+        # Auto-create conversation between client and freelancer for THIS specific gig
+        # Check if a conversation already exists for this specific gig
         existing_conv = Conversation.query.filter(
             ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == application.freelancer_id)) |
-            ((Conversation.participant_1_id == application.freelancer_id) & (Conversation.participant_2_id == user_id))
+            ((Conversation.participant_1_id == application.freelancer_id) & (Conversation.participant_2_id == user_id)),
+            Conversation.gig_id == gig.id
         ).first()
 
         if not existing_conv:
+            # Create a new conversation for this gig
             conversation = Conversation(
                 participant_1_id=user_id,
                 participant_2_id=application.freelancer_id,
@@ -6654,9 +6657,6 @@ def accept_application(application_id):
             )
             conversation.last_message_at = datetime.utcnow()
             db.session.add(system_message)
-        elif existing_conv and existing_conv.gig_id != gig.id:
-            # Update the existing conversation to link it to this gig
-            existing_conv.gig_id = gig.id
 
         db.session.commit()
 
@@ -17418,15 +17418,24 @@ def start_conversation():
             is_blocked, block_reason = contains_blocked_contact_info(initial_message)
             if is_blocked:
                 return jsonify({'error': block_reason}), 400
-        
-        existing = Conversation.query.filter(
-            ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == other_user_id)) |
-            ((Conversation.participant_1_id == other_user_id) & (Conversation.participant_2_id == user_id))
-        ).first()
-        
+
+        # Check for existing conversation between these users for this specific gig
+        if gig_id:
+            # For gig-related conversations, find conversation with matching gig_id
+            existing = Conversation.query.filter(
+                ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == other_user_id)) |
+                ((Conversation.participant_1_id == other_user_id) & (Conversation.participant_2_id == user_id)),
+                Conversation.gig_id == gig_id
+            ).first()
+        else:
+            # For general DM conversations (no gig), find conversation without gig_id
+            existing = Conversation.query.filter(
+                ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == other_user_id)) |
+                ((Conversation.participant_1_id == other_user_id) & (Conversation.participant_2_id == user_id)),
+                Conversation.gig_id == None
+            ).first()
+
         if existing:
-            if gig_id:
-                existing.gig_id = gig_id
             if initial_message:
                 message = Message(conversation_id=existing.id, sender_id=user_id, content=initial_message)
                 existing.last_message_at = datetime.utcnow()
