@@ -10,15 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 </head>
 <body>
-    <!-- Islamic/Western Date Bar -->
-    <div class="date-bar" style="background: #06402B; text-align: right; padding: 10px 24px; font-size: 14px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-            <span style="color: #4ade80; font-weight: 600;">{{ today_hijri }}</span>
-            <span style="color: rgba(255,255,255,0.4);">|</span>
-            <span style="color: rgba(255,255,255,0.8);">{{ today_gregorian }}</span>
-        </div>
-    </div>
-
     <div id="app">
         <!-- Navigation -->
         <nav class="navbar">
@@ -101,6 +92,11 @@
                         <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="background: transparent; border: none; color: #3b82f6; padding: 8px; cursor: pointer; font-size: 20px; flex-shrink: 0;">
                         </button>
                         <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-right: 8px; font-size: 13px; color: #404145;">
+                                <span style="color: #0D7C66; font-weight: 600;">{{ today_hijri }}</span>
+                                <span style="color: #ddd;">|</span>
+                                <span>{{ today_gregorian }}</span>
+                            </div>
                             <button class="btn-nav" onclick="app.showLogin()">Log Masuk</button>
                             <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
                         </div>
