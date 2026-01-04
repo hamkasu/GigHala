@@ -2315,7 +2315,7 @@
                 <label class="form-label">{{ 'Surat Lamaran' if lang == 'ms' else 'Cover Letter' }}</label>
                 <textarea class="form-textarea" name="cover_letter" id="coverLetter" 
                           placeholder="{{ 'Terangkan mengapa anda sesuai untuk gig ini...' if lang == 'ms' else 'Explain why you are suitable for this gig...' }}" required></textarea>
-                <p class="form-hint">{{ 'Minimum 50 aksara' if lang == 'ms' else 'Minimum 50 characters' }}</p>
+                <p class="form-hint">{{ 'Minimum 15 aksara' if lang == 'ms' else 'Minimum 15 characters' }}</p>
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" onclick="closeApplicationModal()">{{ t('cancel') }}</button>
@@ -2404,8 +2404,8 @@
         const proposedPrice = document.getElementById('proposedPrice').value;
         const coverLetter = document.getElementById('coverLetter').value;
 
-        if (coverLetter.length < 50) {
-            alert('{{ "Surat lamaran mesti sekurang-kurangnya 50 aksara" if lang == "ms" else "Cover letter must be at least 50 characters" }}');
+        if (coverLetter.length < 15) {
+            alert('{{ "Surat lamaran mesti sekurang-kurangnya 15 aksara" if lang == "ms" else "Cover letter must be at least 15 characters" }}');
             return;
         }
 
