@@ -2114,8 +2114,16 @@
         loading.style.display = 'block';
         content.style.display = 'none';
 
+        // Create an AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
         try {
-            const response = await fetch('/api/admin/stats');
+            const response = await fetch('/api/admin/stats', {
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 throw new Error(`Failed to load statistics: ${response.status} ${response.statusText}`);
@@ -2162,12 +2170,21 @@
             loading.style.display = 'none';
             content.style.display = 'block';
         } catch (error) {
+            clearTimeout(timeoutId);
             console.error('Error loading dashboard:', error);
+
+            let errorMessage = 'Failed to load dashboard statistics. Please try again later.';
+            if (error.name === 'AbortError') {
+                errorMessage = 'Request timed out after 30 seconds. The server may be experiencing issues or database queries are taking too long.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
             loading.style.display = 'none';
             content.style.display = 'block';
             content.innerHTML = `<div class="error-message" style="text-align: center; padding: 40px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; margin: 20px;">
                 <h3>Error Loading Statistics</h3>
-                <p>${error.message || 'Failed to load dashboard statistics. Please try again later.'}</p>
+                <p>${errorMessage}</p>
                 <button onclick="loadDashboard()" style="margin-top: 15px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button>
             </div>`;
         }
