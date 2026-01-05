@@ -1,0 +1,26 @@
+ERROR:groq_moderation:Unexpected error in AI moderation: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+Traceback (most recent call last):
+INFO:groq_moderation:AI moderation attempt 1/3 for gig: test
+  File "/app/groq_moderation.py", line 264, in ai_halal_moderation
+    response.raise_for_status()
+  File "/opt/venv/lib/python3.12/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+INFO:groq_moderation:AI moderation attempt 2/3 for gig: test
+ERROR:groq_moderation:Unexpected error in AI moderation: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+Traceback (most recent call last):
+  File "/app/groq_moderation.py", line 264, in ai_halal_moderation
+    response.raise_for_status()
+  File "/opt/venv/lib/python3.12/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+INFO:groq_moderation:AI moderation attempt 3/3 for gig: test
+ERROR:groq_moderation:Unexpected error in AI moderation: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+ERROR:groq_moderation:AI moderation failed after 3 attempts: Unexpected error: 400 Client Error: Bad Request for url: https://api.groq.com/openai/v1/chat/completions
+ERROR:app:Create gig error: log_security_event() missing 2 required positional arguments: 'event_category' and 'action'
+Traceback (most recent call last):
+  File "/app/groq_moderation.py", line 264, in ai_halal_moderation
+    response.raise_for_status()
+  File "/opt/venv/lib/python3.12/site-packages/requests/models.py", line 1026, in raise_for_status
