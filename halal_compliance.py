@@ -437,10 +437,8 @@ def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
     text_normalized = text.lower().strip()
 
     # Fast-track harmless "test" content to avoid false positives
-    test_keywords = ["live test", "test live", "testing purposes only", "test gig", "test"]
-    # Normalize by replacing any non-alphanumeric with space to handle different spacings
-    normalized_content = "".join([c if c.isalnum() else " " for c in text_normalized])
-    if any(keyword in text_normalized or keyword in normalized_content for keyword in test_keywords):
+    test_keywords = ["test", "testing", "percubaan"]
+    if any(keyword in text_normalized for keyword in test_keywords):
         return True, []
 
     violations = []
