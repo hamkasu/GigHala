@@ -397,6 +397,9 @@ def log_security_event(event_category, event_type, action, severity='medium'):
             from flask import current_app
 
             try:
+                # Capture user_id before it might be modified or consumed
+                provided_user_id = func_kwargs.get('user_id')
+                
                 result = f(*args, **func_kwargs)
                 # Log success
                 security_logger = current_app.extensions.get('security_logger')
@@ -410,9 +413,9 @@ def log_security_event(event_category, event_type, action, severity='medium'):
                         'severity': severity,
                         'status': 'success'
                     }
-                    # Allow overriding user_id from function kwargs if present
-                    if 'user_id' in func_kwargs:
-                        log_params['user_id'] = func_kwargs['user_id']
+                    # Use provided_user_id captured before function execution
+                    if provided_user_id is not None:
+                        log_params['user_id'] = provided_user_id
                     
                     security_logger.log_event(**log_params)
                 return result
@@ -428,7 +431,7 @@ def log_security_event(event_category, event_type, action, severity='medium'):
                         'status': 'failure',
                         'message': str(e)
                     }
-                    if 'user_id' in func_kwargs:
+                    if func_kwargs.get('user_id') is not None:
                         log_params['user_id'] = func_kwargs['user_id']
                     
                     security_logger.log_event(**log_params)
