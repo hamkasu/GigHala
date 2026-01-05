@@ -382,14 +382,9 @@ class SecurityLogger:
         )
 
 
-def log_security_event(event_category, event_type, action, severity='medium'):
+def log_security_event(event_category, event_type, action, severity='medium', **kwargs):
     """
     Decorator to automatically log security events for function execution
-
-    Usage:
-        @log_security_event('admin', 'user_update', 'Update user account', severity='high')
-        def update_user(user_id):
-            ...
     """
     def decorator(f):
         @wraps(f)
@@ -397,15 +392,10 @@ def log_security_event(event_category, event_type, action, severity='medium'):
             from flask import current_app
 
             try:
-                # Capture user_id before it might be modified or consumed
-                provided_user_id = func_kwargs.get('user_id')
-                
                 result = f(*args, **func_kwargs)
                 # Log success
                 security_logger = current_app.extensions.get('security_logger')
                 if security_logger:
-                    # Combine decorator kwargs with function kwargs if needed
-                    # but usually decorator defines the event metadata
                     log_params = {
                         'event_category': event_category,
                         'event_type': event_type,
@@ -413,9 +403,10 @@ def log_security_event(event_category, event_type, action, severity='medium'):
                         'severity': severity,
                         'status': 'success'
                     }
-                    # Use provided_user_id captured before function execution
-                    if provided_user_id is not None:
-                        log_params['user_id'] = provided_user_id
+                    # Merge any additional kwargs from the decorator or function
+                    log_params.update(kwargs)
+                    if 'user_id' in func_kwargs:
+                        log_params['user_id'] = func_kwargs['user_id']
                     
                     security_logger.log_event(**log_params)
                 return result
@@ -431,7 +422,8 @@ def log_security_event(event_category, event_type, action, severity='medium'):
                         'status': 'failure',
                         'message': str(e)
                     }
-                    if func_kwargs.get('user_id') is not None:
+                    log_params.update(kwargs)
+                    if 'user_id' in func_kwargs:
                         log_params['user_id'] = func_kwargs['user_id']
                     
                     security_logger.log_event(**log_params)
