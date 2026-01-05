@@ -11,6 +11,7 @@ I want iterative development. Ask before making major changes. I prefer detailed
 - Added SMS support via Twilio integration with `sms_service.py`
 - Added WhatsApp messaging support via Twilio
 - Added "About Us" link (https://gighala.calmic.com.my/about) to all pages navigation
+- **Enabled Stripe Live Mode** - Switched the platform from test mode to live mode for real transactions, utilizing the `STRIPE_LIVE_SECRET_KEY` and `STRIPE_LIVE_PUBLISHABLE_KEY` environment variables.
 - **Fixed language switcher** - Added `/api/language` endpoint to handle language switching between Malay (ms) and English (en). Language preference is stored in user session and database (if logged in)
 - **Fixed mobile header layout** - Improved CSS for mobile phones:
   - Changed header-nav flex-shrink from 0 to 1 to prevent overlapping
