@@ -196,7 +196,11 @@ def ai_halal_moderation(title: str, description: str) -> Dict:
     # Fast-track harmless "test" content to avoid false positives
     test_keywords = ["test", "testing", "percubaan", "ujian", "try", "cuba"]
     combined_text = (title + " " + description).lower().strip()
-    if any(keyword in combined_text for keyword in test_keywords):
+    
+    # Check for direct inclusion or normalized content
+    normalized_content = "".join([c if c.isalnum() else " " for c in combined_text])
+    
+    if any(keyword in combined_text or keyword in normalized_content for keyword in test_keywords):
         logger.info(f"Auto-approving harmless test content: {title}")
         return {
             'success': True,

@@ -438,7 +438,11 @@ def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
 
     # Fast-track harmless "test" content to avoid false positives
     test_keywords = ["test", "testing", "percubaan", "ujian", "try", "cuba"]
-    if any(keyword in text_normalized for keyword in test_keywords):
+    
+    # Check for direct inclusion or normalized content
+    normalized_content = "".join([c if c.isalnum() else " " for c in text_normalized])
+    
+    if any(keyword in text_normalized or keyword in normalized_content for keyword in test_keywords):
         return True, []
 
     violations = []
