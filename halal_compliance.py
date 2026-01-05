@@ -437,7 +437,7 @@ def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
     text_normalized = text.lower().strip()
 
     # Fast-track harmless "test" content to avoid false positives
-    test_keywords = ["test", "testing", "percubaan"]
+    test_keywords = ["test", "testing", "percubaan", "ujian"]
     if any(keyword in text_normalized for keyword in test_keywords):
         return True, []
 
