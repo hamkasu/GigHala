@@ -382,7 +382,7 @@ class SecurityLogger:
         )
 
 
-def log_security_event(event_category, event_type, action, severity='medium', **kwargs):
+def log_security_event(event_category=None, event_type=None, action=None, severity='medium', **kwargs):
     """
     Decorator to automatically log security events for function execution
     """
@@ -408,7 +408,9 @@ def log_security_event(event_category, event_type, action, severity='medium', **
                     if 'user_id' in func_kwargs:
                         log_params['user_id'] = func_kwargs['user_id']
                     
-                    security_logger.log_event(**log_params)
+                    # Ensure mandatory fields are present before logging
+                    if log_params.get('event_category') and log_params.get('action'):
+                        security_logger.log_event(**log_params)
                 return result
             except Exception as e:
                 # Log failure
@@ -426,7 +428,8 @@ def log_security_event(event_category, event_type, action, severity='medium', **
                     if 'user_id' in func_kwargs:
                         log_params['user_id'] = func_kwargs['user_id']
                     
-                    security_logger.log_event(**log_params)
+                    if log_params.get('event_category') and log_params.get('action'):
+                        security_logger.log_event(**log_params)
                 raise
 
         return decorated_function
