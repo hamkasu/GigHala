@@ -2256,7 +2256,14 @@
                         <div class="client-stat-label">{{ 'Gig Disiarkan' if lang == 'ms' else 'Gigs Posted' }}</div>
                     </div>
                     <div class="client-stat">
-                        <div class="client-stat-value">{% if client.rating %}{{ "%.1f"|format(client.rating) }}{% else %}-{% endif %}</div>
+                        <div class="client-stat-value">
+                            {% if client.rating %}
+                                {{ "%.1f"|format(client.rating) }}
+                                <span style="font-size: 0.6em; color: var(--text-gray); font-weight: normal;">({{ client_rating_count }})</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
                         <div class="client-stat-label">{{ 'Penarafan' if lang == 'ms' else 'Rating' }}</div>
                     </div>
                 </div>

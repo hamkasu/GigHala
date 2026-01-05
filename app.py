@@ -3267,6 +3267,7 @@ def view_gig(gig_id):
         # Get client info with null safety
         client = User.query.get(gig.client_id) if gig.client_id else None
         client_gigs_posted = Gig.query.filter_by(client_id=gig.client_id).count() if gig.client_id else 0
+        client_rating_count = Review.query.filter_by(reviewee_id=gig.client_id).count() if gig.client_id else 0
         
         # Parse skills if available
         skills = []
@@ -3400,6 +3401,7 @@ def view_gig(gig_id):
                               gig=gig,
                               client=client,
                               client_gigs_posted=client_gigs_posted,
+                              client_rating_count=client_rating_count,
                               skills=skills,
                               user=current_user,
                               current_user=current_user,
