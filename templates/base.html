@@ -1115,7 +1115,7 @@
                     <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
                     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
                         <span>GigHala</span>
-                        <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.6);">powered by Calmic</span>
+                        <span style="font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.6);">{% if lang == 'ms' %}dikuasakan oleh Calmic{% else %}powered by Calmic{% endif %}</span>
                     </div>
                 </div>
             </a>
@@ -1126,7 +1126,7 @@
             {% if user %}
             <div class="user-dashboard">
                 <a href="/billing" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{{ t('wallet') if t('wallet') != 'wallet' else 'Wallet' }}</div>
+                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Dompet{% else %}Wallet{% endif %}</div>
                     <div class="dashboard-stat-value">
                         <span class="currency" style="margin-right: 8px;">MYR</span>{{ "%.2f"|format(wallet.balance if wallet else 0) }}
                     </div>
@@ -1134,20 +1134,20 @@
 
                 {% if user.user_type in ['freelancer', 'both'] %}
                 <a href="/accepted-gigs" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{{ t('accepted_gigs') if t('accepted_gigs') != 'accepted_gigs' else 'Accepted' }}</div>
+                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Diterima{% else %}Accepted{% endif %}</div>
                     <div class="dashboard-stat-value">{{ total_gigs_accepted if total_gigs_accepted is defined else 0 }}</div>
                 </a>
                 {% endif %}
 
                 {% if user.user_type in ['client', 'both'] %}
                 <a href="/my-gigs" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{{ t('posted_gigs') if t('posted_gigs') != 'posted_gigs' else 'Posted' }}</div>
+                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Disiarkan{% else %}Posted{% endif %}</div>
                     <div class="dashboard-stat-value">{{ total_gigs_posted if total_gigs_posted is defined else 0 }}</div>
                 </a>
                 {% endif %}
 
                 <a href="/portfolio" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{{ t('rating') if t('rating') != 'rating' else 'Rating' }}</div>
+                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Penarafan{% else %}Rating{% endif %}</div>
                     <div class="dashboard-stat-value">
                         {% if user.review_count > 0 %}
                         {{ "%.1f"|format(user.rating) }} ⭐
@@ -1224,31 +1224,31 @@
                         <li><a href="/gigs">Cari Gig</a></li>
                         <li><a href="/kategori">Kategori</a></li>
                         <li><a href="/cara-kerja">Cara Kerja</a></li>
-                        <li><a href="/pricing">Pricing</a></li>
+                        <li><a href="/pricing">{% if lang == 'ms' %}Harga{% else %}Pricing{% endif %}</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="footer-heading">Resources</h4>
+                    <h4 class="footer-heading">{% if lang == 'ms' %}Sumber{% else %}Resources{% endif %}</h4>
                     <ul class="footer-links">
-                        <li><a href="/panduan-freelancer">Panduan Freelancer</a></li>
+                        <li><a href="/panduan-freelancer">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a></li>
                         <li><a href="/faq">FAQ</a></li>
-                        <li><a href="/support">Support</a></li>
-                        <li><a href="/feedback">Platform Feedback</a></li>
+                        <li><a href="/support">{% if lang == 'ms' %}Sokongan{% else %}Support{% endif %}</a></li>
+                        <li><a href="/feedback">{% if lang == 'ms' %}Maklum Balas Platform{% else %}Platform Feedback{% endif %}</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="footer-heading">Legal</h4>
+                    <h4 class="footer-heading">{% if lang == 'ms' %}Undang-undang{% else %}Legal{% endif %}</h4>
                     <ul class="footer-links">
-                        <li><a href="/syarat-terma">Syarat & Terma</a></li>
-                        <li><a href="/privasi">Privasi Policy</a></li>
-                        <li><a href="/halal-compliance">Halal Compliance</a></li>
-                        <li><a href="/gig-workers-bill">Gig Workers Bill</a></li>
+                        <li><a href="/syarat-terma">{% if lang == 'ms' %}Syarat & Terma{% else %}Terms & Conditions{% endif %}</a></li>
+                        <li><a href="/privasi">{% if lang == 'ms' %}Dasar Privasi{% else %}Privacy Policy{% endif %}</a></li>
+                        <li><a href="/halal-compliance">{% if lang == 'ms' %}Kepatuhan Halal{% else %}Halal Compliance{% endif %}</a></li>
+                        <li><a href="/gig-workers-bill">{% if lang == 'ms' %}Rang Undang-Undang Pekerja Gig{% else %}Gig Workers Bill{% endif %}</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>&copy; 2025 GigHala. Dimiliki dan dikendalikan oleh Calmic Sdn Bhd (1466852W / 202201021155). Hak cipta terpelihara.</span>
-                <span>SSM Registered | Secure Payments</span>
+                <span>&copy; 2025 GigHala. {% if lang == 'ms' %}Dimiliki dan dikendalikan oleh Calmic Sdn Bhd (1466852W / 202201021155). Hak cipta terpelihara.{% else %}Owned and operated by Calmic Sdn Bhd (1466852W / 202201021155). All rights reserved.{% endif %}</span>
+                <span>{% if lang == 'ms' %}Berdaftar SSM | Pembayaran Selamat{% else %}SSM Registered | Secure Payments{% endif %}</span>
             </div>
         </div>
     </footer>

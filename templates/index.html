@@ -57,7 +57,7 @@
 
                     <div style="display: flex; align-items: center; gap: 9px; flex-shrink: 0; display: none;" id="payhalal-brand" onclick="window.open('https://www.payhalal.my', '_blank')">
                         <div style="height: 26px; width: 1px; background: #ddd;"></div>
-                        <span style="font-size: 12.75px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer;">OFFICIAL PARTNER:</span>
+                        <span style="font-size: 12.75px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer;">{% if lang == 'ms' %}RAKAN RASMI:{% else %}OFFICIAL PARTNER:{% endif %}</span>
                         <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 19px; width: auto; object-fit: contain; cursor: pointer;">
                     </div>
 
@@ -112,7 +112,7 @@
         <div style="background: linear-gradient(135deg, #FF6200 0%, #FF7A1F 100%); width: 100%; padding: 50px 20px; color: white; text-align: center; position: relative; z-index: 10;">
             <div class="container">
                 <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2;">
-                    TESTING BILLING SYSTEM – PHASE 2! 🌟
+                    {% if lang == 'ms' %}SISTEM BILLING SEDANG DIUJI – FASA 2! 🌟{% else %}TESTING BILLING SYSTEM – PHASE 2! 🌟{% endif %}
                 </h1>
 
                 <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 30px; line-height: 1.6; max-width: 900px; margin-left: auto; margin-right: auto;">
@@ -133,10 +133,10 @@
                 <div id="countdownContainer" style="background: rgba(139, 69, 19, 0.85); border-radius: 20px; padding: 25px 40px; margin: 35px auto; max-width: 450px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
                     <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; opacity: 0.95;">Masa Tinggal</div>
                     <div style="font-size: 1.6rem; font-weight: 800; margin: 10px 0; letter-spacing: 0.5px;">
-                        🎉 JOIN SEKARANG & TEST BILLING!
+                        {% if lang == 'ms' %}🎉 SERTAI SEKARANG & UJI SISTEM BILLING!{% else %}🎉 JOIN SEKARANG & TEST BILLING!{% endif %}
                     </div>
                     <div id="countdownTimer" style="font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 15px 0;">
-                        ⏳ Loading...
+                        ⏳ {% if lang == 'ms' %}Memuatkan...{% else %}Loading...{% endif %}
                     </div>
                     <div style="font-size: 0.9rem; font-weight: 600; margin-top: 10px; opacity: 0.95;">hingga 31/01/2026</div>
                 </div>
@@ -214,7 +214,7 @@
                 <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 48px;">
                     <div class="benefit-card" style="background: white; border: 2px solid #e5e7eb; border-radius: 16px; padding: 32px; transition: all 0.3s ease;">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">✅</div>
-                        <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: var(--primary-green); margin-bottom: 12px;">100% Halal Verified</h3>
+                        <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: var(--primary-green); margin-bottom: 12px;">{% if lang == 'ms' %}100% Disahkan Halal{% else %}100% Halal Verified{% endif %}</h3>
                         <p class="benefit-text" style="color: var(--text-gray); line-height: 1.6;">
                             Semua gig disemak & disahkan halal – tiada kerja haram atau syubhah. Kami komited jaga maruah & berkat rezeki korang.
                         </p>
@@ -324,9 +324,9 @@
                         </div>
                         <div class="stat-item">
                             <div class="stat-number" style="color: var(--primary-green);">🔒 100%</div>
-                            <div class="stat-label">{{ 'Escrow Protection' if lang == 'en' else 'Perlindungan Escrow' }}</div>
+                            <div class="stat-label">{% if lang == 'ms' %}Perlindungan Escrow{% else %}Escrow Protection{% endif %}</div>
                             <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(13, 124, 102, 0.2); color: var(--text-gray); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; text-align: center; line-height: 1.4;">
-                                {{ 'Client pays first – work without worry' if lang == 'en' else 'Client bayar dulu – kerja tanpa risau' }}
+                                {% if lang == 'ms' %}Klien bayar dulu – kerja tanpa risau{% else %}Client pays first – work without worry{% endif %}
                             </div>
                         </div>
                         <div class="stat-item socso-card" style="position: relative; cursor: help;">

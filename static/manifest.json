@@ -33,15 +33,15 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Browse Gigs",
-      "short_name": "Gigs",
+      "name": "Cari Gig",
+      "short_name": "Gig",
       "description": "Lihat semua gig tersedia",
       "url": "/gigs",
       "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Post Gig",
-      "short_name": "Post",
+      "name": "Siarkan Gig",
+      "short_name": "Siar",
       "description": "Siarkan gig baru",
       "url": "/post-gig",
       "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
