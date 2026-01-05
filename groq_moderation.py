@@ -262,8 +262,19 @@ Evaluate against Islamic Shariah principles and respond with JSON only."""
                 )
 
             response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            if response is not None and response.status_code == 400:
+                logger.error(f"Groq API Bad Request (400): {response.text}")
+                return _create_fallback_response(
+                    f"AI moderation API error (400): {response.text}",
+                    flag=True
+                )
+            raise e
 
+        try:
             # Parse response
+            if response is None:
+                raise ValueError("Response is None")
             response_data = response.json()
             ai_response_text = response_data['choices'][0]['message']['content']
 
@@ -327,7 +338,7 @@ Evaluate against Islamic Shariah principles and respond with JSON only."""
 
     # All retries failed - return fallback
     logger.error(f"AI moderation failed after {GROQ_MAX_RETRIES + 1} attempts: {last_error}")
-    return _create_fallback_response(last_error, flag=True)
+    return _create_fallback_response(str(last_error) if last_error else "Unknown error", flag=True)
 
 
 def _validate_ai_response(ai_result: Dict) -> bool:

@@ -382,7 +382,7 @@ class SecurityLogger:
         )
 
 
-def log_security_event(event_category, event_type, action, severity='medium', **kwargs):
+def log_security_event(event_category, event_type, action, severity='medium'):
     """
     Decorator to automatically log security events for function execution
 
