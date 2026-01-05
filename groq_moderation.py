@@ -29,9 +29,9 @@ GROQ_TIMEOUT = 15  # seconds
 GROQ_MAX_RETRIES = 2
 
 # Confidence thresholds for decision making
-CONFIDENCE_THRESHOLD_AUTO_APPROVE = 0.90  # ≥90% confidence to auto-approve
-CONFIDENCE_THRESHOLD_AUTO_REJECT = 0.85   # ≥85% confidence to auto-reject if haram
-# Between 85-90% or <85% → flag for manual review
+CONFIDENCE_THRESHOLD_AUTO_APPROVE = 0.80  # Reduced from 0.90 to be less restrictive
+CONFIDENCE_THRESHOLD_AUTO_REJECT = 0.90   # Increased from 0.85 to require higher certainty for rejection
+# Between 80-90% or <80% → flag for manual review
 
 # System prompt for strict Islamic Shariah compliance checking
 HALAL_COMPLIANCE_SYSTEM_PROMPT = """You are an expert Islamic Shariah compliance officer for GigHala, Malaysia's first 100% halal gig economy platform. Your role is to analyze gig postings (job listings) and determine if they comply with strict Islamic Shariah principles.
@@ -97,11 +97,13 @@ STRICT PROHIBITION CRITERIA - Reject ANY content involving:
     - Anti-Islamic propaganda
 
 **EVALUATION APPROACH:**
-- Apply "when in doubt, reject or flag" principle
-- Consider cultural context of Malaysia and Islamic norms
-- Analyze both explicit and implicit haram elements
-- Check for deceptive wording trying to hide haram nature
-- Evaluate the overall purpose and outcome of the gig
+- Do NOT reject content just because it is a "test" or "placeholder".
+- If the content is generic, harmless, or common business activity, approve it.
+- Apply "when in doubt, FLAG" instead of "when in doubt, reject".
+- Consider cultural context of Malaysia and Islamic norms.
+- Analyze both explicit and implicit haram elements.
+- Check for deceptive wording trying to hide haram nature.
+- Evaluate the overall purpose and outcome of the gig.
 
 **RESPONSE FORMAT:**
 You must respond with ONLY a valid JSON object (no markdown, no extra text):
@@ -109,23 +111,23 @@ You must respond with ONLY a valid JSON object (no markdown, no extra text):
 {
   "is_halal": true/false,
   "confidence": 0.0-1.0,
-  "reason": "Brief explanation in English (1-2 sentences)",
+  "reason": "Brief explanation in English (1-2 sentences). If it's a test, mention it's harmless.",
   "violations": ["list", "of", "specific", "violations"] or [],
   "action": "approve" | "flag" | "reject"
 }
 
 **DECISION RULES:**
-- is_halal: true only if 100% certain the content is permissible
-- is_halal: false if ANY prohibited element is detected
+- is_halal: true if no prohibited elements are detected.
+- is_halal: false ONLY if a clear prohibited element (alcohol, pork, riba, etc.) is detected.
 - confidence: Your confidence level (0.0 = not confident, 1.0 = absolutely certain)
 - action:
-  * "approve" - Clear halal content, high confidence (≥90%)
-  * "flag" - Uncertain or borderline, needs human review (<90% confidence or ambiguous)
-  * "reject" - Clear haram content, high confidence (≥85% and is_halal=false)
+  * "approve" - Clear halal or harmless content, high confidence (≥80%)
+  * "flag" - Uncertain, borderline, or generic but not clearly haram content.
+  * "reject" - Clear haram content with very high confidence (≥90%).
 - violations: List specific Shariah violations found (empty if halal)
-- reason: Explain your decision briefly and clearly
+- reason: Explain your decision briefly and clearly. If it's a test, mention it's harmless.
 
-**IMPORTANT:** Be extremely strict. It is better to flag 100 halal gigs for review than to approve 1 haram gig. Protect the integrity of the platform at all costs.
+**IMPORTANT:** Be fair but firm. Harmless "test" content should NOT be rejected. Protect the integrity of the platform without blocking valid or harmless testing activity.
 
 Examples of HALAL gigs (approve):
 - "Need graphic designer for halal restaurant menu"
