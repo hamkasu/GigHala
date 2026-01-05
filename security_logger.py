@@ -329,8 +329,12 @@ class SecurityLogger:
             **kwargs
         )
 
-    def log_financial(self, event_type: str, action: str, amount: float, resource_type: str, resource_id: str, **kwargs):
+    def log_financial(self, event_type: str, action: str, amount: float, resource_type: str, resource_id: str, details: Dict = None, **kwargs):
         """Log financial transaction"""
+        log_details = {'amount': amount}
+        if details:
+            log_details.update(details)
+            
         self.log_event(
             event_category='financial',
             event_type=event_type,
@@ -338,7 +342,7 @@ class SecurityLogger:
             severity='high',
             resource_type=resource_type,
             resource_id=resource_id,
-            details={'amount': amount},
+            details=log_details,
             **kwargs
         )
 
