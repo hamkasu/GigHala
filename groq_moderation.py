@@ -229,7 +229,6 @@ Evaluate against Islamic Shariah principles and respond with JSON only."""
         'temperature': 0.1,  # Low temperature for consistent, strict evaluation
         'max_tokens': 500,   # Enough for detailed response
         'top_p': 0.9,
-        'response_format': {'type': 'json_object'}  # Force JSON response
     }
 
     # Attempt API call with retries

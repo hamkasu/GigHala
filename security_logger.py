@@ -382,8 +382,7 @@ class SecurityLogger:
         )
 
 
-# Decorator for logging function execution
-def log_security_event(event_category, event_type, action, severity='medium'):
+    def log_security_event(self, event_category, event_type, action, severity='medium', **kwargs):
     """
     Decorator to automatically log security events for function execution
 
@@ -394,34 +393,45 @@ def log_security_event(event_category, event_type, action, severity='medium'):
     """
     def decorator(f):
         @wraps(f)
-        def decorated_function(*args, **kwargs):
+        def decorated_function(*args, **func_kwargs):
             from flask import current_app
 
             try:
-                result = f(*args, **kwargs)
+                result = f(*args, **func_kwargs)
                 # Log success
                 security_logger = current_app.extensions.get('security_logger')
                 if security_logger:
-                    security_logger.log_event(
-                        event_category=event_category,
-                        event_type=event_type,
-                        action=action,
-                        severity=severity,
-                        status='success'
-                    )
+                    # Combine decorator kwargs with function kwargs if needed
+                    # but usually decorator defines the event metadata
+                    log_params = {
+                        'event_category': event_category,
+                        'event_type': event_type,
+                        'action': action,
+                        'severity': severity,
+                        'status': 'success'
+                    }
+                    # Allow overriding user_id from function kwargs if present
+                    if 'user_id' in func_kwargs:
+                        log_params['user_id'] = func_kwargs['user_id']
+                    
+                    security_logger.log_event(**log_params)
                 return result
             except Exception as e:
                 # Log failure
                 security_logger = current_app.extensions.get('security_logger')
                 if security_logger:
-                    security_logger.log_event(
-                        event_category=event_category,
-                        event_type=event_type,
-                        action=action,
-                        severity='high',
-                        status='failure',
-                        message=str(e)
-                    )
+                    log_params = {
+                        'event_category': event_category,
+                        'event_type': event_type,
+                        'action': action,
+                        'severity': 'high',
+                        'status': 'failure',
+                        'message': str(e)
+                    }
+                    if 'user_id' in func_kwargs:
+                        log_params['user_id'] = func_kwargs['user_id']
+                    
+                    security_logger.log_event(**log_params)
                 raise
 
         return decorated_function
