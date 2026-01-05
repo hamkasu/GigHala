@@ -149,79 +149,6 @@
             margin-left: 6px;
         }
 
-        .blog-menu {
-            position: relative;
-            display: inline-block;
-        }
-
-        .blog-toggle {
-            background: none;
-            border: none;
-            color: #ccc;
-            cursor: pointer;
-            padding: 4px 8px;
-            font-weight: 500;
-            font-size: 14px;
-            margin-left: 16px;
-            transition: color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .blog-toggle:hover {
-            color: var(--primary);
-        }
-
-        .blog-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            min-width: 220px;
-            margin-top: 8px;
-            display: none;
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .blog-dropdown.active {
-            display: block;
-        }
-
-        .blog-item {
-            padding: 12px 16px;
-            color: var(--text-dark);
-            font-size: 14px;
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-            display: block;
-        }
-
-        .blog-item:last-child {
-            border-bottom: none;
-        }
-
-        .blog-item:hover {
-            background: var(--bg-light);
-            color: var(--primary);
-        }
-
-        .blog-item.pdf-link {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .blog-item.pdf-link::before {
-            content: "📄";
-            font-size: 16px;
-        }
 
         .user-dashboard {
             flex: 1;
@@ -1248,13 +1175,7 @@
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
-                    <div class="blog-menu" style="position: relative;">
-                        <button class="blog-toggle" onclick="toggleBlogMenu()" style="margin-left: 0;">Blog</button>
-                        <div class="blog-dropdown" id="blogDropdown">
-                            <a href="/static/Suri_Rumah.pdf" target="_blank" class="blog-item pdf-link">Suri Rumah</a>
-                            <a href="/static/Warga_Emas.pdf" target="_blank" class="blog-item pdf-link">Warga Emas</a>
-                        </div>
-                    </div>
+
                     <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
                         <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
@@ -1272,13 +1193,7 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="blog-menu" style="position: relative;">
-                        <button class="blog-toggle" onclick="toggleBlogMenu()" style="margin-left: 0;">Blog</button>
-                        <div class="blog-dropdown" id="blogDropdown">
-                            <a href="/static/Suri_Rumah.pdf" target="_blank" class="blog-item pdf-link">Suri Rumah</a>
-                            <a href="/static/Warga_Emas.pdf" target="_blank" class="blog-item pdf-link">Warga Emas</a>
-                        </div>
-                    </div>
+
                     <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
                         <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
@@ -1315,7 +1230,6 @@
                 <div>
                     <h4 class="footer-heading">Resources</h4>
                     <ul class="footer-links">
-                        <li><a href="/blog">Blog</a></li>
                         <li><a href="/panduan-freelancer">Panduan Freelancer</a></li>
                         <li><a href="/faq">FAQ</a></li>
                         <li><a href="/support">Support</a></li>
@@ -1418,12 +1332,6 @@
             }
         }
 
-        function toggleBlogMenu() {
-            const dropdown = document.getElementById('blogDropdown');
-            if (dropdown) {
-                dropdown.classList.toggle('active');
-            }
-        }
 
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('userDropdown');
@@ -1432,11 +1340,6 @@
                 dropdown.classList.remove('show');
             }
             
-            const blogDropdown = document.getElementById('blogDropdown');
-            const blogMenu = document.querySelector('.blog-menu');
-            if (blogDropdown && blogMenu && !blogMenu.contains(event.target)) {
-                blogDropdown.classList.remove('active');
-            }
         });
 
         async function toggleLanguage() {
