@@ -133,6 +133,7 @@
     .badge.pending { background: #fef3c7; color: #92400e; }
     .badge.accepted { background: #d1fae5; color: #065f46; }
     .badge.rejected { background: #fee2e2; color: #991b1b; }
+    .badge.siap { background: #dbeafe; color: #1e40af; }
 
     .date-cell {
         font-size: 13px;
@@ -255,17 +256,23 @@
                         MYR {{ "%.2f"|format(item.application.proposed_price) }}
                     </td>
                     <td>
-                        <span class="badge {{ item.application.status }}">
-                            {% if item.application.status == 'pending' %}
-                                {{ 'Menunggu' if lang == 'ms' else 'Pending' }}
-                            {% elif item.application.status == 'accepted' %}
-                                {{ 'Diterima' if lang == 'ms' else 'Accepted' }}
-                            {% elif item.application.status == 'rejected' %}
-                                {{ 'Ditolak' if lang == 'ms' else 'Rejected' }}
-                            {% else %}
-                                {{ item.application.status|capitalize }}
-                            {% endif %}
-                        </span>
+                        {% if item.application.status == 'accepted' and item.gig.status == 'completed' %}
+                            <span class="badge siap">
+                                {{ 'Siap' if lang == 'ms' else 'Ready' }}
+                            </span>
+                        {% else %}
+                            <span class="badge {{ item.application.status }}">
+                                {% if item.application.status == 'pending' %}
+                                    {{ 'Menunggu' if lang == 'ms' else 'Pending' }}
+                                {% elif item.application.status == 'accepted' %}
+                                    {{ 'Diterima' if lang == 'ms' else 'Accepted' }}
+                                {% elif item.application.status == 'rejected' %}
+                                    {{ 'Ditolak' if lang == 'ms' else 'Rejected' }}
+                                {% else %}
+                                    {{ item.application.status|capitalize }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
                     </td>
                     <td class="date-cell">
                         {{ item.application.created_at.strftime('%d %b %Y') }}
