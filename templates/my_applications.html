@@ -199,9 +199,54 @@
             font-size: 22px;
         }
 
-        .gigs-table th,
+        .gigs-table {
+            display: block;
+        }
+
+        .gigs-table thead {
+            display: none;
+        }
+
+        .gigs-table tbody, 
+        .gigs-table tr, 
         .gigs-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .gigs-table tr {
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-white);
+        }
+
+        .gigs-table td {
+            text-align: right;
             padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            padding-left: 50%;
+        }
+
+        .gigs-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 16px;
+            width: 45%;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-gray);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .gigs-table td:last-child {
+            border-bottom: none;
+        }
+        
+        .price-cell {
+            font-size: 15px;
         }
     }
 </style>
@@ -231,15 +276,15 @@
             <tbody>
                 {% for item in applications %}
                 <tr>
-                    <td class="gig-title-cell">
+                    <td class="gig-title-cell" data-label="{{ 'Tajuk Gig' if lang == 'ms' else 'Gig Title' }}">
                         <a href="/gig/{{ item.gig.id }}">{{ item.gig.title }}</a>
                         <div class="gig-category">{{ item.gig.category }}</div>
                     </td>
-                    <td>
+                    <td data-label="{{ 'Klien' if lang == 'ms' else 'Client' }}">
                         {% if item.client %}
-                        <div class="party-info">
+                        <div class="party-info" style="justify-content: flex-end;">
                             <div class="party-avatar">{{ item.client.username[:2]|upper }}</div>
-                            <div class="party-details">
+                            <div class="party-details" style="text-align: right; flex: 0;">
                                 <div class="party-name">{{ item.client.full_name or item.client.username }}</div>
                                 <div class="party-role">{{ 'Klien' if lang == 'ms' else 'Client' }}</div>
                             </div>
@@ -248,13 +293,13 @@
                         <span style="color: var(--text-gray);">-</span>
                         {% endif %}
                     </td>
-                    <td class="price-cell">
+                    <td class="price-cell" data-label="{{ 'Bajet Gig' if lang == 'ms' else 'Gig Budget' }}">
                         MYR {{ "%.2f"|format(item.gig.budget_min) }}{% if item.gig.budget_max %} - {{ "%.2f"|format(item.gig.budget_max) }}{% endif %}
                     </td>
-                    <td class="price-cell">
+                    <td class="price-cell" data-label="{{ 'Harga Cadangan' if lang == 'ms' else 'Proposed Price' }}">
                         MYR {{ "%.2f"|format(item.application.proposed_price) }}
                     </td>
-                    <td>
+                    <td data-label="{{ 'Status' if lang == 'ms' else 'Status' }}">
                         <span class="badge {{ item.application.status }}">
                             {% if item.application.status == 'pending' %}
                                 {{ 'Menunggu' if lang == 'ms' else 'Pending' }}
@@ -267,10 +312,10 @@
                             {% endif %}
                         </span>
                     </td>
-                    <td class="date-cell">
+                    <td class="date-cell" data-label="{{ 'Tarikh' if lang == 'ms' else 'Date' }}">
                         {{ item.application.created_at.strftime('%d %b %Y') }}
                     </td>
-                    <td>
+                    <td data-label="{{ 'Tindakan' if lang == 'ms' else 'Action' }}">
                         <a href="/gig/{{ item.gig.id }}" class="action-btn primary">
                             {{ 'Lihat' if lang == 'ms' else 'View' }}
                         </a>

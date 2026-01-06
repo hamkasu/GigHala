@@ -206,9 +206,54 @@
             font-size: 22px;
         }
 
-        .gigs-table th,
+        .gigs-table {
+            display: block;
+        }
+
+        .gigs-table thead {
+            display: none;
+        }
+
+        .gigs-table tbody, 
+        .gigs-table tr, 
         .gigs-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .gigs-table tr {
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-white);
+        }
+
+        .gigs-table td {
+            text-align: right;
             padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            padding-left: 50%;
+        }
+
+        .gigs-table td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 16px;
+            width: 45%;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-gray);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .gigs-table td:last-child {
+            border-bottom: none;
+        }
+        
+        .status-with-payment {
+            align-items: flex-end;
         }
     }
 
@@ -357,15 +402,15 @@
             <tbody>
                 {% for item in gigs %}
                 <tr>
-                    <td class="gig-title-cell">
+                    <td class="gig-title-cell" data-label="{{ 'Tajuk Gig' if lang == 'ms' else 'Gig Title' }}">
                         <div style="font-size: 11px; font-weight: 600; color: var(--primary); margin-bottom: 4px;">{{ item.gig.gig_code or 'GIG-' + item.gig.id|string }}</div>
                         <a href="/gig/{{ item.gig.id }}">{{ item.gig.title }}</a>
                         <div class="gig-category">{{ item.gig.category }}</div>
                     </td>
-                    <td class="price-cell">
+                    <td class="price-cell" data-label="{{ 'Bajet' if lang == 'ms' else 'Budget' }}">
                         MYR {% if item.gig.approved_budget %}{{ "%.2f"|format(item.gig.approved_budget) }}{% else %}{{ "%.2f"|format(item.gig.budget_min) }} - {{ "%.2f"|format(item.gig.budget_max) }}{% endif %}
                     </td>
-                    <td>
+                    <td data-label="{{ 'Status' if lang == 'ms' else 'Status' }}">
                         <div class="status-with-payment">
                             <span class="badge {{ item.gig.status }}">
                                 {% if item.gig.status == 'open' %}
@@ -389,14 +434,14 @@
                             {% endif %}
                         </div>
                     </td>
-                    <td>
+                    <td data-label="{{ 'Permohonan' if lang == 'ms' else 'Applications' }}">
                         <span class="count-badge">{{ item.application_count }}</span>
                     </td>
-                    <td class="date-cell">
+                    <td class="date-cell" data-label="{{ 'Tarikh Dicipta' if lang == 'ms' else 'Created Date' }}">
                         {{ item.gig.created_at.strftime('%d %b %Y') }}
                     </td>
-                    <td>
-                        <div style="display: flex; gap: 8px;">
+                    <td data-label="{{ 'Tindakan' if lang == 'ms' else 'Action' }}">
+                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
                             <a href="/gig/{{ item.gig.id }}" class="action-btn primary">
                                 {{ 'Lihat' if lang == 'ms' else 'View' }}
                             </a>
