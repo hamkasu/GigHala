@@ -44,7 +44,10 @@ def get_stripe_keys():
     from models import get_site_setting
 
     # Get the mode from environment variable or site settings (default to 'test' for safety)
-    stripe_mode = os.environ.get('STRIPE_MODE') or get_site_setting('stripe_mode', 'test')
+    stripe_mode = os.environ.get('STRIPE_MODE')
+    if not stripe_mode:
+        from models import get_site_setting
+        stripe_mode = get_site_setting('stripe_mode', 'test')
 
     if stripe_mode == 'live':
         # Use live keys
@@ -76,15 +79,22 @@ def init_stripe():
     """Initialize Stripe with the appropriate keys"""
     try:
         keys = get_stripe_keys()
-        stripe.api_key = keys['secret_key']
-        return keys
-    except:
-        # Fallback for initial setup before DB is ready
-        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
-        return None
+        if keys and keys['secret_key']:
+            stripe.api_key = keys['secret_key']
+            print(f"DEBUG: Initialized Stripe in {keys['mode']} mode")
+            return keys
+        else:
+            print("DEBUG: Stripe keys not found in get_stripe_keys")
+    except Exception as e:
+        print(f"DEBUG: init_stripe error: {str(e)}")
+    
+    # Fallback for initial setup before DB is ready or if keys missing
+    stripe.api_key = os.environ.get('STRIPE_LIVE_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
+    print(f"DEBUG: Stripe initialized using fallback")
+    return None
 
-# Initialize Stripe (will use legacy key initially, then switch to mode-based after DB is ready)
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
+# Initialize Stripe (will use live key if available, then fallback)
+stripe.api_key = os.environ.get('STRIPE_LIVE_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
 
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
