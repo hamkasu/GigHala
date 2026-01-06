@@ -172,6 +172,9 @@
         border-radius: var(--radius-lg);
         padding: 32px;
         border: 1px solid var(--border);
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .gig-header {
@@ -1717,11 +1720,25 @@
     }
     
     .application-letter {
-        word-break: break-word;
+        word-break: break-all;
+        word-wrap: break-word;
         white-space: pre-wrap;
         max-width: 100%;
         width: 100%;
         display: block;
+        overflow-wrap: break-word;
+    }
+
+    .form-group input, 
+    .form-group textarea,
+    .form-control {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Fix for long strings of text in headers or details */
+    h1, h2, h3, h4, .gig-title, .client-info h4 {
+        word-break: break-word;
         overflow-wrap: break-word;
     }
 </style>
