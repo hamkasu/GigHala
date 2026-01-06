@@ -43,8 +43,8 @@ def get_stripe_keys():
     """Get Stripe keys based on the current mode setting"""
     from models import get_site_setting
 
-    # Get the mode from site settings (default to 'test' for safety)
-    stripe_mode = get_site_setting('stripe_mode', 'test')
+    # Get the mode from environment variable or site settings (default to 'test' for safety)
+    stripe_mode = os.environ.get('STRIPE_MODE') or get_site_setting('stripe_mode', 'test')
 
     if stripe_mode == 'live':
         # Use live keys
