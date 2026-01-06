@@ -1,0 +1,34 @@
+You are building the landing page for GigHala[](https://gighala.calmic.com.my), a Malaysian halal gig platform currently in beta. The site works perfectly on mobile browsers, and users can access it using the same URL on their phones—no separate app needed.
+
+Add a prominent, user-friendly section or dismissible banner on the homepage (preferably near the top or in a mobile-optimized floating/snackbar style) that encourages mobile users to "Add to Home Screen" for a faster, app-like experience.
+
+Key requirements:
+- The section should only appear on mobile devices (use CSS media queries or JavaScript to detect mobile).
+- Title: "Akses GigHala Lebih Mudah di Telefon Anda!" or "Gunakan GigHala Seperti App – Tambah ke Skrin Utama!"
+- Explain benefits briefly: "Tambah ke skrin utama untuk akses pantas, seperti app native – tanpa muat turun dari store!"
+- Provide clear, step-by-step instructions with icons or simple illustrations if possible.
+- Separate instructions for Android (Chrome) and iOS (Safari).
+- Make it bilingual (Malay primary, English secondary) to match the site's style.
+- Include screenshots or simple SVG icons for the menu/share buttons if easy to add.
+- Make the banner dismissible (with a close button) and remember the dismissal using localStorage so it doesn't show again.
+- Style it attractively: Use colors matching GigHala (green/halal theme if possible), responsive, not obstructive.
+
+Instructions text to include:
+
+For Android (Chrome):
+1. Buka https://gighala.calmic.com.my dalam browser Chrome.
+2. Ketik menu tiga titik (⋮) di kanan atas.
+3. Pilih "Tambah ke skrin utama" atau "Install app".
+4. Sahkan – ikon GigHala akan muncul di skrin utama anda!
+
+For iPhone/iPad (Safari):
+1. Buka https://gighala.calmic.com.my dalam Safari.
+2. Ketik butang Kongsi (kotak dengan anak panah ke atas) di bahagian bawah.
+3. Tatal dan pilih "Tambah ke Skrin Utama".
+4. Ketik "Tambah" – ikon akan muncul di skrin utama!
+
+English version (smaller text below):
+For Android: Open in Chrome → Tap three-dot menu → Add to Home screen → Confirm.
+For iOS: Open in Safari → Tap Share button → Add to Home Screen → Add.
+
+Output the full updated HTML/CSS/JS code for the landing page section/banner. Make it easy to integrate into the existing site.

@@ -793,112 +793,149 @@
             }
         }
 
-        /* PWA Install Banner */
+        /* PWA Install Banner - Redesigned for Mobile Onboarding */
         .pwa-install-banner {
             display: none;
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white;
-            padding: 16px 20px;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s ease;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 450px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 10000;
+            padding: 24px;
+            border: 2px solid var(--primary);
+            animation: pwaSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+        @keyframes pwaSlideUp {
+            from { transform: translate(-50%, 100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
         }
 
-        .pwa-install-content {
+        .pwa-header {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
         }
 
-        .pwa-install-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: var(--primary);
+        .pwa-title {
+            font-weight: 800;
+            color: var(--text-dark);
+            font-size: 18px;
+            line-height: 1.3;
+            padding-right: 20px;
+        }
+
+        .pwa-close {
+            background: #f0f0f0;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            flex-shrink: 0;
-        }
-
-        .pwa-install-text h4 {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .pwa-install-text p {
-            font-size: 13px;
-            color: rgba(255,255,255,0.7);
-            margin: 0;
-        }
-
-        .pwa-install-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .pwa-install-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .pwa-install-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .pwa-dismiss-btn {
-            background: transparent;
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .pwa-dismiss-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
+        .pwa-close:hover {
+            background: #e0e0e0;
+            color: var(--text-dark);
         }
 
-        @media (max-width: 600px) {
+        .pwa-body {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .pwa-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: #f5f5f5;
+            padding: 4px;
+            border-radius: var(--radius-md);
+        }
+
+        .pwa-tab {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 6px;
+            color: var(--text-gray);
+            transition: all 0.2s;
+        }
+
+        .pwa-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .pwa-instructions {
+            display: none;
+            background: #f9f9f9;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+
+        .pwa-instructions.active {
+            display: block;
+        }
+
+        .pwa-step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            align-items: flex-start;
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+
+        .pwa-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .pwa-step i {
+            color: var(--primary);
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .pwa-english {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+            font-size: 11px;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        @media (min-width: 1025px) {
+            .pwa-install-banner { display: none !important; }
+        }
+
+        @media (max-width: 480px) {
             .pwa-install-banner {
-                flex-direction: column;
+                width: 95%;
+                bottom: 10px;
                 padding: 16px;
-                bottom: 60px;
             }
-
-            .pwa-install-actions {
-                width: 100%;
-            }
-
-            .pwa-install-btn, .pwa-dismiss-btn {
-                flex: 1;
-            }
+            .pwa-title { font-size: 16px; }
         }
 
         /* Islamic/Western Date Bar */
@@ -1086,18 +1123,43 @@
     {% endblock %}
 </head>
 <body>
-    <!-- PWA Install Banner -->
-    <div id="pwaInstallBanner" class="pwa-install-banner">
-        <div class="pwa-install-content">
-            <div class="pwa-install-icon">📱</div>
-            <div class="pwa-install-text">
-                <h4>Pasang GigHala</h4>
-                <p>Akses pantas dari skrin utama telefon anda</p>
+    <!-- PWA Install Banner (Mobile Optimized) -->
+    <div id="pwaOnboardingBanner" class="pwa-install-banner">
+        <div class="pwa-header">
+            <div class="pwa-title">
+                Gunakan GigHala Seperti App – Tambah ke Skrin Utama!
             </div>
+            <button class="pwa-close" onclick="dismissPWABanner()">
+                <i data-feather="x"></i>
+            </button>
         </div>
-        <div class="pwa-install-actions">
-            <button id="pwaInstallBtn" class="pwa-install-btn">Pasang</button>
-            <button id="pwaInstallDismiss" class="pwa-dismiss-btn">Tidak</button>
+        <div class="pwa-body">
+            Tambah ke skrin utama untuk akses pantas, seperti app native – tanpa muat turun dari store!
+        </div>
+        
+        <div class="pwa-tabs">
+            <div class="pwa-tab active" id="tabAndroid" onclick="switchPWATab('android')">Android (Chrome)</div>
+            <div class="pwa-tab" id="tabiOS" onclick="switchPWATab('ios')">iOS (Safari)</div>
+        </div>
+
+        <div id="pwaAndroidInstructions" class="pwa-instructions active">
+            <div class="pwa-step"><i data-feather="chrome"></i> <span>1. Buka <strong>gighala.calmic.com.my</strong> dalam browser Chrome.</span></div>
+            <div class="pwa-step"><i data-feather="more-vertical"></i> <span>2. Ketik menu tiga titik (⋮) di kanan atas.</span></div>
+            <div class="pwa-step"><i data-feather="plus-square"></i> <span>3. Pilih <strong>"Tambah ke skrin utama"</strong> atau <strong>"Install app"</strong>.</span></div>
+            <div class="pwa-step"><i data-feather="check-circle"></i> <span>4. Sahkan – ikon GigHala akan muncul di skrin utama anda!</span></div>
+        </div>
+
+        <div id="pwaiOSInstructions" class="pwa-instructions">
+            <div class="pwa-step"><i data-feather="compass"></i> <span>1. Buka <strong>gighala.calmic.com.my</strong> dalam Safari.</span></div>
+            <div class="pwa-step"><i data-feather="share"></i> <span>2. Ketik butang <strong>Kongsi</strong> (kotak dengan anak panah ke atas).</span></div>
+            <div class="pwa-step"><i data-feather="plus-square"></i> <span>3. Tatal dan pilih <strong>"Tambah ke Skrin Utama"</strong>.</span></div>
+            <div class="pwa-step"><i data-feather="plus"></i> <span>4. Ketik <strong>"Tambah"</strong> – ikon akan muncul di skrin utama!</span></div>
+        </div>
+
+        <div class="pwa-english">
+            <strong>English Version:</strong><br>
+            Android: Open Chrome → 3-dot menu → Add to Home screen → Confirm.<br>
+            iOS: Open Safari → Share button → Add to Home Screen → Add.
         </div>
     </div>
 
@@ -1403,6 +1465,79 @@
             }
         }
 
+        // PWA Install Prompt
+        let deferredPrompt;
+        
+        // PWA Install Banner Logic
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        function switchPWATab(platform) {
+            const tabAndroid = document.getElementById('tabAndroid');
+            const tabiOS = document.getElementById('tabiOS');
+            const instructionsAndroid = document.getElementById('pwaAndroidInstructions');
+            const instructionsiOS = document.getElementById('pwaiOSInstructions');
+
+            if (platform === 'android') {
+                if (tabAndroid) tabAndroid.classList.add('active');
+                if (tabiOS) tabiOS.classList.remove('active');
+                if (instructionsAndroid) instructionsAndroid.classList.add('active');
+                if (instructionsiOS) instructionsiOS.classList.remove('active');
+            } else {
+                if (tabiOS) tabiOS.classList.add('active');
+                if (tabAndroid) tabAndroid.classList.remove('active');
+                if (instructionsiOS) instructionsiOS.classList.add('active');
+                if (instructionsAndroid) instructionsAndroid.classList.remove('active');
+            }
+        }
+
+        function dismissPWABanner() {
+            const banner = document.getElementById('pwaOnboardingBanner');
+            if (banner) {
+                banner.style.display = 'none';
+                localStorage.setItem('pwa_banner_dismissed', 'true');
+            }
+        }
+
+        function initPWABanner() {
+            const banner = document.getElementById('pwaOnboardingBanner');
+            if (!banner) return;
+
+            // Only show on mobile and if not dismissed
+            if (isMobile() && !localStorage.getItem('pwa_banner_dismissed')) {
+                // Check if already in standalone/fullscreen mode
+                const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                   window.matchMedia('(display-mode: fullscreen)').matches ||
+                                   window.navigator.standalone;
+
+                if (!isStandalone) {
+                    // Auto-detect platform for tab selection
+                    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                        switchPWATab('ios');
+                    } else {
+                        switchPWATab('android');
+                    }
+                    
+                    banner.style.display = 'block';
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('GigHala app installed');
+            dismissPWABanner();
+            deferredPrompt = null;
+        });
+
         // Update wallet balance on page load for logged-in users
         {% if user %}
         document.addEventListener('DOMContentLoaded', function() {
@@ -1423,45 +1558,6 @@
                 }
             });
         }
-
-        // PWA Install Prompt
-        let deferredPrompt;
-        const installBanner = document.getElementById('pwaInstallBanner');
-        const installBtn = document.getElementById('pwaInstallBtn');
-        const dismissBtn = document.getElementById('pwaInstallDismiss');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (installBanner && !localStorage.getItem('pwaInstallDismissed')) {
-                installBanner.style.display = 'flex';
-            }
-        });
-
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log('Install prompt outcome:', outcome);
-                    deferredPrompt = null;
-                    if (installBanner) installBanner.style.display = 'none';
-                }
-            });
-        }
-
-        if (dismissBtn) {
-            dismissBtn.addEventListener('click', () => {
-                if (installBanner) installBanner.style.display = 'none';
-                localStorage.setItem('pwaInstallDismissed', 'true');
-            });
-        }
-
-        window.addEventListener('appinstalled', () => {
-            console.log('GigHala app installed');
-            if (installBanner) installBanner.style.display = 'none';
-            deferredPrompt = null;
-        });
 
         // Category dropdown toggle
         function toggleCategoryDropdown(event) {
@@ -1484,6 +1580,16 @@
                     menu.classList.remove('show');
                 }
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Existing app initialization
+            if (typeof app !== 'undefined' && app.init) {
+                app.init();
+            }
+            
+            // PWA Banner initialization
+            setTimeout(initPWABanner, 1500);
         });
     </script>
     
