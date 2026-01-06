@@ -530,9 +530,10 @@
             }
         }
 
-        /* Additional check for iOS/Android home screen shortcuts */
+        /* Additional check for iOS/Android home screen shortcuts and general mobile PWA simulation */
         @media screen and (max-width: 768px) {
-            body.pwa-mode .no-pwa {
+            body.pwa-mode .no-pwa,
+            .pwa-mode .no-pwa {
                 display: none !important;
             }
         }
