@@ -151,7 +151,7 @@ Remember: When uncertain, ALWAYS flag for manual review. Never approve questiona
 
 def ai_halal_moderation(title: str, description: str) -> Dict:
     """
-    AI moderation is currently DISABLED as requested.
+    AI moderation is currently DISABLED.
     Returns a success response with 'approve' action for all content.
     """
     return {
