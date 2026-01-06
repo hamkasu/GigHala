@@ -525,15 +525,20 @@
 
         /* Hide social icons in PWA mode */
         @media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
-            .no-pwa {
+            .social-icons-wrapper {
+                display: none !important;
+            }
+            .nav-link-about {
                 display: none !important;
             }
         }
 
         /* Additional check for iOS/Android home screen shortcuts and general mobile PWA simulation */
         @media screen and (max-width: 768px) {
-            body.pwa-mode .no-pwa,
-            .pwa-mode .no-pwa {
+            body.pwa-mode .social-icons-wrapper,
+            .pwa-mode .social-icons-wrapper,
+            body.pwa-mode .nav-link-about,
+            .pwa-mode .nav-link-about {
                 display: none !important;
             }
         }
