@@ -373,11 +373,36 @@
     .cancel-modal-btn-danger:hover {
         background: #b91c1c;
     }
+    .orientation-notice {
+        display: none;
+        background: #fff3e0;
+        border: 1px solid #ffe0b2;
+        color: #e65100;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 14px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    @media (max-width: 768px) and (orientation: portrait) {
+        .orientation-notice {
+            display: flex;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <main class="main-content">
+    <div class="orientation-notice">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        <span>{{ 'Sila pusingkan skrin anda (Lanskap) untuk paparan yang lebih baik' if lang == 'ms' else 'Please rotate your screen (Landscape) for a better view' }}</span>
+    </div>
     <div class="page-header">
         <h1>{{ 'Gig Saya' if lang == 'ms' else 'My Gigs' }}</h1>
         <p>{{ 'Senarai semua gig yang telah anda siarkan' if lang == 'ms' else 'List of all gigs you have posted' }}</p>
