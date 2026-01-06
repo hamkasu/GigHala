@@ -524,8 +524,15 @@
         }
 
         /* Hide social icons in PWA mode */
-        @media all and (display-mode: standalone) {
+        @media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
             .no-pwa {
+                display: none !important;
+            }
+        }
+
+        /* Additional check for iOS/Android home screen shortcuts */
+        @media screen and (max-width: 768px) {
+            body.pwa-mode .no-pwa {
                 display: none !important;
             }
         }

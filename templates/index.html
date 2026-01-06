@@ -1203,5 +1203,11 @@
         updateCountdown();
         setInterval(updateCountdown, 1000);
     </script>
+    <script>
+        // Detection for PWA mode on mobile devices
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            document.body.classList.add('pwa-mode');
+        }
+    </script>
 </body>
 </html>
