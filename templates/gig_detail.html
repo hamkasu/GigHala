@@ -137,6 +137,34 @@
         .gig-layout {
             grid-template-columns: 1fr;
         }
+
+        .gig-detail-container {
+            padding: 16px;
+        }
+
+        .gig-main {
+            padding: 20px;
+        }
+
+        .gig-title {
+            font-size: 24px;
+        }
+
+        .gig-meta {
+            gap: 12px;
+        }
+
+        .budget-amount {
+            font-size: 28px;
+        }
+
+        .photo-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+
+        .breadcrumb {
+            flex-wrap: wrap;
+        }
     }
 
     .gig-main {
@@ -241,6 +269,8 @@
         border-radius: var(--radius-md);
         border: 1px solid var(--border);
         max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .skills-list {
@@ -1680,6 +1710,19 @@
         .photo-item {
             min-height: 88px;
         }
+    }
+    .application-modal-content {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .application-letter {
+        word-break: break-word;
+        white-space: pre-wrap;
+        max-width: 100%;
+        width: 100%;
+        display: block;
+        overflow-wrap: break-word;
     }
 </style>
 {% endblock %}
