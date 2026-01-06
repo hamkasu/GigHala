@@ -777,9 +777,10 @@
     }
 
     .escrow-amount-value {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 800;
         color: #0ea5e9;
+        word-break: break-all;
     }
 
     .escrow-progress {
@@ -790,6 +791,9 @@
         display: flex;
         justify-content: space-between;
         position: relative;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 10px;
     }
 
     .escrow-steps::before {
