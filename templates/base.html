@@ -523,6 +523,13 @@
             background: var(--bg-light);
         }
 
+        /* Hide social icons in PWA mode */
+        @media all and (display-mode: standalone) {
+            .no-pwa {
+                display: none !important;
+            }
+        }
+
         .footer {
             background: var(--header-bg);
             color: white;
