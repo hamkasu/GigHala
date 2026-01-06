@@ -45,3 +45,4 @@ ALLOWED_ORIGINS = "https://gighala.calmic.com.my,https://www.gighala.calmic.com.
 
 [userenv.development]
 FLASK_ENV = "development"
+ALLOWED_ORIGINS = "*"
