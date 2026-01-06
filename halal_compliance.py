@@ -436,14 +436,14 @@ def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
     # Normalize text: lowercase and remove extra spaces
     text_normalized = text.lower().strip()
 
-    # Fast-track harmless "test" content to avoid false positives
-    test_keywords = ["test", "testing", "percubaan", "ujian", "try", "cuba"]
+    # DO NOT fast-track "test" content as it can be used to bypass haram detection
+    # test_keywords = ["test", "testing", "percubaan", "ujian", "try", "cuba"]
     
     # Check for direct inclusion or normalized content
     normalized_content = "".join([c if c.isalnum() else " " for c in text_normalized])
     
-    if any(keyword in text_normalized or keyword in normalized_content for keyword in test_keywords):
-        return True, []
+    # if any(keyword in text_normalized or keyword in normalized_content for keyword in test_keywords):
+    #     return True, []
 
     violations = []
 

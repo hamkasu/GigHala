@@ -518,10 +518,10 @@
                     <label class="form-label">
                         {{ t('category') }} <span class="required">*</span>
                     </label>
-                    <div class="category-cards">
+                    <div class="category-cards" id="category-cards-container">
                         {% for cat in categories %}
                         <label class="category-card {% if form_data and form_data.category == cat.slug %}selected{% endif %}" onclick="selectCategory(this)">
-                            <input type="radio" name="category" value="{{ cat.slug }}" required {% if form_data and form_data.category == cat.slug %}checked{% endif %}>
+                            <input type="radio" name="category" value="{{ cat.slug }}" required {% if form_data and form_data.category == cat.slug %}checked{% endif %} style="position: absolute; opacity: 0; pointer-events: none;">
                             <div class="category-icon">
                                 {% if cat.slug == 'design' %}🎨
                                 {% elif cat.slug == 'writing' %}✍️
