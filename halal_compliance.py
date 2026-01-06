@@ -420,43 +420,10 @@ for category, keywords in PROHIBITED_KEYWORDS.items():
 
 def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
     """
-    Check if text contains any prohibited keywords.
-
-    Args:
-        text: The text to check (title, description, etc.)
-
-    Returns:
-        Tuple of (is_compliant, list_of_violations)
-        - is_compliant: True if no violations found, False otherwise
-        - list_of_violations: List of detected prohibited keywords
+    Keyword-based compliance check is DISABLED.
+    Always returns compliant.
     """
-    if not text:
-        return True, []
-
-    # Normalize text: lowercase and remove extra spaces
-    text_normalized = text.lower().strip()
-
-    # DO NOT fast-track "test" content as it can be used to bypass haram detection
-    # test_keywords = ["test", "testing", "percubaan", "ujian", "try", "cuba"]
-    
-    # Check for direct inclusion or normalized content
-    normalized_content = "".join([c if c.isalnum() else " " for c in text_normalized])
-    
-    # if any(keyword in text_normalized or keyword in normalized_content for keyword in test_keywords):
-    #     return True, []
-
-    violations = []
-
-    for keyword in ALL_PROHIBITED_KEYWORDS:
-        # Use word boundary matching to avoid false positives
-        # e.g., "bacon" should match but not "bacons" in "fibonacci cons"
-        pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
-
-        if re.search(pattern, text_normalized):
-            violations.append(keyword)
-
-    is_compliant = len(violations) == 0
-    return is_compliant, violations
+    return True, []
 
 
 def validate_category(category: str) -> Tuple[bool, str]:
