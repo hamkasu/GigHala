@@ -523,7 +523,7 @@
             background: var(--bg-light);
         }
 
-        /* Hide social icons in PWA mode */
+        /* Hide social icons and about link in PWA mode */
         @media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
             .social-icons-wrapper {
                 display: none !important;
@@ -533,12 +533,13 @@
             }
         }
 
-        /* Additional check for iOS/Android home screen shortcuts and general mobile PWA simulation */
+        /* Additional check for iOS/Android home screen shortcuts and general mobile devices */
         @media screen and (max-width: 768px) {
             body.pwa-mode .social-icons-wrapper,
             .pwa-mode .social-icons-wrapper,
             body.pwa-mode .nav-link-about,
-            .pwa-mode .nav-link-about {
+            .pwa-mode .nav-link-about,
+            .nav-link-about {
                 display: none !important;
             }
         }
