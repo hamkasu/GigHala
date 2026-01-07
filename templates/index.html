@@ -23,68 +23,17 @@
         <!-- Navigation -->
         <nav class="navbar">
             <div class="container navbar-container">
-                <div class="navbar-top" style="display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; justify-content: space-between; width: 100%;">
-                    <div class="nav-brand" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px;">
-                        <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
-                        <div style="display: flex; flex-direction: column; justify-content: center;">
-                            <span style="font-weight: 800; font-size: 23px; line-height: 1;">GigHala</span>
-                        </div>
-                        
-                        <!-- Trust Icons (Mobile Optimized) -->
-                        <div class="trust-wrapper" style="display: flex; align-items: center; gap: 7px; margin-left: 7px; position: relative; z-index: 1000;">
-                            <div id="trust-icons-container" style="display: flex; align-items: center; gap: 7px; margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">
-                                <img src="/static/images/trust-icons/secure-ssl.png" alt="Secure SSL" style="height: 32px; width: auto; object-fit: contain;">
-                                <img src="/static/images/trust-icons/pdpa.png" alt="PDPA" style="height: 32px; width: auto; object-fit: contain;">
-                                <img src="/static/images/trust-icons/escrow-shield.png" alt="Escrow Protection" style="height: 32px; width: auto; object-fit: contain;">
-                            </div>
-
-                            <style>
-                                @media (max-width: 768px) {
-                                    #trust-icons-container {
-                                        display: none !important;
-                                    }
-                                    .nav-auth-buttons {
-                                        margin-left: auto !important;
-                                    }
-                                    .nav-brand span {
-                                        font-size: 18px !important;
-                                    }
-                                    .nav-brand img {
-                                        height: 40px !important;
-                                        width: 40px !important;
-                                        min-width: 40px !important;
-                                        min-height: 40px !important;
-                                    }
-                                    .nav-auth-buttons button {
-                                        padding: 6px 12px !important;
-                                        font-size: 11px !important;
-                                    }
-                                }
-                            </style>
-
-                            <div style="display: flex; align-items: center; gap: 7px; flex-shrink: 0; display: none; margin-left: 15px;" id="payhalal-brand" onclick="window.open('https://www.payhalal.my', '_blank')">
-                                <div style="height: 20px; width: 1px; background: #ddd;"></div>
-                                <span style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer;">{% if lang == 'ms' %}RAKAN RASMI:{% else %}OFFICIAL PARTNER:{% endif %}</span>
-                                <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 14px; width: auto; object-fit: contain; cursor: pointer;">
-                            </div>
-                        </div>
+                <div class="navbar-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px;">
+                    <div class="nav-brand" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; border-radius: 50%; object-fit: contain;">
+                        <span style="font-weight: 800; font-size: 23px;">GigHala</span>
                     </div>
 
-                    <style>
-                        @media (min-width: 769px) {
-                            #payhalal-brand {
-                                display: flex !important;
-                            }
-                        }
-                    </style>
-
-                        <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-                            <!-- Removed Category and About link for mobile -->
-                        </div>
-                        <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 8px;">
-                            <button class="btn-primary" onclick="app.showLogin()" style="background: #2D9B7B; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45, 155, 123, 0.2); transition: all 0.3s ease; font-size: 13px; white-space: nowrap;">Log Masuk</button>
-                            <button class="btn-primary" onclick="app.showRegister()" style="background: #2D9B7B; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45, 155, 123, 0.2); transition: all 0.3s ease; font-size: 13px; white-space: nowrap;">Daftar Percuma</button>
-                        </div>
+                    <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <button class="btn-primary" onclick="app.showLogin()" style="background: #2D9B7B; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; white-space: nowrap;">Log Masuk</button>
+                        <button class="btn-primary" onclick="app.showRegister()" style="background: #2D9B7B; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; white-space: nowrap;">Daftar Percuma</button>
+                    </div>
+                </div>
                     </div>
                 </div>
             </div>

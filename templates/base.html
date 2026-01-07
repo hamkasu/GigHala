@@ -1292,22 +1292,56 @@
 
     <!-- Auth Bar - Login/Register for guests -->
     {% if not user %}
-    <div class="auth-bar">
-        <a href="#" class="nav-link" onclick="app.showLogin(); return false;">{{ t('login') }}</a>
-        <button class="btn btn-primary" onclick="app.showRegister(); return false;">{{ t('register_free') }}</button>
-    </div>
+    <style>
+        @media (display-mode: standalone) {
+            .header-top {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding: 10px 15px !important;
+            }
+            .auth-bar {
+                display: none !important;
+            }
+            .header-nav {
+                display: flex !important;
+                gap: 8px !important;
+            }
+            .pwa-auth-btn {
+                background: var(--primary);
+                color: white;
+                padding: 6px 10px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                border: none;
+                white-space: nowrap;
+            }
+        }
+    </style>
     {% endif %}
 
     <header class="header">
         <div class="header-top">
             <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-                        <span>GigHala</span>
-                    </div>
+                    <img src="/static/images/logo.png" alt="GigHala" style="height: 40px; width: 40px; border-radius: 50%; object-fit: contain;">
+                    <span>GigHala</span>
                 </div>
             </a>
+
+            {% if not user %}
+            <div class="header-nav pwa-only-flex" style="display: none;">
+                <button class="pwa-auth-btn" onclick="app.showLogin()">Log Masuk</button>
+                <button class="pwa-auth-btn" onclick="app.showRegister()">Daftar</button>
+            </div>
+            <style>
+                @media (display-mode: standalone) {
+                    .pwa-only-flex { display: flex !important; gap: 8px; }
+                }
+            </style>
+            {% endif %}
             <a href="https://gighala.calmic.com.my/" class="logo" style="margin-left: 12px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 12px;">
                 <img src="/static/images/payhalal-logo.png" alt="PayHala" style="height: 18px; width: auto;">
             </a>
