@@ -79,7 +79,14 @@
             </div>
         </nav>
 
-        <div style="background: linear-gradient(135deg, #FF6200 0%, #FF7A1F 100%); width: 100%; padding: 24px 11px; color: white; text-align: center; position: relative; z-index: 10;">
+        <div style="background: linear-gradient(-45deg, #FF6200, #FF7A1F, #FF9100, #FF4500); background-size: 400% 400%; animation: gradientBG 15s ease infinite; width: 100%; padding: 24px 11px; color: white; text-align: center; position: relative; z-index: 10;">
+            <style>
+                @keyframes gradientBG {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+            </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 24px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Content: Billing Info -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center;">
