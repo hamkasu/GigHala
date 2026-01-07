@@ -1335,9 +1335,7 @@
                     </div>
                 </a>
             </div>
-            {% endif %}
-
-
+            {% endif %}            <nav class="header-nav">
                 {% if user %}
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
                     {% if user.user_type in ['client', 'both'] %}
