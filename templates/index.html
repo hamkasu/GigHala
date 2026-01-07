@@ -44,6 +44,22 @@
                                     #trust-icons-container {
                                         display: none !important;
                                     }
+                                    .nav-auth-buttons {
+                                        margin-left: auto !important;
+                                    }
+                                    .nav-brand span {
+                                        font-size: 18px !important;
+                                    }
+                                    .nav-brand img {
+                                        height: 40px !important;
+                                        width: 40px !important;
+                                        min-width: 40px !important;
+                                        min-height: 40px !important;
+                                    }
+                                    .nav-auth-buttons button {
+                                        padding: 6px 12px !important;
+                                        font-size: 11px !important;
+                                    }
                                 }
                             </style>
 
@@ -74,8 +90,10 @@
                             </div>
                             <span style="color: #404145; font-weight: 500; margin-right: 8px;">:</span>
                             <a href="https://gighala.calmic.com.my/about" id="navAboutLink" class="nav-link about-link" target="_blank" style="color: #404145; text-decoration: none; font-weight: 500; white-space: nowrap; margin-right: 8px;">Tentang Kita</a>
-                            <button class="btn-primary" onclick="app.showLogin()" style="background: #2D9B7B; color: white; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45, 155, 123, 0.2); transition: all 0.3s ease;">Log Masuk</button>
-                            <button class="btn-primary" onclick="app.showRegister()">Daftar Percuma</button>
+                        </div>
+                        <div class="nav-auth-buttons" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 8px;">
+                            <button class="btn-primary" onclick="app.showLogin()" style="background: #2D9B7B; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45, 155, 123, 0.2); transition: all 0.3s ease; font-size: 13px; white-space: nowrap;">Log Masuk</button>
+                            <button class="btn-primary" onclick="app.showRegister()" style="background: #2D9B7B; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(45, 155, 123, 0.2); transition: all 0.3s ease; font-size: 13px; white-space: nowrap;">Daftar Percuma</button>
                         </div>
                     </div>
                 </div>
