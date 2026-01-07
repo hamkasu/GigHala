@@ -1899,6 +1899,9 @@ body {
 }
 
 @media (max-width: 480px) {
+    .lang-switcher {
+        display: none !important;
+    }
     body {
         font-size: 1.1em;
     }

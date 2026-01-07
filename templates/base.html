@@ -1400,7 +1400,7 @@
                     {% endif %}
 
                     <!-- Removed globe icon as it was covering language options on mobile -->
-                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
+                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="display: none;">
                         <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
                     <div class="user-menu">
@@ -1420,7 +1420,7 @@
                 {% else %}
 
                     <!-- Removed globe icon as it was covering language options on mobile -->
-                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
+                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa" style="display: none;">
                         <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
                 {% endif %}
