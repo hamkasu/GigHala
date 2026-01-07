@@ -604,6 +604,13 @@
             padding: 48px 24px 24px;
         }
 
+        /* PWA-specific styling: Reduce 'Powered by Calmic' font size by 50% */
+        @media all and (display-mode: standalone) {
+            .powered-by-calmic {
+                font-size: 50% !important;
+            }
+        }
+
         .footer-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -1298,7 +1305,7 @@
                     <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
                     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
                         <span>GigHala</span>
-                        <span style="font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.6);">{% if lang == 'ms' %}dikuasakan oleh Calmic{% else %}powered by Calmic{% endif %}</span>
+                        <span class="powered-by-calmic" style="font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.6);">{% if lang == 'ms' %}dikuasakan oleh Calmic{% else %}powered by Calmic{% endif %}</span>
                     </div>
                 </div>
             </a>
