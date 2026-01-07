@@ -327,3 +327,8 @@ psycopg2-binary
 python-dotenv
 sqlalchemy
 werkzeug
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
