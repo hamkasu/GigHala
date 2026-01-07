@@ -327,8 +327,52 @@
             border: 1px solid var(--border);
         }
 
-        .user-dropdown.show {
+        .nav-dropdown {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            border: 1px solid var(--border);
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu {
             display: block;
+        }
+
+        .nav-dropdown-item {
+            display: block;
+            padding: 12px 16px;
+            color: var(--text-dark);
+            font-size: 14px;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-dropdown-item:hover {
+            background: var(--bg-light);
+            color: var(--primary);
+        }
+
+        .nav-dropdown-arrow {
+            font-size: 10px;
+            margin-left: 4px;
+            transition: transform 0.2s;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-arrow {
+            transform: rotate(180deg);
         }
 
         .dropdown-item {
@@ -1264,6 +1308,20 @@
             {% endif %}
 
             <nav class="header-nav">
+                <a href="/about" class="nav-link {% if request.path == '/about' %}active{% endif %}">{% if lang == 'ms' %}Tentang Kami{% else %}About Us{% endif %}</a>
+                
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-link">
+                        {% if lang == 'ms' %}Sumber{% else %}Resources{% endif %} <i class="nav-dropdown-arrow">▼</i>
+                    </a>
+                    <div class="nav-dropdown-menu">
+                        <a href="/blog" class="nav-dropdown-item">Blog</a>
+                        <a href="/panduan-freelancer" class="nav-dropdown-item">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a>
+                        <a href="/faq" class="nav-dropdown-item">FAQ</a>
+                        <a href="/support" class="nav-dropdown-item">{% if lang == 'ms' %}Sokongan{% else %}Support{% endif %}</a>
+                    </div>
+                </div>
+
                 {% if user %}
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
                     {% if user.user_type in ['client', 'both'] %}
@@ -1334,6 +1392,7 @@
                 <div>
                     <h4 class="footer-heading">{% if lang == 'ms' %}Sumber{% else %}Resources{% endif %}</h4>
                     <ul class="footer-links">
+                        <li><a href="/blog">Blog</a></li>
                         <li><a href="/panduan-freelancer">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a></li>
                         <li><a href="/faq">FAQ</a></li>
                         <li><a href="/support">{% if lang == 'ms' %}Sokongan{% else %}Support{% endif %}</a></li>
