@@ -1899,6 +1899,9 @@ body {
 }
 
 @media (max-width: 480px) {
+    .header-nav {
+        display: none !important;
+    }
     .lang-switcher {
         display: none !important;
     }
