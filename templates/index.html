@@ -82,12 +82,12 @@
             </div>
         </nav>
 
-        <div style="background: linear-gradient(-45deg, #FF6200, #FF7A1F, #FF9100, #FF4500); background-size: 400% 400%; animation: gradientBG 15s ease infinite; width: 100%; padding: 24px 11px; color: white; text-align: center; position: relative; z-index: 10;">
+        <div style="background: linear-gradient(rgba(255, 98, 0, 0.8), rgba(255, 122, 31, 0.8)), url('/static/images/animated-bg.jpg'); background-size: 200% 200%; background-position: center; animation: moveBG 20s linear infinite; width: 100%; padding: 24px 11px; color: white; text-align: center; position: relative; z-index: 10;">
             <style>
-                @keyframes gradientBG {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
+                @keyframes moveBG {
+                    0% { background-position: 0% 0%; }
+                    50% { background-position: 100% 100%; }
+                    100% { background-position: 0% 0%; }
                 }
             </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 24px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
