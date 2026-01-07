@@ -1899,25 +1899,8 @@ body {
 }
 
 @media (max-width: 480px) {
-    .header-nav, 
-    .header-nav * {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        width: auto !important;
-        height: auto !important;
-        position: static !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
     .header-nav {
-        gap: 8px !important;
-        margin-left: 12px !important;
-    }
-    .nav-link {
-        font-size: 11px !important;
-        white-space: nowrap !important;
+        display: none !important;
     }
     .lang-switcher {
         display: none !important;
