@@ -604,10 +604,10 @@
             padding: 48px 24px 24px;
         }
 
-        /* PWA-specific styling: Reduce 'Powered by Calmic' font size by 50% */
-        @media all and (display-mode: standalone) {
+        /* PWA-specific styling: Hide 'Powered by Calmic' on mobile screens */
+        @media all and (display-mode: standalone) and (max-width: 768px) {
             .powered-by-calmic {
-                font-size: 50% !important;
+                display: none !important;
             }
         }
 
