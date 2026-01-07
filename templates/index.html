@@ -12,10 +12,49 @@
 <body>
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar" style="background: #06402B; text-align: right; padding: 10px 24px; font-size: 14px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-            <span style="color: #4ade80; font-weight: 600;">{{ today_hijri }}</span>
-            <span style="color: rgba(255,255,255,0.4);">|</span>
-            <span style="color: rgba(255,255,255,0.8);">{{ today_gregorian }}</span>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                <span style="color: #4ade80; font-weight: 600;">{{ today_hijri }}</span>
+                <span style="color: rgba(255,255,255,0.4);">|</span>
+                <span style="color: rgba(255,255,255,0.8);">{{ today_gregorian }}</span>
+            </div>
+            
+            <!-- Social Media & Trust Icons (Moved from navbar) -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="social-icons-wrapper" style="display: flex; align-items: center; gap: 7px;">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(59, 130, 246, 0.2); border-radius: 50%; color: #1877f2;" title="Facebook">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1877f2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                        </svg>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(225, 48, 108, 0.2); border-radius: 50%; color: #E1306C;" title="Instagram">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E1306C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; color: white;" title="TikTok">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+                        </svg>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: rgba(255, 255, 255, 0.1); border-radius: 50%; color: white;" title="Twitter/X">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4l11.733 16h4.267l-11.733-16z"></path>
+                            <path d="M4 20l6.768-6.768m2.46-2.46L20 4"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <div style="width: 1px; height: 15px; background: rgba(255,255,255,0.2);"></div>
+
+                <div class="trust-icons-mini" style="display: flex; align-items: center; gap: 8px;">
+                    <img src="/static/images/trust-icons/secure-ssl.png" alt="Secure SSL" style="height: 18px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="/static/images/trust-icons/pdpa.png" alt="PDPA" style="height: 18px; width: auto; filter: brightness(0) invert(1);">
+                    <img src="/static/images/trust-icons/escrow-shield.png" alt="Escrow Protection" style="height: 18px; width: auto; filter: brightness(0) invert(1);">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -27,53 +66,6 @@
                     <div class="nav-brand" style="flex-shrink: 0; display: flex; align-items: center; gap: 8px;">
                         <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; min-width: 50px; min-height: 50px; border-radius: 50%; object-fit: contain; display: block; flex-shrink: 0;">
                         <span style="font-weight: 800; font-size: 23px;">GigHala</span>
-                        
-                        <!-- Social Media Icons (Mobile Optimized) -->
-                        <div class="social-icons-wrapper" style="display: flex; align-items: center; gap: 7px; margin-left: 7px; position: relative; z-index: 1000;">
-                            <div style="display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; color: #1877f2; position: relative; z-index: 1001;" title="Facebook">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1877f2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                                </svg>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; background: rgba(225, 48, 108, 0.1); border-radius: 50%; color: #E1306C; position: relative; z-index: 1001;" title="Instagram">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E1306C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                                </svg>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; background: rgba(0, 0, 0, 0.1); border-radius: 50%; color: #000000; position: relative; z-index: 1001;" title="TikTok">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                                    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
-                                </svg>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; background: rgba(0, 0, 0, 0.1); border-radius: 50%; color: #000000; position: relative; z-index: 1001;" title="Twitter/X">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="display: block;">
-                                    <path d="M4 4l11.733 16h4.267l-11.733-16z"></path>
-                                    <path d="M4 20l6.768-6.768m2.46-2.46L20 4"></path>
-                                </svg>
-                            </div>
-
-                            <div id="trust-icons-container" style="display: flex; align-items: center; gap: 7px; margin-left: 10px; border-left: 1px solid #ddd; padding-left: 10px;">
-                                <img src="/static/images/trust-icons/secure-ssl.png" alt="Secure SSL" style="height: 32px; width: auto; object-fit: contain;">
-                                <img src="/static/images/trust-icons/pdpa.png" alt="PDPA" style="height: 32px; width: auto; object-fit: contain;">
-                                <img src="/static/images/trust-icons/escrow-shield.png" alt="Escrow Protection" style="height: 32px; width: auto; object-fit: contain;">
-                            </div>
-
-                            <style>
-                                @media (max-width: 768px) {
-                                    #trust-icons-container {
-                                        display: none !important;
-                                    }
-                                }
-                            </style>
-
-                            <div style="display: flex; align-items: center; gap: 7px; flex-shrink: 0; display: none; margin-left: 15px;" id="payhalal-brand" onclick="window.open('https://www.payhalal.my', '_blank')">
-                                <div style="height: 20px; width: 1px; background: #ddd;"></div>
-                                <span style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; white-space: nowrap; cursor: pointer;">{% if lang == 'ms' %}RAKAN RASMI:{% else %}OFFICIAL PARTNER:{% endif %}</span>
-                                <img src="/static/images/payhalal-logo.png" alt="PayHalal" style="height: 14px; width: auto; object-fit: contain; cursor: pointer;">
-                            </div>
-                        </div>
                     </div>
 
                     <style>
