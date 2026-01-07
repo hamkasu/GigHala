@@ -726,6 +726,7 @@ TRANSLATIONS = {
         'gig_workers_bill': 'Rang Undang-Undang Pekerja Gig',
         'rights_reserved': '© 2025 GigHala. Dimiliki dan dikendalikan oleh Calmic Sdn Bhd (Nombor Pendaftaran: 1466852W / 202201021155). Hak cipta terpelihara.',
         'visitor_count': 'Jumlah Pelawat:',
+        'registered_users': 'Pengguna Berdaftar:',
         'ssm_registered': 'SSM Registered',
         'secure_payment': 'Secure Payment',
 
@@ -1102,6 +1103,7 @@ TRANSLATIONS = {
         'gig_workers_bill': 'Gig Workers Bill',
         'rights_reserved': '© 2025 GigHala. Owned and operated by Calmic Sdn Bhd (Registration Number: 1466852W / 202201021155). All rights reserved.',
         'visitor_count': 'Total Visitors:',
+        'registered_users': 'Registered Users:',
         'ssm_registered': 'SSM Registered',
         'secure_payment': 'Secure Payment',
 

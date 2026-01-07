@@ -550,7 +550,12 @@
                         <p>{{ t('rights_reserved') }}</p>
                     </div>
                     <div class="visitor-counter">
-                        <span>👁️ {{ t('visitor_count') }} <strong id="visitorCount">{{ visitor_count }}</strong></span>
+                        <div style="margin-bottom: 5px;">
+                            <span>👁️ {{ t('visitor_count') }} <strong id="visitorCount">{{ visitor_count }}</strong></span>
+                        </div>
+                        <div>
+                            <span>👤 {{ t('registered_users') }} <strong>{{ user_count }}</strong></span>
+                        </div>
                     </div>
                     <div class="footer-badges">
                         <span class="badge">{{ t('ssm_registered') }}</span>
