@@ -1899,8 +1899,17 @@ body {
 }
 
 @media (max-width: 480px) {
-    .header-nav {
+    .header-nav, 
+    .header-nav * {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: absolute !important;
     }
     .lang-switcher {
         display: none !important;
