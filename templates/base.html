@@ -1399,8 +1399,9 @@
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
 
+                    <!-- Removed globe icon as it was covering language options on mobile -->
                     <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
-                        <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
+                        <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
                     <div class="user-menu">
                         <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
@@ -1418,8 +1419,9 @@
                     </div>
                 {% else %}
 
+                    <!-- Removed globe icon as it was covering language options on mobile -->
                     <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
-                        <span id="langIcon">🌐</span> <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
+                        <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
                     </button>
                 {% endif %}
             </nav>
