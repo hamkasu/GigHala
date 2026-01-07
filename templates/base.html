@@ -1337,20 +1337,6 @@
             </div>
             {% endif %}
 
-            <nav class="header-nav">
-                <a href="/about" class="nav-link {% if request.path == '/about' %}active{% endif %}">{% if lang == 'ms' %}Tentang Kami{% else %}About Us{% endif %}</a>
-                
-                <div class="nav-dropdown">
-                    <a href="#" class="nav-link">
-                        {% if lang == 'ms' %}Sumber{% else %}Resources{% endif %} <i class="nav-dropdown-arrow">▼</i>
-                    </a>
-                    <div class="nav-dropdown-menu">
-                        <a href="/blog" class="nav-dropdown-item">Blog</a>
-                        <a href="/panduan-freelancer" class="nav-dropdown-item">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a>
-                        <a href="/faq" class="nav-dropdown-item">FAQ</a>
-                        <a href="/support" class="nav-dropdown-item">{% if lang == 'ms' %}Sokongan{% else %}Support{% endif %}</a>
-                    </div>
-                </div>
 
                 {% if user %}
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
@@ -1424,16 +1410,6 @@
                             </div>
                         <li><a href="/cara-kerja">Cara Kerja</a></li>
                         <li><a href="/pricing">{% if lang == 'ms' %}Harga{% else %}Pricing{% endif %}</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="footer-heading">{% if lang == 'ms' %}Sumber{% else %}Resources{% endif %}</h4>
-                    <ul class="footer-links">
-                        <li><a href="/blog">Blog</a></li>
-                        <li><a href="/panduan-freelancer">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a></li>
-                        <li><a href="/faq">FAQ</a></li>
-                        <li><a href="/support">{% if lang == 'ms' %}Sokongan{% else %}Support{% endif %}</a></li>
-                        <li><a href="/feedback">{% if lang == 'ms' %}Maklum Balas Platform{% else %}Platform Feedback{% endif %}</a></li>
                     </ul>
                 </div>
                 <div>
