@@ -164,14 +164,17 @@ const app = {
     // Render categories in navigation dropdown
     renderNavCategories() {
         const list = document.getElementById('navCategoriesList');
-        if (!list) return;
+        const listBase = document.getElementById('navCategoriesListBase');
         
-        list.innerHTML = this.categories.map(cat => `
+        const html = this.categories.map(cat => `
             <a href="#" class="category-item" onclick="app.filterByCategory('${cat.id}'); return false;">
                 <span style="font-size: 18px;">${cat.icon}</span>
                 <span>${this.translateCategoryName(cat.name)}</span>
             </a>
         `).join('');
+
+        if (list) list.innerHTML = html;
+        if (listBase) listBase.innerHTML = html;
     },
     
     // Render categories grid
@@ -388,6 +391,35 @@ const app = {
     
     // Setup event listeners
     setupEventListeners() {
+        // Category dropdown toggle
+        const categoryTriggers = document.querySelectorAll('.category-trigger');
+        const categoryMenus = document.querySelectorAll('.category-menu');
+        
+        categoryTriggers.forEach((trigger, index) => {
+            const menu = categoryMenus[index];
+            if (trigger && menu) {
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isVisible = menu.style.display === 'block';
+                    
+                    // Close all other menus first
+                    categoryMenus.forEach(m => m.style.display = 'none');
+                    
+                    menu.style.display = isVisible ? 'none' : 'block';
+                });
+            }
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            categoryMenus.forEach(menu => {
+                if (!e.target.closest('.category-dropdown')) {
+                    menu.style.display = 'none';
+                }
+            });
+        });
+
         // Search input
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {

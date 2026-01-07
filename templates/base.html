@@ -1414,7 +1414,14 @@
                     <h4 class="footer-heading">Platform</h4>
                     <ul class="footer-links">
                         <li><a href="/gigs">Cari Gig</a></li>
-                        <li><a href="/kategori">Kategori</a></li>
+                            <div class="nav-item dropdown category-dropdown" style="position: relative; list-style: none;">
+                                <a href="#" class="nav-link category-trigger" style="cursor: pointer;">Kategori</a>
+                                <div class="dropdown-menu category-menu" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 10000; min-width: 280px; padding: 12px 0; border: 1px solid rgba(0,0,0,0.05);">
+                                    <div id="navCategoriesListBase" style="max-height: 450px; overflow-y: auto;">
+                                        <!-- Populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
                         <li><a href="/cara-kerja">Cara Kerja</a></li>
                         <li><a href="/pricing">{% if lang == 'ms' %}Harga{% else %}Pricing{% endif %}</a></li>
                     </ul>

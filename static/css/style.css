@@ -63,6 +63,32 @@ body {
     padding: 16px 0;
 }
 
+.category-dropdown:hover .category-menu {
+    display: block !important;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin: 4px 12px;
+}
+
+.category-item:hover {
+    background: #f0fdf4;
+    color: #2D9B7B;
+    transform: translateX(5px);
+}
+
+.nav-link.category-trigger {
+    cursor: pointer;
+}
+
 .navbar .container {
     display: flex;
     justify-content: space-between;
