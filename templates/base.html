@@ -1382,7 +1382,7 @@
             </div>
             {% endif %}
 
-            <nav class="header-nav" style="display: none !important;">
+            <nav class="header-nav" style="display: flex !important; gap: 8px !important; margin-left: 12px !important;">
                 {% if user %}
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
                     {% if user.user_type in ['client', 'both'] %}

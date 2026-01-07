@@ -1901,15 +1901,23 @@ body {
 @media (max-width: 480px) {
     .header-nav, 
     .header-nav * {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        width: 0 !important;
-        height: 0 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: auto !important;
+        height: auto !important;
+        position: static !important;
         margin: 0 !important;
         padding: 0 !important;
-        position: absolute !important;
+    }
+    .header-nav {
+        gap: 8px !important;
+        margin-left: 12px !important;
+    }
+    .nav-link {
+        font-size: 11px !important;
+        white-space: nowrap !important;
     }
     .lang-switcher {
         display: none !important;
