@@ -313,6 +313,10 @@
             cursor: pointer;
         }
 
+        .user-dropdown.show {
+            display: block;
+        }
+
         .user-dropdown {
             position: absolute;
             top: 100%;
@@ -1362,6 +1366,8 @@
                         <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
                         <div class="user-dropdown" id="userDropdown">
                             <a href="/dashboard" class="dropdown-item">{{ t('nav_dashboard') }}</a>
+                            <a href="/public-profile/{{ user.username }}" class="dropdown-item">{{ t('nav_profile') }}</a>
+                            <a href="/portfolio" class="dropdown-item">{{ t('nav_portfolio') }}</a>
                             <a href="/messages" class="dropdown-item">{{ t('nav_messages') }}</a>
                             <a href="/accepted-gigs" class="dropdown-item">{{ t('nav_accepted_gigs') }}</a>
                             <a href="/escrow" class="dropdown-item">{{ t('nav_escrow') }}</a>
