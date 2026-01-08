@@ -1475,15 +1475,17 @@
             </a>
 
             {% if not user %}
-            <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: flex-end; gap: 12px;">
+            <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <img src="/static/images/logo.png" alt="GigHala" style="height: 24px; width: 24px; border-radius: 50%; object-fit: contain;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <button class="pwa-auth-btn" onclick="app.showLogin()">Log Masuk</button>
                     <button class="pwa-auth-btn" onclick="app.showRegister()">Daftar</button>
-                </div>
-                <div class="date-content" style="color: #ccc; font-size: 11px; margin-left: 10px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
-                    <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
-                    <span class="gregorian-date">{{ today_gregorian }}</span>
+                    <div class="date-content" style="color: #ccc; font-size: 11px; margin-left: 10px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
+                        <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
+                        <span class="gregorian-date">{{ today_gregorian }}</span>
+                    </div>
                 </div>
             </div>
             <style>
