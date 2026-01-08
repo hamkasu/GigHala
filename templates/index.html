@@ -9,7 +9,44 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 </head>
-<body>
+<body style="background: linear-gradient(135deg, #001233 0%, #001a4d 25%, #002966 50%, #001a4d 75%, #001233 100%); position: relative; overflow-x: hidden;">
+    <!-- Animated flowing curves background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;">
+        <div style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(ellipse at 20% 30%, rgba(0, 200, 255, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(64, 156, 255, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 40% 80%, rgba(0, 150, 255, 0.1) 0%, transparent 60%); animation: flowingCurves 20s ease-in-out infinite;"></div>
+        <div style="position: absolute; width: 150%; height: 150%; bottom: -25%; right: -25%; background: radial-gradient(ellipse at 60% 40%, rgba(0, 180, 255, 0.18) 0%, transparent 55%), radial-gradient(ellipse at 30% 60%, rgba(100, 200, 255, 0.12) 0%, transparent 50%); animation: flowingCurves 25s ease-in-out infinite reverse;"></div>
+        <!-- Curved light streaks -->
+        <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3;">
+            <defs>
+                <linearGradient id="curveGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(0, 200, 255, 0.4);stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:rgba(64, 180, 255, 0.6);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(0, 150, 255, 0.2);stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="curveGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(80, 200, 255, 0.3);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(0, 180, 255, 0.1);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path d="M-100,200 Q300,100 800,300 T1600,400" stroke="url(#curveGradient1)" stroke-width="3" fill="none" style="animation: pathFlow 15s ease-in-out infinite;">
+                <animate attributeName="d" dur="15s" repeatCount="indefinite" values="M-100,200 Q300,100 800,300 T1600,400; M-100,250 Q350,150 850,280 T1600,450; M-100,200 Q300,100 800,300 T1600,400"/>
+            </path>
+            <path d="M1600,600 Q1200,400 600,650 T-200,700" stroke="url(#curveGradient2)" stroke-width="4" fill="none" opacity="0.6">
+                <animate attributeName="d" dur="18s" repeatCount="indefinite" values="M1600,600 Q1200,400 600,650 T-200,700; M1600,650 Q1250,450 650,620 T-200,750; M1600,600 Q1200,400 600,650 T-200,700"/>
+            </path>
+        </svg>
+    </div>
+    <style>
+        @keyframes flowingCurves {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            25% { transform: translate(5%, -5%) rotate(1deg); opacity: 0.9; }
+            50% { transform: translate(-3%, 5%) rotate(-1deg); opacity: 1; }
+            75% { transform: translate(5%, 3%) rotate(0.5deg); opacity: 0.95; }
+        }
+        @keyframes pathFlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+    </style>
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar" style="background: #06402B; text-align: right; padding: 10px 24px; font-size: 14px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
