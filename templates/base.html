@@ -1426,11 +1426,6 @@
 
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar">
-        <div class="date-content">
-            <span class="hijri-date">{{ today_hijri }}</span>
-            <span class="date-separator">:</span>
-            <span class="gregorian-date">{{ today_gregorian }}</span>
-        </div>
         {% if user %}
         <div class="user-email-bar">
             {{ user.email }}
@@ -1480,13 +1475,17 @@
             </a>
 
             {% if not user %}
-            <div class="header-nav pwa-only-flex" style="display: none;">
+            <div class="header-nav pwa-only-flex" style="display: none; align-items: center; gap: 8px;">
+                <div class="date-content" style="color: #ccc; font-size: 11px; margin-right: 10px; text-align: right; display: flex; flex-direction: column; line-height: 1.2;">
+                    <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
+                    <span class="gregorian-date">{{ today_gregorian }}</span>
+                </div>
                 <button class="pwa-auth-btn" onclick="app.showLogin()">Log Masuk</button>
                 <button class="pwa-auth-btn" onclick="app.showRegister()">Daftar</button>
             </div>
             <style>
                 @media (display-mode: standalone) {
-                    .pwa-only-flex { display: flex !important; gap: 8px; }
+                    .pwa-only-flex { display: flex !important; }
                 }
             </style>
             {% endif %}
