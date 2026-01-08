@@ -164,16 +164,24 @@
 
         .user-dashboard {
             flex: 1;
-            max-width: 800px;
             display: flex;
             gap: 10.8px;
             align-items: center;
+            justify-content: flex-end;
+            min-width: 0;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE/Edge */
+        }
+
+        .user-dashboard::-webkit-scrollbar {
+            display: none; /* Chrome/Safari/Opera */
         }
 
         .action-button {
-            padding: 9px 18px;
+            padding: 8px 14px;
             border-radius: var(--radius-md);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
