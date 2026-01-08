@@ -734,7 +734,7 @@
 {% block content %}
 <div class="welcome-header">
     <h1>
-        <span>{{ t('welcome_back') }}, {{ user.full_name or user.username }}</span>
+        <span>{{ t('welcome_back') }}</span>
         {% if user.is_verified %}
         <span class="verified-badge-header">✓ Verified</span>
         {% else %}
