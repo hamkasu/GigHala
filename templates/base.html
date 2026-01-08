@@ -192,6 +192,29 @@
             white-space: nowrap;
         }
 
+        .btn-browse {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-browse:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: white;
+        }
+
+        .btn-messages {
+            background: #FFFFFF;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-messages:hover {
+            background: var(--primary);
+            color: #FFFFFF;
+        }
+
         .btn-post-gig {
             background: #FFFFFF;
             color: #00C853;
@@ -237,6 +260,29 @@
             align-items: center;
             justify-content: center;
             white-space: nowrap;
+        }
+
+        .btn-browse {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-browse:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: white;
+        }
+
+        .btn-messages {
+            background: #FFFFFF;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-messages:hover {
+            background: var(--primary);
+            color: #FFFFFF;
         }
 
         .btn-post-gig {
@@ -1479,6 +1525,8 @@
                     </div>
                 </a>
 
+                <a href="/gigs" class="action-button btn-browse">Browse Gigs</a>
+                <a href="/messages" class="action-button btn-messages">Messages</a>
                 <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
                 
                 {% if user.is_admin %}
