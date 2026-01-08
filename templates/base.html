@@ -1532,22 +1532,6 @@
                 {% if user.is_admin %}
                 <a href="/admin" class="action-button btn-admin-dash">Admin</a>
                 {% endif %}
-
-                <div class="user-menu" style="display: flex; position: relative;">
-                    <div class="user-avatar" onclick="toggleUserDropdown()" style="width: 36px; height: 36px; cursor: pointer; border: 1px solid var(--border); background: var(--primary); display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                        <i data-feather="user" style="width: 20px; height: 20px; color: white;"></i>
-                    </div>
-                    <div class="user-dropdown" id="userDropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); z-index: 1000; min-width: 180px;">
-                        <a href="/dashboard" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('nav_dashboard') }}</a>
-                        <a href="/messages" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('nav_messages') }}</a>
-                        <a href="/accepted-gigs" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('nav_accepted_gigs') }}</a>
-                        <a href="/escrow" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('nav_escrow') }}</a>
-                        <a href="/documents" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('nav_documents') }}</a>
-                        <a href="/settings" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('nav_settings') }}</a>
-                        <div class="dropdown-divider" style="height: 1px; background: var(--border); margin: 4px 0;"></div>
-                        <a href="/api/logout" class="dropdown-item" style="display: block; padding: 12px 16px; color: var(--text-dark); font-size: 14px; text-decoration: none;">{{ t('logout') }}</a>
-                    </div>
-                </div>
                 
                 <a href="/api/logout" class="action-button btn-logout-nav">Logout</a>
             </div>
