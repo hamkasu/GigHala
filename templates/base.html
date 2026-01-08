@@ -1460,14 +1460,6 @@
                 </a>
                 {% endif %}
 
-                <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
-                
-                {% if user.is_admin %}
-                <a href="/admin" class="action-button btn-admin-dash">Admin Dashboard</a>
-                {% endif %}
-                
-                <a href="/logout" class="action-button btn-logout-nav">Logout</a>
-
                 <a href="/portfolio" class="dashboard-stat" style="text-decoration: none;">
                     <div class="dashboard-stat-label">{% if lang == 'ms' %}Penarafan{% else %}Rating{% endif %}</div>
                     <div class="dashboard-stat-value">
@@ -1478,6 +1470,14 @@
                         {% endif %}
                     </div>
                 </a>
+
+                <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
+                
+                {% if user.is_admin %}
+                <a href="/admin" class="action-button btn-admin-dash">Admin Dashboard</a>
+                {% endif %}
+                
+                <a href="/logout" class="action-button btn-logout-nav">Logout</a>
             </div>
             {% endif %}
 
