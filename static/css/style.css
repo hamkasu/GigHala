@@ -40,7 +40,7 @@ html, body {
 body {
     font-family: var(--font-primary);
     color: var(--text-dark);
-    background-color: var(--soft-cream);
+    background-color: transparent;
     line-height: 1.6;
 }
 
@@ -336,7 +336,7 @@ body {
 .hero {
     position: relative;
     padding: 120px 0 160px;
-    background: linear-gradient(135deg, #FFF8F0 0%, #E8F5E9 50%, #D4F1E8 100%);
+    background: transparent;
     overflow: hidden;
 }
 
@@ -788,7 +788,7 @@ body {
 /* Categories Section */
 .categories-section {
     padding: 100px 0;
-    background: white;
+    background: transparent;
 }
 
 .section-header {
@@ -799,13 +799,15 @@ body {
 .section-title {
     font-family: var(--font-display);
     font-size: 48px;
-    color: var(--dark-navy);
+    color: white;
     margin-bottom: 16px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .section-subtitle {
     font-size: 18px;
-    color: var(--text-gray);
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .categories-grid {
@@ -863,7 +865,7 @@ body {
 /* Gigs Section */
 .gigs-section {
     padding: 20px 0 100px;
-    background: var(--soft-cream);
+    background: transparent;
 }
 
 .gigs-filters {
@@ -1082,7 +1084,7 @@ body {
 /* How It Works */
 .how-it-works {
     padding: 100px 0;
-    background: white;
+    background: transparent;
 }
 
 .steps-grid {
@@ -1144,7 +1146,7 @@ body {
 /* Testimonials */
 .testimonials-section {
     padding: 100px 0;
-    background: linear-gradient(135deg, var(--soft-cream) 0%, #E8F5E9 100%);
+    background: transparent;
 }
 
 .testimonials-grid {
@@ -1214,7 +1216,7 @@ body {
 /* Benefits Section */
 .benefits-section {
     padding: 60px 0 20px;
-    background: linear-gradient(135deg, white 0%, #F5F5F5 100%);
+    background: transparent;
 }
 
 .benefits-grid {
