@@ -814,25 +814,6 @@
         </div>
     </a>
 
-    <a href="/portfolio" class="stat-card-link">
-        <div class="stat-card orange">
-            <div class="stat-label">{{ t('your_rating') }}</div>
-            <div class="stat-value">
-                {% if user.review_count > 0 %}
-                {{ "%.1f"|format(user.rating) }} ⭐
-                {% else %}
-                {{ t('no_ratings_yet') }}
-                {% endif %}
-            </div>
-            <div class="stat-description">
-                {% if user.review_count > 0 %}
-                {{ t('based_on_review' if user.review_count == 1 else 'based_on_reviews', count=user.review_count) }}
-                {% else %}
-                {{ t('complete_gigs_rated') }}
-                {% endif %}
-            </div>
-        </div>
-    </a>
 
     {% if user.user_type in ['freelancer', 'both'] and socso_data.membership_number %}
     <a href="/billing" class="stat-card-link">
