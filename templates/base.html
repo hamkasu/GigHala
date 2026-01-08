@@ -1532,6 +1532,21 @@
                 {% if user.is_admin %}
                 <a href="/admin" class="action-button btn-admin-dash">Admin Dashboard</a>
                 {% endif %}
+
+                <div class="user-menu" style="display: flex;">
+                    <div class="user-avatar" onclick="toggleUserDropdown()" style="width: 36px; height: 36px; cursor: pointer; border: 1px solid var(--border);">{{ user.username[:2]|upper }}</div>
+                    <div class="user-dropdown" id="userDropdown" style="top: 100%; right: 0; margin-top: 8px;">
+                        <a href="/dashboard" class="dropdown-item">{{ t('nav_dashboard') }}</a>
+                        <a href="/portfolio" class="dropdown-item">Portfolio</a>
+                        <a href="/messages" class="dropdown-item">{{ t('nav_messages') }}</a>
+                        <a href="/accepted-gigs" class="dropdown-item">{{ t('nav_accepted_gigs') }}</a>
+                        <a href="/escrow" class="dropdown-item">{{ t('nav_escrow') }}</a>
+                        <a href="/documents" class="dropdown-item">{{ t('nav_documents') }}</a>
+                        <a href="/settings" class="dropdown-item">{{ t('nav_settings') }}</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="/api/logout" class="dropdown-item">{{ t('logout') }}</a>
+                    </div>
+                </div>
                 
                 <a href="/api/logout" class="action-button btn-logout-nav">Logout</a>
             </div>
