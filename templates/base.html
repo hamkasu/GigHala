@@ -1534,7 +1534,7 @@
                 {% endif %}
 
                 <div class="user-menu" style="display: flex;">
-                    <div class="user-avatar" onclick="toggleUserDropdown()" style="width: 36px; height: 36px; cursor: pointer; border: 1px solid var(--border);">{{ user.username[:2]|upper }}</div>
+                    <div class="user-avatar" onclick="toggleUserDropdown()" style="width: 36px; height: 36px; cursor: pointer; border: 1px solid var(--border);"></div>
                     <div class="user-dropdown" id="userDropdown" style="top: 100%; right: 0; margin-top: 8px;">
                         <a href="/portfolio" class="dropdown-item">Portfolio</a>
                         <a href="/messages" class="dropdown-item">{{ t('nav_messages') }}</a>
