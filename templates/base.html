@@ -164,10 +164,104 @@
 
         .user-dashboard {
             flex: 1;
-            max-width: 540px;
+            max-width: 800px;
             display: flex;
             gap: 10.8px;
             align-items: center;
+        }
+
+        .action-button {
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-post-gig {
+            background: #FFFFFF;
+            color: #00C853;
+            border: 1px solid #00C853;
+        }
+
+        .btn-post-gig:hover {
+            background: #00C853;
+            color: #FFFFFF;
+        }
+
+        .btn-admin-dash {
+            background: #FFFFFF;
+            color: #00C853;
+            border: 1px solid #00C853;
+        }
+
+        .btn-admin-dash:hover {
+            background: #00C853;
+            color: #FFFFFF;
+        }
+
+        .btn-logout-nav {
+            background: #FFFFFF;
+            color: #F74040;
+            border: 1px solid #F74040;
+        }
+
+        .btn-logout-nav:hover {
+            background: #F74040;
+            color: #FFFFFF;
+        }
+
+        .action-button {
+            padding: 9px 18px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .btn-post-gig {
+            background: #FFFFFF;
+            color: #00C853;
+            border: 1px solid #00C853;
+        }
+
+        .btn-post-gig:hover {
+            background: #00C853;
+            color: #FFFFFF;
+        }
+
+        .btn-admin-dash {
+            background: #FFFFFF;
+            color: #00C853;
+            border: 1px solid #00C853;
+        }
+
+        .btn-admin-dash:hover {
+            background: #00C853;
+            color: #FFFFFF;
+        }
+
+        .btn-logout-nav {
+            background: #FFFFFF;
+            color: #F74040;
+            border: 1px solid #F74040;
+        }
+
+        .btn-logout-nav:hover {
+            background: #F74040;
+            color: #FFFFFF;
         }
 
         .dashboard-stat {
@@ -1351,6 +1445,14 @@
                         <span class="currency" style="margin-right: 8px;">MYR</span>{{ "%.2f"|format(wallet.balance if wallet else 0) }}
                     </div>
                 </a>
+
+                <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
+                
+                {% if user.is_admin %}
+                <a href="/admin" class="action-button btn-admin-dash">Admin Dashboard</a>
+                {% endif %}
+                
+                <a href="/logout" class="action-button btn-logout-nav">Logout</a>
 
                 {% if user.user_type in ['freelancer', 'both'] %}
                 <a href="/accepted-gigs" class="dashboard-stat" style="text-decoration: none;">
