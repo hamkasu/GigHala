@@ -494,3 +494,17 @@ sqlalchemy
 stripe
 twilio
 werkzeug
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-cors
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+python-dotenv
+sqlalchemy
+werkzeug
