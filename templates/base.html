@@ -1476,12 +1476,12 @@
 
             {% if not user %}
             <div class="header-nav pwa-only-flex" style="display: none; align-items: center; gap: 8px;">
-                <div class="date-content" style="color: #ccc; font-size: 11px; margin-right: 10px; text-align: right; display: flex; flex-direction: column; line-height: 1.2;">
+                <button class="pwa-auth-btn" onclick="app.showLogin()">Log Masuk</button>
+                <button class="pwa-auth-btn" onclick="app.showRegister()">Daftar</button>
+                <div class="date-content" style="color: #ccc; font-size: 11px; margin-left: 10px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
                     <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
                     <span class="gregorian-date">{{ today_gregorian }}</span>
                 </div>
-                <button class="pwa-auth-btn" onclick="app.showLogin()">Log Masuk</button>
-                <button class="pwa-auth-btn" onclick="app.showRegister()">Daftar</button>
             </div>
             <style>
                 @media (display-mode: standalone) {
