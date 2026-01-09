@@ -1408,33 +1408,6 @@
 
     <header class="header">
         <div class="header-top">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <a href="/" class="logo">
-                    <img src="/static/images/logo.png" alt="GigHala" class="logo-icon" style="height: 32px; width: 32px; border-radius: 50%; object-fit: contain;">
-                    <span>GigHala</span>
-                    <span class="halal-badge-nav">HALAL</span>
-                </a>
-                
-                {% if user %}
-                <div class="header-buttons" style="display: flex; align-items: center; gap: 8px;">
-                    <a href="/gigs" class="action-button btn-browse" style="background: #00C853; color: white; border: none;">Browse Gigs</a>
-                    <a href="/messages" class="action-button btn-messages" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">Messages</a>
-                    <a href="/billing" class="action-button btn-wallet" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">View Wallet</a>
-                    <a href="/messages?admin=true" class="action-button btn-message-admin" style="background: #00A3FF; color: white; border: none; display: flex; align-items: center; gap: 5px;">
-                        <span>💬</span> Message Admin
-                    </a>
-                    <span title="Balance" style="font-size: 18px; margin: 0 5px;">💰</span>
-                    
-                    <div style="margin-left: 15px; display: flex; align-items: center; gap: 8px;">
-                        <a href="/post-gig" class="action-button btn-post-gig" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">Post a Gig</a>
-                        {% if user.is_admin %}
-                        <a href="/admin" class="action-button btn-admin-dash" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">Admin Dashboard</a>
-                        {% endif %}
-                        <a href="/api/logout" class="action-button btn-logout-nav" style="background: white; color: #A80000; border: 1px solid #e0e0e0;">Logout</a>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
             {% if not user %}
             <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: space-between; gap: 14px; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 9px;">
