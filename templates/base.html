@@ -1605,10 +1605,10 @@
         
     </header>
 
-    <!-- Immediate PWA Header Hide Script - Runs ASAP -->
+    <!-- Immediate PWA Header Remove Script - Runs ASAP -->
     <script>
     (function() {
-        // Immediate detection and hiding - runs before page fully loads
+        // Immediate detection and removal - runs before page fully loads
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                            window.matchMedia('(display-mode: fullscreen)').matches ||
                            window.matchMedia('(display-mode: minimal-ui)').matches ||
@@ -1623,24 +1623,39 @@
         });
 
         if (isStandalone) {
-            console.log('PWA mode detected - hiding header immediately');
+            console.log('PWA mode detected - REMOVING header from DOM completely');
 
             // Get all header elements
             const dateBar = document.querySelector('.date-bar');
             const header = document.querySelector('.header');
             const userEmailBars = document.querySelectorAll('.user-email-bar');
 
-            // Hide them immediately with inline styles
-            [dateBar, header, ...userEmailBars].forEach(el => {
+            // REMOVE them completely from the DOM (not just hide)
+            if (dateBar) {
+                console.log('Removing .date-bar from DOM');
+                dateBar.remove();
+            }
+            if (header) {
+                console.log('Removing .header from DOM');
+                header.remove();
+            }
+            userEmailBars.forEach(el => {
                 if (el) {
-                    el.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; max-height: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; pointer-events: none !important;';
-                    console.log('Hidden element:', el.className);
+                    console.log('Removing .user-email-bar from DOM');
+                    el.remove();
                 }
             });
 
             // Add body class
             document.body.classList.add('pwa-standalone-mode');
-            console.log('Added pwa-standalone-mode class to body');
+
+            // Adjust main content padding
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.paddingTop = '16px';
+            }
+
+            console.log('Header elements completely removed from DOM');
         } else {
             console.log('Not in PWA mode - header will remain visible');
         }
@@ -1762,8 +1777,8 @@
             return originalFetch(url, options);
         };
 
-        // Hide header in PWA mode - JavaScript enforcement
-        function hidePWAHeader() {
+        // Remove header in PWA mode - JavaScript enforcement
+        function removePWAHeader() {
             // Check if running as PWA (standalone mode)
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                                window.matchMedia('(display-mode: fullscreen)').matches ||
@@ -1771,19 +1786,12 @@
                                window.navigator.standalone === true;
 
             if (isStandalone) {
-                // Force hide all header elements
-                const elementsToHide = document.querySelectorAll('.date-bar, .header, .user-email-bar');
-                elementsToHide.forEach(el => {
+                // Force REMOVE all header elements from DOM
+                const elementsToRemove = document.querySelectorAll('.date-bar, .header, .user-email-bar');
+                elementsToRemove.forEach(el => {
                     if (el) {
-                        el.style.setProperty('display', 'none', 'important');
-                        el.style.setProperty('visibility', 'hidden', 'important');
-                        el.style.setProperty('opacity', '0', 'important');
-                        el.style.setProperty('height', '0', 'important');
-                        el.style.setProperty('max-height', '0', 'important');
-                        el.style.setProperty('overflow', 'hidden', 'important');
-                        el.style.setProperty('position', 'absolute', 'important');
-                        el.style.setProperty('left', '-9999px', 'important');
-                        el.style.setProperty('pointer-events', 'none', 'important');
+                        el.remove();
+                        console.log('Removed element from DOM (DOMContentLoaded):', el.className);
                     }
                 });
 
@@ -1793,16 +1801,16 @@
                 // Adjust main content padding
                 const mainContent = document.querySelector('.main-content');
                 if (mainContent) {
-                    mainContent.style.setProperty('padding-top', '16px', 'important');
+                    mainContent.style.paddingTop = '16px';
                 }
             }
         }
 
         // Run on page load
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', hidePWAHeader);
+            document.addEventListener('DOMContentLoaded', removePWAHeader);
         } else {
-            hidePWAHeader();
+            removePWAHeader();
         }
 
         // Initialize the app when DOM is ready
