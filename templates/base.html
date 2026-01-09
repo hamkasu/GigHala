@@ -1393,12 +1393,7 @@
     <div class="date-bar">
         {% if user %}
         <div class="user-email-bar">
-            <div style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="/static/images/logo.png" alt="GigHala" style="height: 24px; width: 24px; border-radius: 50%; object-fit: contain;">
-                    <span style="font-weight: 700; color: #ffffff; font-size: 14px;">GigHala</span>
-                    <span style="background: #00C853; color: white; font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: 700;">HALAL</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: flex-end;">
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
                     <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
                         <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
@@ -1413,11 +1408,6 @@
 
     <header class="header">
         <div class="header-top">
-            <a href="/" class="logo">
-                <img src="/static/images/logo.png" alt="GigHala" class="logo-icon" style="height: 32px; width: 32px; border-radius: 50%; object-fit: contain;">
-                <span>GigHala</span>
-                <span class="halal-badge-nav">HALAL</span>
-            </a>
             {% if not user %}
             <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: space-between; gap: 14px; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 9px;">
