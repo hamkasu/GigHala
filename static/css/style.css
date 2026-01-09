@@ -42,6 +42,7 @@ body {
     color: var(--text-dark);
     background-color: transparent;
     line-height: 1.6;
+    font-size: 0.85rem;
 }
 
 .container {
