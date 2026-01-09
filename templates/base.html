@@ -771,6 +771,25 @@
             }
         }
 
+        /* Additional protection when body has pwa-standalone-mode class */
+        body.pwa-standalone-mode .date-bar,
+        body.pwa-standalone-mode .header,
+        body.pwa-standalone-mode .user-email-bar {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+            pointer-events: none !important;
+        }
+
+        body.pwa-standalone-mode .main-content {
+            padding-top: 16px !important;
+        }
+
         /* Additional check for iOS/Android home screen shortcuts and general mobile devices */
         @media screen and (max-width: 768px) {
             body.pwa-mode .social-icons-wrapper,
@@ -1586,6 +1605,48 @@
         
     </header>
 
+    <!-- Immediate PWA Header Hide Script - Runs ASAP -->
+    <script>
+    (function() {
+        // Immediate detection and hiding - runs before page fully loads
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                           window.matchMedia('(display-mode: fullscreen)').matches ||
+                           window.matchMedia('(display-mode: minimal-ui)').matches ||
+                           window.navigator.standalone === true;
+
+        console.log('PWA Detection:', {
+            standalone: window.matchMedia('(display-mode: standalone)').matches,
+            fullscreen: window.matchMedia('(display-mode: fullscreen)').matches,
+            minimal: window.matchMedia('(display-mode: minimal-ui)').matches,
+            navigatorStandalone: window.navigator.standalone,
+            isPWA: isStandalone
+        });
+
+        if (isStandalone) {
+            console.log('PWA mode detected - hiding header immediately');
+
+            // Get all header elements
+            const dateBar = document.querySelector('.date-bar');
+            const header = document.querySelector('.header');
+            const userEmailBars = document.querySelectorAll('.user-email-bar');
+
+            // Hide them immediately with inline styles
+            [dateBar, header, ...userEmailBars].forEach(el => {
+                if (el) {
+                    el.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; max-height: 0 !important; overflow: hidden !important; position: absolute !important; left: -9999px !important; pointer-events: none !important;';
+                    console.log('Hidden element:', el.className);
+                }
+            });
+
+            // Add body class
+            document.body.classList.add('pwa-standalone-mode');
+            console.log('Added pwa-standalone-mode class to body');
+        } else {
+            console.log('Not in PWA mode - header will remain visible');
+        }
+    })();
+    </script>
+
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
@@ -1700,6 +1761,49 @@
             }
             return originalFetch(url, options);
         };
+
+        // Hide header in PWA mode - JavaScript enforcement
+        function hidePWAHeader() {
+            // Check if running as PWA (standalone mode)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                               window.matchMedia('(display-mode: fullscreen)').matches ||
+                               window.matchMedia('(display-mode: minimal-ui)').matches ||
+                               window.navigator.standalone === true;
+
+            if (isStandalone) {
+                // Force hide all header elements
+                const elementsToHide = document.querySelectorAll('.date-bar, .header, .user-email-bar');
+                elementsToHide.forEach(el => {
+                    if (el) {
+                        el.style.setProperty('display', 'none', 'important');
+                        el.style.setProperty('visibility', 'hidden', 'important');
+                        el.style.setProperty('opacity', '0', 'important');
+                        el.style.setProperty('height', '0', 'important');
+                        el.style.setProperty('max-height', '0', 'important');
+                        el.style.setProperty('overflow', 'hidden', 'important');
+                        el.style.setProperty('position', 'absolute', 'important');
+                        el.style.setProperty('left', '-9999px', 'important');
+                        el.style.setProperty('pointer-events', 'none', 'important');
+                    }
+                });
+
+                // Add class to body for CSS targeting
+                document.body.classList.add('pwa-standalone-mode');
+
+                // Adjust main content padding
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.style.setProperty('padding-top', '16px', 'important');
+                }
+            }
+        }
+
+        // Run on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', hidePWAHeader);
+        } else {
+            hidePWAHeader();
+        }
 
         // Initialize the app when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
