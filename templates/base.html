@@ -1407,6 +1407,37 @@
     {% endblock %}
 </head>
 <body>
+    <!-- CRITICAL: PWA Header Removal - Must run FIRST, before any content renders -->
+    <script>
+    (function() {
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                     window.matchMedia('(display-mode: fullscreen)').matches ||
+                     window.matchMedia('(display-mode: minimal-ui)').matches ||
+                     window.navigator.standalone === true;
+
+        if (isPWA) {
+            document.documentElement.classList.add('is-pwa');
+            // Inject CSS immediately to hide header before it renders
+            const style = document.createElement('style');
+            style.textContent = `
+                .date-bar, .header, .user-email-bar {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    overflow: hidden !important;
+                    position: absolute !important;
+                    left: -99999px !important;
+                }
+                .main-content {
+                    padding-top: 16px !important;
+                }
+            `;
+            document.head.appendChild(style);
+            console.log('PWA detected - injected CSS to hide header');
+        }
+    })();
+    </script>
+
     <!-- PWA Install Banner (Mobile Optimized) -->
     <div id="pwaOnboardingBanner" class="pwa-install-banner">
         <div class="pwa-header">
