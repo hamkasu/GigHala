@@ -1538,15 +1538,20 @@
                     </div>
                 </a>
 
-                <a href="/messages" class="action-button btn-messages">Messages</a>
-                <a href="/gigs" class="action-button btn-browse" style="margin: 0 5px; background: #1DBF73; color: #fff;">Browse Gigs</a>
+                <a href="/dashboard" class="action-button btn-user-dash" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">User Dashboard</a>
                 <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
+                <a href="/gigs" class="action-button btn-browse" style="margin: 0 5px; background: #1DBF73; color: #fff;">Browse Gigs</a>
+                <a href="/messages" class="action-button btn-messages" style="margin-right: 5px; background: #1DBF73; color: #fff;">Messages</a>
+                <a href="/billing" class="action-button btn-wallet" style="margin-right: 5px; background: #fff; color: #1DBF73; border: 1px solid #1DBF73;">View Wallet</a>
                 
                 {% if user.is_admin %}
-                <a href="/admin" class="action-button btn-admin-dash">Admin</a>
+                <a href="/admin" class="action-button btn-admin-dash">Admin Dashboard</a>
                 {% endif %}
                 
-                <a href="/api/logout" class="action-button btn-logout-nav">Logout</a>
+                <a href="/escrow" class="action-button btn-escrow" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Escrow</a>
+                <a href="/portfolio" class="action-button btn-portfolio" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Portfolio</a>
+                <a href="/documents" class="action-button btn-documents" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Documentation</a>
+                <a href="/api/logout" class="action-button btn-logout-nav" style="background: #fff; color: #F74040; border: 1px solid #F74040;">Logout</a>
             </div>
             {% endif %}
 
