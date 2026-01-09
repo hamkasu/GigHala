@@ -1395,12 +1395,17 @@
         {% if user %}
         <div class="user-email-bar">
             <div style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: flex-end;">
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
-                    <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
-                        <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
-                        <span class="gregorian-date" style="color: #ffffff;">{{ today_gregorian }}</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="/api/logout" style="color: #ff4d4d; font-size: 11px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255, 77, 77, 0.3); padding: 2px 8px; border-radius: 4px; background: rgba(255, 77, 77, 0.05);">
+                        <i data-feather="log-out" style="width: 12px; height: 12px;"></i> Logout
+                    </a>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                        <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
+                            <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
+                            <span class="gregorian-date" style="color: #ffffff;">{{ today_gregorian }}</span>
+                        </div>
+                        <span style="color: #ffffff; font-size: 11px;">{{ user.email }}</span>
                     </div>
-                    <span style="color: #ffffff; font-size: 11px;">{{ user.email }}</span>
                 </div>
             </div>
         </div>
