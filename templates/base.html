@@ -1236,12 +1236,16 @@
         }
 
         .user-email-bar {
+            background: #ffffff;
+            color: var(--text-gray);
+            padding: 8px 16px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: flex-end;
-            padding-right: 24px;
-            padding-top: 4px;
-            font-size: 11px;
-            color: rgba(255,255,255,0.6);
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
         }
 
         @media (max-width: 480px) {
@@ -1388,7 +1392,11 @@
     <div class="date-bar">
         {% if user %}
         <div class="user-email-bar">
-            {{ user.email }}
+            <span>{{ user.email }}</span>
+            <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
+                <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
+                <span class="gregorian-date">{{ today_gregorian }}</span>
+            </div>
         </div>
         {% endif %}
     </div>
