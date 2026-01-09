@@ -1471,13 +1471,6 @@
 
     <header class="header">
         <div class="header-top">
-            <a href="{% if user %}/dashboard{% else %}/{% endif %}" class="logo">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="/static/images/logo.png" alt="GigHala" style="height: 50px; width: 50px; border-radius: 50%; object-fit: contain;">
-                    <span style="font-size: 27px;">GigHala</span>
-                </div>
-            </a>
-
             {% if not user %}
             <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: space-between; gap: 14px; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 9px;">
