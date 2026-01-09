@@ -162,6 +162,10 @@ body {
     font-weight: 500;
     font-size: 15px;
     transition: color 0.3s ease;
+    padding: 4px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .nav-link:hover {
