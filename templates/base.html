@@ -1525,7 +1525,10 @@
                 <a href="/escrow" class="action-button btn-escrow" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Escrow</a>
                 <a href="/portfolio" class="action-button btn-portfolio" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Portfolio</a>
                 <a href="/documents" class="action-button btn-documents" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Documentation</a>
-                <a href="/api/logout" class="action-button btn-logout-nav" style="background: #fff; color: #F74040; border: 1px solid #F74040;">Logout</a>
+                <div style="display: flex; align-items: center; gap: 10px; margin-left: 12px;">
+                    <span style="color: #ccc; font-size: 13px;">{{ user.email }}</span>
+                    <a href="/api/logout" class="action-button btn-logout-nav" style="background: #fff; color: #F74040; border: 1px solid #F74040; padding: 4px 10px; font-size: 12px;">Logout</a>
+                </div>
             </div>
             {% endif %}
 
