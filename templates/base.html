@@ -567,6 +567,7 @@
         }
 
         .header-categories {
+            display: none;
             background: var(--bg-white);
             border-bottom: 1px solid var(--border);
             position: relative;
@@ -1406,7 +1407,7 @@
         {% endif %}
     </div>
 
-    <header class="header">
+    <header class="header" style="display: none;">
         <div class="header-top">
             {% if not user %}
             <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: space-between; gap: 14px; width: 100%;">
