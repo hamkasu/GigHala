@@ -49,23 +49,27 @@
     </style>
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar" style="background: transparent; padding: 12px 28px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
-        <div style="display: flex; align-items: center; justify-content: flex-end; max-width: 1400px; margin: 0 auto; gap: 14px;">
-            <a href="#cari-gig" style="text-decoration: none;">
-                <button class="btn-primary" style="background: #0d7c66; color: white; border: none; padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap;">Latest Gigs</button>
-            </a>
-            <button class="btn-primary" onclick="app.showLogin()" style="background: #2D9B7B; color: white; border: none; padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap;">Log Masuk</button>
-            <button class="btn-primary" onclick="app.showRegister()" style="background: #2D9B7B; color: white; border: none; padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap;">Daftar Percuma</button>
-            <span style="color: #4ade80; font-weight: 600; font-size: 14px;">{{ today_hijri }}</span>
-            <span style="color: rgba(255,255,255,0.4); font-size: 14px;">|</span>
-            <span style="color: rgba(255,255,255,0.8); font-size: 14px;">{{ today_gregorian }}</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 14px;">
+            <!-- Logo on the left -->
+            <div style="flex-shrink: 0;">
+                <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 70px; height: 70px; display: block;">
+            </div>
+
+            <!-- Buttons and dates on the right -->
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <a href="#cari-gig" style="text-decoration: none;">
+                    <button class="btn-primary" style="background: #0d7c66; color: white; border: none; padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap;">Latest Gigs</button>
+                </a>
+                <button class="btn-primary" onclick="app.showLogin()" style="background: #2D9B7B; color: white; border: none; padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap;">Log Masuk</button>
+                <button class="btn-primary" onclick="app.showRegister()" style="background: #2D9B7B; color: white; border: none; padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap;">Daftar Percuma</button>
+                <span style="color: #4ade80; font-weight: 600; font-size: 14px;">{{ today_hijri }}</span>
+                <span style="color: rgba(255,255,255,0.4); font-size: 14px;">|</span>
+                <span style="color: rgba(255,255,255,0.8); font-size: 14px;">{{ today_gregorian }}</span>
+            </div>
         </div>
     </div>
 
     <div id="app">
-        <!-- Landing Page Logo -->
-        <div style="text-align: center; padding: 40px 20px; background: transparent;">
-            <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 180px; height: 180px; margin: 0 auto; display: block;">
-        </div>
 
         <!-- Navigation -->
         <nav class="navbar" style="display: none;">
