@@ -1408,6 +1408,33 @@
 
     <header class="header">
         <div class="header-top">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="/" class="logo">
+                    <img src="/static/images/logo.png" alt="GigHala" class="logo-icon" style="height: 32px; width: 32px; border-radius: 50%; object-fit: contain;">
+                    <span>GigHala</span>
+                    <span class="halal-badge-nav">HALAL</span>
+                </a>
+                
+                {% if user %}
+                <div class="header-buttons" style="display: flex; align-items: center; gap: 8px;">
+                    <a href="/gigs" class="action-button btn-browse" style="background: #00C853; color: white; border: none;">Browse Gigs</a>
+                    <a href="/messages" class="action-button btn-messages" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">Messages</a>
+                    <a href="/billing" class="action-button btn-wallet" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">View Wallet</a>
+                    <a href="/messages?admin=true" class="action-button btn-message-admin" style="background: #00A3FF; color: white; border: none; display: flex; align-items: center; gap: 5px;">
+                        <span>💬</span> Message Admin
+                    </a>
+                    <span title="Balance" style="font-size: 18px; margin: 0 5px;">💰</span>
+                    
+                    <div style="margin-left: 15px; display: flex; align-items: center; gap: 8px;">
+                        <a href="/post-gig" class="action-button btn-post-gig" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">Post a Gig</a>
+                        {% if user.is_admin %}
+                        <a href="/admin" class="action-button btn-admin-dash" style="background: white; color: #00C853; border: 1px solid #e0e0e0;">Admin Dashboard</a>
+                        {% endif %}
+                        <a href="/api/logout" class="action-button btn-logout-nav" style="background: white; color: #A80000; border: 1px solid #e0e0e0;">Logout</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
             {% if not user %}
             <div class="header-nav pwa-only-flex" style="display: none; align-items: center; justify-content: space-between; gap: 14px; width: 100%;">
                 <div style="display: flex; align-items: center; gap: 9px;">
@@ -1436,28 +1463,7 @@
             {% endif %}
 
             {% if user %}
-            <div class="user-dashboard" style="display: none; align-items: center; gap: 10.8px; justify-content: flex-end; flex: 1; padding: 12.6px 0;">
-                <a href="/post-gig" class="action-button btn-post-gig" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #1DBF73; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s;">Post a Gig</a>
-                <div class="date-content" style="color: #ccc; font-size: 11px; margin-right: 12px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
-                    <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
-                    <span class="gregorian-date">{{ today_gregorian }}</span>
-                </div>
-                <a href="/dashboard" class="action-button btn-user-dash" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">User Dashboard</a>
-                <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
-                <a href="/gigs" class="action-button btn-browse" style="margin: 0 5px; background: #1DBF73; color: #fff;">Browse Gigs</a>
-                <a href="/messages" class="action-button btn-messages" style="margin-right: 5px; background: #1DBF73; color: #fff;">Messages</a>
-                <a href="/billing" class="action-button btn-wallet" style="margin-right: 5px; background: #fff; color: #1DBF73; border: 1px solid #1DBF73;">View Wallet</a>
-                
-                {% if user.is_admin %}
-                <a href="/admin" class="action-button btn-admin-dash">Admin Dashboard</a>
-                {% endif %}
-                
-                <a href="/escrow" class="action-button btn-escrow" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Escrow</a>
-                <a href="/portfolio" class="action-button btn-portfolio" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Portfolio</a>
-                <a href="/documents" class="action-button btn-documents" style="margin-right: 5px; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border);">Documentation</a>
-                <div style="display: flex; align-items: center; gap: 10px; margin-left: 12px;">
-                    <a href="/api/logout" class="action-button btn-logout-nav" style="background: #fff; color: #F74040; border: 1px solid #F74040; padding: 4px 10px; font-size: 12px;">Logout</a>
-                </div>
+            <div class="user-dashboard" style="display: none;">
             </div>
             {% endif %}
 
