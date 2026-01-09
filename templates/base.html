@@ -745,15 +745,29 @@
             .user-email-bar div[style*="display: flex; align-items: center; gap: 15px;"] {
                 display: none !important;
             }
-            .user-email-bar a[style*="color: #00C853"], 
+            .user-email-bar a[style*="color: #00C853"],
             .user-email-bar a[style*="color: #ff4d4d"] {
                 display: none !important;
             }
-            /* Hide the entire date-bar/header area in PWA mode as requested */
+            /* Hide the entire date-bar/header area in PWA mode as requested - COMPLETE REMOVAL */
             .date-bar,
             .header,
-            .user-email-bar {
+            .user-email-bar,
+            body > .date-bar,
+            body > .header {
                 display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                max-height: 0 !important;
+                overflow: hidden !important;
+                position: absolute !important;
+                left: -9999px !important;
+            }
+
+            /* Ensure main content starts from the top when header is hidden */
+            .main-content {
+                padding-top: 16px !important;
             }
         }
 
