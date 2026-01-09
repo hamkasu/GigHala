@@ -731,6 +731,16 @@
             .nav-link[href*="about"] {
                 display: none !important;
             }
+            /* Hide header menu items in PWA mode as requested */
+            .user-email-bar a,
+            .user-email-bar .date-content,
+            .user-email-bar [style*="display: flex; align-items: center; gap: 15px;"] {
+                display: none !important;
+            }
+            /* Ensure the logo area still shows but hide the navigation part next to it */
+            .user-email-bar > div > div:last-child {
+                display: none !important;
+            }
         }
 
         /* Additional check for iOS/Android home screen shortcuts and general mobile devices */
