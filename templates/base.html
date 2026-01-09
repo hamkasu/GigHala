@@ -54,7 +54,46 @@
     <meta name="application-name" content="GigHala">
     <meta name="msapplication-TileColor" content="#00C853">
     <meta name="msapplication-config" content="/static/browserconfig.xml">
-    
+
+    <!-- CRITICAL: Blocking script to hide header in PWA BEFORE any rendering -->
+    <script>
+    (function() {
+        var isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                   window.matchMedia('(display-mode: fullscreen)').matches ||
+                   window.matchMedia('(display-mode: minimal-ui)').matches ||
+                   (window.navigator.standalone === true) ||
+                   document.referrer.includes('android-app://');
+
+        console.log('[HEAD SCRIPT] PWA Detection:', {
+            standalone: window.matchMedia('(display-mode: standalone)').matches,
+            fullscreen: window.matchMedia('(display-mode: fullscreen)').matches,
+            minimal: window.matchMedia('(display-mode: minimal-ui)').matches,
+            navigatorStandalone: window.navigator.standalone,
+            referrer: document.referrer,
+            isPWA: isPWA
+        });
+
+        if (isPWA) {
+            console.log('[HEAD SCRIPT] PWA DETECTED - Writing blocking CSS');
+            document.write('<style id="pwa-hide-header">' +
+                '.date-bar, .header, .user-email-bar { ' +
+                    'display: none !important; ' +
+                    'visibility: hidden !important; ' +
+                    'height: 0 !important; ' +
+                    'max-height: 0 !important; ' +
+                    'overflow: hidden !important; ' +
+                    'position: absolute !important; ' +
+                    'left: -999999px !important; ' +
+                    'pointer-events: none !important; ' +
+                '} ' +
+                '.main-content { padding-top: 16px !important; }' +
+            '</style>');
+        } else {
+            console.log('[HEAD SCRIPT] NOT in PWA mode');
+        }
+    })();
+    </script>
+
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
