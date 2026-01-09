@@ -1505,39 +1505,11 @@
             {% endif %}
 
             {% if user %}
-            <div class="user-dashboard">
-                <a href="/billing" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Dompet{% else %}Wallet{% endif %}</div>
-                    <div class="dashboard-stat-value">
-                        <span class="currency" style="margin-right: 8px;">MYR</span>{{ "%.2f"|format(wallet.balance if wallet else 0) }}
-                    </div>
-                </a>
-
-                {% if user.user_type in ['freelancer', 'both'] %}
-                <a href="/accepted-gigs" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Diterima{% else %}Accepted{% endif %}</div>
-                    <div class="dashboard-stat-value">{{ total_gigs_accepted if total_gigs_accepted is defined else 0 }}</div>
-                </a>
-                {% endif %}
-
-                {% if user.user_type in ['client', 'both'] %}
-                <a href="/my-gigs" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Disiarkan{% else %}Posted{% endif %}</div>
-                    <div class="dashboard-stat-value">{{ total_gigs_posted if total_gigs_posted is defined else 0 }}</div>
-                </a>
-                {% endif %}
-
-                <a href="/portfolio" class="dashboard-stat" style="text-decoration: none;">
-                    <div class="dashboard-stat-label">{% if lang == 'ms' %}Penarafan{% else %}Rating{% endif %}</div>
-                    <div class="dashboard-stat-value">
-                        {% if user.review_count > 0 %}
-                        {{ "%.1f"|format(user.rating) }} ⭐
-                        {% else %}
-                        N/A
-                        {% endif %}
-                    </div>
-                </a>
-
+            <div class="user-dashboard" style="display: flex; align-items: center; gap: 10.8px; justify-content: flex-end; flex: 1; padding: 12.6px 0;">
+                <div class="date-content" style="color: #ccc; font-size: 11px; margin-right: 12px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
+                    <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
+                    <span class="gregorian-date">{{ today_gregorian }}</span>
+                </div>
                 <a href="/dashboard" class="action-button btn-user-dash" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">User Dashboard</a>
                 <a href="/post-gig" class="action-button btn-post-gig">Post a Gig</a>
                 <a href="/gigs" class="action-button btn-browse" style="margin: 0 5px; background: #1DBF73; color: #fff;">Browse Gigs</a>

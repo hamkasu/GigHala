@@ -740,18 +740,6 @@
         {% else %}
         <span class="unverified-badge-header">⚠ Unverified</span>
         {% endif %}
-        <a href="/dashboard" class="action-button btn-user-dash" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">User Dashboard</a>
-        <a href="/post-gig" class="action-button" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #1DBF73; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s; font-weight: 500;">Post a Gig</a>
-        <a href="/gigs" class="action-button" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #1DBF73; color: #fff; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s; font-weight: 500; margin: 0 5px;">Browse Gigs</a>
-        <a href="/messages" class="action-button" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #1DBF73; color: #fff; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s; font-weight: 500; margin-right: 5px;">Messages</a>
-        <a href="/billing" class="action-button" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #1DBF73; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s; font-weight: 500; margin-right: 5px;">View Wallet</a>
-        {% if user.is_admin %}
-        <a href="/admin" class="action-button" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #1DBF73; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s; font-weight: 500;">Admin Dashboard</a>
-        {% endif %}
-        <a href="/escrow" class="action-button btn-escrow" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">Escrow</a>
-        <a href="/portfolio" class="action-button btn-portfolio" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">Portfolio</a>
-        <a href="/documents" class="action-button btn-documents" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.2s;">Documentation</a>
-        <a href="/api/logout" class="action-button btn-logout" style="font-size: 14px; padding: 6px 14px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #F74040; border: 1px solid #F74040; border-radius: var(--radius-md); transition: all 0.2s; font-weight: 500; margin-left: 5px;">Logout</a>
     </h1>
     <p>{{ t('happening_today') }}</p>
 </div>
