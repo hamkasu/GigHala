@@ -375,7 +375,7 @@
         }
 
         .header-nav {
-            display: flex;
+            display: none; /* Hidden by default on desktop where user-dashboard is shown */
             align-items: center;
             gap: 25.2px;
             flex-shrink: 1;
@@ -857,6 +857,10 @@
         @media (max-width: 1024px) {
             .user-dashboard {
                 display: none;
+            }
+
+            .header-nav {
+                display: flex !important; /* Show header-nav on tablet when user-dashboard is hidden */
             }
 
             .category-dropdown-container {
@@ -1546,7 +1550,7 @@
             </div>
             {% endif %}
 
-            <nav class="header-nav" style="display: none !important;">
+            <nav class="header-nav">
                 {% if user %}
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
                     {% if user.user_type in ['client', 'both'] %}
