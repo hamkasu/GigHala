@@ -716,6 +716,72 @@
         background: var(--border);
     }
 
+    /* Share Button Styles */
+    .share-section {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .share-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+
+    .share-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .share-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--border);
+        background: white;
+        text-decoration: none;
+    }
+
+    .share-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .share-btn.whatsapp { color: #25D366; border-color: #25D366; }
+    .share-btn.whatsapp:hover { background: #25D366; color: white; }
+
+    .share-btn.facebook { color: #1877F2; border-color: #1877F2; }
+    .share-btn.facebook:hover { background: #1877F2; color: white; }
+
+    .share-btn.twitter { color: #1DA1F2; border-color: #1DA1F2; }
+    .share-btn.twitter:hover { background: #1DA1F2; color: white; }
+
+    .share-btn.copy { color: var(--text-dark); border-color: var(--border); }
+    .share-btn.copy:hover { background: var(--bg-light); }
+
+    .share-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    @media (max-width: 480px) {
+        .share-btn span {
+            display: none;
+        }
+        .share-btn {
+            padding: 10px;
+        }
+    }
+
     .modal-actions {
         display: flex;
         gap: 12px;
@@ -1875,6 +1941,28 @@
                     <span>{{ gig.applications }} {{ 'permohonan' if lang == 'ms' else 'applications' }}</span>
                 </div>
             </div>
+
+            <div class="gig-section share-section">
+                <h3 class="share-title">{{ 'Kongsi Gig Ini' if lang == 'ms' else 'Share this Gig' }}</h3>
+                <div class="share-buttons">
+                    <a href="https://wa.me/?text={{ (gig.title + ' - GigHala ' + request.url) | urlencode }}" target="_blank" class="share-btn whatsapp" title="Share on WhatsApp">
+                        <i data-feather="message-circle"></i>
+                        <span>WhatsApp</span>
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url | urlencode }}" target="_blank" class="share-btn facebook" title="Share on Facebook">
+                        <i data-feather="facebook"></i>
+                        <span>Facebook</span>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?text={{ gig.title | urlencode }}&url={{ request.url | urlencode }}" target="_blank" class="share-btn twitter" title="Share on Twitter">
+                        <i data-feather="twitter"></i>
+                        <span>Twitter</span>
+                    </a>
+                    <button onclick="copyGigLink()" class="share-btn copy" title="Copy Link">
+                        <i data-feather="copy"></i>
+                        <span id="copyText">{{ 'Salin Pautan' if lang == 'ms' else 'Copy Link' }}</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="gig-sidebar">
@@ -2458,6 +2546,20 @@
         const img = document.getElementById('photoModalImage');
         img.src = src;
         modal.classList.add('active');
+    }
+
+    function copyGigLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            const copyText = document.getElementById('copyText');
+            const originalText = copyText.innerText;
+            copyText.innerText = '{{ "Disalin!" if lang == "ms" else "Copied!" }}';
+            setTimeout(() => {
+                copyText.innerText = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy link: ', err);
+        });
     }
 
     function closePhotoModal() {
