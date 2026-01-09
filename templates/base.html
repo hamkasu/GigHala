@@ -1243,9 +1243,10 @@
             font-size: 13px;
             border-bottom: none;
             display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 15px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 4px;
         }
 
         @media (max-width: 480px) {
@@ -1392,11 +1393,11 @@
     <div class="date-bar">
         {% if user %}
         <div class="user-email-bar">
-            <span>{{ user.email }}</span>
             <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
                 <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
                 <span class="gregorian-date" style="color: #ffffff;">{{ today_gregorian }}</span>
             </div>
+            <span>{{ user.email }}</span>
         </div>
         {% endif %}
     </div>
