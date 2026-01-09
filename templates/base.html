@@ -1427,12 +1427,12 @@
                     <a href="/api/logout" style="color: #ff4d4d; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255, 77, 77, 0.3); padding: 2px 8px; border-radius: 4px; background: rgba(255, 77, 77, 0.05);">
                         <i data-feather="log-out" style="width: 14px; height: 14px;"></i> Logout
                     </a>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
-                        <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
-                            <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
-                            <span class="gregorian-date" style="color: #ffffff;">{{ today_gregorian }}</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                        <div class="date-content" style="display: flex; gap: 10px; font-size: 13px; align-items: center;">
+                            <span class="hijri-date" style="color: #00C853; font-weight: 600;">{{ today_hijri }}</span>
+                            <span class="gregorian-date" style="color: #ffffff; font-weight: 600;">{{ today_gregorian }}</span>
                         </div>
-                        <span style="color: #ffffff; font-size: 11px;">{{ user.email }}</span>
+                        <span style="color: #ffffff; font-size: 13px; font-weight: 500;">{{ user.email }}</span>
                     </div>
                 </div>
             </div>
