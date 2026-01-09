@@ -1244,47 +1244,6 @@
             color: rgba(255,255,255,0.6);
         }
 
-        /* Auth Bar - Login/Register buttons below date bar */
-        .auth-bar {
-            background: #1a1a1a;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            border-bottom: 1px solid rgba(0,200,83,0.1);
-        }
-
-        .auth-bar .nav-link {
-            color: #ccc;
-            font-weight: 500;
-            font-size: 14px;
-            transition: color 0.2s;
-            padding: 8px 12px;
-            border: 1px solid #333;
-            border-radius: var(--radius-md);
-        }
-
-        .auth-bar .nav-link:hover {
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .auth-bar .btn-primary {
-            background: var(--primary);
-            color: white;
-            padding: 8px 24px;
-            border-radius: var(--radius-md);
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .auth-bar .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-
         @media (max-width: 480px) {
             .date-bar {
                 font-size: 11px;
@@ -1292,9 +1251,6 @@
             }
             .date-bar .date-content {
                 gap: 8px;
-            }
-            .auth-bar {
-                display: none;
             }
         }
 
@@ -1436,38 +1392,6 @@
         </div>
         {% endif %}
     </div>
-
-    <!-- Auth Bar - Login/Register for guests -->
-    {% if not user %}
-    <style>
-        @media (display-mode: standalone) {
-            .header-top {
-                display: flex !important;
-                flex-direction: row !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                padding: 10px 15px !important;
-            }
-            .auth-bar {
-                display: none !important;
-            }
-            .header-nav {
-                display: flex !important;
-                gap: 8px !important;
-            }
-            .pwa-auth-btn {
-                background: var(--primary);
-                color: white;
-                padding: 6px 10px;
-                border-radius: 6px;
-                font-size: 12px;
-                font-weight: 600;
-                border: none;
-                white-space: nowrap;
-            }
-        }
-    </style>
-    {% endif %}
 
     <header class="header">
         <div class="header-top">
