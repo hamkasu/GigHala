@@ -741,8 +741,12 @@
             .user-email-bar > div > div:last-child {
                 display: none !important;
             }
-            /* Hide specific header nav buttons in user-email-bar */
-            .user-email-bar [style*="display: flex; align-items: center; gap: 15px;"] a {
+            /* Hide specific header nav buttons in user-email-bar and any other flex containers there */
+            .user-email-bar div[style*="display: flex; align-items: center; gap: 15px;"] {
+                display: none !important;
+            }
+            .user-email-bar a[style*="color: #00C853"], 
+            .user-email-bar a[style*="color: #ff4d4d"] {
                 display: none !important;
             }
         }
