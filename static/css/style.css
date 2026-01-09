@@ -1643,6 +1643,10 @@ body {
     color: white;
 }
 
+.btn-facebook:hover {
+    border-color: #1877F2;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .hero .container {
