@@ -741,6 +741,10 @@
             .user-email-bar > div > div:last-child {
                 display: none !important;
             }
+            /* Hide specific header nav buttons in user-email-bar */
+            .user-email-bar [style*="display: flex; align-items: center; gap: 15px;"] a {
+                display: none !important;
+            }
         }
 
         /* Additional check for iOS/Android home screen shortcuts and general mobile devices */
