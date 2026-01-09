@@ -1393,11 +1393,20 @@
     <div class="date-bar">
         {% if user %}
         <div class="user-email-bar">
-            <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
-                <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
-                <span class="gregorian-date" style="color: #ffffff;">{{ today_gregorian }}</span>
+            <div style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="/static/images/logo.png" alt="GigHala" style="height: 24px; width: 24px; border-radius: 50%; object-fit: contain;">
+                    <span style="font-weight: 700; color: #ffffff; font-size: 14px;">GigHala</span>
+                    <span style="background: #00C853; color: white; font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: 700;">HALAL</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                    <div class="date-content" style="display: flex; gap: 10px; font-size: 11px;">
+                        <span class="hijri-date" style="color: #00C853;">{{ today_hijri }}</span>
+                        <span class="gregorian-date" style="color: #ffffff;">{{ today_gregorian }}</span>
+                    </div>
+                    <span style="color: #ffffff; font-size: 11px;">{{ user.email }}</span>
+                </div>
             </div>
-            <span style="color: #ffffff;">{{ user.email }}</span>
         </div>
         {% endif %}
     </div>
