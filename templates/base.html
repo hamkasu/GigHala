@@ -86,7 +86,8 @@
                     'left: -999999px !important; ' +
                     'pointer-events: none !important; ' +
                 '} ' +
-                '.main-content { padding-top: 16px !important; }' +
+                '.pwa-logo-header { display: block !important; } ' +
+                '.main-content { padding-top: 0 !important; }' +
             '</style>');
         } else {
             console.log('[HEAD SCRIPT] NOT in PWA mode');
@@ -1467,15 +1468,32 @@
                     position: absolute !important;
                     left: -99999px !important;
                 }
+                .pwa-logo-header {
+                    display: block !important;
+                }
                 .main-content {
-                    padding-top: 16px !important;
+                    padding-top: 0 !important;
                 }
             `;
             document.head.appendChild(style);
-            console.log('PWA detected - injected CSS to hide header');
+            console.log('PWA detected - injected CSS to hide header and show PWA logo');
         }
     })();
     </script>
+
+    <!-- PWA-Only Logo Header -->
+    <div class="pwa-logo-header" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: linear-gradient(135deg, #00C853 0%, #00A844 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <img src="/static/images/logo.png" alt="GigHala" style="height: 36px; width: 36px; border-radius: 50%; object-fit: contain;">
+            <div style="display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-weight: 800; color: #ffffff; font-size: 20px; line-height: 1;">GigHala</span>
+                    <span style="background: #ffffff; color: #00C853; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 700;">HALAL</span>
+                </div>
+                <span style="font-size: 10px; color: rgba(255,255,255,0.9); font-weight: 500;">Platform Gig Halal #1 Malaysia</span>
+            </div>
+        </div>
+    </div>
 
     <!-- PWA Install Banner (Mobile Optimized) -->
     <div id="pwaOnboardingBanner" class="pwa-install-banner">
