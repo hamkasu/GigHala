@@ -1458,7 +1458,7 @@ body {
     border-radius: 8px;
 }
 
-/* Modal */
+/* Modal Styling */
 .modal {
     display: none;
     position: fixed;
@@ -1467,8 +1467,9 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(26, 34, 56, 0.8);
-    backdrop-filter: blur(8px);
+    background: rgba(13, 124, 102, 0.1);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
 }
 
 .modal.active {
@@ -1478,22 +1479,24 @@ body {
 }
 
 .modal-content {
-    background: white;
-    padding: 38px;
-    border-radius: 18px;
-    max-width: 375px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 40px;
+    border-radius: 32px;
+    max-width: 480px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: var(--shadow-xl);
-    animation: modalSlideIn 0.3s ease-out;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: scale(0.9) translateY(-20px);
+        transform: scale(0.95) translateY(20px);
     }
     to {
         opacity: 1;
@@ -1502,53 +1505,68 @@ body {
 }
 
 .modal-large {
-    max-width: 600px;
+    max-width: 800px;
 }
 
 .modal-close {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
+    top: 24px;
+    right: 24px;
+    background: rgba(0, 0, 0, 0.05);
     border: none;
-    font-size: 24px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    color: var(--text-gray);
-    transition: color 0.3s ease;
+    font-size: 20px;
+    color: #666;
+    transition: all 0.2s ease;
+    z-index: 10;
 }
 
 .modal-close:hover {
-    color: var(--text-dark);
+    background: rgba(0, 0, 0, 0.1);
+    color: #000;
+    transform: rotate(90deg);
 }
 
 .modal-title {
     font-family: var(--font-display);
-    font-size: 30px;
+    font-size: 32px;
+    font-weight: 800;
     color: var(--dark-navy);
-    margin-bottom: 23px;
+    margin-bottom: 32px;
+    text-align: center;
+    letter-spacing: -0.5px;
 }
 
 .form-group {
-    margin-bottom: 19px;
+    margin-bottom: 24px;
 }
 
 .form-group label {
     display: block;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--dark-navy);
+    margin-bottom: 10px;
     font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 17.5px 20px;
-    border: 2px solid var(--border-light);
-    border-radius: 12px;
-    font-size: 18.75px;
+    padding: 16px 20px;
+    border: 2px solid #F3F4F6;
+    border-radius: 16px;
+    font-size: 16px;
     font-family: var(--font-primary);
+    background: #F9FAFB;
     transition: all 0.3s ease;
 }
 
@@ -1557,40 +1575,52 @@ body {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-green);
+    background: white;
     box-shadow: 0 0 0 4px rgba(13, 124, 102, 0.1);
+}
+
+.form-group input:disabled {
+    background: #F3F4F6;
+    cursor: not-allowed;
+    border-color: #E5E7EB;
+    color: #9CA3AF;
 }
 
 .btn-modal-primary {
     width: 100%;
-    background: linear-gradient(135deg, var(--primary-green), var(--accent-teal));
+    background: linear-gradient(135deg, var(--primary-green), #10B981);
     color: white;
     border: none;
-    padding: 20px;
-    border-radius: 12px;
-    font-size: 20px;
+    padding: 18px;
+    border-radius: 16px;
+    font-size: 18px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 10px 15px -3px rgba(13, 124, 102, 0.2);
     transition: all 0.3s ease;
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .btn-modal-primary:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 20px 25px -5px rgba(13, 124, 102, 0.3);
 }
 
 .modal-footer-text {
     text-align: center;
-    margin-top: 25px;
-    font-size: 17.5px;
-    color: var(--text-gray);
+    margin-top: 28px;
+    font-size: 15px;
+    color: #6B7280;
 }
 
 .modal-footer-text a {
     color: var(--primary-green);
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
+}
+
+.modal-footer-text a:hover {
+    text-decoration: underline;
 }
 
 /* Social Login Buttons */
@@ -1606,12 +1636,12 @@ body {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    padding: 12px 16px;
-    border: 1.5px solid var(--border-light);
-    border-radius: 8px;
+    padding: 16px;
+    border: 2px solid #F3F4F6;
+    border-radius: 16px;
     background: white;
-    color: var(--text-dark);
-    font-size: 15px;
+    color: var(--dark-navy);
+    font-size: 16px;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -1619,10 +1649,9 @@ body {
 }
 
 .btn-social:hover {
-    background: var(--soft-cream);
-    border-color: var(--text-gray);
+    background: #F9FAFB;
+    border-color: #E5E7EB;
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
 }
 
 .btn-social svg {
