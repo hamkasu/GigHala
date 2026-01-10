@@ -9,11 +9,11 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 </head>
-<body style="background: linear-gradient(135deg, #001233 0%, #001a4d 25%, #002966 50%, #001a4d 75%, #001233 100%); position: relative; overflow-x: hidden;">
+<body style="position: relative; overflow-x: hidden;">
     <!-- Animated flowing curves background -->
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;">
-        <div style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(ellipse at 20% 30%, rgba(0, 200, 255, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(64, 156, 255, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 40% 80%, rgba(0, 150, 255, 0.1) 0%, transparent 60%); animation: flowingCurves 20s ease-in-out infinite;"></div>
-        <div style="position: absolute; width: 150%; height: 150%; bottom: -25%; right: -25%; background: radial-gradient(ellipse at 60% 40%, rgba(0, 180, 255, 0.18) 0%, transparent 55%), radial-gradient(ellipse at 30% 60%, rgba(100, 200, 255, 0.12) 0%, transparent 50%); animation: flowingCurves 25s ease-in-out infinite reverse;"></div>
+        <div style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(ellipse at 20% 30%, rgba(0, 200, 255, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(64, 156, 255, 0.04) 0%, transparent 50%), radial-gradient(ellipse at 40% 80%, rgba(0, 150, 255, 0.03) 0%, transparent 60%); animation: flowingCurves 20s ease-in-out infinite;"></div>
+        <div style="position: absolute; width: 150%; height: 150%; bottom: -25%; right: -25%; background: radial-gradient(ellipse at 60% 40%, rgba(0, 180, 255, 0.06) 0%, transparent 55%), radial-gradient(ellipse at 30% 60%, rgba(100, 200, 255, 0.04) 0%, transparent 50%); animation: flowingCurves 25s ease-in-out infinite reverse;"></div>
         <!-- Curved light streaks -->
         <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3;">
             <defs>
@@ -36,6 +36,34 @@
         </svg>
     </div>
     <style>
+        /* Slideshow Background Styles */
+        .slideshow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+
+        .slide.active {
+            opacity: 0.6; /* Adjust opacity as needed */
+        }
+
         @keyframes flowingCurves {
             0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
             25% { transform: translate(5%, -5%) rotate(1deg); opacity: 0.9; }
@@ -47,6 +75,26 @@
             50% { opacity: 0.5; }
         }
     </style>
+    <div class="slideshow-container">
+        <div class="slide active" style="background-image: url('/static/images/bg1.webp');"></div>
+        <div class="slide" style="background-image: url('/static/images/bg2.jpg');"></div>
+        <div class="slide" style="background-image: url('/static/images/bg3.jpg');"></div>
+        <div class="slide" style="background-image: url('/static/images/bg4.jpg');"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            let currentSlide = 0;
+
+            function nextSlide() {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }
+
+            setInterval(nextSlide, 5000); // Change image every 5 seconds
+        });
+    </script>
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar" style="background: transparent; padding: 12px 28px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
         <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 14px;">
