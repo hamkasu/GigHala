@@ -408,41 +408,73 @@
 
 
         <!-- How It Works -->
-        <section id="cara-kerja" class="how-it-works">
+        <section id="cara-kerja" class="how-it-works" style="background: transparent;">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">{{ t('how_it_works') }}</h2>
-                    <p class="section-subtitle">{{ t('easy_fast_subtitle') }}</p>
+                    <h2 class="section-title" style="color: white; font-size: 2.5rem; font-weight: 800; margin-bottom: 16px;">
+                        {% if lang == 'ms' %}Manfaatkan rangkaian bakat global{% else %}Tap into a global talent network{% endif %}
+                    </h2>
                 </div>
 
-                <div class="steps-grid">
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(5px);">
-                        <div class="step-number">01</div>
-                        <div class="step-icon">📝</div>
-                        <h3 class="step-title" style="color: white;">{{ t('step_1_title') }}</h3>
-                        <p class="step-description" style="color: rgba(255, 255, 255, 0.8);">{{ t('step_1_desc') }}</p>
+                <div class="steps-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; margin-top: 48px;">
+                    <!-- Post your job -->
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                        <div style="font-size: 40px; margin-bottom: 20px;">📝</div>
+                        <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Hantar kerja anda{% else %}Post your job{% endif %}
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6; font-size: 1rem;">
+                            {% if lang == 'ms' %}
+                            Ia percuma dan mudah! Dapatkan banyak bidaan kompetitif yang sesuai dengan bajet anda dalam beberapa minit. Mula jadikan impian anda realiti.
+                            {% else %}
+                            It's free and easy! Get lots of competitive bids that suit your budget in minutes. Start making your dreams reality.
+                            {% endif %}
+                        </p>
                     </div>
 
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(5px);">
-                        <div class="step-number">02</div>
-                        <div class="step-icon">🔍</div>
-                        <h3 class="step-title" style="color: white;">{{ t('step_2_title') }}</h3>
-                        <p class="step-description" style="color: rgba(255, 255, 255, 0.8);">{{ t('step_2_desc') }}</p>
+                    <!-- Choose freelancers -->
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                        <div style="font-size: 40px; margin-bottom: 20px;">👥</div>
+                        <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Pilih freelancer{% else %}Choose freelancers{% endif %}
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6; font-size: 1rem;">
+                            {% if lang == 'ms' %}
+                            Tiada kerja yang terlalu besar atau kompleks. Kami mempunyai freelancer untuk sebarang saiz kerja atau bajet, merangkumi 2700+ kemahiran. Biarkan bakat kami menghidupkan idea anda.
+                            {% else %}
+                            No job is too big or complex. We've got freelancers for jobs of any size or budget, across 2700+ skills. Let our talent bring your ideas to life.
+                            {% endif %}
+                        </p>
                     </div>
 
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(5px);">
-                        <div class="step-number">03</div>
-                        <div class="step-icon">💼</div>
-                        <h3 class="step-title" style="color: white;">{{ t('step_3_title') }}</h3>
-                        <p class="step-description" style="color: rgba(255, 255, 255, 0.8);">{{ t('step_3_desc') }}</p>
+                    <!-- Pay safely -->
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                        <div style="font-size: 40px; margin-bottom: 20px;">🛡️</div>
+                        <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Bayar dengan selamat{% else %}Pay safely{% endif %}
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6; font-size: 1rem;">
+                            {% if lang == 'ms' %}
+                            Hanya bayar untuk kerja apabila anda 100% berpuas hati dengan hasilnya. Sistem pembayaran milestone kami melindungi anda di setiap langkah.
+                            {% else %}
+                            Only pay for work when you are 100% satisfied with the outcome. Our milestone payment system protects you every step of the way.
+                            {% endif %}
+                        </p>
                     </div>
 
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(5px);">
-                        <div class="step-number">04</div>
-                        <div class="step-icon">💰</div>
-                        <h3 class="step-title" style="color: white;">{{ t('step_4_title') }}</h3>
-                        <span style="display: inline-block; background: rgba(13, 124, 102, 0.15); color: #4ade80; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-bottom: 8px;">🔒 Escrow Protected</span>
-                        <p class="step-description" style="color: rgba(255, 255, 255, 0.8);">{{ t('step_4_desc') }}</p>
+                    <!-- We're here to help -->
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                        <div style="font-size: 40px; margin-bottom: 20px;">🤝</div>
+                        <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Kami di sini untuk membantu{% else %}We're here to help{% endif %}
+                        </h3>
+                        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6; font-size: 1rem;">
+                            {% if lang == 'ms' %}
+                            Masa anda sangat berharga. Biarkan pasukan pakar rekrut dan pembantu kami menjimatkan masa anda mencari bakat, malah menguruskan kerja anda jika perlu.
+                            {% else %}
+                            Your time is precious. Let our team of expert recruiters and co-pilots save you time finding talent, even managing your job if needed.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
