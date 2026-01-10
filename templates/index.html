@@ -150,23 +150,65 @@
             </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 24px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Content: Billing Info -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center;">
-                    <h1 style="font-size: 1.8125rem; font-weight: 800; margin-bottom: 11px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2; color: white; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2;">
+                        {% if lang == 'ms' %}Manfaatkan rangkaian bakat global{% else %}Tap into a global talent network{% endif %}
+                    </h2>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Hantar kerja anda{% else %}Post your job{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Ia percuma dan mudah! Dapatkan banyak bidaan kompetitif yang sesuai dengan bajet anda.{% else %}It's free and easy! Get lots of competitive bids that suit your budget in minutes.{% endif %}
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Pilih freelancer{% else %}Choose freelancers{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Kami mempunyai freelancer untuk sebarang saiz kerja atau bajet, merangkumi 2700+ kemahiran.{% else %}No job is too big or complex. We've got freelancers for jobs of any size or budget.{% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Bayar dengan selamat{% else %}Pay safely{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Hanya bayar apabila anda 100% berpuas hati. Sistem kami melindungi anda.{% else %}Only pay for work when you are 100% satisfied. Our milestone system protects you.{% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Kami di sini membantu{% else %}We're here to help{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Biar pasukan kami menjimatkan masa anda mencari bakat terbaik.{% else %}Let our team of expert recruiters save you time finding talent.{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Content: Billing Info (Re-styled) -->
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 20px;">
+                    <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 11px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2; color: white; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
                         {% if lang == 'ms' %}SISTEM BILLING SEDANG DIUJI – FASA 2! 🌟{% else %}TESTING BILLING SYSTEM – PHASE 2! 🌟{% endif %}
                     </h1>
 
-                    <p style="font-size: 0.9375rem; font-weight: 600; margin-bottom: 16px; line-height: 1.6; max-width: 520px; margin-left: auto; margin-right: auto; color: white; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);">
-                        Sekarang kita masuk ke Fasa 2: Uji coba penuh sistem billing untuk pastikan semuanya lancar & selamat!
+                    <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; line-height: 1.6; color: white;">
+                        Fasa 2: Uji coba penuh sistem billing untuk pastikan semuanya lancar & selamat!
                     </p>
 
-                    <div style="font-size: 0.6875rem; margin-bottom: 7px; line-height: 1.7; color: white; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);">
+                    <div style="font-size: 0.7rem; margin-bottom: 7px; color: white;">
                         Untuk Early Adopters yang daftar sehingga 31 Januari 2026:
                     </div>
-                    <div style="font-size: 1.025rem; font-weight: 700; margin: 6px 0; color: white; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);">
-                        Nikmati 10% PLATFORM FI SELAMANYA! ☀️
-                    </div>
-                    <div style="font-size: 0.6875rem; margin: 4px 0; font-weight: 500; color: white; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);">
-                        Jangan lepaskan peluang lock in kadar rendah forever. 🚀
+                    <div style="font-size: 1rem; font-weight: 700; margin: 6px 0; color: #4ade80;">
+                        10% PLATFORM FI SELAMANYA! ☀️
                     </div>
                 </div>
 
