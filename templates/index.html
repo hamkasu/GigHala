@@ -768,262 +768,67 @@
 
         <!-- Modal: Register -->
         <div id="registerModal" class="modal">
-            <div class="modal-content">
+            <div class="modal-content" style="max-width: 450px; padding: 32px;">
                 <button class="modal-close" onclick="app.closeModal('registerModal')">&times;</button>
-                <h2 class="modal-title">{{ t('register_title') }}</h2>
+                
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 60px; height: 60px; margin-bottom: 8px;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #111; margin: 0;">{{ t('register_title') }}</h2>
+                </div>
+
+                <div class="social-login-buttons" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <a href="/api/auth/google" class="btn-social" style="border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-size: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #444; font-weight: 500;">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" style="margin-right: 10px;">
+                        Continue with Google
+                    </a>
+                    <a href="#" class="btn-social" style="background: #1877f2; color: white; border: none; border-radius: 4px; padding: 10px; font-size: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 500;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style="margin-right: 10px;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        Continue with Facebook
+                    </a>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0; position: relative;">
+                    <hr style="border: none; border-top: 1px solid #eee;">
+                    <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 0 15px; color: #666; font-size: 12px; font-weight: 700;">OR</span>
+                </div>
+
                 <form id="registerForm" onsubmit="app.handleRegister(event)">
-                    <div class="form-group">
-                        <label>{{ t('full_name') }}</label>
-                        <input type="text" name="full_name" required>
+                    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                        <div style="flex: 1;">
+                            <input type="text" name="first_name" placeholder="First Name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="text" name="last_name" placeholder="Last Name" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>{{ t('username') }}</label>
-                        <input type="text" name="username" required>
+                    
+                    <input type="hidden" name="full_name" id="hidden_full_name">
+                    <input type="text" name="username" placeholder="Username" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 12px;">
+                    <input type="email" name="email" placeholder="Email" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; margin-bottom: 12px;">
+                    
+                    <div style="position: relative; margin-bottom: 12px;">
+                        <input type="password" name="password" id="regPassword" placeholder="Password" required minlength="6" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <button type="button" onclick="const p = document.getElementById('regPassword'); p.type = p.type === 'password' ? 'text' : 'password';" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #666;">
+                            👁️
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label>{{ t('email') }}</label>
-                        <input type="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label>{{ t('phone_number') }}</label>
-                        <input type="tel" name="phone" placeholder="+60">
-                    </div>
-                    <div class="form-group">
-                        <label>{{ t('ic_passport_no') }}</label>
-                        <input type="text" name="ic_number" required placeholder="No. MyKad/Passport" maxlength="20" disabled style="background-color: #e9ecef; cursor: not-allowed; color: #6c757d; border-color: #dee2e6;">
-                        <small style="display: block; margin-top: 4px; color: #6c757d; font-style: italic;">Sistem verifikasi IC/Pasport akan dikendalikan secara berasingan.</small>
-                        <small style="color: #666; font-size: 12px;">{{ t('ic_passport_hint') }}</small>
-                    </div>
-                    <div class="form-group">
-                        <label>{{ t('password') }}</label>
-                        <input type="password" name="password" required minlength="6">
-                    </div>
-                    <div class="form-group">
-                        <label>{{ t('location') }}</label>
-                        <select name="location" required>
-                            <option value="">{{ t('select_location') }}</option>
-                            <optgroup label="Kuala Lumpur">
-                                <option value="Kuala Lumpur">Kuala Lumpur</option>
-                                <option value="Cheras, KL">Cheras</option>
-                                <option value="Kepong, KL">Kepong</option>
-                                <option value="Bangsar, KL">Bangsar</option>
-                            </optgroup>
-                            <optgroup label="Johor">
-                                <option value="Batu Pahat, Johor">Batu Pahat</option>
-                                <option value="Johor Bahru, Johor">Johor Bahru</option>
-                                <option value="Kluang, Johor">Kluang</option>
-                                <option value="Kota Tinggi, Johor">Kota Tinggi</option>
-                                <option value="Kulai, Johor">Kulai</option>
-                                <option value="Mersing, Johor">Mersing</option>
-                                <option value="Muar, Johor">Muar</option>
-                                <option value="Pontian, Johor">Pontian</option>
-                                <option value="Segamat, Johor">Segamat</option>
-                                <option value="Tangkak, Johor">Tangkak</option>
-                            </optgroup>
-                            <optgroup label="Kedah">
-                                <option value="Alor Setar, Kedah">Alor Setar</option>
-                                <option value="Baling, Kedah">Baling</option>
-                                <option value="Bandar Baharu, Kedah">Bandar Baharu</option>
-                                <option value="Kota Setar, Kedah">Kota Setar</option>
-                                <option value="Kuala Muda, Kedah">Kuala Muda</option>
-                                <option value="Kubang Pasu, Kedah">Kubang Pasu</option>
-                                <option value="Kulim, Kedah">Kulim</option>
-                                <option value="Langkawi, Kedah">Langkawi</option>
-                                <option value="Padang Terap, Kedah">Padang Terap</option>
-                                <option value="Pendang, Kedah">Pendang</option>
-                                <option value="Pokok Sena, Kedah">Pokok Sena</option>
-                                <option value="Sik, Kedah">Sik</option>
-                                <option value="Yan, Kedah">Yan</option>
-                            </optgroup>
-                            <optgroup label="Kelantan">
-                                <option value="Bachok, Kelantan">Bachok</option>
-                                <option value="Gua Musang, Kelantan">Gua Musang</option>
-                                <option value="Jeli, Kelantan">Jeli</option>
-                                <option value="Kota Bharu, Kelantan">Kota Bharu</option>
-                                <option value="Kuala Krai, Kelantan">Kuala Krai</option>
-                                <option value="Machang, Kelantan">Machang</option>
-                                <option value="Pasir Mas, Kelantan">Pasir Mas</option>
-                                <option value="Pasir Puteh, Kelantan">Pasir Puteh</option>
-                                <option value="Tanah Merah, Kelantan">Tanah Merah</option>
-                                <option value="Tumpat, Kelantan">Tumpat</option>
-                            </optgroup>
-                            <optgroup label="Melaka">
-                                <option value="Alor Gajah, Melaka">Alor Gajah</option>
-                                <option value="Jasin, Melaka">Jasin</option>
-                                <option value="Melaka Tengah, Melaka">Melaka Tengah</option>
-                            </optgroup>
-                            <optgroup label="Negeri Sembilan">
-                                <option value="Jelebu, Negeri Sembilan">Jelebu</option>
-                                <option value="Jempol, Negeri Sembilan">Jempol</option>
-                                <option value="Kuala Pilah, Negeri Sembilan">Kuala Pilah</option>
-                                <option value="Port Dickson, Negeri Sembilan">Port Dickson</option>
-                                <option value="Rembau, Negeri Sembilan">Rembau</option>
-                                <option value="Seremban, Negeri Sembilan">Seremban</option>
-                                <option value="Tampin, Negeri Sembilan">Tampin</option>
-                            </optgroup>
-                            <optgroup label="Pahang">
-                                <option value="Bentong, Pahang">Bentong</option>
-                                <option value="Bera, Pahang">Bera</option>
-                                <option value="Cameron Highlands, Pahang">Cameron Highlands</option>
-                                <option value="Jerantut, Pahang">Jerantut</option>
-                                <option value="Kuantan, Pahang">Kuantan</option>
-                                <option value="Lipis, Pahang">Lipis</option>
-                                <option value="Maran, Pahang">Maran</option>
-                                <option value="Pekan, Pahang">Pekan</option>
-                                <option value="Raub, Pahang">Raub</option>
-                                <option value="Rompin, Pahang">Rompin</option>
-                                <option value="Temerloh, Pahang">Temerloh</option>
-                            </optgroup>
-                            <optgroup label="Penang">
-                                <option value="Barat Daya, Penang">Barat Daya</option>
-                                <option value="Seberang Perai Selatan, Penang">Seberang Perai Selatan</option>
-                                <option value="Seberang Perai Tengah, Penang">Seberang Perai Tengah</option>
-                                <option value="Seberang Perai Utara, Penang">Seberang Perai Utara</option>
-                                <option value="Timur Laut, Penang">Timur Laut</option>
-                            </optgroup>
-                            <optgroup label="Perak">
-                                <option value="Batang Padang, Perak">Batang Padang</option>
-                                <option value="Hilir Perak, Perak">Hilir Perak</option>
-                                <option value="Hulu Perak, Perak">Hulu Perak</option>
-                                <option value="Kampar, Perak">Kampar</option>
-                                <option value="Kerian, Perak">Kerian</option>
-                                <option value="Kinta, Perak">Kinta</option>
-                                <option value="Kuala Kangsar, Perak">Kuala Kangsar</option>
-                                <option value="Larut, Matang dan Selama, Perak">Larut, Matang dan Selama</option>
-                                <option value="Manjung, Perak">Manjung</option>
-                                <option value="Muallim, Perak">Muallim</option>
-                                <option value="Perak Tengah, Perak">Perak Tengah</option>
-                            </optgroup>
-                            <optgroup label="Perlis">
-                                <option value="Arau, Perlis">Arau</option>
-                                <option value="Kangar, Perlis">Kangar</option>
-                                <option value="Padang Besar, Perlis">Padang Besar</option>
-                            </optgroup>
-                            <optgroup label="Sabah">
-                                <option value="Beaufort, Sabah">Beaufort</option>
-                                <option value="Beluran, Sabah">Beluran</option>
-                                <option value="Keningau, Sabah">Keningau</option>
-                                <option value="Kinabatangan, Sabah">Kinabatangan</option>
-                                <option value="Kota Belud, Sabah">Kota Belud</option>
-                                <option value="Kota Kinabalu, Sabah">Kota Kinabalu</option>
-                                <option value="Kota Marudu, Sabah">Kota Marudu</option>
-                                <option value="Kuala Penyu, Sabah">Kuala Penyu</option>
-                                <option value="Kudat, Sabah">Kudat</option>
-                                <option value="Kunak, Sabah">Kunak</option>
-                                <option value="Lahad Datu, Sabah">Lahad Datu</option>
-                                <option value="Nabawan, Sabah">Nabawan</option>
-                                <option value="Papar, Sabah">Papar</option>
-                                <option value="Penampang, Sabah">Penampang</option>
-                                <option value="Pitas, Sabah">Pitas</option>
-                                <option value="Putatan, Sabah">Putatan</option>
-                                <option value="Ranau, Sabah">Ranau</option>
-                                <option value="Sandakan, Sabah">Sandakan</option>
-                                <option value="Semporna, Sabah">Semporna</option>
-                                <option value="Sipitang, Sabah">Sipitang</option>
-                                <option value="Tambunan, Sabah">Tambunan</option>
-                                <option value="Tawau, Sabah">Tawau</option>
-                                <option value="Tenom, Sabah">Tenom</option>
-                                <option value="Tuaran, Sabah">Tuaran</option>
-                            </optgroup>
-                            <optgroup label="Sarawak">
-                                <option value="Asajaya, Sarawak">Asajaya</option>
-                                <option value="Belaga, Sarawak">Belaga</option>
-                                <option value="Betong, Sarawak">Betong</option>
-                                <option value="Bintulu, Sarawak">Bintulu</option>
-                                <option value="Dalat, Sarawak">Dalat</option>
-                                <option value="Daro, Sarawak">Daro</option>
-                                <option value="Kapit, Sarawak">Kapit</option>
-                                <option value="Kuching, Sarawak">Kuching</option>
-                                <option value="Lawas, Sarawak">Lawas</option>
-                                <option value="Limbang, Sarawak">Limbang</option>
-                                <option value="Lubok Antu, Sarawak">Lubok Antu</option>
-                                <option value="Marudi, Sarawak">Marudi</option>
-                                <option value="Matu, Sarawak">Matu</option>
-                                <option value="Miri, Sarawak">Miri</option>
-                                <option value="Mukah, Sarawak">Mukah</option>
-                                <option value="Pakan, Sarawak">Pakan</option>
-                                <option value="Pusa, Sarawak">Pusa</option>
-                                <option value="Saratok, Sarawak">Saratok</option>
-                                <option value="Sarikei, Sarawak">Sarikei</option>
-                                <option value="Serian, Sarawak">Serian</option>
-                                <option value="Sibu, Sarawak">Sibu</option>
-                                <option value="Simunjan, Sarawak">Simunjan</option>
-                                <option value="Subis, Sarawak">Subis</option>
-                            </optgroup>
-                            <optgroup label="Selangor">
-                                <option value="Gombak, Selangor">Gombak</option>
-                                <option value="Hulu Langat, Selangor">Hulu Langat</option>
-                                <option value="Hulu Selangor, Selangor">Hulu Selangor</option>
-                                <option value="Klang, Selangor">Klang</option>
-                                <option value="Kuala Langat, Selangor">Kuala Langat</option>
-                                <option value="Kuala Selangor, Selangor">Kuala Selangor</option>
-                                <option value="Petaling, Selangor">Petaling</option>
-                                <option value="Sabak Bernam, Selangor">Sabak Bernam</option>
-                                <option value="Sepang, Selangor">Sepang</option>
-                            </optgroup>
-                            <optgroup label="Terengganu">
-                                <option value="Besut, Terengganu">Besut</option>
-                                <option value="Dungun, Terengganu">Dungun</option>
-                                <option value="Hulu Terengganu, Terengganu">Hulu Terengganu</option>
-                                <option value="Kemaman, Terengganu">Kemaman</option>
-                                <option value="Kuala Nerus, Terengganu">Kuala Nerus</option>
-                                <option value="Kuala Terengganu, Terengganu">Kuala Terengganu</option>
-                                <option value="Marang, Terengganu">Marang</option>
-                            </optgroup>
-                            <optgroup label="Federal Territories">
-                                <option value="Putrajaya, Putrajaya">Putrajaya</option>
-                                <option value="Labuan, Labuan">Labuan</option>
-                            </optgroup>
-                            <option value="Other">Lain-lain</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>{{ t('register_as') }}</label>
-                        <select name="user_type" required>
-                            <option value="freelancer">{{ t('freelancer_find_work') }}</option>
-                            <option value="client">{{ t('client_post_work') }}</option>
-                            <option value="both">{{ t('both') }}</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label style="display: flex; align-items: start; gap: 10px; cursor: pointer; font-size: 14px; line-height: 1.5;">
-                            <input type="checkbox" id="privacyConsent" name="privacy_consent" required style="margin-top: 4px; cursor: pointer;">
-                            <span>
-                                I agree to the <a href="#" onclick="app.showPrivacyPolicy(event)" style="color: var(--primary); text-decoration: underline;">Privacy Policy</a> and consent to GigHala Tech processing my personal data as described, including identity verification, payment processing, and compliance with PDPA 2010.
-                            </span>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: flex; align-items: start; gap: 8px; cursor: pointer; font-size: 13px; color: #444; line-height: 1.4;">
+                            <input type="checkbox" name="privacy_consent" required style="margin-top: 3px;">
+                            <span>I agree to the GigHala <a href="#" style="color: #007fed; text-decoration: none;">User Agreement</a> and <a href="#" style="color: #007fed; text-decoration: none;">Privacy Policy</a>.</span>
                         </label>
                     </div>
 
-                    <div class="form-group" style="margin-top: 16px; display: none;" id="socsoConsentGroup">
-                        <label style="display: flex; align-items: start; gap: 10px; cursor: pointer; font-size: 14px; line-height: 1.5;">
-                            <input type="checkbox" id="socsoConsent" name="socso_consent" style="margin-top: 4px; cursor: pointer;">
-                            <span style="color: var(--text-gray);">
-                                I agree to mandatory SOCSO deductions (1.25%) as required by the Gig Workers Bill 2025. GigHala will automatically deduct and remit SOCSO contributions from my earnings. I understand this provides me with benefits including medical coverage, disability allowance, invalidity pension, and work accident protection.
-                            </span>
-                        </label>
-                    </div>
+                    <button type="submit" class="btn-modal-primary" style="background: #007fed; color: white; border: none; padding: 14px; border-radius: 4px; font-weight: 700; font-size: 16px; width: 100%; cursor: pointer;">
+                        Join GigHala
+                    </button>
 
-                    <button type="submit" class="btn-modal-primary">{{ t('register_free') }}</button>
+                    <p style="font-size: 11px; color: #666; text-align: center; margin-top: 16px; line-height: 1.4;">
+                        This site is protected by reCAPTCHA and the Google <a href="#" style="color: #666;">Privacy Policy</a> and <a href="#" style="color: #666;">Terms of Service</a> apply.
+                    </p>
 
-                    <div style="margin: 20px 0; text-align: center; position: relative;">
-                        <span style="background: white; padding: 0 10px; position: relative; z-index: 1; color: #666;">or sign up with</span>
-                        <hr style="position: absolute; top: 50%; left: 0; right: 0; z-index: 0; border: none; border-top: 1px solid #ddd;">
-                    </div>
-
-                    <div class="social-login-buttons">
-                        <a href="/api/auth/google" class="btn-social btn-google">
-                            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9.003 18z" fill="#34A853"/>
-                                <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-                            </svg>
-                            Google
-                        </a>
-
-                    </div>
-
-                    <p class="modal-footer-text">{{ t('have_account') }} <a href="#" onclick="app.switchToLogin()">{{ t('login_now') }}</a></p>
+                    <p class="modal-footer-text" style="margin-top: 20px; font-size: 14px;">Already have an account? <a href="#" onclick="app.switchToLogin()" style="color: #007fed; font-weight: 700;">Log In</a></p>
                 </form>
             </div>
         </div>

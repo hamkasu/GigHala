@@ -622,36 +622,22 @@ const app = {
         const form = event.target;
         const formData = new FormData(form);
 
-        // Check privacy consent
-        const privacyConsent = document.getElementById('privacyConsent');
-        if (!privacyConsent || !privacyConsent.checked) {
-            alert('You must agree to the Privacy Policy to register. If you do not agree, you will be redirected to the home page.');
-            // Close modal and redirect to home
-            this.closeModal('registerModal');
-            window.location.href = '/';
-            return;
-        }
-
-        const userType = formData.get('user_type');
-        const socsoConsent = document.getElementById('socsoConsent');
-        
-        // Validate SOCSO consent for freelancers
-        if ((userType === 'freelancer' || userType === 'both') && (!socsoConsent || !socsoConsent.checked)) {
-            alert('You must agree to mandatory SOCSO deductions (1.25%) as required by the Gig Workers Bill 2025 to register as a freelancer.');
-            return;
-        }
+        // Combine first and last name for backend compatibility
+        const firstName = formData.get('first_name');
+        const lastName = formData.get('last_name');
+        const fullName = `${firstName} ${lastName}`.trim();
 
         const data = {
             username: formData.get('username'),
             email: formData.get('email'),
             password: formData.get('password'),
-            full_name: formData.get('full_name'),
-            phone: formData.get('phone'),
-            ic_number: formData.get('ic_number'),
-            location: formData.get('location'),
-            user_type: userType,
+            full_name: fullName,
+            phone: formData.get('phone') || '',
+            ic_number: formData.get('ic_number') || '',
+            location: formData.get('location') || 'Kuala Lumpur',
+            user_type: formData.get('user_type') || 'freelancer',
             privacy_consent: true,
-            socso_consent: socsoConsent && socsoConsent.checked ? true : false
+            socso_consent: true
         };
 
         try {
