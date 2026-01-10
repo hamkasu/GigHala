@@ -172,6 +172,31 @@
 
                 <!-- Right Content: Countdown -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <!-- New Content Block -->
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 24px; text-align: left; background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                        <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                            {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
+                        </h2>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                            <li style="display: flex; align-items: flex-start; gap: 10px; color: white; font-size: 0.95rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <span style="color: #4ade80;">•</span>
+                                <span>{% if lang == 'ms' %}Pasaran freelance terbesar di Malaysia{% else %}Malaysia's largest freelance marketplace{% endif %}</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 10px; color: white; font-size: 0.95rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <span style="color: #4ade80;">•</span>
+                                <span>{% if lang == 'ms' %}Sebarang pekerjaan yang anda boleh fikirkan{% else %}Any job you can possibly think of{% endif %}</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 10px; color: white; font-size: 0.95rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <span style="color: #4ade80;">•</span>
+                                <span>{% if lang == 'ms' %}Jimat sehingga 90% & dapatkan sebut harga secara percuma{% else %}Save up to 90% & get quotes for free{% endif %}</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 10px; color: white; font-size: 0.95rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                <span style="color: #4ade80;">•</span>
+                                <span>{% if lang == 'ms' %}Bayar hanya apabila anda 100% berpuas hati{% else %}Pay only when you're 100% happy{% endif %}</span>
+                            </li>
+                        </ul>
+                    </div>
+
                     <!-- Countdown Timer -->
                     <div id="countdownContainer" style="background: rgba(139, 69, 19, 0.25); border-radius: 11px; padding: 13px 22px; margin: 0 auto; width: 100%; max-width: 320px; box-shadow: 0 4px 11px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; color: white; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.2);">
                         <div style="font-size: 0.625rem; font-weight: 600; margin-bottom: 6px; opacity: 0.95; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);">Masa Tinggal</div>
