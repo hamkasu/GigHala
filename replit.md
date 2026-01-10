@@ -6,18 +6,12 @@ GigHala is a Malaysian halal gig economy platform built with Flask. Its main pur
 ## User Preferences
 I want iterative development. Ask before making major changes. I prefer detailed explanations. Do not make changes to the folder `files/`.
 
-## Recent Changes (December 23, 2025)
-- Removed redundant navigation items from header (Tentang Kami, Cari Gig, Kategori, Cara Kerja) as they were duplicates of dropdown menu items
-- Added SMS support via Twilio integration with `sms_service.py`
-- Added WhatsApp messaging support via Twilio
-- Added "About Us" link (https://gighala.calmic.com.my/about) to all pages navigation
-- **Enabled Stripe Live Mode** - Switched the platform from test mode to live mode for real transactions, utilizing the `STRIPE_LIVE_SECRET_KEY` and `STRIPE_LIVE_PUBLISHABLE_KEY` environment variables.
-- **Fixed language switcher** - Added `/api/language` endpoint to handle language switching between Malay (ms) and English (en). Language preference is stored in user session and database (if logged in)
-- **Fixed mobile header layout** - Improved CSS for mobile phones:
-  - Changed header-nav flex-shrink from 0 to 1 to prevent overlapping
-  - Hidden nav links on mobile to save space for logo, language switcher, and user menu
-  - Added proper alignment and spacing for responsive header at 480px and 768px breakpoints
-  - Partner logo and dropdown menu now display cleanly without overlapping on mobile phones
+## Recent Changes (January 10, 2026)
+- **Fixed mobile header visibility**: Optimized the top navigation bar for mobile devices. Logo size reduced, text size adjusted, and "Install" button styled to be fully visible on small screens (down to 360px width).
+- **Database Fix**: Added missing `payment_type` column to the `gig` table to resolve Internal Server Error (500).
+- **Mobile Splash Screen**: Implemented a modern splash screen for mobile users with a 2.5s display time.
+- **Client Marketing**: Added "Unlock a world of skilled professionals" section to the landing page.
+- **Stripe Live Mode**: Confirmed transition to live mode for real transactions.
 
 ## System Architecture
 The application uses a Flask backend with PostgreSQL as the database, managed by Replit. SQLAlchemy is used as the ORM. The frontend is built with Vanilla JavaScript and CSS.
