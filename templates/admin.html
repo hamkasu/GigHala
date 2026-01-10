@@ -730,7 +730,7 @@
 <div id="users-tab" class="tab-content">
     <div class="data-table">
         <div class="table-header">
-            <h2>User Management</h2>
+            <h2>User Management <span id="total-users-count" style="color: #666; font-size: 0.9em; font-weight: normal;"></span></h2>
             <input type="text" id="user-search" class="search-box" placeholder="Search users...">
         </div>
         <div id="users-loading" class="loading">Loading users...</div>
@@ -2266,6 +2266,12 @@
         try {
             const response = await fetch(`/api/admin/users?per_page=10000&search=${search}`);
             const data = await response.json();
+
+            // Update total users count
+            const totalCountElement = document.getElementById('total-users-count');
+            if (totalCountElement) {
+                totalCountElement.textContent = `(${data.total || data.users.length} total)`;
+            }
 
             let users = data.users;
             if (usersSortAscending) {
