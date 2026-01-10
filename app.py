@@ -12194,6 +12194,12 @@ This is an automated notification. Please do not reply to this email.
         # Delete applications
         Application.query.filter_by(gig_id=gig_id).delete()
 
+        # Delete messages for conversations related to this gig (must be before conversations)
+        conversations = Conversation.query.filter_by(gig_id=gig_id).all()
+        for conversation in conversations:
+            Message.query.filter_by(conversation_id=conversation.id).delete()
+            db.session.delete(conversation)
+
         # Finally delete the gig itself
         db.session.delete(gig)
         db.session.commit()
