@@ -741,6 +741,7 @@
                         <th style="cursor: pointer; user-select: none;" onclick="toggleUserSort()" id="users-id-header">ID <span id="users-sort-indicator"></span></th>
                         <th>Username</th>
                         <th>Email</th>
+                        <th>IC Number</th>
                         <th>Type</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -2279,6 +2280,7 @@
                     <td>${user.id}</td>
                     <td>${user.username}</td>
                     <td>${user.email}</td>
+                    <td>${user.ic_number || '-'}</td>
                     <td><span class="badge ${user.user_type}">${user.user_type}</span></td>
                     <td><span class="badge ${user.is_verified ? 'verified' : 'unverified'}">${user.is_verified ? 'Verified' : 'Unverified'}</span></td>
                     <td>

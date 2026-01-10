@@ -11575,7 +11575,8 @@ def admin_get_users():
             query = query.filter(
                 (User.username.ilike(search_pattern)) |
                 (User.email.ilike(search_pattern)) |
-                (User.full_name.ilike(search_pattern))
+                (User.full_name.ilike(search_pattern)) |
+                (User.ic_number.ilike(search_pattern))
             )
 
         users = query.order_by(User.created_at.desc()).paginate(
@@ -11596,6 +11597,7 @@ def admin_get_users():
                 'is_verified': u.is_verified,
                 'halal_verified': u.halal_verified,
                 'is_admin': u.is_admin,
+                'ic_number': u.ic_number,
                 'created_at': u.created_at.isoformat()
             } for u in users.items],
             'total': users.total,
