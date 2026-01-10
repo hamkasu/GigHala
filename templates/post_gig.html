@@ -510,6 +510,35 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label class="form-label">
+                            Payment Type
+                            <small class="text-muted" style="font-weight: normal;">(Optional - Set milestones for progressive payments)</small>
+                        </label>
+                        <select class="form-select" id="payment_type" name="payment_type" onchange="toggleMilestones()">
+                            <option value="full_payment" {% if form_data and form_data.payment_type == 'full_payment' %}selected{% endif %}>Full Payment (Pay after completion)</option>
+                            <option value="milestone" {% if form_data and form_data.payment_type == 'milestone' %}selected{% endif %}>Milestone Payment (Pay per milestone)</option>
+                        </select>
+                        <small class="form-text text-muted">Choose milestone payment to break the work into smaller deliverables with individual payments</small>
+                    </div>
+                </div>
+
+                <div id="milestones-section" style="display: none;">
+                    <div class="alert alert-info">
+                        <i data-feather="info" width="16"></i>
+                        Define milestones to break your project into smaller deliverables. Each milestone will be paid separately upon completion.
+                    </div>
+
+                    <div id="milestones-container">
+                        <!-- Milestones will be added here dynamically -->
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="addMilestone()">
+                        <i data-feather="plus" width="16"></i> Add Milestone
+                    </button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">{{ t('duration') }}</label>
                         <select class="form-select" id="duration" name="duration">
                             <option value="">{{ t('select_duration') }}</option>
@@ -1055,5 +1084,127 @@
         syncPhotoInput();
         updatePhotoPreviews();
     }
+
+    // ============================================================================
+    // MILESTONE PAYMENT FUNCTIONS
+    // ============================================================================
+
+    let milestoneCount = 0;
+
+    function toggleMilestones() {
+        const paymentType = document.getElementById('payment_type').value;
+        const milestonesSection = document.getElementById('milestones-section');
+
+        if (paymentType === 'milestone') {
+            milestonesSection.style.display = 'block';
+            if (milestoneCount === 0) {
+                addMilestone();
+            }
+        } else {
+            milestonesSection.style.display = 'none';
+        }
+    }
+
+    function addMilestone() {
+        milestoneCount++;
+        const container = document.getElementById('milestones-container');
+
+        const milestoneDiv = document.createElement('div');
+        milestoneDiv.className = 'milestone-item card p-3 mb-3';
+        milestoneDiv.id = `milestone-${milestoneCount}`;
+        milestoneDiv.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Milestone ${milestoneCount}</h5>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeMilestone(${milestoneCount})">
+                    <i data-feather="trash-2" width="14"></i> Remove
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Milestone Title <span class="required">*</span></label>
+                <input type="text" class="form-input milestone-title" name="milestone_title_${milestoneCount}"
+                       placeholder="e.g., Initial Design Mockups" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea milestone-description" name="milestone_description_${milestoneCount}"
+                          rows="2" placeholder="Describe what will be delivered in this milestone"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Amount (RM) <span class="required">*</span></label>
+                    <input type="number" class="form-input milestone-amount" name="milestone_amount_${milestoneCount}"
+                           placeholder="100" min="1" step="0.01" required onchange="calculateMilestoneTotal()">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" class="form-input milestone-due-date" name="milestone_due_date_${milestoneCount}">
+                </div>
+            </div>
+        `;
+
+        container.appendChild(milestoneDiv);
+
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+
+        calculateMilestoneTotal();
+    }
+
+    function removeMilestone(id) {
+        const milestone = document.getElementById(`milestone-${id}`);
+        if (milestone) {
+            milestone.remove();
+            calculateMilestoneTotal();
+        }
+    }
+
+    function calculateMilestoneTotal() {
+        const amounts = document.querySelectorAll('.milestone-amount');
+        let total = 0;
+
+        amounts.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+
+        // Show total if there are milestones
+        let totalDiv = document.getElementById('milestone-total-display');
+        if (!totalDiv && amounts.length > 0) {
+            totalDiv = document.createElement('div');
+            totalDiv.id = 'milestone-total-display';
+            totalDiv.className = 'alert alert-info mt-3';
+            document.getElementById('milestones-section').appendChild(totalDiv);
+        }
+
+        if (totalDiv) {
+            const approvedBudget = parseFloat(document.getElementById('approved_budget').value) || 0;
+            const budgetMatch = approvedBudget > 0 && Math.abs(total - approvedBudget) < 0.01;
+
+            totalDiv.innerHTML = `
+                <strong>Total Milestone Amount: RM ${total.toFixed(2)}</strong>
+                ${approvedBudget > 0 ? `
+                    <br><small>Approved Budget: RM ${approvedBudget.toFixed(2)}</small>
+                    ${!budgetMatch ? '<br><small class="text-warning">⚠ Total should match approved budget</small>' : '<br><small class="text-success">✓ Matches approved budget</small>'}
+                ` : ''}
+            `;
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleMilestones();
+
+        // Listen to approved budget changes to update milestone total
+        const approvedBudgetInput = document.getElementById('approved_budget');
+        if (approvedBudgetInput) {
+            approvedBudgetInput.addEventListener('change', calculateMilestoneTotal);
+        }
+    });
 </script>
 {% endblock %}

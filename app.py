@@ -2358,6 +2358,7 @@ class Gig(db.Model):
     budget_min = db.Column(db.Float, nullable=False)
     budget_max = db.Column(db.Float, nullable=False)
     approved_budget = db.Column(db.Float)  # Actual amount approved by client
+    payment_type = db.Column(db.String(20), default='full_payment')  # full_payment, milestone
     duration = db.Column(db.String(50))  # e.g., "1-3 days", "1 week"
     location = db.Column(db.String(100))
     latitude = db.Column(db.Float, nullable=True)  # Geolocation latitude
@@ -2772,6 +2773,130 @@ class Escrow(db.Model):
             'partial_refund': 'warning',
             'disputed': 'danger',
             'cancelled': 'dark'
+        }
+        return colors.get(self.status, 'secondary')
+
+class Milestone(db.Model):
+    """Model for tracking milestones in a gig with milestone-based payments"""
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    amount = db.Column(db.Float, nullable=False)
+    order = db.Column(db.Integer, nullable=False)  # Order of milestone (1, 2, 3, etc.)
+    status = db.Column(db.String(20), default='pending')  # pending, in_progress, completed, paid
+    due_date = db.Column(db.DateTime)
+    completed_at = db.Column(db.DateTime)
+    approved_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        """Convert milestone to dictionary for JSON response"""
+        return {
+            'id': self.id,
+            'gig_id': self.gig_id,
+            'title': self.title,
+            'description': self.description,
+            'amount': self.amount,
+            'order': self.order,
+            'status': self.status,
+            'status_label': self.get_status_label(),
+            'status_color': self.get_status_color(),
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+    def get_status_label(self):
+        """Get human-readable status label"""
+        labels = {
+            'pending': 'Pending',
+            'in_progress': 'In Progress',
+            'completed': 'Completed',
+            'paid': 'Paid'
+        }
+        return labels.get(self.status, self.status.title())
+
+    def get_status_color(self):
+        """Get Bootstrap color class for status"""
+        colors = {
+            'pending': 'secondary',
+            'in_progress': 'info',
+            'completed': 'warning',
+            'paid': 'success'
+        }
+        return colors.get(self.status, 'secondary')
+
+class MilestonePayment(db.Model):
+    """Model for tracking escrow payments for individual milestones"""
+    id = db.Column(db.Integer, primary_key=True)
+    milestone_id = db.Column(db.Integer, db.ForeignKey('milestone.id'), nullable=False)
+    escrow_number = db.Column(db.String(50), unique=True, nullable=False)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    platform_fee = db.Column(db.Float, default=0.0)
+    net_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(30), default='pending')  # pending, funded, released, refunded, disputed
+    payment_reference = db.Column(db.String(100))
+    payment_gateway = db.Column(db.String(50))  # stripe, payhalal, bank_transfer
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    funded_at = db.Column(db.DateTime)
+    released_at = db.Column(db.DateTime)
+    refunded_at = db.Column(db.DateTime)
+
+    # Relationships
+    milestone = db.relationship('Milestone', backref='payment')
+
+    def to_dict(self):
+        """Convert milestone payment to dictionary for JSON response"""
+        socso_amount = calculate_socso(self.net_amount)
+        final_payout = round(self.net_amount - socso_amount, 2)
+
+        return {
+            'id': self.id,
+            'milestone_id': self.milestone_id,
+            'escrow_number': self.escrow_number,
+            'gig_id': self.gig_id,
+            'client_id': self.client_id,
+            'freelancer_id': self.freelancer_id,
+            'amount': self.amount,
+            'platform_fee': self.platform_fee,
+            'net_amount': self.net_amount,
+            'socso_amount': socso_amount,
+            'final_payout': final_payout,
+            'status': self.status,
+            'status_label': self.get_status_label(),
+            'status_color': self.get_status_color(),
+            'payment_reference': self.payment_reference,
+            'payment_gateway': self.payment_gateway,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'funded_at': self.funded_at.isoformat() if self.funded_at else None,
+            'released_at': self.released_at.isoformat() if self.released_at else None
+        }
+
+    def get_status_label(self):
+        """Get human-readable status label"""
+        labels = {
+            'pending': 'Pending Payment',
+            'funded': 'Funds Held in Escrow',
+            'released': 'Released to Freelancer',
+            'refunded': 'Refunded to Client',
+            'disputed': 'Under Dispute'
+        }
+        return labels.get(self.status, self.status.title())
+
+    def get_status_color(self):
+        """Get Bootstrap color class for status"""
+        colors = {
+            'pending': 'warning',
+            'funded': 'info',
+            'released': 'success',
+            'refunded': 'secondary',
+            'disputed': 'danger'
         }
         return colors.get(self.status, 'secondary')
 
@@ -3604,6 +3729,8 @@ def post_gig():
                     ip_address=request.headers.get('X-Forwarded-For', request.remote_addr)
                 )
 
+            payment_type = request.form.get('payment_type', 'full_payment')
+
             new_gig = Gig(
                 title=title,
                 description=description,
@@ -3611,6 +3738,7 @@ def post_gig():
                 budget_min=budget_min,
                 budget_max=budget_max,
                 approved_budget=approved_budget,
+                payment_type=payment_type,
                 duration=duration,
                 location=location,
                 is_remote=form_data['is_remote'],
@@ -3623,12 +3751,49 @@ def post_gig():
                 deadline=deadline,
                 ai_moderation_result=ai_moderation_json  # Store AI result for audit
             )
-            
+
             db.session.add(new_gig)
             db.session.flush()  # Flush to get the ID without committing
-            
+
             # Generate unique gig code
             new_gig.gig_code = f"GIG-{new_gig.id:05d}"
+
+            # Create milestones if payment type is milestone
+            if payment_type == 'milestone':
+                milestone_count = 0
+                for key in request.form.keys():
+                    if key.startswith('milestone_title_'):
+                        milestone_count += 1
+
+                for i in range(1, milestone_count + 1):
+                    title_key = f'milestone_title_{i}'
+                    desc_key = f'milestone_description_{i}'
+                    amount_key = f'milestone_amount_{i}'
+                    due_date_key = f'milestone_due_date_{i}'
+
+                    if title_key in request.form and amount_key in request.form:
+                        milestone_title = sanitize_input(request.form.get(title_key, ''), max_length=200)
+                        milestone_desc = sanitize_input(request.form.get(desc_key, ''), max_length=1000)
+                        milestone_amount = float(request.form.get(amount_key, 0))
+
+                        milestone = Milestone(
+                            gig_id=new_gig.id,
+                            title=milestone_title,
+                            description=milestone_desc,
+                            amount=milestone_amount,
+                            order=i,
+                            status='pending'
+                        )
+
+                        due_date_str = request.form.get(due_date_key)
+                        if due_date_str:
+                            try:
+                                milestone.due_date = datetime.fromisoformat(due_date_str)
+                            except:
+                                pass
+
+                        db.session.add(milestone)
+
             db.session.commit()
             
             # Handle photo uploads
@@ -6078,6 +6243,7 @@ def create_gig():
             budget_min=budget_min,
             budget_max=budget_max,
             approved_budget=approved_budget,
+            payment_type=data.get('payment_type', 'full_payment'),
             duration=duration,
             location=location,
             latitude=latitude,
@@ -6094,6 +6260,30 @@ def create_gig():
         )
 
         db.session.add(new_gig)
+        db.session.flush()  # Get the gig ID before committing
+
+        # Create milestones if payment type is milestone
+        if data.get('payment_type') == 'milestone' and data.get('milestones'):
+            milestones_data = data.get('milestones', [])
+
+            for idx, milestone_data in enumerate(milestones_data, 1):
+                milestone = Milestone(
+                    gig_id=new_gig.id,
+                    title=milestone_data.get('title', f'Milestone {idx}'),
+                    description=milestone_data.get('description', ''),
+                    amount=float(milestone_data.get('amount', 0)),
+                    order=idx,
+                    status='pending'
+                )
+
+                if milestone_data.get('due_date'):
+                    try:
+                        milestone.due_date = datetime.fromisoformat(milestone_data['due_date'].replace('Z', '+00:00'))
+                    except:
+                        pass
+
+                db.session.add(milestone)
+
         db.session.commit()
 
         # Return appropriate message based on moderation result
@@ -8064,6 +8254,416 @@ def cancel_gig(gig_id):
         db.session.rollback()
         app.logger.error(f"Cancel gig error: {str(e)}")
         return jsonify({'error': 'Failed to cancel gig'}), 500
+
+# ============================================================================
+# MILESTONE PAYMENT API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/gigs/<int:gig_id>/milestones', methods=['GET'])
+def get_gig_milestones(gig_id):
+    """Get all milestones for a gig"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client or freelancer can view milestones
+        if gig.client_id != user_id and gig.freelancer_id != user_id:
+            return jsonify({'error': 'Unauthorized to view milestones'}), 403
+
+        milestones = Milestone.query.filter_by(gig_id=gig_id).order_by(Milestone.order).all()
+
+        return jsonify({
+            'milestones': [m.to_dict() for m in milestones]
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get milestones error: {str(e)}")
+        return jsonify({'error': 'Failed to get milestones'}), 500
+
+@app.route('/api/gigs/<int:gig_id>/milestones', methods=['POST'])
+def create_gig_milestones(gig_id):
+    """Create or update milestones for a gig (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json or {}
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client can create/update milestones
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can create milestones'}), 403
+
+        # Can only create milestones for gigs that haven't started
+        if gig.status not in ['open', 'in_progress']:
+            return jsonify({'error': 'Cannot modify milestones for this gig status'}), 400
+
+        milestones_data = data.get('milestones', [])
+
+        if not milestones_data:
+            return jsonify({'error': 'No milestones provided'}), 400
+
+        # Validate total amount matches gig budget
+        total_amount = sum(m.get('amount', 0) for m in milestones_data)
+        if gig.agreed_amount and abs(total_amount - gig.agreed_amount) > 0.01:
+            return jsonify({'error': f'Total milestone amount (RM{total_amount:.2f}) must match agreed amount (RM{gig.agreed_amount:.2f})'}), 400
+
+        # Delete existing milestones
+        Milestone.query.filter_by(gig_id=gig_id).delete()
+
+        # Create new milestones
+        created_milestones = []
+        for idx, milestone_data in enumerate(milestones_data, 1):
+            milestone = Milestone(
+                gig_id=gig_id,
+                title=milestone_data.get('title', f'Milestone {idx}'),
+                description=milestone_data.get('description', ''),
+                amount=milestone_data.get('amount', 0),
+                order=idx,
+                status='pending'
+            )
+
+            if milestone_data.get('due_date'):
+                try:
+                    milestone.due_date = datetime.fromisoformat(milestone_data['due_date'].replace('Z', '+00:00'))
+                except:
+                    pass
+
+            db.session.add(milestone)
+            created_milestones.append(milestone)
+
+        # Update gig payment type
+        gig.payment_type = 'milestone'
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Milestones created successfully',
+            'milestones': [m.to_dict() for m in created_milestones]
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Create milestones error: {str(e)}")
+        return jsonify({'error': 'Failed to create milestones'}), 500
+
+@app.route('/api/milestones/<int:milestone_id>', methods=['PUT'])
+def update_milestone(milestone_id):
+    """Update a milestone (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json or {}
+        milestone = Milestone.query.get_or_404(milestone_id)
+        gig = Gig.query.get_or_404(milestone.gig_id)
+        user_id = session['user_id']
+
+        # Only client can update milestones
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can update milestones'}), 403
+
+        # Cannot update paid milestones
+        if milestone.status == 'paid':
+            return jsonify({'error': 'Cannot update paid milestones'}), 400
+
+        # Update fields
+        if 'title' in data:
+            milestone.title = data['title']
+        if 'description' in data:
+            milestone.description = data['description']
+        if 'amount' in data:
+            milestone.amount = data['amount']
+        if 'due_date' in data:
+            try:
+                milestone.due_date = datetime.fromisoformat(data['due_date'].replace('Z', '+00:00'))
+            except:
+                pass
+
+        milestone.updated_at = datetime.utcnow()
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Milestone updated successfully',
+            'milestone': milestone.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Update milestone error: {str(e)}")
+        return jsonify({'error': 'Failed to update milestone'}), 500
+
+@app.route('/api/milestones/<int:milestone_id>', methods=['DELETE'])
+def delete_milestone(milestone_id):
+    """Delete a milestone (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        milestone = Milestone.query.get_or_404(milestone_id)
+        gig = Gig.query.get_or_404(milestone.gig_id)
+        user_id = session['user_id']
+
+        # Only client can delete milestones
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can delete milestones'}), 403
+
+        # Cannot delete paid or in-progress milestones
+        if milestone.status in ['paid', 'in_progress']:
+            return jsonify({'error': 'Cannot delete milestones that are in progress or paid'}), 400
+
+        db.session.delete(milestone)
+        db.session.commit()
+
+        return jsonify({'message': 'Milestone deleted successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete milestone error: {str(e)}")
+        return jsonify({'error': 'Failed to delete milestone'}), 500
+
+@app.route('/api/milestones/<int:milestone_id>/mark-completed', methods=['POST'])
+def mark_milestone_completed(milestone_id):
+    """Mark a milestone as completed (freelancer only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        milestone = Milestone.query.get_or_404(milestone_id)
+        gig = Gig.query.get_or_404(milestone.gig_id)
+        user_id = session['user_id']
+
+        # Only freelancer can mark milestone as completed
+        if gig.freelancer_id != user_id:
+            return jsonify({'error': 'Only the freelancer can mark milestones as completed'}), 403
+
+        # Milestone must be in progress
+        if milestone.status != 'in_progress':
+            return jsonify({'error': 'Milestone must be in progress to mark as completed'}), 400
+
+        milestone.status = 'completed'
+        milestone.completed_at = datetime.utcnow()
+
+        # Create notification for client
+        notification = Notification(
+            user_id=gig.client_id,
+            notification_type='gig',
+            title='Milestone Completed',
+            message=f'Milestone "{milestone.title}" has been marked as completed for gig "{gig.title}"',
+            link=f'/gig/{gig.id}',
+            related_id=gig.id
+        )
+        db.session.add(notification)
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Milestone marked as completed',
+            'milestone': milestone.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Mark milestone completed error: {str(e)}")
+        return jsonify({'error': 'Failed to mark milestone as completed'}), 500
+
+@app.route('/api/milestones/<int:milestone_id>/approve', methods=['POST'])
+def approve_milestone_payment(milestone_id):
+    """Approve milestone and release payment (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        milestone = Milestone.query.get_or_404(milestone_id)
+        gig = Gig.query.get_or_404(milestone.gig_id)
+        user_id = session['user_id']
+
+        # Only client can approve milestones
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can approve milestones'}), 403
+
+        # Milestone must be completed
+        if milestone.status != 'completed':
+            return jsonify({'error': 'Milestone must be completed before approval'}), 400
+
+        # Check if payment exists and is funded
+        milestone_payment = MilestonePayment.query.filter_by(milestone_id=milestone_id).first()
+
+        if not milestone_payment:
+            return jsonify({'error': 'No payment found for this milestone'}), 400
+
+        if milestone_payment.status != 'funded':
+            return jsonify({'error': 'Milestone payment must be funded before release'}), 400
+
+        # Release payment to freelancer
+        milestone_payment.status = 'released'
+        milestone_payment.released_at = datetime.utcnow()
+
+        milestone.status = 'paid'
+        milestone.approved_at = datetime.utcnow()
+
+        # Update freelancer wallet
+        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        if not freelancer_wallet:
+            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            db.session.add(freelancer_wallet)
+
+        # Calculate SOCSO and final payout
+        socso_amount = calculate_socso(milestone_payment.net_amount)
+        final_payout = milestone_payment.net_amount - socso_amount
+
+        # Update wallet
+        balance_before = freelancer_wallet.balance
+        freelancer_wallet.balance += final_payout
+        freelancer_wallet.held_balance -= milestone_payment.net_amount
+        freelancer_wallet.total_earned += final_payout
+
+        # Record payment history
+        payment_history = PaymentHistory(
+            user_id=gig.freelancer_id,
+            type='release',
+            amount=final_payout,
+            socso_amount=socso_amount,
+            balance_before=balance_before,
+            balance_after=freelancer_wallet.balance,
+            description=f"Payment for milestone: {milestone.title}",
+            reference_number=milestone_payment.escrow_number,
+            payment_gateway=milestone_payment.payment_gateway,
+            status='completed'
+        )
+        db.session.add(payment_history)
+
+        # Record SOCSO contribution
+        if socso_amount > 0:
+            create_socso_contribution(
+                user_id=gig.freelancer_id,
+                gig_id=gig.id,
+                net_earnings=milestone_payment.net_amount,
+                socso_amount=socso_amount,
+                period=datetime.utcnow().strftime('%Y-%m')
+            )
+
+        # Create notification for freelancer
+        notification = Notification(
+            user_id=gig.freelancer_id,
+            notification_type='payment',
+            title='Milestone Payment Released',
+            message=f'Payment of RM{final_payout:.2f} has been released for milestone "{milestone.title}"',
+            link=f'/billing',
+            related_id=gig.id
+        )
+        db.session.add(notification)
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Milestone approved and payment released',
+            'milestone': milestone.to_dict(),
+            'payment': {
+                'amount': milestone_payment.amount,
+                'platform_fee': milestone_payment.platform_fee,
+                'net_amount': milestone_payment.net_amount,
+                'socso_amount': socso_amount,
+                'final_payout': final_payout
+            }
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Approve milestone error: {str(e)}")
+        return jsonify({'error': 'Failed to approve milestone'}), 500
+
+@app.route('/api/milestones/<int:milestone_id>/payment', methods=['GET'])
+def get_milestone_payment(milestone_id):
+    """Get payment details for a milestone"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        milestone = Milestone.query.get_or_404(milestone_id)
+        gig = Gig.query.get_or_404(milestone.gig_id)
+        user_id = session['user_id']
+
+        # Only client or freelancer can view payment
+        if gig.client_id != user_id and gig.freelancer_id != user_id:
+            return jsonify({'error': 'Unauthorized to view payment'}), 403
+
+        milestone_payment = MilestonePayment.query.filter_by(milestone_id=milestone_id).first()
+
+        if not milestone_payment:
+            return jsonify({'payment': None}), 200
+
+        return jsonify({
+            'payment': milestone_payment.to_dict()
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get milestone payment error: {str(e)}")
+        return jsonify({'error': 'Failed to get milestone payment'}), 500
+
+@app.route('/api/milestones/<int:milestone_id>/fund', methods=['POST'])
+def fund_milestone(milestone_id):
+    """Create escrow payment for a milestone (client only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        milestone = Milestone.query.get_or_404(milestone_id)
+        gig = Gig.query.get_or_404(milestone.gig_id)
+        user_id = session['user_id']
+
+        # Only client can fund milestones
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the client can fund milestones'}), 403
+
+        # Check if payment already exists
+        existing_payment = MilestonePayment.query.filter_by(milestone_id=milestone_id).first()
+        if existing_payment:
+            return jsonify({'error': 'Milestone payment already exists', 'payment': existing_payment.to_dict()}), 400
+
+        # Calculate fees
+        platform_fee = calculate_commission(milestone.amount)
+        net_amount = milestone.amount - platform_fee
+
+        # Generate escrow number
+        escrow_number = generate_escrow_number()
+
+        # Create milestone payment
+        milestone_payment = MilestonePayment(
+            milestone_id=milestone_id,
+            escrow_number=escrow_number,
+            gig_id=gig.id,
+            client_id=gig.client_id,
+            freelancer_id=gig.freelancer_id,
+            amount=milestone.amount,
+            platform_fee=platform_fee,
+            net_amount=net_amount,
+            status='pending'
+        )
+
+        db.session.add(milestone_payment)
+
+        # Update milestone status
+        if milestone.status == 'pending':
+            milestone.status = 'in_progress'
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Milestone payment created successfully',
+            'payment': milestone_payment.to_dict(),
+            'next_step': 'Proceed to payment to fund this milestone'
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Fund milestone error: {str(e)}")
+        return jsonify({'error': 'Failed to create milestone payment'}), 500
 
 @app.route('/api/gigs/<int:gig_id>/report', methods=['POST'])
 @api_rate_limit(requests_per_minute=10)
