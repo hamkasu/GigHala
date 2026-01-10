@@ -97,33 +97,78 @@
             setInterval(nextSlide, 5000); // Change image every 5 seconds
         });
     </script>
+    <style>
+        /* Mobile-first and desktop adjustments for the top bar */
+        @media (max-width: 768px) {
+            .date-bar {
+                padding: 6px 10px !important;
+            }
+            .date-bar .logo-container img {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            .date-bar .logo-container span {
+                font-size: 16px !important;
+            }
+            .install-btn {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+                min-width: 85px !important;
+                flex-shrink: 0 !important;
+                border: 1.5px solid rgba(255,255,255,0.6) !important;
+            }
+        }
+        @media (max-width: 360px) {
+            .date-bar .logo-container span {
+                font-size: 14px !important;
+            }
+            .date-bar .logo-container img {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            .install-btn {
+                padding: 5px 8px !important;
+                font-size: 11px !important;
+                min-width: 75px !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .tagline-desktop { display: block !important; }
+            .desktop-only-controls { display: flex !important; }
+            .date-bar { padding: 12px 28px !important; }
+            .date-bar .logo-container img { width: 70px !important; height: 70px !important; }
+            .date-bar .logo-container span { font-size: 28px !important; }
+            .tagline-desktop { margin-left: 80px !important; font-size: 14px !important; }
+        }
+    </style>
     <!-- Islamic/Western Date Bar -->
-    <div class="date-bar" style="background: transparent; padding: 12px 28px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
-        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 14px;">
+    <div class="date-bar" style="background: transparent; padding: 12px 20px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
+        <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 8px;">
             <!-- Logo on the left -->
-            <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 70px; height: 70px; display: block;">
-                    <span style="font-weight: 800; font-size: 28px; color: white; letter-spacing: 0.5px;">GigHala</span>
+            <div class="logo-container" style="flex-shrink: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 50px; height: 50px; display: block; flex-shrink: 0;">
+                    <span style="font-weight: 800; font-size: 20px; color: white; letter-spacing: 0.5px; white-space: nowrap;">GigHala</span>
                 </div>
-                <div style="font-size: 14px; font-weight: 600; color: #4ade80; margin-left: 80px; letter-spacing: 0.5px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+                <div style="font-size: 11px; font-weight: 600; color: #4ade80; margin-left: 58px; letter-spacing: 0.2px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.3); white-space: nowrap; display: none;" class="tagline-desktop">
                     Post Free. Hire Smart. Pay Secure.
                 </div>
             </div>
 
             <!-- Buttons and dates on the right -->
-            <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                 <a href="#install-app" style="text-decoration: none;">
-                    <button class="btn-primary" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">📱 Install App</button>
+                    <button class="btn-primary install-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
+                        <span style="font-size: 14px;">📱</span> Install
+                    </button>
                 </a>
-                <a href="#cari-gig" style="text-decoration: none;">
-                    <button class="btn-primary" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Latest Gigs</button>
-                </a>
-                <button class="btn-primary" onclick="app.showLogin()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Log Masuk</button>
-                <button class="btn-primary" onclick="app.showRegister()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 7px 14px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Daftar Percuma</button>
-                <span style="color: #4ade80; font-weight: 600; font-size: 14px;">{{ today_hijri }}</span>
-                <span style="color: rgba(255,255,255,0.4); font-size: 14px;">|</span>
-                <span style="color: rgba(255,255,255,0.8); font-size: 14px;">{{ today_gregorian }}</span>
+                <div class="desktop-only-controls" style="display: none; align-items: center; gap: 8px;">
+                    <a href="#cari-gig" style="text-decoration: none;">
+                        <button class="btn-primary" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Latest Gigs</button>
+                    </a>
+                    <button class="btn-primary" onclick="app.showLogin()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Log Masuk</button>
+                    <button class="btn-primary" onclick="app.showRegister()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Daftar Percuma</button>
+                </div>
             </div>
         </div>
     </div>
