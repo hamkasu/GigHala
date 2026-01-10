@@ -3095,43 +3095,6 @@ class DisputeMessage(db.Model):
     attachments = db.Column(db.Text)  # JSON array of file paths
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-class Milestone(db.Model):
-    """Model for escrow milestone payments"""
-    id = db.Column(db.Integer, primary_key=True)
-    escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'), nullable=False)
-    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
-    milestone_number = db.Column(db.Integer, nullable=False)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    amount = db.Column(db.Float, nullable=False)
-    percentage = db.Column(db.Float)  # Percentage of total escrow
-    due_date = db.Column(db.DateTime)
-    status = db.Column(db.String(30), default='pending')  # pending, funded, in_progress, submitted, approved, released, disputed
-    work_submitted = db.Column(db.Boolean, default=False)
-    submitted_at = db.Column(db.DateTime)
-    approved_at = db.Column(db.DateTime)
-    released_at = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'escrow_id': self.escrow_id,
-            'gig_id': self.gig_id,
-            'milestone_number': self.milestone_number,
-            'title': self.title,
-            'description': self.description,
-            'amount': self.amount,
-            'percentage': self.percentage,
-            'due_date': self.due_date.isoformat() if self.due_date else None,
-            'status': self.status,
-            'work_submitted': self.work_submitted,
-            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
-            'released_at': self.released_at.isoformat() if self.released_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
-
 class PlatformFeedback(db.Model):
     """Model for user feedback about the GigHala platform"""
     id = db.Column(db.Integer, primary_key=True)
