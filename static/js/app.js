@@ -332,8 +332,9 @@ const app = {
                     👁️ ${gig.views} views  •  📝 ${gig.applications} applications
                 </div>
             `;
-            
+
             modal.classList.add('active');
+            document.body.classList.add('modal-open');
         } catch (error) {
             console.error('Error loading gig details:', error);
             alert('Error loading gig details. Please try again.');
@@ -454,6 +455,12 @@ const app = {
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.classList.remove('active');
+
+                // Check if any modals are still open
+                const openModals = document.querySelectorAll('.modal.active');
+                if (openModals.length === 0) {
+                    document.body.classList.remove('modal-open');
+                }
             }
         });
     },
@@ -491,12 +498,14 @@ const app = {
     showLogin() {
         const modal = document.getElementById('loginModal');
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
     },
-    
+
     // Show register modal
     showRegister() {
         const modal = document.getElementById('registerModal');
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
         // Setup SOCSO consent field visibility based on user type
         this.setupSOCSOConsentListener();
     },
@@ -530,6 +539,12 @@ const app = {
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
         modal.classList.remove('active');
+
+        // Check if any modals are still open
+        const openModals = document.querySelectorAll('.modal.active');
+        if (openModals.length === 0) {
+            document.body.classList.remove('modal-open');
+        }
     },
     
     // Switch to register modal
@@ -550,6 +565,7 @@ const app = {
         this.closeModal('loginModal');
         const modal = document.getElementById('forgotPasswordModal');
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
     },
 
     // Show privacy policy modal
@@ -557,6 +573,7 @@ const app = {
         if (event) event.preventDefault();
         const modal = document.getElementById('privacyPolicyModal');
         modal.classList.add('active');
+        document.body.classList.add('modal-open');
     },
 
     // Handle login form submission
