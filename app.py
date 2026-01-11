@@ -223,6 +223,25 @@ if google_client_id and google_client_secret:
 else:
     google = None
 
+# Facebook OAuth - only register if credentials are provided
+facebook_client_id = os.environ.get('FACEBOOK_CLIENT_ID')
+facebook_client_secret = os.environ.get('FACEBOOK_CLIENT_SECRET')
+
+if facebook_client_id and facebook_client_secret:
+    facebook = oauth.register(
+        name='facebook',
+        client_id=facebook_client_id,
+        client_secret=facebook_client_secret,
+        access_token_url='https://graph.facebook.com/v18.0/oauth/access_token',
+        authorize_url='https://www.facebook.com/v18.0/dialog/oauth',
+        api_base_url='https://graph.facebook.com/v18.0/',
+        client_kwargs={
+            'scope': 'email public_profile'
+        }
+    )
+else:
+    facebook = None
+
 # Microsoft OAuth - only register if credentials are provided
 if os.environ.get('MICROSOFT_CLIENT_ID') and os.environ.get('MICROSOFT_CLIENT_SECRET'):
     microsoft = oauth.register(
@@ -5727,6 +5746,79 @@ def google_callback():
     except Exception as e:
         app.logger.error(f"Google OAuth error: {str(e)}")
         return redirect('/?error=google_auth_failed')
+
+@app.route('/api/auth/facebook')
+def facebook_login():
+    # Explicitly set redirect URI for Railway and Replit compatibility
+    # ProxyFix middleware ensures request.host_url has correct scheme and host
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/facebook/callback'
+    return facebook.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/facebook/callback')
+def facebook_callback():
+    try:
+        token = facebook.authorize_access_token()
+
+        # Get user data from Facebook Graph API
+        resp = facebook.get('me?fields=id,name,email')
+        user_info = resp.json()
+
+        if not user_info:
+            return redirect('/?error=facebook_auth_failed')
+
+        # Get user data from Facebook
+        oauth_id = user_info.get('id')
+        email = user_info.get('email')
+        full_name = user_info.get('name')
+
+        if not oauth_id:
+            return redirect('/?error=missing_facebook_data')
+
+        # Email might not be provided if user hasn't verified it on Facebook
+        # or didn't grant email permission
+        if not email:
+            return redirect('/?error=facebook_email_required')
+
+        # Check if user exists with this OAuth provider
+        user = User.query.filter_by(oauth_provider='facebook', oauth_id=oauth_id).first()
+
+        if not user:
+            # Check if email already exists (link accounts)
+            user = User.query.filter_by(email=email).first()
+            if user:
+                # Update existing account with OAuth info
+                user.oauth_provider = 'facebook'
+                user.oauth_id = oauth_id
+                db.session.commit()
+            else:
+                # Create new user
+                username = email.split('@')[0] + '_' + secrets.token_hex(4)
+                new_user = User(
+                    username=username,
+                    email=email,
+                    full_name=full_name,
+                    oauth_provider='facebook',
+                    oauth_id=oauth_id,
+                    user_type='both',
+                    is_verified=True  # Email is verified by Facebook
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                user = new_user
+
+        # Log user in
+        session['user_id'] = user.id
+        session.permanent = True
+
+        # Check if user needs phone setup (Phase 1: Optional but encouraged)
+        if not user.phone or not user.phone_verified:
+            # Redirect OAuth users to dashboard with phone prompt
+            return redirect('/dashboard?show_phone_prompt=true')
+
+        return redirect('/dashboard')
+    except Exception as e:
+        app.logger.error(f"Facebook OAuth error: {str(e)}")
+        return redirect('/?error=facebook_auth_failed')
 
 @app.route('/api/auth/microsoft')
 def microsoft_login():
