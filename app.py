@@ -3329,6 +3329,15 @@ def index():
         paid_display = f"RM {total_paid_year:,.0f}"
 
     # Pass stats to index
+    latest_gigs = Gig.query.filter(Gig.status == 'open').order_by(Gig.created_at.desc()).limit(5).all()
+    gigs_with_applicants = []
+    for gig in latest_gigs:
+        applicant_count = Application.query.filter_by(gig_id=gig.id).count()
+        gigs_with_applicants.append({
+            'title': gig.title,
+            'applicant_count': applicant_count
+        })
+    
     user_count = User.query.count()
     return render_template('index.html',
                          visitor_count=stats.value,
@@ -3339,7 +3348,8 @@ def index():
                          lang=get_user_language(),
                          t=t,
                          today_gregorian=today_dual['gregorian'],
-                         today_hijri=today_dual['hijri'])
+                         today_hijri=today_dual['hijri'],
+                         latest_gigs=gigs_with_applicants)
 
 @app.route('/gigs')
 @page_login_required

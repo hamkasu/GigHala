@@ -312,6 +312,27 @@
 
                 <!-- Right Content: Countdown -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <!-- Latest Gigs List -->
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 24px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                        <h2 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                            {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
+                        </h2>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+                            {% for gig in latest_gigs %}
+                            <li style="display: flex; justify-content: space-between; align-items: center; color: white; font-size: 0.9rem; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                                <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%;">{{ gig.title }}</span>
+                                <span style="font-size: 0.8rem; background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                                    {{ gig.applicant_count }} {% if lang == 'ms' %}pemohon{% else %}applicants{% endif %}
+                                </span>
+                            </li>
+                            {% else %}
+                            <li style="color: rgba(255,255,255,0.6); font-size: 0.9rem; text-align: center; padding: 10px;">
+                                {% if lang == 'ms' %}Tiada gig terkini{% else %}No latest gigs{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
                     <!-- New Content Block -->
                     <div style="width: 100%; max-width: 400px; margin-bottom: 24px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
                         <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
