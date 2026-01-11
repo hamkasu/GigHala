@@ -2274,6 +2274,12 @@ class User(UserMixin, db.Model):
     bank_account_holder = db.Column(db.String(120))
     # Stripe customer ID for saved payment methods
     stripe_customer_id = db.Column(db.String(100))  # Stripe customer ID (cus_xxx)
+    # Stripe Connect fields for instant payouts
+    stripe_account_id = db.Column(db.String(255), unique=True)  # Stripe Connect account ID (acct_xxx)
+    stripe_account_status = db.Column(db.String(50))  # pending, active, restricted, rejected
+    stripe_onboarding_completed = db.Column(db.Boolean, default=False)  # Stripe onboarding complete
+    instant_payout_enabled = db.Column(db.Boolean, default=False)  # Instant payouts available
+    stripe_account_created_at = db.Column(db.DateTime)  # When Stripe Connect account was created
     # OAuth fields for social login
     oauth_provider = db.Column(db.String(20))  # google, apple, microsoft, or null for regular
     oauth_id = db.Column(db.String(255))  # User ID from OAuth provider
@@ -2569,6 +2575,10 @@ class Payout(db.Model):
     completed_at = db.Column(db.DateTime)
     failure_reason = db.Column(db.Text)
     admin_notes = db.Column(db.Text)
+    # Instant payout fields (Stripe Connect)
+    is_instant = db.Column(db.Boolean, default=False)  # Whether this is an instant payout
+    stripe_payout_id = db.Column(db.String(255), unique=True)  # Stripe payout ID (po_xxx)
+    estimated_arrival = db.Column(db.DateTime)  # Estimated arrival time for funds
 
 class PaymentHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
