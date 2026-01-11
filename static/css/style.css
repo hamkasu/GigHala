@@ -936,7 +936,7 @@ body {
 
 .gig-card {
     background: white;
-    padding: 28px;
+    padding: 20px;
     border-radius: 20px;
     box-shadow: 0 4px 20px rgba(13, 124, 102, 0.08);
     cursor: pointer;
@@ -1233,7 +1233,7 @@ body {
 
 .benefit-card {
     background: white;
-    padding: 40px 32px;
+    padding: 32px 24px;
     border-radius: 24px;
     text-align: center;
     box-shadow: 0 4px 20px rgba(13, 124, 102, 0.08);
@@ -1830,9 +1830,9 @@ body {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .gig-card {
-        padding: 20px;
+        padding: 16px;
     }
     
     .gig-title {
@@ -2098,9 +2098,9 @@ body {
     .category-name {
         font-size: 12px;
     }
-    
+
     .gig-card {
-        padding: 16px;
+        padding: 12px;
     }
     
     .section-title {
