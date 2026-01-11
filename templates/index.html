@@ -334,7 +334,18 @@
                     </div>
 
                     <!-- New Content Block -->
-                    <div style="width: 100%; max-width: 400px; margin-bottom: 24px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 24px;">
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+                                <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ active_gigs_count }}</div>
+                            </div>
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;">
+                                <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ total_paid_year }}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: left; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
                         <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                             {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
                         </h2>
