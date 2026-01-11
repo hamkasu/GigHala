@@ -764,6 +764,33 @@
             <button class="modal-close" onclick="closePayoutModal()">&times;</button>
         </div>
         <div id="payoutAlert"></div>
+
+        <!-- Instant Payout Option -->
+        <div id="instantPayoutOption" style="display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <span style="font-size: 24px;">⚡</span>
+                <div>
+                    <strong style="font-size: 16px;">Bayaran Instant Available!</strong>
+                    <div style="font-size: 13px; opacity: 0.9;">Terima wang dalam ~30 minit / Get funds in ~30 minutes</div>
+                </div>
+            </div>
+            <button type="button" class="btn" onclick="switchToInstantPayout()" style="background: white; color: var(--success); border: none; font-weight: 600; padding: 10px 20px;">
+                ⚡ Use Instant Payout
+            </button>
+        </div>
+
+        <!-- Stripe Connect Onboarding (if not set up) -->
+        <div id="stripeOnboardingNeeded" style="display: none; background: var(--bg-light); padding: 16px; border-radius: 8px; margin-bottom: 20px; border: 2px dashed var(--border);">
+            <div style="text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 12px;">⚡</div>
+                <h4 style="margin: 0 0 8px 0;">Enable Instant Payouts</h4>
+                <p style="margin: 0 0 16px 0; color: var(--text-gray); font-size: 14px;">Set up your bank account to receive instant payouts in ~30 minutes</p>
+                <button type="button" class="btn btn-primary" onclick="setupStripeConnect()">
+                    🔗 Set Up Instant Payouts
+                </button>
+            </div>
+        </div>
+
         <form id="payoutForm" onsubmit="submitPayout(event)">
             <div class="form-group">
                 <label>Amount (MYR)</label>
@@ -772,8 +799,9 @@
             </div>
             <div class="form-group">
                 <label>Payout Method</label>
-                <select id="payoutMethod" required>
-                    <option value="bank_transfer">Bank Transfer</option>
+                <select id="payoutMethod" required onchange="handlePayoutMethodChange()">
+                    <option value="bank_transfer">Bank Transfer (3-5 days)</option>
+                    <option value="stripe_instant" id="instantPayoutMethodOption" style="display: none;">⚡ Instant Payout (~30 minutes)</option>
                     <option value="fpx">FPX</option>
                     <option value="ewallet">E-Wallet</option>
                 </select>
@@ -1206,12 +1234,122 @@
         }
     }
 
-    function openPayoutModal() {
+    let stripeConnectStatus = null;
+
+    async function checkStripeConnectStatus() {
+        try {
+            const response = await fetch('/api/stripe/connect/account-status');
+            if (response.ok) {
+                stripeConnectStatus = await response.json();
+                return stripeConnectStatus;
+            }
+        } catch (error) {
+            console.error('Error checking Stripe Connect status:', error);
+        }
+        return null;
+    }
+
+    async function openPayoutModal() {
         document.getElementById('payoutModal').classList.add('active');
+
+        // Check Stripe Connect status
+        const status = await checkStripeConnectStatus();
+
+        if (status && status.instant_payout_enabled) {
+            // User has instant payout enabled
+            document.getElementById('instantPayoutOption').style.display = 'block';
+            document.getElementById('instantPayoutMethodOption').style.display = 'block';
+            document.getElementById('stripeOnboardingNeeded').style.display = 'none';
+        } else if (status && status.has_account && !status.onboarding_completed) {
+            // User has account but onboarding not complete
+            document.getElementById('stripeOnboardingNeeded').style.display = 'block';
+            document.getElementById('instantPayoutOption').style.display = 'none';
+        } else if (!status || !status.has_account) {
+            // User doesn't have Stripe Connect account
+            document.getElementById('stripeOnboardingNeeded').style.display = 'block';
+            document.getElementById('instantPayoutOption').style.display = 'none';
+        }
     }
 
     function closePayoutModal() {
         document.getElementById('payoutModal').classList.remove('active');
+    }
+
+    function switchToInstantPayout() {
+        document.getElementById('payoutMethod').value = 'stripe_instant';
+        handlePayoutMethodChange();
+    }
+
+    function handlePayoutMethodChange() {
+        const method = document.getElementById('payoutMethod').value;
+        const bankFields = document.querySelectorAll('#bankName, #accountNumber, #accountName');
+        const bankFieldGroups = document.querySelectorAll('#bankName, #accountNumber, #accountName').map(el => el.closest('.form-group'));
+
+        if (method === 'stripe_instant') {
+            // Hide bank fields for instant payout (Stripe handles this)
+            bankFields.forEach(field => {
+                const formGroup = field.closest('.form-group');
+                if (formGroup) formGroup.style.display = 'none';
+                field.removeAttribute('required');
+            });
+
+            // Update fee calculation for instant payout
+            const amount = parseFloat(document.getElementById('payoutAmount').value) || 0;
+            const instantFee = 2.00 + (amount * 0.02); // RM 2.00 fixed + 2%
+            const platformFee = amount * 0.02; // 2% platform fee
+            const totalFee = instantFee + platformFee;
+            const netAmount = amount - totalFee;
+
+            document.getElementById('summaryFee').parentElement.querySelector('span:first-child').textContent = 'Instant Payout Fee (RM2.00 + 2%)';
+            document.getElementById('summaryFee').textContent = `MYR ${instantFee.toFixed(2)}`;
+            document.getElementById('summaryTotal').textContent = `MYR ${netAmount.toFixed(2)}`;
+        } else {
+            // Show bank fields for regular payout
+            bankFields.forEach(field => {
+                const formGroup = field.closest('.form-group');
+                if (formGroup) formGroup.style.display = 'block';
+                field.setAttribute('required', 'required');
+            });
+
+            // Reset fee calculation
+            const amount = parseFloat(document.getElementById('payoutAmount').value) || 0;
+            const fee = amount * 0.02;
+            const total = amount - fee;
+            document.getElementById('summaryFee').parentElement.querySelector('span:first-child').textContent = 'Processing Fee (2%)';
+            document.getElementById('summaryFee').textContent = `MYR ${fee.toFixed(2)}`;
+            document.getElementById('summaryTotal').textContent = `MYR ${total.toFixed(2)}`;
+        }
+    }
+
+    async function setupStripeConnect() {
+        try {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '⏳ Setting up...';
+
+            // Create account link for onboarding
+            const response = await fetch('/api/stripe/connect/account-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.url) {
+                // Redirect to Stripe onboarding
+                window.location.href = data.url;
+            } else {
+                alert(data.error || 'Failed to set up instant payouts');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Error setting up Stripe Connect:', error);
+            alert('An error occurred. Please try again.');
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
     }
 
     document.getElementById('payoutAmount').addEventListener('input', function() {
@@ -1227,31 +1365,51 @@
         e.preventDefault();
         const alertDiv = document.getElementById('payoutAlert');
         const submitBtn = e.target.querySelector('button[type="submit"]');
-        
+
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-sm"></span> Processing...';
         }
 
-        const data = {
-            amount: parseFloat(document.getElementById('payoutAmount').value),
-            payment_method: document.getElementById('payoutMethod').value,
-            bank_name: document.getElementById('bankName').value,
-            account_number: document.getElementById('accountNumber').value,
-            account_name: document.getElementById('accountName').value
-        };
+        const payoutMethod = document.getElementById('payoutMethod').value;
+        const amount = parseFloat(document.getElementById('payoutAmount').value);
 
         try {
-            const response = await fetch('/api/billing/payouts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            let response, result;
 
-            const result = await response.json();
+            if (payoutMethod === 'stripe_instant') {
+                // Use instant payout endpoint
+                response = await fetch('/api/stripe/connect/instant-payout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount })
+                });
+            } else {
+                // Use regular payout endpoint
+                const data = {
+                    amount,
+                    payment_method: payoutMethod,
+                    bank_name: document.getElementById('bankName').value,
+                    account_number: document.getElementById('accountNumber').value,
+                    account_name: document.getElementById('accountName').value
+                };
+
+                response = await fetch('/api/billing/payouts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            }
+
+            result = await response.json();
 
             if (response.ok) {
-                alertDiv.innerHTML = '<div class="alert success">Payout request submitted successfully!</div>';
+                if (payoutMethod === 'stripe_instant') {
+                    alertDiv.innerHTML = '<div class="alert success"><strong>⚡ Bayaran Instant Diproses!</strong><br>Your funds will arrive within ~30 minutes. Payout ID: ' + result.payout_number + '</div>';
+                } else {
+                    alertDiv.innerHTML = '<div class="alert success">Payout request submitted successfully!</div>';
+                }
+
                 setTimeout(() => {
                     closePayoutModal();
                     loadPayouts();
@@ -1259,7 +1417,7 @@
                     // Clear form
                     document.getElementById('payoutForm').reset();
                     document.getElementById('payoutAlert').innerHTML = '';
-                }, 2000);
+                }, 3000);
             } else {
                 // Handle SOCSO compliance errors specially
                 if (result.socso_required) {
