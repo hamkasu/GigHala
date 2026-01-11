@@ -10172,6 +10172,183 @@ def stripe_webhook():
             webhook_log.processed_at = datetime.utcnow()
             db.session.commit()
 
+        # Handle payout.paid event (instant payout successful)
+        elif event['type'] == 'payout.paid':
+            payout_data = event['data']['object']
+            payout_id = payout_data['id']
+
+            # Find payout record by stripe_payout_id
+            payout_record = Payout.query.filter_by(stripe_payout_id=payout_id).first()
+
+            if payout_record:
+                try:
+                    payout_record.status = 'completed'
+                    payout_record.completed_at = datetime.utcnow()
+
+                    # Release held balance
+                    wallet = Wallet.query.filter_by(user_id=payout_record.freelancer_id).first()
+                    if wallet:
+                        wallet.held_balance -= payout_record.amount
+                        wallet.total_withdrawn = (wallet.total_withdrawn or 0) + payout_record.amount
+
+                    # Create payment history for completion
+                    history = PaymentHistory(
+                        user_id=payout_record.freelancer_id,
+                        payout_id=payout_record.id,
+                        type='payout_completed',
+                        amount=payout_record.net_amount,
+                        balance_before=wallet.balance,
+                        balance_after=wallet.balance,
+                        description=f'Instant payout {payout_record.payout_number} completed',
+                        reference_number=payout_id
+                    )
+                    db.session.add(history)
+                    db.session.commit()
+
+                    app.logger.info(f"Instant payout {payout_record.payout_number} completed (Stripe ID: {payout_id})")
+
+                    # Send completion email
+                    user = User.query.get(payout_record.freelancer_id)
+                    if user and user.email:
+                        try:
+                            html_content = render_template('email_withdrawal_confirmation.html',
+                                recipient_name=user.full_name or user.username,
+                                withdrawal_status="Completed",
+                                status_message="Bayaran instant berjaya",
+                                main_message="Your instant payout has been successfully completed!",
+                                withdrawal_amount=f"{payout_record.amount:.2f}",
+                                transaction_id=payout_record.payout_number,
+                                request_date=payout_record.requested_at.strftime('%d %B %Y, %H:%M') if payout_record.requested_at else '',
+                                processing_date=payout_record.processed_at.strftime('%d %B %Y, %H:%M') if payout_record.processed_at else '',
+                                completion_date=payout_record.completed_at.strftime('%d %B %Y, %H:%M'),
+                                bank_name="Stripe Instant Transfer",
+                                bank_account_number="****",
+                                account_holder_name=user.full_name or user.username,
+                                withdrawal_fee=f"{payout_record.fee:.2f}",
+                                requested_amount=f"{payout_record.amount:.2f}",
+                                estimated_completion="Completed",
+                                wallet_url=request.host_url.rstrip('/') + '/wallet',
+                                transaction_url=request.host_url.rstrip('/') + '/payments',
+                                support_url=request.host_url.rstrip('/') + '/support',
+                                support_contact='support@gighala.com',
+                                settings_url=request.host_url.rstrip('/') + '/settings',
+                                terms_url=request.host_url.rstrip('/') + '/terms'
+                            )
+
+                            email_service.send_single_email(
+                                to_email=user.email,
+                                to_name=user.full_name or user.username,
+                                subject=f"Bayaran Instant Selesai - {payout_record.payout_number}",
+                                html_content=html_content
+                            )
+                        except Exception as e:
+                            app.logger.error(f"Failed to send payout completion email: {str(e)}")
+
+                    webhook_log.processed = True
+                    webhook_log.processed_at = datetime.utcnow()
+                    db.session.commit()
+
+                except Exception as e:
+                    db.session.rollback()
+                    error_msg = f"Failed to process payout completion: {str(e)}"
+                    app.logger.error(error_msg)
+                    webhook_log.error_message = error_msg
+                    db.session.commit()
+            else:
+                app.logger.warning(f"Payout record not found for Stripe payout {payout_id}")
+                webhook_log.processed = True
+                webhook_log.processed_at = datetime.utcnow()
+                db.session.commit()
+
+        # Handle payout.failed event (instant payout failed)
+        elif event['type'] == 'payout.failed':
+            payout_data = event['data']['object']
+            payout_id = payout_data['id']
+            failure_message = payout_data.get('failure_message', 'Unknown error')
+
+            # Find payout record by stripe_payout_id
+            payout_record = Payout.query.filter_by(stripe_payout_id=payout_id).first()
+
+            if payout_record:
+                try:
+                    payout_record.status = 'failed'
+                    payout_record.failure_reason = failure_message
+
+                    # Return balance to wallet (remove from held_balance)
+                    wallet = Wallet.query.filter_by(user_id=payout_record.freelancer_id).first()
+                    if wallet:
+                        wallet.balance += payout_record.amount
+                        wallet.held_balance -= payout_record.amount
+
+                    # Create payment history for failure
+                    history = PaymentHistory(
+                        user_id=payout_record.freelancer_id,
+                        payout_id=payout_record.id,
+                        type='payout_failed',
+                        amount=payout_record.amount,
+                        balance_before=wallet.balance - payout_record.amount,
+                        balance_after=wallet.balance,
+                        description=f'Instant payout {payout_record.payout_number} failed: {failure_message}',
+                        reference_number=payout_id
+                    )
+                    db.session.add(history)
+                    db.session.commit()
+
+                    app.logger.error(f"Instant payout {payout_record.payout_number} failed: {failure_message}")
+
+                    # Send failure email
+                    user = User.query.get(payout_record.freelancer_id)
+                    if user and user.email:
+                        try:
+                            html_content = render_template('email_withdrawal_confirmation.html',
+                                recipient_name=user.full_name or user.username,
+                                withdrawal_status="Failed",
+                                status_message="Bayaran instant gagal",
+                                main_message=f"Your instant payout failed: {failure_message}. The amount has been returned to your wallet.",
+                                withdrawal_amount=f"{payout_record.amount:.2f}",
+                                transaction_id=payout_record.payout_number,
+                                request_date=payout_record.requested_at.strftime('%d %B %Y, %H:%M') if payout_record.requested_at else '',
+                                processing_date=payout_record.processed_at.strftime('%d %B %Y, %H:%M') if payout_record.processed_at else '',
+                                completion_date=None,
+                                bank_name="Stripe Instant Transfer",
+                                bank_account_number="****",
+                                account_holder_name=user.full_name or user.username,
+                                withdrawal_fee=f"{payout_record.fee:.2f}",
+                                requested_amount=f"{payout_record.amount:.2f}",
+                                estimated_completion="Failed",
+                                wallet_url=request.host_url.rstrip('/') + '/wallet',
+                                transaction_url=request.host_url.rstrip('/') + '/payments',
+                                support_url=request.host_url.rstrip('/') + '/support',
+                                support_contact='support@gighala.com',
+                                settings_url=request.host_url.rstrip('/') + '/settings',
+                                terms_url=request.host_url.rstrip('/') + '/terms'
+                            )
+
+                            email_service.send_single_email(
+                                to_email=user.email,
+                                to_name=user.full_name or user.username,
+                                subject=f"Bayaran Instant Gagal - {payout_record.payout_number}",
+                                html_content=html_content
+                            )
+                        except Exception as e:
+                            app.logger.error(f"Failed to send payout failure email: {str(e)}")
+
+                    webhook_log.processed = True
+                    webhook_log.processed_at = datetime.utcnow()
+                    db.session.commit()
+
+                except Exception as e:
+                    db.session.rollback()
+                    error_msg = f"Failed to process payout failure: {str(e)}"
+                    app.logger.error(error_msg)
+                    webhook_log.error_message = error_msg
+                    db.session.commit()
+            else:
+                app.logger.warning(f"Payout record not found for Stripe payout {payout_id}")
+                webhook_log.processed = True
+                webhook_log.processed_at = datetime.utcnow()
+                db.session.commit()
+
         else:
             # Log other events but mark as processed
             app.logger.info(f"Unhandled Stripe event type: {event['type']}")
@@ -10349,7 +10526,424 @@ def delete_payment_method(payment_method_id):
 
 
 # ============================================================================
-# END STRIPE CHECKOUT
+# STRIPE CONNECT - INSTANT PAYOUTS
+# ============================================================================
+
+@app.route('/api/stripe/connect/account', methods=['POST'])
+@login_required
+def create_stripe_connect_account():
+    """Create a Stripe Connect Express account for the user (for instant payouts in Malaysia)"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Check if user already has a Stripe account
+        if user.stripe_account_id:
+            return jsonify({
+                'message': 'Stripe account already exists',
+                'stripe_account_id': user.stripe_account_id,
+                'account_status': user.stripe_account_status,
+                'onboarding_completed': user.stripe_onboarding_completed
+            }), 200
+
+        # Create Stripe Connect Express account
+        account = stripe.Account.create(
+            type='express',
+            country='MY',  # Malaysia
+            email=user.email,
+            capabilities={
+                'transfers': {'requested': True},
+                'card_payments': {'requested': False},  # Not needed for receiving payouts
+            },
+            business_type='individual',
+            metadata={
+                'user_id': str(user_id),
+                'username': user.username,
+                'platform': 'GigHala'
+            }
+        )
+
+        # Save to database
+        user.stripe_account_id = account.id
+        user.stripe_account_status = 'pending'
+        user.stripe_onboarding_completed = False
+        user.stripe_account_created_at = datetime.utcnow()
+        db.session.commit()
+
+        app.logger.info(f"Created Stripe Connect account {account.id} for user {user_id}")
+
+        # Log security event
+        security_logger.log_financial(
+            event_type='stripe_connect_account_created',
+            action=f'Stripe Connect account created for {user.username}',
+            resource_type='stripe_account',
+            resource_id=account.id,
+            details={
+                'user_id': user_id,
+                'account_id': account.id,
+                'country': 'MY'
+            }
+        )
+
+        return jsonify({
+            'message': 'Stripe Connect account created successfully',
+            'stripe_account_id': account.id,
+            'account_status': 'pending',
+            'onboarding_completed': False
+        }), 201
+
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error creating Connect account: {str(e)}")
+        return jsonify({'error': f'Stripe error: {str(e)}'}), 500
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error creating Stripe Connect account: {str(e)}")
+        return jsonify({'error': 'Failed to create Stripe account'}), 500
+
+
+@app.route('/api/stripe/connect/account-link', methods=['POST'])
+@login_required
+def create_stripe_account_link():
+    """Create an account link for Stripe Connect onboarding"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Create account if it doesn't exist
+        if not user.stripe_account_id:
+            # Create account first
+            account = stripe.Account.create(
+                type='express',
+                country='MY',
+                email=user.email,
+                capabilities={
+                    'transfers': {'requested': True},
+                },
+                business_type='individual',
+                metadata={
+                    'user_id': str(user_id),
+                    'username': user.username,
+                    'platform': 'GigHala'
+                }
+            )
+
+            user.stripe_account_id = account.id
+            user.stripe_account_status = 'pending'
+            user.stripe_onboarding_completed = False
+            user.stripe_account_created_at = datetime.utcnow()
+            db.session.commit()
+
+        # Create account link for onboarding
+        base_url = request.host_url.rstrip('/')
+        account_link = stripe.AccountLink.create(
+            account=user.stripe_account_id,
+            refresh_url=f"{base_url}/settings/payouts?refresh=true",
+            return_url=f"{base_url}/settings/payouts?success=true",
+            type='account_onboarding',
+        )
+
+        app.logger.info(f"Created account link for Stripe account {user.stripe_account_id}")
+
+        return jsonify({
+            'url': account_link.url,
+            'expires_at': account_link.expires_at
+        }), 200
+
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error creating account link: {str(e)}")
+        return jsonify({'error': f'Stripe error: {str(e)}'}), 500
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error creating account link: {str(e)}")
+        return jsonify({'error': 'Failed to create account link'}), 500
+
+
+@app.route('/api/stripe/connect/account-status', methods=['GET'])
+@login_required
+def get_stripe_account_status():
+    """Get the status of user's Stripe Connect account"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if not user.stripe_account_id:
+            return jsonify({
+                'has_account': False,
+                'onboarding_completed': False,
+                'instant_payout_enabled': False
+            }), 200
+
+        # Fetch account details from Stripe
+        account = stripe.Account.retrieve(user.stripe_account_id)
+
+        # Check if onboarding is complete
+        charges_enabled = account.get('charges_enabled', False)
+        payouts_enabled = account.get('payouts_enabled', False)
+        details_submitted = account.get('details_submitted', False)
+
+        # Check for instant payouts capability (requires bank account in Malaysia)
+        instant_payout_available = False
+        if payouts_enabled and account.get('external_accounts'):
+            # Check if they have a bank account set up
+            external_accounts = account.get('external_accounts', {}).get('data', [])
+            for ext_account in external_accounts:
+                if ext_account.get('object') == 'bank_account' and ext_account.get('country') == 'MY':
+                    instant_payout_available = True
+                    break
+
+        # Update user record
+        user.stripe_account_status = account.get('status', 'pending')
+        user.stripe_onboarding_completed = details_submitted and payouts_enabled
+        user.instant_payout_enabled = instant_payout_available
+
+        db.session.commit()
+
+        return jsonify({
+            'has_account': True,
+            'stripe_account_id': user.stripe_account_id,
+            'account_status': account.get('status'),
+            'onboarding_completed': user.stripe_onboarding_completed,
+            'details_submitted': details_submitted,
+            'charges_enabled': charges_enabled,
+            'payouts_enabled': payouts_enabled,
+            'instant_payout_enabled': instant_payout_available,
+            'requirements': account.get('requirements', {})
+        }), 200
+
+    except stripe.error.StripeError as e:
+        app.logger.error(f"Stripe error fetching account status: {str(e)}")
+        return jsonify({'error': f'Stripe error: {str(e)}'}), 500
+    except Exception as e:
+        app.logger.error(f"Error fetching account status: {str(e)}")
+        return jsonify({'error': 'Failed to fetch account status'}), 500
+
+
+@app.route('/api/stripe/connect/instant-payout', methods=['POST'])
+@login_required
+def create_instant_payout():
+    """Create an instant payout to user's bank account via Stripe Connect (Malaysia)"""
+    try:
+        if not stripe.api_key:
+            return jsonify({'error': 'Stripe is not configured'}), 500
+
+        user_id = session['user_id']
+        data = request.get_json()
+
+        amount = data.get('amount')
+
+        # Validate
+        if not amount:
+            return jsonify({'error': 'Amount is required'}), 400
+
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid amount format'}), 400
+
+        if amount <= 0:
+            return jsonify({'error': 'Amount must be greater than 0'}), 400
+
+        # Get user
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Check Stripe Connect account
+        if not user.stripe_account_id:
+            return jsonify({'error': 'No Stripe Connect account. Please complete onboarding first.'}), 400
+
+        if not user.stripe_onboarding_completed:
+            return jsonify({'error': 'Stripe onboarding not completed'}), 400
+
+        if not user.instant_payout_enabled:
+            return jsonify({'error': 'Instant payouts not enabled. Please add a Malaysian bank account.'}), 400
+
+        # Check wallet balance
+        wallet = Wallet.query.filter_by(user_id=user_id).first()
+        if not wallet or wallet.balance < amount:
+            return jsonify({'error': 'Insufficient balance'}), 400
+
+        # Calculate fees
+        # Instant payout fee: RM 2.00 fixed + 2% (check Stripe's current pricing for MY)
+        instant_payout_fee_fixed = 2.00  # MYR
+        instant_payout_fee_percent = 0.02  # 2%
+        stripe_fee = round(instant_payout_fee_fixed + (amount * instant_payout_fee_percent), 2)
+
+        # Platform fee: 2%
+        platform_fee = round(amount * 0.02, 2)
+
+        # Total fees
+        total_fee = stripe_fee + platform_fee
+        net_amount = round(amount - total_fee, 2)
+
+        if net_amount <= 0:
+            return jsonify({'error': 'Amount too small after fees'}), 400
+
+        # Convert to cents for Stripe (Stripe uses smallest currency unit)
+        stripe_amount = int(net_amount * 100)  # Convert MYR to cents
+
+        # Create Stripe payout with instant method
+        try:
+            payout = stripe.Payout.create(
+                amount=stripe_amount,
+                currency='myr',
+                method='instant',  # Instant payout
+                stripe_account=user.stripe_account_id,
+                metadata={
+                    'user_id': str(user_id),
+                    'username': user.username,
+                    'gross_amount': str(amount),
+                    'platform_fee': str(platform_fee),
+                    'stripe_fee': str(stripe_fee),
+                    'net_amount': str(net_amount)
+                }
+            )
+        except stripe.error.StripeError as e:
+            app.logger.error(f"Stripe payout error: {str(e)}")
+            return jsonify({'error': f'Stripe payout failed: {str(e)}'}), 400
+
+        # Generate payout number
+        payout_number = f"IPO-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+
+        # Create payout record
+        payout_record = Payout(
+            payout_number=payout_number,
+            freelancer_id=user_id,
+            amount=amount,
+            fee=total_fee,
+            socso_amount=0.0,
+            net_amount=net_amount,
+            payment_method='stripe_instant',
+            status='processing',  # Will be updated by webhook
+            is_instant=True,
+            stripe_payout_id=payout.id,
+            estimated_arrival=datetime.utcnow() + timedelta(minutes=30)  # ~30 minutes
+        )
+
+        db.session.add(payout_record)
+        db.session.flush()
+
+        # Deduct from wallet
+        wallet.balance -= amount
+        wallet.held_balance += amount
+
+        # Create payment history
+        history = PaymentHistory(
+            user_id=user_id,
+            payout_id=payout_record.id,
+            type='instant_payout',
+            amount=amount,
+            socso_amount=0.0,
+            balance_before=wallet.balance + amount,
+            balance_after=wallet.balance,
+            description=f'Instant payout {payout_number} via Stripe',
+            reference_number=payout.id
+        )
+
+        db.session.add(history)
+        db.session.commit()
+
+        # Log financial operation
+        security_logger.log_financial(
+            event_type='instant_payout_created',
+            action=f'Instant payout created for {user.username}',
+            amount=amount,
+            resource_type='payout',
+            resource_id=payout_number,
+            details={
+                'payout_number': payout_number,
+                'stripe_payout_id': payout.id,
+                'amount': amount,
+                'stripe_fee': stripe_fee,
+                'platform_fee': platform_fee,
+                'total_fee': total_fee,
+                'net_amount': net_amount,
+                'estimated_arrival': payout_record.estimated_arrival.isoformat()
+            }
+        )
+
+        # Send email notification
+        if user.email:
+            try:
+                html_content = render_template('email_withdrawal_confirmation.html',
+                    recipient_name=user.full_name or user.username,
+                    withdrawal_status="Processing (Instant)",
+                    status_message="Bayaran instant sedang diproses",
+                    main_message="Your instant payout is being processed and should arrive within 30 minutes.",
+                    withdrawal_amount=f"{amount:.2f}",
+                    transaction_id=payout_number,
+                    request_date=datetime.utcnow().strftime('%d %B %Y, %H:%M'),
+                    processing_date=datetime.utcnow().strftime('%d %B %Y, %H:%M'),
+                    completion_date=None,
+                    bank_name="Stripe Instant Transfer",
+                    bank_account_number="****",
+                    account_holder_name=user.full_name or user.username,
+                    withdrawal_fee=f"{total_fee:.2f}",
+                    requested_amount=f"{amount:.2f}",
+                    estimated_completion="Within 30 minutes",
+                    wallet_url=request.host_url.rstrip('/') + '/wallet',
+                    transaction_url=request.host_url.rstrip('/') + '/payments',
+                    support_url=request.host_url.rstrip('/') + '/support',
+                    support_contact='support@gighala.com',
+                    settings_url=request.host_url.rstrip('/') + '/settings',
+                    terms_url=request.host_url.rstrip('/') + '/terms'
+                )
+
+                email_service.send_single_email(
+                    to_email=user.email,
+                    to_name=user.full_name or user.username,
+                    subject=f"Bayaran Instant - {payout_number}",
+                    html_content=html_content
+                )
+            except Exception as e:
+                app.logger.error(f"Failed to send instant payout email: {str(e)}")
+
+        return jsonify({
+            'message': 'Instant payout created successfully',
+            'payout_number': payout_number,
+            'stripe_payout_id': payout.id,
+            'status': 'processing',
+            'amount': amount,
+            'stripe_fee': stripe_fee,
+            'platform_fee': platform_fee,
+            'total_fee': total_fee,
+            'net_amount': net_amount,
+            'estimated_arrival': payout_record.estimated_arrival.isoformat(),
+            'breakdown': {
+                'gross_amount': amount,
+                'stripe_instant_fee': stripe_fee,
+                'platform_fee': platform_fee,
+                'total_fees': total_fee,
+                'final_payout': net_amount
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Instant payout error: {str(e)}")
+        return jsonify({'error': 'Failed to create instant payout'}), 500
+
+
+# ============================================================================
+# END STRIPE CHECKOUT & CONNECT
 # ============================================================================
 
 # Helper function to recalculate user rating
