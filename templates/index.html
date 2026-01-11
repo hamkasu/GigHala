@@ -101,7 +101,7 @@
         /* Mobile-first and desktop adjustments for the top bar */
         @media (max-width: 768px) {
             .date-bar {
-                padding: 6px 10px !important;
+                padding: 2px 8px !important;
             }
             .date-bar .logo-container img {
                 width: 32px !important;
@@ -135,14 +135,14 @@
         @media (min-width: 769px) {
             .tagline-desktop { display: block !important; }
             .desktop-only-controls { display: flex !important; }
-            .date-bar { padding: 12px 28px !important; }
+            .date-bar { padding: 4px 16px !important; }
             .date-bar .logo-container img { width: 70px !important; height: 70px !important; }
             .date-bar .logo-container span { font-size: 28px !important; }
             .tagline-desktop { margin-left: 80px !important; margin-top: -15px !important; font-size: 14px !important; }
         }
     </style>
     <!-- Islamic/Western Date Bar -->
-    <div class="date-bar" style="background: transparent; padding: 12px 20px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.2);">
+    <div class="date-bar" style="background: transparent; padding: 4px 10px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.1);">
         <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 8px;">
             <!-- Logo on the left -->
             <div class="logo-container" style="flex-shrink: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0;">
@@ -225,14 +225,14 @@
             </div>
         </nav>
 
-        <div style="background: rgba(255, 122, 31, 0.1); width: 100%; padding: 24px 11px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; backdrop-filter: blur(10px); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
+        <div style="background: rgba(255, 122, 31, 0.1); width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; backdrop-filter: blur(10px); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
             <style>
                 /* Removed animation styles for cleaner blue background */
             </style>
-            <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 24px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
+            <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 12px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Content: Billing Info -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2;">
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2;">
                         {% if lang == 'ms' %}Buka dunia profesional mahir{% else %}Unlock a world of skilled professionals{% endif %}
                     </h2>
                     
@@ -276,8 +276,8 @@
                 </div>
 
                 <!-- Center Content: Billing Info (Re-styled) -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 20px;">
-                    <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 11px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2; color: white; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 12px;">
+                    <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2; color: white; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
                         {% if lang == 'ms' %}SISTEM BILLING SEDANG DIUJI – FASA 2! 🌟{% else %}TESTING BILLING SYSTEM – PHASE 2! 🌟{% endif %}
                     </h1>
 
@@ -313,8 +313,8 @@
                 <!-- Right Content: Countdown -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <!-- Latest Gigs List -->
-                    <div style="width: 100%; max-width: 400px; margin-bottom: 24px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
-                        <h2 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 16px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                        <h2 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                             {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
                         </h2>
                         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
