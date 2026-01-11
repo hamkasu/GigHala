@@ -146,7 +146,7 @@
         }
     </style>
     <!-- Islamic/Western Date Bar -->
-    <div class="date-bar" style="background: transparent; padding: 4px 10px; font-size: 17px; color: white; border-bottom: 1px solid rgba(0,200,83,0.1);">
+    <div class="date-bar" style="background: transparent; padding: 4px 10px; font-size: 17px; color: white; border-bottom: 1px solid rgba(255,255,255,0.05);">
         <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 8px;">
             <!-- Logo on the left -->
             <div class="logo-container" style="flex-shrink: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0;">
@@ -232,13 +232,13 @@
             </div>
         </nav>
 
-        <div style="background: rgba(255, 122, 31, 0.1); width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; backdrop-filter: blur(10px); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
+        <div style="background: transparent; width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; backdrop-filter: blur(5px); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
             <style>
                 /* Removed animation styles for cleaner blue background */
             </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 12px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Content: Client Marketing -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.01); border-radius: 16px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.03);">
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.005); border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02);">
                     <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2;">
                         {% if lang == 'ms' %}Buka dunia profesional mahir{% else %}Unlock a world of skilled professionals{% endif %}
                     </h2>
@@ -300,7 +300,7 @@
                     </div>
 
                     <!-- Countdown Timer Moved Here -->
-                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.02); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); transition: all 0.3s ease; color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.01); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; color: white; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.03);">
                         <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">Masa Tinggal</div>
                         <div style="font-size: 1.25rem; font-weight: 800; margin: 8px 0; letter-spacing: 0.5px;">
                             {% if lang == 'ms' %}🎉 SERTAI SEKARANG & UJI SISTEM BILLING!{% else %}🎉 JOIN SEKARANG & TEST BILLING!{% endif %}
@@ -320,7 +320,7 @@
                 <!-- Right Content: Countdown -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <!-- Latest Gigs List -->
-                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.01); padding: 12px; border-radius: 16px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.03); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);">
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.005); padding: 12px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                             {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
                         </h2>
@@ -343,16 +343,16 @@
                     <!-- New Content Block -->
                     <div style="width: 100%; max-width: 400px; margin-bottom: 24px;">
                         <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <div style="flex: 1; background: rgba(255, 255, 255, 0.01); padding: 16px; border-radius: 16px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.03); text-align: center;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
                                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
                                 <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ active_gigs_count }}</div>
                             </div>
-                            <div style="flex: 1; background: rgba(255, 255, 255, 0.01); padding: 16px; border-radius: 16px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.03); text-align: center;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
                                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
                                 <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ total_paid_year }}</div>
                             </div>
                         </div>
-                        <div style="text-align: left; background: rgba(255, 255, 255, 0.01); padding: 20px; border-radius: 16px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.03); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);">
+                        <div style="text-align: left; background: rgba(255, 255, 255, 0.005); padding: 20px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                             {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
                         </h2>
