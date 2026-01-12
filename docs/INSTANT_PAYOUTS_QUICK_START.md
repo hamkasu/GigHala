@@ -32,13 +32,23 @@ STRIPE_TEST_PUBLISHABLE_KEY=pk_test_YOUR_KEY
 STRIPE_TEST_WEBHOOK_SECRET=whsec_test_YOUR_SECRET  # Get in step 4
 ```
 
-### 3️⃣ Enable Stripe Connect (3 min)
+### 3️⃣ Enable Stripe Connect (5 min)
 
 1. Go to https://dashboard.stripe.com/connect/settings
 2. Click **Enable Express accounts**
 3. Set platform name: **GigHala**
-4. Go to **Payouts** section
-5. Enable **Instant payouts** for **Malaysia (MYR)**
+
+**IMPORTANT**: Complete Platform Profile (or you'll get "review responsibilities" error)
+4. Go to https://dashboard.stripe.com/settings/connect/platform-profile
+5. Fill in:
+   - Platform info (name, website, support email)
+   - **Loss Liability**: Select "Platform assumes liability" (recommended)
+   - **Verification**: Select "Standard verification"
+   - **Payout schedule**: Select "Manual"
+6. Click **Save profile**
+
+7. Go back to Connect → **Payouts** section
+8. Enable **Instant payouts** for **Malaysia (MYR)**
 
 ### 4️⃣ Setup Webhooks (2 min)
 
@@ -135,6 +145,7 @@ When ready for production:
 
 | Issue | Solution |
 |-------|----------|
+| "Review responsibilities of managing losses" | Complete Platform Profile: https://dashboard.stripe.com/settings/connect/platform-profile → Select "Platform assumes liability" |
 | "Instant payouts not enabled" | Complete Stripe onboarding, add Malaysian bank account |
 | "Webhook not received" | Check signing secret in `.env`, verify URL accessible |
 | "Stripe payout failed" | Check Stripe Dashboard → Logs for details |

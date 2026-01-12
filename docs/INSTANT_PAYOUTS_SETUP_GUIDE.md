@@ -98,7 +98,54 @@ python3 -c "import os; from dotenv import load_dotenv; load_dotenv(); print('STR
 5. Set **Support email**: `support@gighala.com`
 6. Click **Save**
 
-### 3.3 Enable Instant Payouts
+### 3.3 Complete Platform Profile (CRITICAL)
+
+**Important**: You MUST complete this or account creation will fail with "Please review the responsibilities of managing losses" error.
+
+1. Go to https://dashboard.stripe.com/settings/connect/platform-profile
+2. Complete all required sections:
+
+#### Platform Information
+- **Platform name**: `GigHala`
+- **Platform website**: `https://gighala.com`
+- **Platform description**: `Freelance marketplace connecting clients with Malaysian service providers`
+- **Customer support email**: `support@gighala.com`
+- **Customer support phone**: Your support number
+
+#### Loss Liability (Choose one)
+
+**Option A: Platform assumes liability** (Recommended)
+- ✅ Select "Platform assumes liability for losses"
+- Platform handles chargebacks and disputes
+- Simpler onboarding for freelancers
+- Better user experience
+- **Use this** for GigHala
+
+**Option B: Connected accounts assume liability**
+- Each freelancer responsible for own losses
+- More complex verification required
+- May slow down user onboarding
+
+#### Verification Requirements
+- Select **Standard verification** (recommended)
+  - Name, DOB, address, bank details
+  - ID may be required for high volumes
+
+- Or **Enhanced verification** (if required by your industry)
+  - More stringent requirements
+  - Additional documentation needed
+
+#### Payout Schedule
+- Select **Manual** (GigHala already has payout request system)
+- Freelancers request payouts themselves
+- Platform controls timing
+
+3. Click **Save profile**
+4. Verify completion (all sections should have ✅ green checkmarks)
+
+**Common Error**: If you see "Please review the responsibilities of managing losses", it means you haven't completed the Loss Liability section. Go back and select an option.
+
+### 3.4 Enable Instant Payouts
 
 1. Go to **Connect** → **Settings** → **Payouts**
 2. Find **Instant payouts** section
@@ -420,6 +467,24 @@ curl -X POST http://localhost:5000/api/admin/settings/stripe-mode \
 ---
 
 ## 🔍 Troubleshooting
+
+### Issue: "Please review the responsibilities of managing losses"
+
+**Error**: When creating Stripe Connect accounts, you get: `Request req_xxx: Please review the responsibilities of managing losses for connected accounts at https://dashboard.stripe.com/settings/connect/platform-profile`
+
+**Solution:**
+1. This means your Platform Profile is incomplete
+2. Go to https://dashboard.stripe.com/settings/connect/platform-profile
+3. Complete all required sections:
+   - **Platform Information**: Fill in name, website, support details
+   - **Loss Liability**: Select "Platform assumes liability" (recommended for GigHala)
+   - **Verification Requirements**: Select "Standard verification"
+   - **Payout Schedule**: Select "Manual"
+4. Click **Save profile**
+5. Verify all sections have green checkmarks
+6. Try creating account again
+
+**Why this happens**: Stripe requires you to explicitly decide who handles chargebacks and fraud losses before you can create connected accounts.
 
 ### Issue: "Instant payouts not enabled"
 
