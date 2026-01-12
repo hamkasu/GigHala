@@ -103,15 +103,32 @@ const app = {
         return this.categoryTranslations[name] || name;
     },
     
-    // Initialize app
+    // Initialize app - Optimized to prioritize critical content
     async init() {
         console.log('Initializing GigHala App...');
-        await this.loadCategories();
-        await this.loadGigs();
-        await this.loadStats();
+
+        // Load critical content first
         this.setupEventListeners();
+
+        // Load categories immediately (needed for UI)
+        await this.loadCategories();
+
+        // Defer non-critical API calls using requestIdleCallback or setTimeout
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+                this.loadGigs();
+                this.loadStats();
+                this.checkAuth();
+            }, { timeout: 2000 });
+        } else {
+            setTimeout(() => {
+                this.loadGigs();
+                this.loadStats();
+                this.checkAuth();
+            }, 100);
+        }
+
         this.setupSOCSOCardHover();
-        this.checkAuth();
     },
 
     // Setup SOCSO card hover tooltip

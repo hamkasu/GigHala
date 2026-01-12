@@ -6,34 +6,20 @@
     <title>GigHala - {% if lang == 'ms' %}Platform GigHala #1 Malaysia{% else %}Malaysia's #1 Halal Gig Platform{% endif %}</title>
     <meta name="description" content="{% if lang == 'ms' %}Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan dengan pendapatan RM800-RM4000 sebulan.{% else %}Malaysia's largest halal gig platform. Find freelance work, side hustles, and part-time projects earning RM800-RM4000 per month.{% endif %}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/css/style.css" as="style">
+    <link rel="preload" href="/static/js/app.js" as="script">
     <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <!-- Optimized font loading with preconnect and reduced weights -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Crimson+Pro:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" crossorigin="anonymous">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Crimson+Pro:wght@700&display=swap" rel="stylesheet" crossorigin="anonymous"></noscript>
 </head>
 <body style="position: relative; overflow-x: hidden;">
-    <!-- Animated flowing curves background -->
+    <!-- Optimized static background (animations removed for performance) -->
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;">
-        <div style="position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(ellipse at 20% 30%, rgba(0, 200, 255, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(64, 156, 255, 0.04) 0%, transparent 50%), radial-gradient(ellipse at 40% 80%, rgba(0, 150, 255, 0.03) 0%, transparent 60%); animation: flowingCurves 20s ease-in-out infinite;"></div>
-        <div style="position: absolute; width: 150%; height: 150%; bottom: -25%; right: -25%; background: radial-gradient(ellipse at 60% 40%, rgba(0, 180, 255, 0.06) 0%, transparent 55%), radial-gradient(ellipse at 30% 60%, rgba(100, 200, 255, 0.04) 0%, transparent 50%); animation: flowingCurves 25s ease-in-out infinite reverse;"></div>
-        <!-- Curved light streaks -->
-        <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3;">
-            <defs>
-                <linearGradient id="curveGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:rgba(0, 200, 255, 0.4);stop-opacity:1" />
-                    <stop offset="50%" style="stop-color:rgba(64, 180, 255, 0.6);stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:rgba(0, 150, 255, 0.2);stop-opacity:1" />
-                </linearGradient>
-                <linearGradient id="curveGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:rgba(80, 200, 255, 0.3);stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:rgba(0, 180, 255, 0.1);stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            <path d="M-100,200 Q300,100 800,300 T1600,400" stroke="url(#curveGradient1)" stroke-width="3" fill="none" style="animation: pathFlow 15s ease-in-out infinite;">
-                <animate attributeName="d" dur="15s" repeatCount="indefinite" values="M-100,200 Q300,100 800,300 T1600,400; M-100,250 Q350,150 850,280 T1600,450; M-100,200 Q300,100 800,300 T1600,400"/>
-            </path>
-            <path d="M1600,600 Q1200,400 600,650 T-200,700" stroke="url(#curveGradient2)" stroke-width="4" fill="none" opacity="0.6">
-                <animate attributeName="d" dur="18s" repeatCount="indefinite" values="M1600,600 Q1200,400 600,650 T-200,700; M1600,650 Q1250,450 650,620 T-200,750; M1600,600 Q1200,400 600,650 T-200,700"/>
-            </path>
-        </svg>
+        <div style="position: absolute; width: 100%; height: 100%; background: radial-gradient(ellipse at 20% 30%, rgba(0, 200, 255, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(64, 156, 255, 0.04) 0%, transparent 50%), radial-gradient(ellipse at 40% 80%, rgba(0, 150, 255, 0.03) 0%, transparent 60%);"></div>
     </div>
     <style>
         /* Slideshow Background Styles */
@@ -76,25 +62,85 @@
         }
     </style>
     <div class="slideshow-container">
+        <!-- Only load first image immediately, lazy load others -->
         <div class="slide active" style="background-image: url('/static/images/bg1.webp');"></div>
-        <div class="slide" style="background-image: url('/static/images/bg2.jpg');"></div>
-        <div class="slide" style="background-image: url('/static/images/bg3.jpg');"></div>
-        <div class="slide" style="background-image: url('/static/images/bg4.jpg');"></div>
-        <div class="slide" style="background-image: url('/static/images/bg5.jpg');"></div>
-        <div class="slide" style="background-image: url('/static/images/bg6.jpg');"></div>
+        <div class="slide" data-bg="/static/images/bg2.jpg"></div>
+        <div class="slide" data-bg="/static/images/bg3.jpg"></div>
+        <div class="slide" data-bg="/static/images/bg4.jpg"></div>
+        <div class="slide" data-bg="/static/images/bg5.jpg"></div>
+        <div class="slide" data-bg="/static/images/bg6.jpg"></div>
     </div>
     <script>
+        // Optimized slideshow with lazy loading and Intersection Observer
         document.addEventListener('DOMContentLoaded', function() {
             const slides = document.querySelectorAll('.slide');
             let currentSlide = 0;
+            let slideshowInterval = null;
+            const loadedSlides = new Set([0]); // First slide is already loaded
+
+            // Lazy load background images
+            function loadSlideImage(index) {
+                if (loadedSlides.has(index)) return;
+                const slide = slides[index];
+                const bgUrl = slide.getAttribute('data-bg');
+                if (bgUrl) {
+                    slide.style.backgroundImage = `url('${bgUrl}')`;
+                    loadedSlides.add(index);
+                }
+            }
 
             function nextSlide() {
                 slides[currentSlide].classList.remove('active');
                 currentSlide = (currentSlide + 1) % slides.length;
                 slides[currentSlide].classList.add('active');
+
+                // Preload next slide
+                const nextIndex = (currentSlide + 1) % slides.length;
+                loadSlideImage(nextIndex);
             }
 
-            setInterval(nextSlide, 5000); // Change image every 5 seconds
+            function startSlideshow() {
+                if (!slideshowInterval) {
+                    // Preload the next slide when slideshow starts
+                    loadSlideImage((currentSlide + 1) % slides.length);
+                    slideshowInterval = setInterval(nextSlide, 5000);
+                }
+            }
+
+            function stopSlideshow() {
+                if (slideshowInterval) {
+                    clearInterval(slideshowInterval);
+                    slideshowInterval = null;
+                }
+            }
+
+            // Use Intersection Observer to pause when not visible
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            startSlideshow();
+                        } else {
+                            stopSlideshow();
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                const slideshowContainer = document.querySelector('.slideshow-container');
+                if (slideshowContainer) observer.observe(slideshowContainer);
+            } else {
+                // Fallback for browsers without IntersectionObserver
+                startSlideshow();
+            }
+
+            // Pause slideshow when page is hidden
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopSlideshow();
+                } else {
+                    startSlideshow();
+                }
+            });
         });
     </script>
     <style>
@@ -151,7 +197,7 @@
             <!-- Logo on the left -->
             <div class="logo-container" style="flex-shrink: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 50px; height: 50px; display: block; flex-shrink: 0;">
+                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 50px; height: 50px; display: block; flex-shrink: 0;" loading="lazy">
                     <span style="font-weight: 800; font-size: 20px; color: white; letter-spacing: 0.5px; white-space: nowrap;">GigHala</span>
                 </div>
                 <div style="font-size: 11px; font-weight: 600; color: #4ade80; margin-left: 58px; margin-top: -8px; letter-spacing: 0.2px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.3); white-space: nowrap; display: none;" class="tagline-desktop">
@@ -162,19 +208,19 @@
             <!-- Buttons and dates on the right -->
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                 <a href="#install-app" style="text-decoration: none;">
-                    <button class="btn-primary install-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
+                    <button class="btn-primary install-btn" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(255, 255, 255, 0.02); transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
                         <span style="font-size: 18px;">📱</span> Install
                     </button>
                 </a>
-                <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
+                <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(255, 255, 255, 0.02); transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
                     <span style="font-size: 16px;">🌐</span> {% if lang == 'ms' %}EN{% else %}MS{% endif %}
                 </button>
                 <div class="desktop-only-controls" style="display: none; align-items: center; gap: 8px;">
                     <a href="#cari-gig" style="text-decoration: none;">
-                        <button class="btn-primary" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Latest Gigs</button>
+                        <button class="btn-primary" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(255, 255, 255, 0.02); transition: all 0.3s;">Latest Gigs</button>
                     </a>
-                    <button class="btn-primary" onclick="app.showLogin()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Log Masuk</button>
-                    <button class="btn-primary" onclick="app.showRegister()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; backdrop-filter: blur(5px); transition: all 0.3s;">Daftar Percuma</button>
+                    <button class="btn-primary" onclick="app.showLogin()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(255, 255, 255, 0.02); transition: all 0.3s;">Log Masuk</button>
+                    <button class="btn-primary" onclick="app.showRegister()" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(255, 255, 255, 0.02); transition: all 0.3s;">Daftar Percuma</button>
                 </div>
             </div>
         </div>
@@ -184,7 +230,7 @@
         <!-- Mobile Splash Screen -->
         <div id="mobileSplashScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0D7C66 0%, #06402B 100%); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white;">
             <div style="text-align: center; animation: splashFadeIn 1s ease-out;">
-                <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 120px; height: 120px; margin-bottom: 20px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));">
+                <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 120px; height: 120px; margin-bottom: 20px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" loading="lazy">
                 <h1 style="font-size: 32px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px;">GigHala</h1>
                 <p style="font-size: 16px; font-weight: 500; opacity: 0.9;">Post Free. Hire Smart. Pay Secure.</p>
                 <div style="margin-top: 40px;">
@@ -218,7 +264,7 @@
             <div class="container navbar-container">
                 <div class="navbar-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px;">
                     <div class="nav-brand" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <img src="/static/images/logo.png" alt="GigHala" style="height: 62.5px; width: 62.5px; border-radius: 50%; object-fit: contain;">
+                        <img src="/static/images/logo.png" alt="GigHala" style="height: 62.5px; width: 62.5px; border-radius: 50%; object-fit: contain;" loading="lazy">
                         <span style="font-weight: 800; font-size: 28.75px;">GigHala</span>
                     </div>
 
@@ -232,13 +278,13 @@
             </div>
         </nav>
 
-        <div style="background: transparent; width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; backdrop-filter: blur(5px); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+        <div style="background: transparent; width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; background: rgba(255, 255, 255, 0.02); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
             <style>
                 /* Removed animation styles for cleaner blue background */
             </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 12px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Content: Client Marketing -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.005); border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02);">
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.005); border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02);">
                     <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2;">
                         {% if lang == 'ms' %}Buka dunia profesional mahir{% else %}Unlock a world of skilled professionals{% endif %}
                     </h2>
@@ -300,7 +346,7 @@
                     </div>
 
                     <!-- Countdown Timer Moved Here -->
-                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.01); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; color: white; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.03);">
+                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.01); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; color: white; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03);">
                         <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">Masa Tinggal</div>
                         <div style="font-size: 1.25rem; font-weight: 800; margin: 8px 0; letter-spacing: 0.5px;">
                             {% if lang == 'ms' %}🎉 SERTAI SEKARANG & UJI SISTEM BILLING!{% else %}🎉 JOIN SEKARANG & TEST BILLING!{% endif %}
@@ -320,7 +366,7 @@
                 <!-- Right Content: Countdown -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <!-- Latest Gigs List -->
-                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.005); padding: 12px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.005); padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                             {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
                         </h2>
@@ -343,16 +389,16 @@
                     <!-- New Content Block -->
                     <div style="width: 100%; max-width: 400px; margin-bottom: 24px;">
                         <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
                                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
                                 <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ active_gigs_count }}</div>
                             </div>
-                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
                                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
                                 <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ total_paid_year }}</div>
                             </div>
                         </div>
-                        <div style="text-align: left; background: rgba(255, 255, 255, 0.005); padding: 20px; border-radius: 16px; backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
+                        <div style="text-align: left; background: rgba(255, 255, 255, 0.005); padding: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
                         <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                             {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
                         </h2>
@@ -508,8 +554,8 @@
                 z-index: 999999;
                 align-items: center;
                 justify-content: center;
-                backdrop-filter: blur(5px);
-                -webkit-backdrop-filter: blur(5px);
+                background: rgba(255, 255, 255, 0.02);
+                -webkit-background: rgba(255, 255, 255, 0.02);
                 overflow-y: auto;
                 pointer-events: auto;
             }
@@ -632,7 +678,7 @@
                 </div>
 
                 <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 48px;">
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; backdrop-filter: blur(5px);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">✅</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">{% if lang == 'ms' %}100% Disahkan Halal{% else %}100% Halal Verified{% endif %}</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -640,7 +686,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; backdrop-filter: blur(5px);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">🛡️</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Perlindungan SOCSO Automatik</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -648,7 +694,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; backdrop-filter: blur(5px);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">⚡</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Bayaran Selamat & Instant</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -656,7 +702,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; backdrop-filter: blur(5px);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">💰</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Yuran Platform Rendah & Adil</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -664,7 +710,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; backdrop-filter: blur(5px);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">🎯</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">2000+ Gig Halal Fleksibel</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -672,7 +718,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; backdrop-filter: blur(5px);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">🤝</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Komuniti Prihatin & Sokongan Mantap</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -700,7 +746,7 @@
 
                 <div class="steps-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; margin-top: 48px;">
                     <!-- Post your job -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
                         <div style="font-size: 40px; margin-bottom: 20px;">📝</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Hantar kerja anda{% else %}Post your job{% endif %}
@@ -715,7 +761,7 @@
                     </div>
 
                     <!-- Choose freelancers -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
                         <div style="font-size: 40px; margin-bottom: 20px;">👥</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Pilih freelancer{% else %}Choose freelancers{% endif %}
@@ -730,7 +776,7 @@
                     </div>
 
                     <!-- Pay safely -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
                         <div style="font-size: 40px; margin-bottom: 20px;">🛡️</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Bayar dengan selamat{% else %}Pay safely{% endif %}
@@ -745,7 +791,7 @@
                     </div>
 
                     <!-- We're here to help -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; backdrop-filter: blur(10px); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
                         <div style="font-size: 40px; margin-bottom: 20px;">🤝</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Kami di sini untuk membantu{% else %}We're here to help{% endif %}
@@ -943,7 +989,7 @@
                         <p style="color: #fff; font-size: 14px; font-weight: 500; margin: 0;">{{ t('payhalal_notice') }}</p>
                     </div>
                     <div class="footer-company">
-                        <img src="/static/images/calmic-logo.png" alt="Calmic Sdn Bhd" class="calmic-logo">
+                        <img src="/static/images/calmic-logo.png" alt="Calmic Sdn Bhd" class="calmic-logo" loading="lazy">
                         <p>{{ t('rights_reserved') }}</p>
                     </div>
                     <div class="visitor-counter">
@@ -1017,7 +1063,7 @@
                 <button class="modal-close" onclick="app.closeModal('registerModal')">&times;</button>
                 
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 60px; height: 60px; margin-bottom: 8px;">
+                    <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 60px; height: 60px; margin-bottom: 8px;" loading="lazy">
                     <h2 style="font-size: 24px; font-weight: 700; color: #111; margin: 0;">{{ t('register_title') }}</h2>
                 </div>
 
@@ -1178,7 +1224,7 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js" defer></script>
     <script>
         // CSRF Token Support
         function getCSRFToken() {
@@ -1233,29 +1279,74 @@
             }
         }
 
-        // Countdown Timer to 31/01/2026
-        function updateCountdown() {
+        // Optimized Countdown Timer with Intersection Observer
+        (function() {
             const targetDate = new Date('2026-01-31T23:59:59').getTime();
-            const now = new Date().getTime();
-            const distance = targetDate - now;
+            let countdownInterval = null;
 
-            if (distance < 0) {
-                document.getElementById('countdownTimer').innerHTML = '🎉 PHASE 2 COMPLETE!';
-                return;
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                const timerElement = document.getElementById('countdownTimer');
+
+                if (!timerElement) return;
+
+                if (distance < 0) {
+                    timerElement.innerHTML = '🎉 PHASE 2 COMPLETE!';
+                    stopCountdown();
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timerElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
             }
 
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            function startCountdown() {
+                if (!countdownInterval) {
+                    updateCountdown();
+                    countdownInterval = setInterval(updateCountdown, 1000);
+                }
+            }
 
-            const countdownText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-            document.getElementById('countdownTimer').innerHTML = countdownText;
-        }
+            function stopCountdown() {
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+            }
 
-        // Initialize countdown and update every second
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
+            // Use Intersection Observer to pause when not visible
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            startCountdown();
+                        } else {
+                            stopCountdown();
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                const countdownContainer = document.getElementById('countdownContainer');
+                if (countdownContainer) observer.observe(countdownContainer);
+            } else {
+                // Fallback for browsers without IntersectionObserver
+                startCountdown();
+            }
+
+            // Pause countdown when page is hidden
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    stopCountdown();
+                } else {
+                    startCountdown();
+                }
+            });
+        })();
     </script>
     <script>
         // Detection for PWA mode on mobile devices
