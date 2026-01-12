@@ -664,11 +664,12 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 1.0);
+    background: rgba(255, 255, 255, 1);
     padding: 16px 20px;
     border-radius: 16px;
     box-shadow: var(--shadow-lg);
     min-width: 280px;
+    border: 1px solid rgba(13, 124, 102, 1);
 }
 
 .gig-icon {
@@ -823,13 +824,13 @@ body {
 }
 
 .category-card {
-    background: linear-gradient(135deg, rgba(255, 248, 240, 1.0) 0%, rgba(255, 255, 255, 1.0) 100%);
+    background: linear-gradient(135deg, rgba(255, 248, 240, 1) 0%, rgba(255, 255, 255, 1) 100%);
     padding: 32px 24px;
     border-radius: 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 2px solid rgba(13, 124, 102, 0.1);
+    border: 2px solid rgba(13, 124, 102, 1);
     position: relative;
     overflow: hidden;
 }
@@ -935,13 +936,13 @@ body {
 }
 
 .gig-card {
-    background: rgba(255, 255, 255, 1.0);
+    background: rgba(255, 255, 255, 1);
     padding: 20px;
     border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(13, 124, 102, 0.08);
+    box-shadow: 0 4px 20px rgba(13, 124, 102, 0.1);
     cursor: pointer;
     transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    border: 2px solid rgba(13, 124, 102, 0.08);
+    border: 2px solid rgba(13, 124, 102, 1);
     position: relative;
     overflow: hidden;
 }
