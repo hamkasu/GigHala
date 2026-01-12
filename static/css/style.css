@@ -2139,6 +2139,62 @@ body {
     }
 }
 
+/* Installation Modal Mobile Optimization */
+@media (max-width: 768px) {
+    #installModal > div {
+        padding: 20px !important;
+        margin: 12px !important;
+        max-height: 95vh !important;
+    }
+
+    #installModal > div > div {
+        padding: 24px 20px !important;
+    }
+
+    #installModal h2 {
+        font-size: 22px !important;
+        margin-bottom: 24px !important;
+    }
+
+    #installModal > div > div > div {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+    }
+
+    #installModal .step-container {
+        padding: 24px 16px !important;
+    }
+
+    #installModal h3 {
+        font-size: 20px !important;
+    }
+
+    #installModal h4 {
+        font-size: 15px !important;
+    }
+
+    #installModal p {
+        font-size: 13px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #installModal > div {
+        padding: 12px !important;
+        margin: 8px !important;
+        border-radius: 16px !important;
+    }
+
+    #installModal > div > div {
+        padding: 20px 16px !important;
+    }
+
+    #installModal h2 {
+        font-size: 20px !important;
+        margin-bottom: 20px !important;
+    }
+}
+
 /* Touch-friendly interactions */
 @media (hover: none) and (pointer: coarse) {
     .btn-nav,
