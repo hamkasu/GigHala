@@ -110,10 +110,10 @@ body {
 }
 
 .nav-brand span {
-    color: white;
+    color: black;
     font-weight: 800;
     font-size: 24px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .logo-icon {
@@ -190,7 +190,7 @@ body {
 
 .btn-primary {
     background: #2D9B7B;
-    color: white;
+    color: black;
     border: none;
     padding: 12px 28px;
     border-radius: 12px;
@@ -806,15 +806,15 @@ body {
 .section-title {
     font-family: var(--font-display);
     font-size: 48px;
-    color: white;
+    color: black;
     margin-bottom: 16px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .section-subtitle {
     font-size: 18px;
-    color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    color: rgba(0, 0, 0, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .categories-grid {
