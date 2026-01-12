@@ -283,38 +283,48 @@
                 /* Removed animation styles for cleaner blue background */
             </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 12px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
-                <!-- Center Content: Billing Info (Re-styled) -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 12px;">
-                    <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; line-height: 1.2; color: white; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
-                        {% if lang == 'ms' %}SISTEM BILLING SEDANG DIUJI – FASA 2! 🌟{% else %}TESTING BILLING SYSTEM – PHASE 2! 🌟{% endif %}
-                    </h1>
+                <!-- Left Content: Client Marketing -->
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.5); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2;">
+                        {% if lang == 'ms' %}Buka dunia profesional mahir{% else %}Unlock a world of skilled professionals{% endif %}
+                    </h2>
 
-                    <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; line-height: 1.6; color: white;">
-                        Fasa 2: Uji coba penuh sistem billing untuk pastikan semuanya lancar & selamat!
-                    </p>
-
-                    <div style="font-size: 0.7rem; margin-bottom: 7px; color: white;">
-                        Untuk Early Adopters yang daftar sehingga 31 Januari 2026:
-                    </div>
-                    <div style="font-size: 1rem; font-weight: 700; margin: 6px 0; color: #4ade80; margin-bottom: 24px;">
-                        10% PLATFORM FI SELAMANYA! ☀️
-                    </div>
-
-                    <!-- Countdown Timer Moved Here -->
-                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.01); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; color: white; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03);">
-                        <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">Masa Tinggal</div>
-                        <div style="font-size: 1.25rem; font-weight: 800; margin: 8px 0; letter-spacing: 0.5px;">
-                            {% if lang == 'ms' %}🎉 SERTAI SEKARANG & UJI SISTEM BILLING!{% else %}🎉 JOIN SEKARANG & TEST BILLING!{% endif %}
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Kongsi kerja anda — ia percuma dan sangat mudah{% else %}Share your job — it's free and surprisingly easy{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Dalam beberapa minit, anda akan menerima banyak cadangan yang mantap dan mengikut bajet{% else %}In minutes, you'll receive lots of strong, budget-friendly proposals{% endif %}
+                            </p>
                         </div>
-                        <div id="countdownTimer" style="font-size: 2rem; font-weight: 900; letter-spacing: 2px; margin: 15px 0; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);">
-                            ⏳ {% if lang == 'ms' %}Memuatkan...{% else %}Loading...{% endif %}
-                        </div>
-                        <div style="font-size: 0.8rem; font-weight: 600; margin-top: 8px; opacity: 0.8;">hingga 31/01/2026</div>
-                    </div>
 
-                    <div style="font-size: 0.85rem; line-height: 1.6; max-width: 500px; margin: 0 auto; color: white; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); opacity: 0.9;">
-                        GigHala kini memasuki Phase 2 Testing Billing System (Semua sistem termasuk billing sedang diuji – join sekarang & bantu kami sempurnakan platform!). Target Full Live Date selepas 31/01/2026.<br>
-                        Pembayaran selamat | Dimiliki Calmic Sdn Bhd
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Pilih orang yang sesuai untuk tugasan itu{% else %}Select the right person for the job{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Sama ada tugasan pantas atau projek besar, anda akan menemui freelancer berbakat untuk sebarang saiz dan bajet{% else %}Whether it's a quick task or a major project, you'll find talented freelancers for any size and budget{% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Bayar tanpa risau{% else %}Pay worry-free{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Anda hanya bayar apabila hasil kerja sempurna. Pembayaran milestone kami memastikan semuanya selamat.{% else %}You only pay when the work is perfect. Our milestone payments keep everything secure.{% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 style="color: white; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+                                {% if lang == 'ms' %}Kami di sini untuk anda{% else %}We're here for you{% endif %}
+                            </h3>
+                            <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.4; font-size: 0.9rem; margin: 0;">
+                                {% if lang == 'ms' %}Biar pasukan pakar kami menjimatkan masa anda dan membantu anda menemui bakat hebat.{% else %}Let our expert team save you time and help you discover great talent.{% endif %}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
