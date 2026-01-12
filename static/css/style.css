@@ -2139,6 +2139,71 @@ body {
     }
 }
 
+/* Footer Styles */
+footer a:hover {
+    color: white !important;
+    transform: translateX(4px);
+}
+
+footer .social-link:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Footer Mobile Optimization */
+@media (max-width: 768px) {
+    footer {
+        padding: 40px 20px 20px !important;
+    }
+
+    footer > div > div:first-child {
+        grid-template-columns: 1fr !important;
+        gap: 32px !important;
+    }
+
+    footer .bottom-footer > div {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+
+    footer .bottom-footer img {
+        margin: 0 auto !important;
+    }
+
+    footer .visitor-stats {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    footer .badges {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 480px) {
+    footer h3 {
+        font-size: 20px !important;
+    }
+
+    footer h4 {
+        font-size: 16px !important;
+    }
+
+    footer p {
+        font-size: 13px !important;
+    }
+
+    footer .social-link {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
+    }
+
+    footer .payhalal-banner p {
+        font-size: 14px !important;
+    }
+}
+
 /* Installation Modal Mobile Optimization */
 @media (max-width: 768px) {
     #installModal > div {

@@ -343,6 +343,120 @@
                 </div>
             </div>
         </div>
+
+        <!-- Footer Section -->
+        <footer style="background: #000000; color: white; padding: 60px 20px 20px;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <!-- Main Footer Content -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 48px; margin-bottom: 48px;">
+                    <!-- GigHala Column -->
+                    <div>
+                        <h3 style="font-size: 24px; font-weight: 800; color: white; margin-bottom: 16px;">GigHala</h3>
+                        <p style="font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.7); margin-bottom: 24px;">
+                            {% if lang == 'ms' %}Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah.{% else %}Malaysia's #1 halal gig economy platform. Earn blessed income from home.{% endif %}
+                        </p>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <a href="https://facebook.com/gighala" target="_blank" rel="noopener" style="background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;">
+                                Facebook
+                            </a>
+                            <a href="https://instagram.com/gighala" target="_blank" rel="noopener" style="background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;">
+                                Instagram
+                            </a>
+                            <a href="https://tiktok.com/@gighala" target="_blank" rel="noopener" style="background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;">
+                                TikTok
+                            </a>
+                            <a href="https://twitter.com/gighala" target="_blank" rel="noopener" style="background: rgba(255, 255, 255, 0.1); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;">
+                                Twitter/X
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Platform Column -->
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Platform{% else %}Platform{% endif %}
+                        </h4>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+                            <li><a href="/about" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Tentang Kami{% else %}About Us{% endif %}</a></li>
+                            <li><a href="/browse" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Cari Gig{% else %}Find Gigs{% endif %}</a></li>
+                            <li><a href="/categories" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Kategori{% else %}Categories{% endif %}</a></li>
+                            <li><a href="/how-it-works" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Cara Kerja{% else %}How It Works{% endif %}</a></li>
+                            <li><a href="/pricing" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Pricing{% else %}Pricing{% endif %}</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Resources Column -->
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Resources{% else %}Resources{% endif %}
+                        </h4>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+                            <li><a href="/blog" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">Blog</a></li>
+                            <li><a href="/freelancer-guide" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a></li>
+                            <li><a href="/faq" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">FAQ</a></li>
+                            <li><a href="/support" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">Support</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Legal Column -->
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Legal{% else %}Legal{% endif %}
+                        </h4>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+                            <li><a href="/terms" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Syarat & Terma{% else %}Terms & Conditions{% endif %}</a></li>
+                            <li><a href="/privacy" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Dasar Privasi{% else %}Privacy Policy{% endif %}</a></li>
+                            <li><a href="/halal-policy" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Kepatuhan Halal{% else %}Halal Compliance{% endif %}</a></li>
+                            <li><a href="/worker-law" style="color: rgba(255, 255, 255, 0.7); text-decoration: none; font-size: 14px; transition: color 0.3s;">{% if lang == 'ms' %}Rang Undang-Undang Pekerja Gig{% else %}Gig Worker Law{% endif %}</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- PayHalal Banner -->
+                <div style="background: linear-gradient(135deg, #0D7C66 0%, #06402B 100%); padding: 24px; border-radius: 16px; margin-bottom: 32px; text-align: center;">
+                    <p style="font-size: 16px; font-weight: 600; color: white; margin: 0; line-height: 1.5;">
+                        {% if lang == 'ms' %}Pembayaran Selamat & Halal dengan PayHalal - Gateway Pembayaran Shariah-Compliant Pertama di Dunia{% else %}Safe & Halal Payment with PayHalal - World's First Shariah-Compliant Payment Gateway{% endif %} 🌙
+                    </p>
+                </div>
+
+                <!-- Bottom Footer -->
+                <div style="padding-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
+                        <!-- Left: Copyright and Logo -->
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <img src="/static/images/landing_logo_v2.png" alt="Calmic" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.3);" loading="lazy">
+                            <p style="font-size: 13px; color: rgba(255, 255, 255, 0.6); margin: 0;">
+                                © 2025 GigHala. {% if lang == 'ms' %}Dimiliki dan dikendalikan oleh Calmic Sdn Bhd (Nombor Pendaftaran: 1466852W / 202201021155). Hak cipta terpelihara.{% else %}Owned and operated by Calmic Sdn Bhd (Registration Number: 1466852W / 202201021155). All rights reserved.{% endif %}
+                            </p>
+                        </div>
+
+                        <!-- Center: Visitor Stats -->
+                        <div style="display: flex; gap: 16px; align-items: center;">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+                                <span style="color: rgba(255, 255, 255, 0.6);">👁️</span>
+                                <span style="color: rgba(255, 255, 255, 0.8);">{% if lang == 'ms' %}Jumlah Pelawat{% else %}Total Visitors{% endif %}:</span>
+                                <strong style="color: #D4AF37; margin-left: 4px;">{{ visitor_count|default('4') }}</strong>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+                                <span style="color: rgba(255, 255, 255, 0.6);">👥</span>
+                                <span style="color: rgba(255, 255, 255, 0.8);">{% if lang == 'ms' %}Pengguna Berdaftar{% else %}Registered Users{% endif %}:</span>
+                                <strong style="color: #D4AF37; margin-left: 4px;">{{ user_count|default('3') }}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Right: Badges -->
+                        <div style="display: flex; gap: 12px;">
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 11px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px;">
+                                SSM REGISTERED
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.1); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 11px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px;">
+                                SECURE PAYMENT
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Installation Instructions Modal -->
