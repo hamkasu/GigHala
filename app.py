@@ -16120,7 +16120,7 @@ def admin_get_payouts():
         status = request.args.get('status', 'all')
 
         query = Payout.query
-        if status != 'all':
+        if status and status != 'all':
             query = query.filter_by(status=status)
 
         pagination = query.order_by(Payout.requested_at.desc()).paginate(
