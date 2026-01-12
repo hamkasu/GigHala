@@ -16297,8 +16297,7 @@ def admin_update_payout(payout_id):
                 'admin_notes': admin_notes,
                 'failure_reason': data.get('failure_reason'),
                 'admin_username': admin_user.username if admin_user else 'unknown'
-            },
-            severity='high'
+            }
         )
 
         return jsonify({'message': 'Payout updated successfully'}), 200
@@ -16420,8 +16419,7 @@ def admin_mark_payout_ready(payout_id):
                 'release_batch': payout.release_batch,
                 'scheduled_release_time': payout.scheduled_release_time.isoformat() if payout.scheduled_release_time else None,
                 'admin_username': admin_user.username if admin_user else 'unknown'
-            },
-            severity='medium'
+            }
         )
 
         return jsonify({'message': 'Payout marked as ready for release'}), 200
@@ -17530,7 +17528,6 @@ def admin_master_reset():
                 'deleted_count': deleted_count,
                 'performed_by': admin_user.username
             },
-            severity='critical',
             message=f'Admin {admin_user.username} performed master reset, deleting {deleted_count} records'
         )
 
