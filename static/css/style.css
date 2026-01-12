@@ -40,7 +40,7 @@ html, body {
 body {
     font-family: var(--font-primary);
     color: var(--text-dark);
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: #ffffff;
     line-height: 1.6;
     font-size: 0.85rem;
 }
