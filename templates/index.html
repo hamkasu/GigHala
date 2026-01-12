@@ -93,11 +93,9 @@
 
             <!-- Buttons and dates on the right -->
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                <a href="#install-app" style="text-decoration: none;">
-                    <button class="btn-primary install-btn" style="background: transparent; color: black; border: 1px solid rgba(0,0,0,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.02); transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
-                        <span style="font-size: 18px;">📱</span> Install
-                    </button>
-                </a>
+                <button class="btn-primary install-btn" onclick="showInstallModal()" style="background: transparent; color: black; border: 1px solid rgba(0,0,0,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.02); transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
+                    <span style="font-size: 18px;">📱</span> Install
+                </button>
                 <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: transparent; color: black; border: 1px solid rgba(0,0,0,0.4); padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.02); transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
                     <span style="font-size: 16px;">🌐</span> {% if lang == 'ms' %}EN{% else %}MS{% endif %}
                 </button>
@@ -346,6 +344,183 @@
             </div>
         </div>
     </div>
+
+    <!-- Installation Instructions Modal -->
+    <div id="installModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px);">
+        <div style="background: white; border-radius: 24px; max-width: 1000px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+            <!-- Close Button -->
+            <button onclick="closeInstallModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(0, 0, 0, 0.1); border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 24px; color: #666; z-index: 10; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                ×
+            </button>
+
+            <!-- Modal Content -->
+            <div style="padding: 40px 32px;">
+                <h2 style="font-size: 28px; font-weight: 800; color: black; margin-bottom: 32px; text-align: center;">
+                    {% if lang == 'ms' %}Cara Pasang GigHala App{% else %}How to Install GigHala App{% endif %}
+                </h2>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
+                    <!-- iOS Instructions -->
+                    <div style="background: #f9fafb; padding: 32px 24px; border-radius: 20px; border: 2px solid #e5e7eb;">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="font-size: 64px; margin-bottom: 12px;">🍎</div>
+                            <h3 style="font-size: 24px; font-weight: 700; color: black; margin-bottom: 8px;">
+                                iPhone / iPad (iOS)
+                            </h3>
+                            <p style="font-size: 15px; color: #6b7280; font-weight: 600;">Safari Browser</p>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Step 1 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Buka gighala.calmic.com.my di Safari{% else %}Open gighala.calmic.com.my in Safari{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Pastikan anda menggunakan Safari browser (bukan Chrome){% else %}Make sure you're using Safari browser (not Chrome){% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Tekan butang "Share" <span style="display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 6px; font-size: 18px;">⬆️</span>{% else %}Tap the "Share" button <span style="display: inline-block; background: #f3f4f6; padding: 2px 8px; border-radius: 6px; font-size: 18px;">⬆️</span>{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Butang share berada di bahagian bawah atau atas browser{% else %}Share button is at the bottom or top of the browser{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Pilih "Add to Home Screen"{% else %}Select "Add to Home Screen"{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Scroll ke bawah untuk cari pilihan ini{% else %}Scroll down to find this option{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Tekan "Add" / "Tambah"{% else %}Tap "Add"{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Ikon GigHala akan muncul di skrin utama anda!{% else %}GigHala icon will appear on your home screen!{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Android Instructions -->
+                    <div style="background: #f9fafb; padding: 32px 24px; border-radius: 20px; border: 2px solid #e5e7eb;">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="font-size: 64px; margin-bottom: 12px;">🤖</div>
+                            <h3 style="font-size: 24px; font-weight: 700; color: black; margin-bottom: 8px;">
+                                Android
+                            </h3>
+                            <p style="font-size: 15px; color: #6b7280; font-weight: 600;">Chrome / Samsung Internet</p>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Step 1 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Buka gighala.calmic.com.my di Chrome{% else %}Open gighala.calmic.com.my in Chrome{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Boleh guna Chrome, Firefox, atau Samsung Internet{% else %}You can use Chrome, Firefox, or Samsung Internet{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Tekan menu (⋮) di sudut kanan atas{% else %}Tap menu (⋮) at top right corner{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Tiga titik menegak di bahagian atas browser{% else %}Three vertical dots at the top of the browser{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Pilih "Install app" atau "Add to Home screen"{% else %}Select "Install app" or "Add to Home screen"{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Nama mungkin berbeza mengikut browser{% else %}Name may vary depending on browser{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div style="display: flex; gap: 16px;">
+                                <div style="background: #0D7C66; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</div>
+                                <div>
+                                    <h4 style="font-size: 16px; font-weight: 700; color: black; margin-bottom: 4px;">
+                                        {% if lang == 'ms' %}Tekan "Install" / "Add"{% else %}Tap "Install" / "Add"{% endif %}
+                                    </h4>
+                                    <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin: 0;">
+                                        {% if lang == 'ms' %}Selesai! Buka GigHala dari skrin utama seperti app biasa{% else %}Done! Open GigHala from home screen like a regular app{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showInstallModal() {
+            const modal = document.getElementById('installModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeInstallModal() {
+            const modal = document.getElementById('installModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('installModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeInstallModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeInstallModal();
+            }
+        });
+    </script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>
