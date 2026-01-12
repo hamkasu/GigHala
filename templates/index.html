@@ -278,13 +278,13 @@
             </div>
         </nav>
 
-        <div style="background: transparent; width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; background: rgba(255, 255, 255, 0.02); border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+        <div style="background: rgba(0, 0, 0, 0.25); width: 100%; padding: 8px 4px; color: white; text-align: center; position: relative; z-index: 10; overflow: hidden; border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
             <style>
                 /* Removed animation styles for cleaner blue background */
             </style>
             <div class="container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 12px; max-width: 1400px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Content: Client Marketing -->
-                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.005); border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02);">
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; text-align: left; padding: 12px; background: rgba(255, 255, 255, 0.12); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                     <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2;">
                         {% if lang == 'ms' %}Buka dunia profesional mahir{% else %}Unlock a world of skilled professionals{% endif %}
                     </h2>
@@ -346,7 +346,7 @@
                     </div>
 
                     <!-- Countdown Timer Moved Here -->
-                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.01); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; color: white; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03);">
+                    <div id="countdownContainer" style="background: rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 20px 30px; margin: 0 auto 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); transition: all 0.3s ease; color: white; border: 1px solid rgba(255, 255, 255, 0.15);">
                         <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px;">Masa Tinggal</div>
                         <div style="font-size: 1.25rem; font-weight: 800; margin: 8px 0; letter-spacing: 0.5px;">
                             {% if lang == 'ms' %}🎉 SERTAI SEKARANG & UJI SISTEM BILLING!{% else %}🎉 JOIN SEKARANG & TEST BILLING!{% endif %}
@@ -366,7 +366,7 @@
                 <!-- Right Content: Countdown -->
                 <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <!-- Latest Gigs List -->
-                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.005); padding: 12px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
+                    <div style="width: 100%; max-width: 400px; margin-bottom: 12px; text-align: left; background: rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);">
                         <h2 style="font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                             {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
                         </h2>
@@ -389,16 +389,16 @@
                     <!-- New Content Block -->
                     <div style="width: 100%; max-width: 400px; margin-bottom: 24px;">
                         <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.12); padding: 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); text-align: center;">
                                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
                                 <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ active_gigs_count }}</div>
                             </div>
-                            <div style="flex: 1; background: rgba(255, 255, 255, 0.005); padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); text-align: center;">
+                            <div style="flex: 1; background: rgba(255, 255, 255, 0.12); padding: 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); text-align: center;">
                                 <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
                                 <div style="font-size: 1.5rem; font-weight: 800; color: #4ade80;">{{ total_paid_year }}</div>
                             </div>
                         </div>
-                        <div style="text-align: left; background: rgba(255, 255, 255, 0.005); padding: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.02); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);">
+                        <div style="text-align: left; background: rgba(255, 255, 255, 0.12); padding: 20px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);">
                         <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
                             {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
                         </h2>
@@ -678,7 +678,7 @@
                 </div>
 
                 <div class="benefits-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 48px;">
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">✅</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">{% if lang == 'ms' %}100% Disahkan Halal{% else %}100% Halal Verified{% endif %}</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -686,7 +686,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">🛡️</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Perlindungan SOCSO Automatik</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -694,7 +694,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">⚡</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Bayaran Selamat & Instant</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -702,7 +702,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">💰</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Yuran Platform Rendah & Adil</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -710,7 +710,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">🎯</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">2000+ Gig Halal Fleksibel</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -718,7 +718,7 @@
                         </p>
                     </div>
 
-                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.02);">
+                    <div class="benefit-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div class="benefit-icon" style="font-size: 48px; margin-bottom: 16px;">🤝</div>
                         <h3 class="benefit-title" style="font-size: 20px; font-weight: 700; color: #4ade80; margin-bottom: 12px;">Komuniti Prihatin & Sokongan Mantap</h3>
                         <p class="benefit-text" style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
@@ -746,7 +746,7 @@
 
                 <div class="steps-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; margin-top: 48px;">
                     <!-- Post your job -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div style="font-size: 40px; margin-bottom: 20px;">📝</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Hantar kerja anda{% else %}Post your job{% endif %}
@@ -761,7 +761,7 @@
                     </div>
 
                     <!-- Choose freelancers -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div style="font-size: 40px; margin-bottom: 20px;">👥</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Pilih freelancer{% else %}Choose freelancers{% endif %}
@@ -776,7 +776,7 @@
                     </div>
 
                     <!-- Pay safely -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div style="font-size: 40px; margin-bottom: 20px;">🛡️</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Bayar dengan selamat{% else %}Pay safely{% endif %}
@@ -791,7 +791,7 @@
                     </div>
 
                     <!-- We're here to help -->
-                    <div class="step-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 32px; background: rgba(255, 255, 255, 0.03); transition: transform 0.3s ease;">
+                    <div class="step-card" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 16px; padding: 32px; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
                         <div style="font-size: 40px; margin-bottom: 20px;">🤝</div>
                         <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 16px;">
                             {% if lang == 'ms' %}Kami di sini untuk membantu{% else %}We're here to help{% endif %}
