@@ -2579,6 +2579,15 @@ class Payout(db.Model):
     is_instant = db.Column(db.Boolean, default=False)  # Whether this is an instant payout
     stripe_payout_id = db.Column(db.String(255), unique=True)  # Stripe payout ID (po_xxx)
     estimated_arrival = db.Column(db.DateTime)  # Estimated arrival time for funds
+    # Manual release batch fields
+    scheduled_release_time = db.Column(db.DateTime)  # Scheduled batch release time (8am or 4pm)
+    release_batch = db.Column(db.String(50))  # Batch identifier (e.g., "2026-01-12-08:00")
+    ready_for_release = db.Column(db.Boolean, default=False)  # Admin marked ready for batch release
+    ready_for_release_at = db.Column(db.DateTime)  # When admin marked it ready
+    ready_for_release_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who marked it ready
+    external_payment_confirmed = db.Column(db.Boolean, default=False)  # Admin confirmed external payment done
+    external_payment_confirmed_at = db.Column(db.DateTime)  # When admin confirmed payment
+    external_payment_confirmed_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who confirmed payment
 
 class PaymentHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -13526,6 +13535,41 @@ def get_payouts():
         app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Failed to get payouts'}), 500
 
+def calculate_next_batch_release_time():
+    """Calculate the next batch release time (8am or 4pm)
+
+    Returns:
+        tuple: (scheduled_release_time as datetime, batch identifier as string)
+    """
+    from pytz import timezone
+
+    # Use Malaysia timezone (MYT = UTC+8)
+    myt = timezone('Asia/Kuala_Lumpur')
+    now = datetime.now(myt)
+
+    # Define batch times
+    batch_8am = now.replace(hour=8, minute=0, second=0, microsecond=0)
+    batch_4pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
+
+    # Determine next batch
+    if now < batch_8am:
+        # Before 8am - assign to today's 8am batch
+        next_batch = batch_8am
+    elif now < batch_4pm:
+        # Between 8am and 4pm - assign to today's 4pm batch
+        next_batch = batch_4pm
+    else:
+        # After 4pm - assign to tomorrow's 8am batch
+        next_batch = (now + timedelta(days=1)).replace(hour=8, minute=0, second=0, microsecond=0)
+
+    # Create batch identifier (e.g., "2026-01-12-08:00" or "2026-01-12-16:00")
+    batch_id = next_batch.strftime('%Y-%m-%d-%H:%M')
+
+    # Convert to UTC for database storage
+    next_batch_utc = next_batch.astimezone(timezone('UTC')).replace(tzinfo=None)
+
+    return next_batch_utc, batch_id
+
 @app.route('/api/billing/payouts', methods=['POST'])
 @login_required
 def request_payout():
@@ -13577,6 +13621,9 @@ def request_payout():
         import random
         payout_number = f"PO-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
 
+        # Calculate next batch release time for manual payouts (8am or 4pm)
+        scheduled_release_time, release_batch = calculate_next_batch_release_time()
+
         # Create payout request
         payout = Payout(
             payout_number=payout_number,
@@ -13589,7 +13636,9 @@ def request_payout():
             account_number=account_number,
             account_name=account_name,
             bank_name=bank_name,
-            status='pending'
+            status='pending',
+            scheduled_release_time=scheduled_release_time,
+            release_batch=release_batch
         )
 
         db.session.add(payout)
@@ -16098,7 +16147,13 @@ def admin_get_payouts():
                 'processed_at': p.processed_at.strftime('%Y-%m-%d %H:%M:%S') if p.processed_at else None,
                 'completed_at': p.completed_at.strftime('%Y-%m-%d %H:%M:%S') if p.completed_at else None,
                 'failure_reason': p.failure_reason,
-                'admin_notes': p.admin_notes
+                'admin_notes': p.admin_notes,
+                'scheduled_release_time': p.scheduled_release_time.strftime('%Y-%m-%d %H:%M:%S') if p.scheduled_release_time else None,
+                'release_batch': p.release_batch,
+                'ready_for_release': p.ready_for_release,
+                'ready_for_release_at': p.ready_for_release_at.strftime('%Y-%m-%d %H:%M:%S') if p.ready_for_release_at else None,
+                'external_payment_confirmed': p.external_payment_confirmed,
+                'external_payment_confirmed_at': p.external_payment_confirmed_at.strftime('%Y-%m-%d %H:%M:%S') if p.external_payment_confirmed_at else None
             })
 
         return jsonify({
@@ -16251,6 +16306,249 @@ def admin_update_payout(payout_id):
         db.session.rollback()
         app.logger.error(f"Admin update payout error: {str(e)}")
         return jsonify({'error': 'Failed to update payout'}), 500
+
+@app.route('/api/admin/billing/payouts/batches', methods=['GET'])
+@admin_required
+def admin_get_payout_batches():
+    """Admin: Get all payout requests grouped by release batches (8am and 4pm)"""
+    try:
+        from pytz import timezone
+        from sqlalchemy import func
+
+        # Query all pending and ready-for-release payouts
+        payouts = Payout.query.filter(
+            Payout.status.in_(['pending', 'processing']),
+            Payout.release_batch.isnot(None)
+        ).order_by(Payout.scheduled_release_time.asc()).all()
+
+        # Group by release batch
+        batches = {}
+        for p in payouts:
+            batch_id = p.release_batch
+            if batch_id not in batches:
+                batches[batch_id] = {
+                    'batch_id': batch_id,
+                    'scheduled_time': p.scheduled_release_time.strftime('%Y-%m-%d %H:%M:%S') if p.scheduled_release_time else None,
+                    'total_amount': 0,
+                    'total_net_amount': 0,
+                    'payout_count': 0,
+                    'ready_count': 0,
+                    'confirmed_count': 0,
+                    'payouts': []
+                }
+
+            user = User.query.get(p.freelancer_id)
+            payout_data = {
+                'id': p.id,
+                'payout_number': p.payout_number,
+                'freelancer_id': p.freelancer_id,
+                'freelancer_name': user.username if user else 'N/A',
+                'freelancer_email': user.email if user else 'N/A',
+                'amount': p.amount,
+                'fee': p.fee,
+                'net_amount': p.net_amount,
+                'payment_method': p.payment_method,
+                'bank_name': p.bank_name,
+                'account_number': p.account_number,
+                'account_name': p.account_name,
+                'status': p.status,
+                'requested_at': p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'ready_for_release': p.ready_for_release,
+                'ready_for_release_at': p.ready_for_release_at.strftime('%Y-%m-%d %H:%M:%S') if p.ready_for_release_at else None,
+                'external_payment_confirmed': p.external_payment_confirmed,
+                'external_payment_confirmed_at': p.external_payment_confirmed_at.strftime('%Y-%m-%d %H:%M:%S') if p.external_payment_confirmed_at else None,
+                'admin_notes': p.admin_notes
+            }
+
+            batches[batch_id]['payouts'].append(payout_data)
+            batches[batch_id]['total_amount'] += p.amount
+            batches[batch_id]['total_net_amount'] += p.net_amount
+            batches[batch_id]['payout_count'] += 1
+
+            if p.ready_for_release:
+                batches[batch_id]['ready_count'] += 1
+            if p.external_payment_confirmed:
+                batches[batch_id]['confirmed_count'] += 1
+
+        # Convert to list and sort by scheduled time
+        batch_list = sorted(batches.values(), key=lambda x: x['scheduled_time'] or '')
+
+        return jsonify({
+            'batches': batch_list,
+            'total_batches': len(batch_list)
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get payout batches error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to get payout batches'}), 500
+
+@app.route('/api/admin/billing/payouts/<int:payout_id>/mark-ready', methods=['PUT'])
+@admin_required
+def admin_mark_payout_ready(payout_id):
+    """Admin: Mark a payout as ready for batch release"""
+    try:
+        payout = Payout.query.get_or_404(payout_id)
+        admin_user_id = session['user_id']
+        admin_user = User.query.get(admin_user_id)
+
+        # Validate payout is pending
+        if payout.status not in ['pending', 'processing']:
+            return jsonify({'error': 'Can only mark pending/processing payouts as ready'}), 400
+
+        # Mark as ready for release
+        payout.ready_for_release = True
+        payout.ready_for_release_at = datetime.utcnow()
+        payout.ready_for_release_by = admin_user_id
+        payout.status = 'processing'  # Update status to processing
+
+        if not payout.processed_at:
+            payout.processed_at = datetime.utcnow()
+
+        db.session.commit()
+
+        # Log admin action
+        security_logger.log_admin_action(
+            action=f'Admin marked payout {payout.payout_number} as ready for batch release',
+            resource_type='payout',
+            resource_id=payout.payout_number,
+            details={
+                'payout_id': payout_id,
+                'payout_number': payout.payout_number,
+                'freelancer_id': payout.freelancer_id,
+                'amount': payout.amount,
+                'release_batch': payout.release_batch,
+                'scheduled_release_time': payout.scheduled_release_time.isoformat() if payout.scheduled_release_time else None,
+                'admin_username': admin_user.username if admin_user else 'unknown'
+            },
+            severity='medium'
+        )
+
+        return jsonify({'message': 'Payout marked as ready for release'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin mark payout ready error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to mark payout ready'}), 500
+
+@app.route('/api/admin/billing/payouts/<int:payout_id>/confirm-payment', methods=['PUT'])
+@admin_required
+def admin_confirm_payout_payment(payout_id):
+    """Admin: Confirm that external payment has been released through banking app"""
+    try:
+        payout = Payout.query.get_or_404(payout_id)
+        admin_user_id = session['user_id']
+        admin_user = User.query.get(admin_user_id)
+        data = request.get_json()
+
+        # Validate payout is ready for release
+        if not payout.ready_for_release:
+            return jsonify({'error': 'Payout must be marked as ready for release first'}), 400
+
+        # Mark as payment confirmed
+        payout.external_payment_confirmed = True
+        payout.external_payment_confirmed_at = datetime.utcnow()
+        payout.external_payment_confirmed_by = admin_user_id
+        payout.status = 'completed'
+        payout.completed_at = datetime.utcnow()
+
+        # Add admin notes if provided
+        if data.get('admin_notes'):
+            payout.admin_notes = (payout.admin_notes or '') + f"\n[{datetime.utcnow().strftime('%Y-%m-%d %H:%M')}] {data['admin_notes']}"
+
+        # Release held balance
+        wallet = Wallet.query.filter_by(user_id=payout.freelancer_id).first()
+        if wallet:
+            wallet.held_balance -= payout.amount
+
+            # Create payment history
+            history = PaymentHistory(
+                user_id=payout.freelancer_id,
+                payout_id=payout.id,
+                type='payout',
+                amount=payout.amount,
+                balance_before=wallet.balance + payout.amount,
+                balance_after=wallet.balance,
+                description=f'Manual payout completed (batch {payout.release_batch}): {payout.payout_number}',
+                reference_number=payout.payout_number
+            )
+            db.session.add(history)
+
+        db.session.commit()
+
+        # Send withdrawal completion notification email
+        user = User.query.get(payout.freelancer_id)
+        if user and user.email:
+            try:
+                html_content = render_template('email_withdrawal_confirmation.html',
+                    recipient_name=user.full_name or user.username,
+                    withdrawal_status="Completed",
+                    status_message="Your withdrawal has been successfully processed",
+                    main_message=f"Great news! Your withdrawal of MYR {payout.amount:.2f} has been successfully transferred to your bank account.",
+                    withdrawal_amount=f"{payout.net_amount:.2f}",
+                    transaction_id=payout.payout_number,
+                    request_date=payout.requested_at.strftime('%d %B %Y, %H:%M') if payout.requested_at else None,
+                    processing_date=payout.processed_at.strftime('%d %B %Y, %H:%M') if payout.processed_at else None,
+                    completion_date=datetime.utcnow().strftime('%d %B %Y, %H:%M'),
+                    bank_name=payout.bank_name,
+                    bank_account_number=payout.account_number,
+                    account_holder_name=payout.account_name,
+                    withdrawal_fee=f"{payout.fee:.2f}" if payout.fee else "0.00",
+                    requested_amount=f"{payout.amount:.2f}",
+                    wallet_url=request.host_url.rstrip('/') + '/wallet',
+                    transaction_url=request.host_url.rstrip('/') + '/payments',
+                    support_url=request.host_url.rstrip('/') + '/support',
+                    support_contact='support@gighala.com',
+                    settings_url=request.host_url.rstrip('/') + '/settings',
+                    terms_url=request.host_url.rstrip('/') + '/terms'
+                )
+
+                email_service.send_single_email(
+                    to_email=user.email,
+                    to_name=user.full_name or user.username,
+                    subject=f"Withdrawal Completed - {payout.payout_number}",
+                    html_content=html_content
+                )
+                app.logger.info(f"Sent withdrawal completion email to user {user.id}")
+            except Exception as e:
+                app.logger.error(f"Failed to send withdrawal completion email: {str(e)}")
+
+        # Send SMS notification for large withdrawals (>= RM500)
+        if user and user.phone and (payout.amount >= 500 or user.phone_verified):
+            try:
+                sms_message = f"GigHala: Withdrawal of MYR {payout.net_amount:.2f} completed! Ref: {payout.payout_number}. Funds transferred to your bank account."
+                send_transaction_sms_notification(user.phone, sms_message)
+                app.logger.info(f"Sent withdrawal completion SMS to user {user.id} (amount: MYR {payout.net_amount:.2f})")
+            except Exception as e:
+                app.logger.error(f"Failed to send withdrawal completion SMS: {str(e)}")
+
+        # Log admin action
+        security_logger.log_financial(
+            event_type='payout_confirmed',
+            action=f'Admin confirmed external payment for payout {payout.payout_number}',
+            amount=payout.amount,
+            resource_type='payout',
+            resource_id=payout.payout_number,
+            details={
+                'payout_id': payout_id,
+                'payout_number': payout.payout_number,
+                'freelancer_id': payout.freelancer_id,
+                'amount': payout.amount,
+                'net_amount': payout.net_amount,
+                'release_batch': payout.release_batch,
+                'admin_username': admin_user.username if admin_user else 'unknown',
+                'admin_notes': data.get('admin_notes')
+            }
+        )
+
+        return jsonify({'message': 'Payment confirmed and payout completed'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin confirm payout payment error: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Failed to confirm payment'}), 500
 
 @app.route('/api/admin/billing/stats', methods=['GET'])
 @admin_required
