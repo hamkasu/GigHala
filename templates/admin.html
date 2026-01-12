@@ -862,6 +862,9 @@
         <div class="table-header">
             <h2>Payout Requests</h2>
             <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="view-toggle-btn" onclick="togglePayoutView()" style="padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--primary); color: white; cursor: pointer; font-weight: 600;">
+                    <span id="view-toggle-text">📦 Batch View</span>
+                </button>
                 <select id="payout-status-filter" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border);" onchange="loadPayouts()">
                     <option value="">All Status</option>
                     <option value="pending" selected>Pending</option>
@@ -896,6 +899,15 @@
                 <tbody id="payouts-tbody"></tbody>
             </table>
             <div class="pagination" id="payouts-pagination"></div>
+        </div>
+        <div id="batches-content" style="display: none;">
+            <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <p style="color: #166534; font-size: 13px; margin: 0;">
+                    <strong>📅 Manual Payout Release Schedule:</strong> Payouts are grouped into batches and released at 8:00 AM and 4:00 PM daily (Malaysia Time).
+                    Mark payouts as "Ready for Release" and then confirm when payment has been made through your banking app.
+                </p>
+            </div>
+            <div id="batches-container"></div>
         </div>
     </div>
 </div>
@@ -2758,6 +2770,206 @@
     function closePayoutModal() {
         document.getElementById('payout-detail-modal').classList.remove('active');
         currentPayoutId = null;
+    }
+
+    // Batch view functionality
+    let isBatchView = false;
+
+    function togglePayoutView() {
+        isBatchView = !isBatchView;
+        const toggleText = document.getElementById('view-toggle-text');
+        const payoutsContent = document.getElementById('payouts-content');
+        const batchesContent = document.getElementById('batches-content');
+        const statusFilter = document.getElementById('payout-status-filter');
+
+        if (isBatchView) {
+            toggleText.textContent = '📋 List View';
+            payoutsContent.style.display = 'none';
+            batchesContent.style.display = 'block';
+            statusFilter.style.display = 'none';
+            loadPayoutBatches();
+        } else {
+            toggleText.textContent = '📦 Batch View';
+            payoutsContent.style.display = 'block';
+            batchesContent.style.display = 'none';
+            statusFilter.style.display = 'block';
+            loadPayouts();
+        }
+    }
+
+    async function loadPayoutBatches() {
+        const container = document.getElementById('batches-container');
+        container.innerHTML = '<div class="loading">Loading batches...</div>';
+
+        try {
+            const response = await fetch('/api/admin/billing/payouts/batches');
+            if (!response.ok) throw new Error('Failed to load batches');
+
+            const data = await response.json();
+            const batches = data.batches || [];
+
+            if (batches.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                        <h3>No Pending Batches</h3>
+                        <p>All payouts have been processed or there are no pending requests.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = batches.map(batch => `
+                <div class="data-table" style="margin-bottom: 24px;">
+                    <div class="table-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px 12px 0 0;">
+                        <div>
+                            <h3 style="margin: 0 0 8px 0; font-size: 18px;">
+                                ${formatBatchTime(batch.scheduled_time)}
+                            </h3>
+                            <div style="display: flex; gap: 20px; font-size: 13px; opacity: 0.95;">
+                                <span><strong>${batch.payout_count}</strong> payouts</span>
+                                <span><strong>MYR ${batch.total_net_amount.toFixed(2)}</strong> total</span>
+                                <span><strong>${batch.ready_count}</strong> ready</span>
+                                <span><strong>${batch.confirmed_count}</strong> confirmed</span>
+                            </div>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Payout #</th>
+                                <th>Freelancer</th>
+                                <th>Amount</th>
+                                <th>Net Amount</th>
+                                <th>Bank Details</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${batch.payouts.map(payout => `
+                                <tr style="${payout.external_payment_confirmed ? 'background: #f0fdf4;' : payout.ready_for_release ? 'background: #fef3c7;' : ''}">
+                                    <td><strong>${payout.payout_number}</strong></td>
+                                    <td>
+                                        ${payout.freelancer_name}<br>
+                                        <small style="color: #666;">${payout.freelancer_email}</small>
+                                    </td>
+                                    <td>MYR ${payout.amount.toFixed(2)}</td>
+                                    <td><strong>MYR ${payout.net_amount.toFixed(2)}</strong></td>
+                                    <td>
+                                        <strong>${payout.bank_name || 'N/A'}</strong><br>
+                                        <small>${payout.account_number || 'N/A'}</small><br>
+                                        <small>${payout.account_name || 'N/A'}</small>
+                                    </td>
+                                    <td>
+                                        ${payout.external_payment_confirmed ?
+                                            '<span class="badge" style="background: #10b981; color: white;">✓ Payment Confirmed</span>' :
+                                            payout.ready_for_release ?
+                                            '<span class="badge" style="background: #f59e0b; color: white;">⏱ Ready for Release</span>' :
+                                            '<span class="badge pending">Pending</span>'
+                                        }
+                                    </td>
+                                    <td>
+                                        ${!payout.external_payment_confirmed ?
+                                            (!payout.ready_for_release ?
+                                                `<button class="btn-sm btn-primary" onclick="markPayoutReady(${payout.id}, '${batch.batch_id}')" style="background: #f59e0b; padding: 8px 12px; font-size: 12px;">Mark Ready</button>` :
+                                                `<button class="btn-sm btn-primary" onclick="confirmPayoutPayment(${payout.id}, '${batch.batch_id}')" style="background: #10b981; padding: 8px 12px; font-size: 12px;">Confirm Payment</button>`
+                                            ) :
+                                            '<span style="color: #10b981; font-weight: 600;">✓ Done</span>'
+                                        }
+                                        <button class="btn-sm" onclick="viewPayoutDetails(${payout.id})" style="padding: 8px 12px; font-size: 12px; margin-left: 4px;">Details</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div style="background: #f9fafb; padding: 16px; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 13px; color: #666;">
+                                <strong>Batch Total:</strong> MYR ${batch.total_net_amount.toFixed(2)}
+                                (${batch.payout_count} ${batch.payout_count === 1 ? 'payout' : 'payouts'})
+                            </div>
+                            <div style="font-size: 13px;">
+                                Progress: <strong>${batch.confirmed_count}/${batch.payout_count}</strong> confirmed
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading batches:', error);
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: red;">
+                    <strong>Error:</strong> ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function formatBatchTime(timeStr) {
+        if (!timeStr) return 'Unscheduled';
+        const date = new Date(timeStr);
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Kuala_Lumpur'
+        };
+        const formatted = date.toLocaleString('en-MY', options);
+        const hour = date.getHours();
+        const emoji = hour === 8 ? '🌅' : '🌆';
+        return `${emoji} ${formatted} MYT`;
+    }
+
+    async function markPayoutReady(payoutId, batchId) {
+        if (!confirm('Mark this payout as ready for release? This will add it to the batch for processing.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/billing/payouts/${payoutId}/mark-ready`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) throw new Error('Failed to mark payout ready');
+
+            const data = await response.json();
+            alert(data.message || 'Payout marked as ready for release');
+            loadPayoutBatches();
+        } catch (error) {
+            console.error('Error marking payout ready:', error);
+            alert('Failed to mark payout ready: ' + error.message);
+        }
+    }
+
+    async function confirmPayoutPayment(payoutId, batchId) {
+        const notes = prompt('Enter confirmation notes (optional):');
+        if (notes === null) return; // User cancelled
+
+        if (!confirm('Confirm that you have released this payment through your banking app?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/billing/payouts/${payoutId}/confirm-payment`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_notes: notes })
+            });
+
+            if (!response.ok) throw new Error('Failed to confirm payment');
+
+            const data = await response.json();
+            alert(data.message || 'Payment confirmed successfully');
+            loadPayoutBatches();
+        } catch (error) {
+            console.error('Error confirming payment:', error);
+            alert('Failed to confirm payment: ' + error.message);
+        }
     }
 
     async function performMasterReset() {
