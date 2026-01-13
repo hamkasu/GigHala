@@ -4029,7 +4029,7 @@ def edit_gig(gig_id):
     
     return render_template('post_gig.html', user=user, categories=categories, active_page='edit-gig', lang=get_user_language(), t=t, form_data=form_data, edit_mode=True, gig=gig)
 
-@app.route('/login')
+@app.route('/login', endpoint='web_login')
 def login_page():
     """Login page"""
     # If user is already logged in, redirect to dashboard
@@ -4037,7 +4037,7 @@ def login_page():
         return redirect('/dashboard')
     return render_template('login.html', lang=get_user_language(), t=t)
 
-@app.route('/register')
+@app.route('/register', endpoint='web_register')
 def register_page():
     """Registration page"""
     # If user is already logged in, redirect to dashboard
