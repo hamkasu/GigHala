@@ -99,6 +99,9 @@
                 <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
                     <span style="font-size: 16px;">🌐</span> {% if lang == 'ms' %}EN{% else %}MS{% endif %}
                 </button>
+                <button class="btn-primary" onclick="document.getElementById('benefits-section').scrollIntoView({behavior: 'smooth'})" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
+                    <span style="font-size: 16px;">👷</span> Pekerja
+                </button>
                 <div class="desktop-only-controls" style="display: none; align-items: center; gap: 8px;">
                     <a href="/login" style="text-decoration: none;">
                         <button class="btn-primary" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s;">Log Masuk</button>
@@ -277,7 +280,7 @@
         </div>
 
         <!-- Benefits Section -->
-        <div style="background: #ffffff; padding: 60px 20px; margin-top: 40px;">
+        <div id="benefits-section" style="background: #ffffff; padding: 60px 20px; margin-top: 40px;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
                 <h2 style="font-size: 2rem; font-weight: 800; color: black; text-align: center; margin-bottom: 40px;">
                     {% if lang == 'ms' %}Mengapa Pilih GigHala?{% else %}Why Choose GigHala?{% endif %}
