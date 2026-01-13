@@ -162,6 +162,69 @@
             </div>
         </nav>
 
+        <div style="background: transparent; width: 100%; padding: 40px 20px; color: black; position: relative; z-index: 10; overflow: hidden; background: rgba(0, 0, 0, 0.02);">
+            <div class="container" style="display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 32px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+                <!-- Left Column: Latest Gigs -->
+                <div style="flex: 1; min-width: 320px; max-width: 500px;">
+                    <div style="width: 100%; text-align: left; background: rgba(255, 255, 255, 0.8); padding: 24px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); height: 100%;">
+                        <h2 style="font-size: 1.5rem; font-weight: 800; color: black; margin-bottom: 20px; line-height: 1.2; border-bottom: 2px solid rgba(13, 124, 102, 0.1); padding-bottom: 12px;">
+                            {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
+                        </h2>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+                            {% for gig in latest_gigs %}
+                            <li style="display: flex; justify-content: space-between; align-items: center; color: black; font-size: 1rem; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 12px; transition: all 0.3s ease;">
+                                <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;">{{ gig.title }}</span>
+                                <span style="font-size: 0.85rem; background: rgba(74, 222, 128, 0.2); color: #0D7C66; padding: 4px 12px; border-radius: 20px; font-weight: 700; white-space: nowrap;">
+                                    {{ gig.applicant_count }} {% if lang == 'ms' %}pemohon{% else %}applicants{% endif %}
+                                </span>
+                            </li>
+                            {% else %}
+                            <li style="color: rgba(0,0,0,0.6); font-size: 1rem; text-align: center; padding: 20px;">
+                                {% if lang == 'ms' %}Tiada gig terkini{% else %}No latest gigs{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Right Column: Stats and Upah Freelancer Card -->
+                <div style="flex: 1; min-width: 320px; max-width: 500px; display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Stats Rows -->
+                    <div style="display: flex; gap: 16px;">
+                        <div style="flex: 1; background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 700;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
+                            <div style="font-size: 2rem; font-weight: 800; color: #0D7C66;">{{ active_gigs_count }}</div>
+                        </div>
+                        <div style="flex: 1; background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                            <div style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 700;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
+                            <div style="font-size: 2rem; font-weight: 800; color: #0D7C66;">{{ total_paid_year }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Upah Freelancer Card -->
+                    <div style="text-align: left; background: rgba(255, 255, 255, 0.8); padding: 28px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);">
+                        <h2 style="font-size: 1.75rem; font-weight: 800; color: black; margin-bottom: 20px; line-height: 1.25;">
+                            {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
+                        </h2>
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px;">
+                            <li style="display: flex; align-items: center; gap: 12px; color: black; font-size: 1.05rem; font-weight: 600;">
+                                <div style="width: 8px; height: 8px; background: #0D7C66; border-radius: 50%;"></div>
+                                <span>{% if lang == 'ms' %}Berjuta-juta gig profesional{% else %}Millions of professional gigs{% endif %}</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 12px; color: black; font-size: 1.05rem; font-weight: 600;">
+                                <div style="width: 8px; height: 8px; background: #0D7C66; border-radius: 50%;"></div>
+                                <span>{% if lang == 'ms' %}Freelancer berkualiti{% else %}Quality freelancers{% endif %}</span>
+                            </li>
+                            <li style="display: flex; align-items: center; gap: 12px; color: black; font-size: 1.05rem; font-weight: 600;">
+                                <div style="width: 8px; height: 8px; background: #0D7C66; border-radius: 50%;"></div>
+                                <span>{% if lang == 'ms' %}Bayar hanya apabila anda berpuas hati{% else %}Pay only when you are satisfied{% endif %}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Benefits Section -->
         <div style="background: #ffffff; padding: 60px 20px; margin-top: 40px;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
@@ -234,69 +297,6 @@
                         <p style="color: rgba(0, 0, 0, 0.7); font-size: 0.95rem; line-height: 1.5; margin: 0;">
                             {% if lang == 'ms' %}Komuniti yang prihatin dengan sokongan yang mantap{% else %}Supportive community with strong backing{% endif %}
                         </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="background: transparent; width: 100%; padding: 40px 20px; color: black; position: relative; z-index: 10; overflow: hidden; background: rgba(0, 0, 0, 0.02);">
-            <div class="container" style="display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 32px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
-                <!-- Left Column: Latest Gigs -->
-                <div style="flex: 1; min-width: 320px; max-width: 500px;">
-                    <div style="width: 100%; text-align: left; background: rgba(255, 255, 255, 0.8); padding: 24px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); height: 100%;">
-                        <h2 style="font-size: 1.5rem; font-weight: 800; color: black; margin-bottom: 20px; line-height: 1.2; border-bottom: 2px solid rgba(13, 124, 102, 0.1); padding-bottom: 12px;">
-                            {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
-                        </h2>
-                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
-                            {% for gig in latest_gigs %}
-                            <li style="display: flex; justify-content: space-between; align-items: center; color: black; font-size: 1rem; padding: 12px; background: rgba(0,0,0,0.03); border-radius: 12px; transition: all 0.3s ease;">
-                                <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;">{{ gig.title }}</span>
-                                <span style="font-size: 0.85rem; background: rgba(74, 222, 128, 0.2); color: #0D7C66; padding: 4px 12px; border-radius: 20px; font-weight: 700; white-space: nowrap;">
-                                    {{ gig.applicant_count }} {% if lang == 'ms' %}pemohon{% else %}applicants{% endif %}
-                                </span>
-                            </li>
-                            {% else %}
-                            <li style="color: rgba(0,0,0,0.6); font-size: 1rem; text-align: center; padding: 20px;">
-                                {% if lang == 'ms' %}Tiada gig terkini{% else %}No latest gigs{% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Right Column: Stats and Upah Freelancer Card -->
-                <div style="flex: 1; min-width: 320px; max-width: 500px; display: flex; flex-direction: column; gap: 20px;">
-                    <!-- Stats Rows -->
-                    <div style="display: flex; gap: 16px;">
-                        <div style="flex: 1; background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                            <div style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 700;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
-                            <div style="font-size: 2rem; font-weight: 800; color: #0D7C66;">{{ active_gigs_count }}</div>
-                        </div>
-                        <div style="flex: 1; background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                            <div style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 700;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
-                            <div style="font-size: 2rem; font-weight: 800; color: #0D7C66;">{{ total_paid_year }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Upah Freelancer Card -->
-                    <div style="text-align: left; background: rgba(255, 255, 255, 0.8); padding: 28px; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);">
-                        <h2 style="font-size: 1.75rem; font-weight: 800; color: black; margin-bottom: 20px; line-height: 1.25;">
-                            {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
-                        </h2>
-                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px;">
-                            <li style="display: flex; align-items: center; gap: 12px; color: black; font-size: 1.05rem; font-weight: 600;">
-                                <div style="width: 8px; height: 8px; background: #0D7C66; border-radius: 50%;"></div>
-                                <span>{% if lang == 'ms' %}Berjuta-juta gig profesional{% else %}Millions of professional gigs{% endif %}</span>
-                            </li>
-                            <li style="display: flex; align-items: center; gap: 12px; color: black; font-size: 1.05rem; font-weight: 600;">
-                                <div style="width: 8px; height: 8px; background: #0D7C66; border-radius: 50%;"></div>
-                                <span>{% if lang == 'ms' %}Freelancer berkualiti{% else %}Quality freelancers{% endif %}</span>
-                            </li>
-                            <li style="display: flex; align-items: center; gap: 12px; color: black; font-size: 1.05rem; font-weight: 600;">
-                                <div style="width: 8px; height: 8px; background: #0D7C66; border-radius: 50%;"></div>
-                                <span>{% if lang == 'ms' %}Bayar hanya apabila anda berpuas hati{% else %}Pay only when you are satisfied{% endif %}</span>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
