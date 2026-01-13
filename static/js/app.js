@@ -569,7 +569,8 @@ const app = {
 
         // Reset URL if it's /login or /register
         if (window.location.pathname === '/login' || window.location.pathname === '/register') {
-            window.history.pushState({}, '', '/');
+            window.location.href = '/';
+            return;
         }
 
         // Check if any modals are still open
