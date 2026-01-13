@@ -3356,7 +3356,7 @@ def index():
         paid_display = f"RM {total_paid_year:,.0f}"
 
     # Pass stats to index
-    latest_gigs = Gig.query.filter(Gig.status == 'open').order_by(Gig.created_at.desc()).limit(5).all()
+    latest_gigs = Gig.query.order_by(Gig.created_at.desc()).limit(5).all()
     gigs_with_applicants = []
     for gig in latest_gigs:
         applicant_count = Application.query.filter_by(gig_id=gig.id).count()
