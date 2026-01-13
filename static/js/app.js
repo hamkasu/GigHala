@@ -567,6 +567,11 @@ const app = {
             modal.style.display = 'none';
         }
 
+        // Reset URL if it's /login or /register
+        if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+            window.history.pushState({}, '', '/');
+        }
+
         // Check if any modals are still open
         const openModals = document.querySelectorAll('.modal.active');
         if (openModals.length === 0) {
