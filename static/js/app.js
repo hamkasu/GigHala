@@ -555,12 +555,71 @@ const app = {
     // Close modal
     closeModal(modalId) {
         const modal = document.getElementById(modalId);
-        modal.classList.remove('active');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
 
         // Check if any modals are still open
         const openModals = document.querySelectorAll('.modal.active');
         if (openModals.length === 0) {
             document.body.classList.remove('modal-open');
+        }
+    },
+
+    // Handle Login
+    async handleLogin(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Log masuk gagal');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Ralat semasa log masuk');
+        }
+    },
+
+    // Handle Register
+    async handleRegister(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                window.location.href = '/dashboard';
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Pendaftaran gagal');
+            }
+        } catch (error) {
+            console.error('Register error:', error);
+            alert('Ralat semasa pendaftaran');
         }
     },
     

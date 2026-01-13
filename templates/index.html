@@ -571,6 +571,15 @@
     </div>
 
     <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('login') || window.location.pathname === '/login') {
+                app.showLogin();
+            } else if (urlParams.has('register') || window.location.pathname === '/register') {
+                app.showRegister();
+            }
+        });
+
         function showInstallModal() {
             const modal = document.getElementById('installModal');
             modal.style.display = 'flex';
@@ -598,5 +607,68 @@
         });
     </script>
     <script src="/static/js/app.js"></script>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 32px; border-radius: 20px; width: 90%; max-width: 400px; position: relative;">
+            <button onclick="app.closeModal('loginModal')" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            <h2 style="margin-bottom: 24px; text-align: center;">Log Masuk</h2>
+            <form onsubmit="app.handleLogin(event)">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px;">Emel</label>
+                    <input type="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; margin-bottom: 8px;">Kata Laluan</label>
+                    <input type="password" name="password" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 14px; background: #0D7C66; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Log Masuk</button>
+            </form>
+            <p style="margin-top: 16px; text-align: center; font-size: 14px;">Belum ada akaun? <a href="#" onclick="app.closeModal('loginModal'); app.showRegister(); return false;" style="color: #0D7C66; font-weight: 600;">Daftar Sekarang</a></p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 32px; border-radius: 20px; width: 90%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto;">
+            <button onclick="app.closeModal('registerModal')" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            <h2 style="margin-bottom: 24px; text-align: center;">Daftar Percuma</h2>
+            <form onsubmit="app.handleRegister(event)">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px;">Nama Pengguna</label>
+                    <input type="text" name="username" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px;">Emel</label>
+                    <input type="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px;">Jenis Akaun</label>
+                    <select name="user_type" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        <option value="freelancer">Freelancer</option>
+                        <option value="client">Client</option>
+                        <option value="both">Kedua-duanya</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px;">Kata Laluan</label>
+                    <input type="password" name="password" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                <div id="socsoConsentGroup" style="margin-bottom: 24px; display: none;">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px; cursor: pointer;">
+                        <input type="checkbox" id="socsoConsent" name="socso_consent" style="margin-top: 4px;">
+                        <span>Saya setuju untuk mendaftar caruman SOCSO secara automatik bagi setiap gig yang diselesaikan.</span>
+                    </label>
+                </div>
+                <button type="submit" style="width: 100%; padding: 14px; background: #0D7C66; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Daftar Sekarang</button>
+            </form>
+            <p style="margin-top: 16px; text-align: center; font-size: 14px;">Sudah ada akaun? <a href="#" onclick="app.closeModal('registerModal'); app.showLogin(); return false;" style="color: #0D7C66; font-weight: 600;">Log Masuk</a></p>
+        </div>
+    </div>
+
+    <style>
+        .modal.active { display: flex !important; }
+        body.modal-open { overflow: hidden; }
+    </style>
 </body>
 </html>
