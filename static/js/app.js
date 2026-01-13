@@ -572,13 +572,14 @@ const app = {
         event.preventDefault();
         const formData = new FormData(event.target);
         const data = Object.fromEntries(formData.entries());
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
         try {
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify(data)
             });
@@ -600,13 +601,14 @@ const app = {
         event.preventDefault();
         const formData = new FormData(event.target);
         const data = Object.fromEntries(formData.entries());
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
         try {
             const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify(data)
             });

@@ -614,6 +614,7 @@
             <button onclick="app.closeModal('loginModal')" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
             <h2 style="margin-bottom: 24px; text-align: center;">Log Masuk</h2>
             <form onsubmit="app.handleLogin(event)">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 8px;">Emel</label>
                     <input type="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
@@ -634,6 +635,7 @@
             <button onclick="app.closeModal('registerModal')" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
             <h2 style="margin-bottom: 24px; text-align: center;">Daftar Percuma</h2>
             <form onsubmit="app.handleRegister(event)">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; margin-bottom: 8px;">Nama Pengguna</label>
                     <input type="text" name="username" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
