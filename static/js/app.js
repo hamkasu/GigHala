@@ -3,6 +3,12 @@ const app = {
     currentUser: null,
     gigs: [],
     categories: [],
+
+    // Get CSRF token from meta tag
+    getCSRFToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    },
     
     // Category name translations (English -> Malay)
     categoryTranslations: {
@@ -372,7 +378,8 @@ const app = {
             fetch(`/api/gigs/${gigId}/apply`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
                 },
                 body: JSON.stringify({
                     cover_letter: coverLetter,
@@ -598,17 +605,18 @@ const app = {
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
-        
+
         const data = {
             email: formData.get('email'),
             password: formData.get('password')
         };
-        
+
         try {
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
                 },
                 body: JSON.stringify(data)
             });
@@ -678,7 +686,8 @@ const app = {
             const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
                 },
                 body: JSON.stringify(data)
             });
@@ -713,7 +722,8 @@ const app = {
             const response = await fetch('/api/forgot-password', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
                 },
                 body: JSON.stringify(data)
             });
