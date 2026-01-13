@@ -625,7 +625,18 @@
                 </div>
                 <button type="submit" style="width: 100%; padding: 14px; background: #0D7C66; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Log Masuk</button>
             </form>
-            <p style="margin-top: 16px; text-align: center; font-size: 14px;">Belum ada akaun? <a href="#" onclick="app.closeModal('loginModal'); app.showRegister(); return false;" style="color: #0D7C66; font-weight: 600;">Daftar Sekarang</a></p>
+            
+            <div style="margin-top: 24px; text-align: center; position: relative;">
+                <hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">
+                <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #888; font-size: 13px;">ATAU</span>
+            </div>
+
+            <a href="/api/auth/google" style="margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; font-weight: 600; text-decoration: none; color: #444; transition: all 0.2s;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 18px; height: 18px;">
+                <span>Teruskan dengan Google</span>
+            </a>
+
+            <p style="margin-top: 24px; text-align: center; font-size: 14px;">Belum ada akaun? <a href="#" onclick="app.closeModal('loginModal'); app.showRegister(); return false;" style="color: #0D7C66; font-weight: 600;">Daftar Sekarang</a></p>
         </div>
     </div>
 
@@ -664,7 +675,18 @@
                 </div>
                 <button type="submit" style="width: 100%; padding: 14px; background: #0D7C66; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Daftar Sekarang</button>
             </form>
-            <p style="margin-top: 16px; text-align: center; font-size: 14px;">Sudah ada akaun? <a href="#" onclick="app.closeModal('registerModal'); app.showLogin(); return false;" style="color: #0D7C66; font-weight: 600;">Log Masuk</a></p>
+
+            <div style="margin-top: 24px; text-align: center; position: relative;">
+                <hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">
+                <span style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: white; padding: 0 10px; color: #888; font-size: 13px;">ATAU</span>
+            </div>
+
+            <a href="/api/auth/google" style="margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; font-weight: 600; text-decoration: none; color: #444; transition: all 0.2s;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 18px; height: 18px;">
+                <span>Daftar dengan Google</span>
+            </a>
+
+            <p style="margin-top: 24px; text-align: center; font-size: 14px;">Sudah ada akaun? <a href="#" onclick="app.closeModal('registerModal'); app.showLogin(); return false;" style="color: #0D7C66; font-weight: 600;">Log Masuk</a></p>
         </div>
     </div>
 
