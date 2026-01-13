@@ -197,6 +197,46 @@
         padding: 40px;
         color: var(--text-gray);
     }
+    .specializations-section {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+    .specialization-category {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    .specialization-category:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .specialization-category-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+    .specialization-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .skill-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+    }
 </style>
 {% endblock %}
 
@@ -248,6 +288,25 @@
             {% endif %}
         </div>
     </div>
+
+    {% if specializations %}
+    <h2 class="section-title">Kepakaran & Kemahiran</h2>
+    <div class="specializations-section">
+        {% for spec in specializations %}
+        <div class="specialization-category">
+            <div class="specialization-category-title">
+                <span style="font-size: 20px;">{{ spec.category_icon or '📋' }}</span>
+                <span>{{ spec.category_name }}</span>
+            </div>
+            <div class="specialization-skills">
+                {% for skill in spec.skills %}
+                <span class="skill-badge">{{ skill }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {% if portfolio_items %}
     <h2 class="section-title">Portfolio</h2>

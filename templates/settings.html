@@ -284,6 +284,117 @@
         margin: 24px 0;
     }
 
+    /* Specializations Styles */
+    .specialization-card {
+        background: var(--bg-light);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    .specialization-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .specialization-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .category-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .category-option {
+        padding: 14px 16px;
+        background: var(--bg-white);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text-dark);
+    }
+
+    .category-option:hover {
+        border-color: var(--primary);
+        background: #f0fdf4;
+    }
+
+    .category-option.selected {
+        border-color: var(--primary);
+        background: #dcfce7;
+        font-weight: 600;
+    }
+
+    .skill-input-group {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .skill-input {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+    }
+
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: var(--primary);
+        color: white;
+        border-radius: 20px;
+        font-size: 13px;
+        margin: 4px;
+    }
+
+    .skill-tag button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .skills-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+        min-height: 32px;
+    }
+
+    .add-specialization-section {
+        background: #f0fdf4;
+        border: 2px dashed var(--primary);
+        border-radius: var(--radius-md);
+        padding: 24px;
+        text-align: center;
+        margin-top: 16px;
+    }
+
     @media (max-width: 768px) {
         .settings-container {
             padding: 16px;
@@ -333,6 +444,7 @@
 
     <div class="settings-tabs">
         <button class="settings-tab active" data-tab="profile">Maklumat Peribadi</button>
+        <button class="settings-tab" data-tab="specializations">Kepakaran & Kemahiran</button>
         <button class="settings-tab" data-tab="verification">Pengesahan Identiti</button>
         <button class="settings-tab" data-tab="security">Keselamatan</button>
         <button class="settings-tab" data-tab="payment">Maklumat Pembayaran</button>
@@ -521,6 +633,66 @@
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
             </div>
         </form>
+    </div>
+
+    <!-- Specializations Section -->
+    <div class="settings-section" id="specializations-section">
+        <h2 class="section-title">Kepakaran & Kemahiran</h2>
+        <p class="section-description">Pilih kategori yang anda pakar dan tambah kemahiran khusus untuk setiap kategori. Ini membantu klien mencari anda berdasarkan kepakaran anda.</p>
+
+        <div class="info-card">
+            <p><strong>Panduan:</strong> Pilih kategori yang anda mahir, kemudian tambah kemahiran khusus untuk kategori tersebut. Anda boleh menambah sehingga 10 kemahiran setiap kategori.</p>
+        </div>
+
+        <!-- Existing Specializations -->
+        <div id="specializations-list">
+            <!-- Existing specializations will be loaded here via JavaScript -->
+        </div>
+
+        <!-- Add New Specialization -->
+        <div class="add-specialization-section" id="add-specialization-section">
+            <h3 style="margin-bottom: 16px; color: var(--text-dark);">Tambah Kepakaran Baru</h3>
+            <p style="color: var(--text-gray); margin-bottom: 20px; font-size: 14px;">Pilih kategori untuk menambah kemahiran anda</p>
+
+            <div class="category-selector">
+                {% if categories %}
+                    {% for category in categories %}
+                    <div class="category-option" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}" data-category-slug="{{ category.slug }}" data-category-icon="{{ category.icon or '📋' }}">
+                        <span style="font-size: 20px;">{{ category.icon or '📋' }}</span>
+                        <span>{{ category.name }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--text-gray);">Tiada kategori tersedia</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Edit Specialization Modal (hidden by default) -->
+        <div id="edit-specialization-modal" style="display: none;">
+            <h3 style="margin-bottom: 16px; color: var(--text-dark); display: flex; align-items: center; gap: 10px;">
+                <span id="modal-category-icon" style="font-size: 24px;"></span>
+                <span id="modal-category-name"></span>
+            </h3>
+
+            <div class="form-group">
+                <label class="form-label">Kemahiran (sehingga 10)</label>
+                <div class="skill-input-group">
+                    <input type="text" id="skill-input" class="skill-input" placeholder="Contoh: Logo Design, Branding, UI/UX" maxlength="50">
+                    <button type="button" id="add-skill-btn" class="btn btn-primary" style="white-space: nowrap;">Tambah</button>
+                </div>
+                <p class="form-hint">Tekan Enter atau klik Tambah untuk menambah kemahiran</p>
+
+                <div id="skills-list" class="skills-list">
+                    <!-- Skills will be added here -->
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="save-specialization-btn" class="btn btn-primary">Simpan Kepakaran</button>
+                <button type="button" id="cancel-specialization-btn" class="btn btn-secondary">Batal</button>
+            </div>
+        </div>
     </div>
 
     <!-- Verification Settings Section -->
@@ -726,6 +898,240 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(targetTab + '-section').classList.add('active');
         });
     });
+
+    // ==================== SPECIALIZATIONS MANAGEMENT ====================
+    let currentCategoryId = null;
+    let currentSpecializationId = null;
+    let currentSkills = [];
+    let allSpecializations = [];
+
+    // Load existing specializations
+    function loadSpecializations() {
+        fetch('/api/specializations')
+            .then(response => response.json())
+            .then(data => {
+                allSpecializations = data.specializations || [];
+                renderSpecializations();
+                updateCategoryOptions();
+            })
+            .catch(error => {
+                console.error('Error loading specializations:', error);
+            });
+    }
+
+    // Render specializations list
+    function renderSpecializations() {
+        const container = document.getElementById('specializations-list');
+        if (!container) return;
+
+        if (allSpecializations.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-gray); text-align: center; padding: 20px;">Tiada kepakaran ditambah lagi. Pilih kategori di bawah untuk bermula.</p>';
+            return;
+        }
+
+        container.innerHTML = allSpecializations.map(spec => `
+            <div class="specialization-card">
+                <div class="specialization-header">
+                    <div class="specialization-title">
+                        <span style="font-size: 20px;">${spec.category_icon || '📋'}</span>
+                        <span>${spec.category_name}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick="editSpecialization(${spec.id}, ${spec.category_id}, '${spec.category_name}', '${spec.category_icon || '📋'}', ${JSON.stringify(spec.skills).replace(/'/g, '&#39;')})">Edit</button>
+                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;" onclick="deleteSpecialization(${spec.id})">Padam</button>
+                    </div>
+                </div>
+                <div class="skills-list">
+                    ${spec.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                    ${spec.skills.length === 0 ? '<span style="color: var(--text-gray); font-size: 13px;">Tiada kemahiran ditambah</span>' : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Update category options (disable already selected categories)
+    function updateCategoryOptions() {
+        const categoryOptions = document.querySelectorAll('.category-option');
+        const usedCategoryIds = allSpecializations.map(s => s.category_id);
+
+        categoryOptions.forEach(option => {
+            const categoryId = parseInt(option.dataset.categoryId);
+            if (usedCategoryIds.includes(categoryId)) {
+                option.style.opacity = '0.5';
+                option.style.pointerEvents = 'none';
+                option.style.cursor = 'not-allowed';
+            } else {
+                option.style.opacity = '1';
+                option.style.pointerEvents = 'auto';
+                option.style.cursor = 'pointer';
+            }
+        });
+    }
+
+    // Handle category selection
+    document.querySelectorAll('.category-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const categoryId = parseInt(this.dataset.categoryId);
+            const categoryName = this.dataset.categoryName;
+            const categoryIcon = this.dataset.categoryIcon;
+
+            // Show edit modal
+            showEditModal(null, categoryId, categoryName, categoryIcon, []);
+        });
+    });
+
+    // Show edit modal
+    function showEditModal(specializationId, categoryId, categoryName, categoryIcon, skills) {
+        currentSpecializationId = specializationId;
+        currentCategoryId = categoryId;
+        currentSkills = [...skills];
+
+        document.getElementById('modal-category-name').textContent = categoryName;
+        document.getElementById('modal-category-icon').textContent = categoryIcon;
+        document.getElementById('skill-input').value = '';
+
+        renderSkills();
+
+        // Hide category selector and show modal
+        document.getElementById('add-specialization-section').style.display = 'none';
+        document.getElementById('edit-specialization-modal').style.display = 'block';
+    }
+
+    // Hide edit modal
+    function hideEditModal() {
+        document.getElementById('add-specialization-section').style.display = 'block';
+        document.getElementById('edit-specialization-modal').style.display = 'none';
+        currentCategoryId = null;
+        currentSpecializationId = null;
+        currentSkills = [];
+    }
+
+    // Render skills in modal
+    function renderSkills() {
+        const container = document.getElementById('skills-list');
+        container.innerHTML = currentSkills.map((skill, index) => `
+            <span class="skill-tag">
+                ${skill}
+                <button onclick="removeSkill(${index})">&times;</button>
+            </span>
+        `).join('');
+    }
+
+    // Add skill
+    function addSkill() {
+        const input = document.getElementById('skill-input');
+        const skill = input.value.trim();
+
+        if (!skill) {
+            alert('Sila masukkan kemahiran');
+            return;
+        }
+
+        if (currentSkills.length >= 10) {
+            alert('Anda hanya boleh menambah sehingga 10 kemahiran setiap kategori');
+            return;
+        }
+
+        if (currentSkills.includes(skill)) {
+            alert('Kemahiran ini sudah ditambah');
+            return;
+        }
+
+        currentSkills.push(skill);
+        input.value = '';
+        renderSkills();
+    }
+
+    // Remove skill
+    window.removeSkill = function(index) {
+        currentSkills.splice(index, 1);
+        renderSkills();
+    };
+
+    // Save specialization
+    function saveSpecialization() {
+        if (!currentCategoryId) {
+            alert('Sila pilih kategori');
+            return;
+        }
+
+        if (currentSkills.length === 0) {
+            alert('Sila tambah sekurang-kurangnya satu kemahiran');
+            return;
+        }
+
+        const data = {
+            category_id: currentCategoryId,
+            skills: currentSkills
+        };
+
+        fetch('/api/specializations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Ralat: ' + data.error);
+                return;
+            }
+
+            alert(data.message || 'Kepakaran berjaya disimpan');
+            hideEditModal();
+            loadSpecializations();
+        })
+        .catch(error => {
+            console.error('Error saving specialization:', error);
+            alert('Ralat menyimpan kepakaran. Sila cuba lagi.');
+        });
+    }
+
+    // Edit specialization
+    window.editSpecialization = function(id, categoryId, categoryName, categoryIcon, skills) {
+        showEditModal(id, categoryId, categoryName, categoryIcon, skills);
+    };
+
+    // Delete specialization
+    window.deleteSpecialization = function(id) {
+        if (!confirm('Adakah anda pasti mahu memadamkan kepakaran ini?')) {
+            return;
+        }
+
+        fetch(`/api/specializations/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Ralat: ' + data.error);
+                return;
+            }
+
+            alert(data.message || 'Kepakaran berjaya dipadamkan');
+            loadSpecializations();
+        })
+        .catch(error => {
+            console.error('Error deleting specialization:', error);
+            alert('Ralat memadamkan kepakaran. Sila cuba lagi.');
+        });
+    };
+
+    // Event listeners
+    document.getElementById('add-skill-btn').addEventListener('click', addSkill);
+    document.getElementById('skill-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addSkill();
+        }
+    });
+    document.getElementById('save-specialization-btn').addEventListener('click', saveSpecialization);
+    document.getElementById('cancel-specialization-btn').addEventListener('click', hideEditModal);
+
+    // Load specializations on page load
+    loadSpecializations();
 });
 </script>
 {% endblock %}

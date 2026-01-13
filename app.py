@@ -2625,6 +2625,37 @@ class Category(db.Model):
     icon = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class WorkerSpecialization(db.Model):
+    """Model for storing worker specializations - links workers to categories with specific skills"""
+    __tablename__ = 'worker_specialization'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    skills = db.Column(db.Text)  # JSON array of skills for this category
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Define unique constraint: a worker can only have one specialization entry per category
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'category_id', name='unique_user_category'),
+    )
+
+    def to_dict(self):
+        """Convert specialization to dictionary for JSON response"""
+        import json
+        category = Category.query.get(self.category_id)
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'category_id': self.category_id,
+            'category_name': category.name if category else None,
+            'category_slug': category.slug if category else None,
+            'category_icon': category.icon if category else None,
+            'skills': json.loads(self.skills) if self.skills else [],
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
 class WorkPhoto(db.Model):
     """Model for storing work photos uploaded by freelancers and clients"""
     id = db.Column(db.Integer, primary_key=True)
@@ -4505,11 +4536,14 @@ def settings():
     """User account settings page"""
     user_id = session['user_id']
     user = User.query.get(user_id)
-    
+
     # Get user's verification status
     verification = IdentityVerification.query.filter_by(user_id=user_id).order_by(IdentityVerification.created_at.desc()).first()
-    
-    return render_template('settings.html', user=user, verification=verification, lang=get_user_language(), t=t)
+
+    # Get all categories for specializations
+    categories = Category.query.order_by(Category.name).all()
+
+    return render_template('settings.html', user=user, verification=verification, categories=categories, lang=get_user_language(), t=t)
 
 @app.route('/settings/profile', methods=['POST'])
 @page_login_required
@@ -11341,6 +11375,112 @@ def switch_language():
         db.session.rollback()
         app.logger.error(f"Language switch error: {str(e)}")
         return jsonify({'error': 'Failed to update language'}), 500
+
+@app.route('/api/specializations', methods=['GET'])
+def get_specializations():
+    """Get all specializations for the current user"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        specializations = WorkerSpecialization.query.filter_by(user_id=session['user_id']).all()
+        return jsonify({
+            'specializations': [spec.to_dict() for spec in specializations]
+        })
+    except Exception as e:
+        app.logger.error(f"Get specializations error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch specializations'}), 500
+
+@app.route('/api/specializations', methods=['POST'])
+def add_or_update_specialization():
+    """Add or update a worker specialization for a specific category"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        category_id = data.get('category_id')
+        skills = data.get('skills', [])
+
+        # Validate category_id
+        if not category_id:
+            return jsonify({'error': 'Category ID is required'}), 400
+
+        category = Category.query.get(category_id)
+        if not category:
+            return jsonify({'error': 'Invalid category'}), 404
+
+        # Validate skills
+        if not isinstance(skills, list):
+            return jsonify({'error': 'Skills must be an array'}), 400
+
+        # Sanitize and limit skills (max 10 per category, each max 50 chars)
+        skills = [sanitize_input(str(skill).strip(), max_length=50) for skill in skills[:10] if str(skill).strip()]
+
+        # Check if specialization already exists for this user and category
+        existing = WorkerSpecialization.query.filter_by(
+            user_id=session['user_id'],
+            category_id=category_id
+        ).first()
+
+        if existing:
+            # Update existing specialization
+            existing.skills = json.dumps(skills)
+            existing.updated_at = datetime.utcnow()
+            message = 'Specialization updated successfully'
+        else:
+            # Create new specialization
+            specialization = WorkerSpecialization(
+                user_id=session['user_id'],
+                category_id=category_id,
+                skills=json.dumps(skills)
+            )
+            db.session.add(specialization)
+            message = 'Specialization added successfully'
+
+        db.session.commit()
+
+        # Return updated specialization
+        updated = WorkerSpecialization.query.filter_by(
+            user_id=session['user_id'],
+            category_id=category_id
+        ).first()
+
+        return jsonify({
+            'message': message,
+            'specialization': updated.to_dict() if updated else None
+        })
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Add/update specialization error: {str(e)}")
+        return jsonify({'error': 'Failed to save specialization. Please try again.'}), 500
+
+@app.route('/api/specializations/<int:specialization_id>', methods=['DELETE'])
+def delete_specialization(specialization_id):
+    """Delete a worker specialization"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        specialization = WorkerSpecialization.query.get(specialization_id)
+        if not specialization:
+            return jsonify({'error': 'Specialization not found'}), 404
+
+        # Ensure the specialization belongs to the current user
+        if specialization.user_id != session['user_id']:
+            return jsonify({'error': 'Forbidden'}), 403
+
+        db.session.delete(specialization)
+        db.session.commit()
+
+        return jsonify({'message': 'Specialization deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete specialization error: {str(e)}")
+        return jsonify({'error': 'Failed to delete specialization'}), 500
 
 @app.route('/api/microtasks', methods=['GET'])
 def get_microtasks():
@@ -19055,7 +19195,11 @@ def public_profile(username):
     portfolio_items = PortfolioItem.query.filter_by(user_id=profile_user.id).order_by(PortfolioItem.display_order, PortfolioItem.created_at.desc()).all()
     reviews = Review.query.filter_by(reviewee_id=profile_user.id).order_by(Review.created_at.desc()).limit(10).all()
     current_user = User.query.get(session.get('user_id')) if 'user_id' in session else None
-    
+
+    # Get worker specializations
+    specializations = WorkerSpecialization.query.filter_by(user_id=profile_user.id).all()
+    specializations_data = [spec.to_dict() for spec in specializations]
+
     review_details = []
     for review in reviews:
         reviewer = User.query.get(review.reviewer_id)
@@ -19067,8 +19211,8 @@ def public_profile(username):
             'gig_title': gig.title if gig else 'Unknown Gig',
             'created_at': review.created_at
         })
-    
-    return render_template('public_profile.html', profile_user=profile_user, portfolio_items=portfolio_items, reviews=review_details, user=current_user, active_page='profile', lang=get_user_language(), t=t)
+
+    return render_template('public_profile.html', profile_user=profile_user, portfolio_items=portfolio_items, reviews=review_details, specializations=specializations_data, user=current_user, active_page='profile', lang=get_user_language(), t=t)
 
 # ============================================
 # CHAT/MESSAGING ROUTES
