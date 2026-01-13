@@ -3393,7 +3393,8 @@ def index():
         applicant_count = Application.query.filter_by(gig_id=gig.id).count()
         gigs_with_applicants.append({
             'title': gig.title,
-            'applicant_count': applicant_count
+            'applicant_count': applicant_count,
+            'views': gig.views or 0
         })
     
     user_count = User.query.count()
