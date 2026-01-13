@@ -3420,6 +3420,15 @@ def browse_gigs():
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
+@app.route('/search')
+@page_login_required
+def search_page():
+    """Search results page"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    search_query = request.args.get('q', '')
+    return render_template('search_results.html', user=user, search_query=search_query, active_page='search', lang=get_user_language(), t=t)
+
 @app.route('/gig/<int:gig_id>')
 def view_gig(gig_id):
     """View individual gig details"""
@@ -6142,6 +6151,94 @@ def get_nearby_gigs():
     except Exception as e:
         app.logger.error(f"Get nearby gigs error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve nearby gigs'}), 500
+
+@app.route('/api/search', methods=['GET'])
+@api_rate_limit(requests_per_minute=120)
+def unified_search():
+    """
+    Unified search endpoint that searches across users, profiles, and gigs.
+    Query params:
+    - q: search query (required)
+    - type: filter by type (optional: 'users', 'gigs', 'all')
+    """
+    try:
+        search_query = sanitize_input(request.args.get('q', ''), max_length=200)
+        search_type = request.args.get('type', 'all')
+
+        if not search_query:
+            return jsonify({'users': [], 'gigs': [], 'total': 0})
+
+        search_pattern = f'%{search_query}%'
+        results = {'users': [], 'gigs': [], 'total': 0}
+
+        # Search users/profiles
+        if search_type in ['all', 'users']:
+            users_query = User.query.filter(
+                db.or_(
+                    User.username.ilike(search_pattern),
+                    User.full_name.ilike(search_pattern),
+                    User.bio.ilike(search_pattern),
+                    User.skills.ilike(search_pattern)
+                )
+            ).limit(20).all()
+
+            for user in users_query:
+                results['users'].append({
+                    'id': user.id,
+                    'username': user.username,
+                    'full_name': user.full_name,
+                    'bio': user.bio,
+                    'skills': user.skills,
+                    'location': user.location,
+                    'rating': user.rating,
+                    'review_count': user.review_count,
+                    'is_verified': user.is_verified,
+                    'halal_verified': user.halal_verified,
+                    'user_type': user.user_type,
+                    'profile_video': user.profile_video
+                })
+
+        # Search gigs
+        if search_type in ['all', 'gigs']:
+            gigs_query = Gig.query.filter(
+                Gig.status == 'open'
+            ).filter(
+                db.or_(
+                    Gig.title.ilike(search_pattern),
+                    Gig.description.ilike(search_pattern)
+                )
+            ).order_by(Gig.created_at.desc()).limit(30).all()
+
+            for gig in gigs_query:
+                client = User.query.get(gig.client_id)
+                client_name = client.full_name if (client and client.full_name) else 'Client'
+
+                results['gigs'].append({
+                    'id': gig.id,
+                    'title': gig.title,
+                    'description': gig.description,
+                    'category': gig.category,
+                    'budget_min': gig.budget_min,
+                    'budget_max': gig.budget_max,
+                    'approved_budget': gig.approved_budget,
+                    'location': gig.location,
+                    'is_remote': gig.is_remote,
+                    'halal_compliant': gig.halal_compliant,
+                    'halal_verified': gig.halal_verified,
+                    'is_instant_payout': gig.is_instant_payout,
+                    'is_brand_partnership': gig.is_brand_partnership,
+                    'client_name': client_name,
+                    'duration': gig.duration,
+                    'deadline': gig.deadline.isoformat() if gig.deadline else None,
+                    'created_at': gig.created_at.isoformat() if gig.created_at else None
+                })
+
+        results['total'] = len(results['users']) + len(results['gigs'])
+
+        return jsonify(results)
+    except Exception as e:
+        app.logger.error(f"Unified search error: {str(e)}")
+        return jsonify({'error': 'Failed to perform search'}), 500
 
 @app.route('/api/gigs', methods=['POST'])
 @api_rate_limit(requests_per_minute=30)

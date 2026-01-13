@@ -1,0 +1,626 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .search-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .search-header {
+        margin-bottom: 32px;
+    }
+
+    .search-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .search-query {
+        font-size: 16px;
+        color: var(--text-gray);
+    }
+
+    .search-tabs {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .search-tab {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-gray);
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: -2px;
+    }
+
+    .search-tab:hover {
+        color: var(--primary);
+    }
+
+    .search-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    .results-count {
+        font-size: 14px;
+        color: var(--text-gray);
+        margin-left: 8px;
+    }
+
+    .results-section {
+        display: none;
+    }
+
+    .results-section.active {
+        display: block;
+    }
+
+    /* User Cards */
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .user-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .user-card-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .user-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+    }
+
+    .user-username {
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    .user-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: var(--bg-light);
+        border-radius: var(--radius-sm);
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .user-badge.verified {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .user-badge.halal {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .user-bio {
+        font-size: 14px;
+        color: var(--text-gray);
+        line-height: 1.6;
+        margin-bottom: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .user-meta {
+        display: flex;
+        gap: 16px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+
+    .user-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Gig Cards */
+    .gigs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .gig-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .gig-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .gig-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .gig-icon {
+        font-size: 32px;
+        flex-shrink: 0;
+    }
+
+    .gig-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    .gig-category {
+        font-size: 12px;
+        color: var(--text-gray);
+        text-transform: capitalize;
+    }
+
+    .gig-description {
+        font-size: 14px;
+        color: var(--text-gray);
+        line-height: 1.6;
+        margin-bottom: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        flex-grow: 1;
+    }
+
+    .gig-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+        margin-top: auto;
+    }
+
+    .gig-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: var(--bg-light);
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        color: var(--text-gray);
+    }
+
+    .gig-badge.halal {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .gig-badge.instant {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .gig-badge.brand {
+        background: #f3e5f5;
+        color: #6a1b9a;
+    }
+
+    .gig-badge.remote {
+        background: #e1f5fe;
+        color: #01579b;
+    }
+
+    .gig-footer {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: baseline;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .gig-budget {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+
+    .gig-location {
+        font-size: 12px;
+        color: var(--text-gray);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gig-client {
+        font-size: 12px;
+        color: var(--text-gray);
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-state-text {
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        font-size: 16px;
+        color: var(--text-gray);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <div class="search-header">
+        <h1>Search Results</h1>
+        <p class="search-query" id="searchQueryText">
+            {% if search_query %}
+                Searching for: <strong>{{ search_query }}</strong>
+            {% else %}
+                Enter a search term to find users, profiles, or gigs
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="search-tabs">
+        <button class="search-tab active" data-tab="all">
+            All <span class="results-count" id="allCount">(0)</span>
+        </button>
+        <button class="search-tab" data-tab="users">
+            Users <span class="results-count" id="usersCount">(0)</span>
+        </button>
+        <button class="search-tab" data-tab="gigs">
+            Gigs <span class="results-count" id="gigsCount">(0)</span>
+        </button>
+    </div>
+
+    <div class="results-section active" id="all-results">
+        <div id="loadingAll" class="loading">Loading results...</div>
+        <div id="allContent" style="display: none;"></div>
+    </div>
+
+    <div class="results-section" id="users-results">
+        <div class="users-grid" id="usersGrid"></div>
+        <div class="empty-state" id="usersEmpty" style="display: none;">
+            <div class="empty-state-icon">👤</div>
+            <div class="empty-state-title">No users found</div>
+            <div class="empty-state-text">Try different search terms</div>
+        </div>
+    </div>
+
+    <div class="results-section" id="gigs-results">
+        <div class="gigs-grid" id="gigsGrid"></div>
+        <div class="empty-state" id="gigsEmpty" style="display: none;">
+            <div class="empty-state-icon">💼</div>
+            <div class="empty-state-title">No gigs found</div>
+            <div class="empty-state-text">Try different search terms</div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchQuery = '{{ search_query | safe }}';
+    const tabs = document.querySelectorAll('.search-tab');
+    const sections = document.querySelectorAll('.results-section');
+
+    // Tab switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.dataset.tab;
+
+            tabs.forEach(t => t.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+
+            this.classList.add('active');
+            document.getElementById(tabName + '-results').classList.add('active');
+        });
+    });
+
+    // Perform search if query exists
+    if (searchQuery) {
+        performSearch(searchQuery);
+    }
+
+    function performSearch(query) {
+        fetch(`/api/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                renderResults(data);
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                document.getElementById('loadingAll').innerHTML =
+                    '<div class="empty-state"><div class="empty-state-icon">⚠️</div>' +
+                    '<div class="empty-state-title">Error loading results</div>' +
+                    '<div class="empty-state-text">Please try again later</div></div>';
+            });
+    }
+
+    function renderResults(data) {
+        // Update counts
+        document.getElementById('allCount').textContent = `(${data.total})`;
+        document.getElementById('usersCount').textContent = `(${data.users.length})`;
+        document.getElementById('gigsCount').textContent = `(${data.gigs.length})`;
+
+        // Hide loading
+        document.getElementById('loadingAll').style.display = 'none';
+        document.getElementById('allContent').style.display = 'block';
+
+        // Render users
+        renderUsers(data.users);
+
+        // Render gigs
+        renderGigs(data.gigs);
+
+        // Render combined view for "All" tab
+        renderAllResults(data);
+    }
+
+    function renderUsers(users) {
+        const usersGrid = document.getElementById('usersGrid');
+        const usersEmpty = document.getElementById('usersEmpty');
+
+        if (users.length === 0) {
+            usersGrid.innerHTML = '';
+            usersEmpty.style.display = 'block';
+            return;
+        }
+
+        usersEmpty.style.display = 'none';
+        usersGrid.innerHTML = users.map(user => createUserCard(user)).join('');
+    }
+
+    function renderGigs(gigs) {
+        const gigsGrid = document.getElementById('gigsGrid');
+        const gigsEmpty = document.getElementById('gigsEmpty');
+
+        if (gigs.length === 0) {
+            gigsGrid.innerHTML = '';
+            gigsEmpty.style.display = 'block';
+            return;
+        }
+
+        gigsEmpty.style.display = 'none';
+        gigsGrid.innerHTML = gigs.map(gig => createGigCard(gig)).join('');
+    }
+
+    function renderAllResults(data) {
+        const allContent = document.getElementById('allContent');
+        let html = '';
+
+        if (data.users.length > 0) {
+            html += '<h2 style="font-size: 20px; margin-bottom: 16px; color: var(--text-dark);">Users</h2>';
+            html += '<div class="users-grid">' + data.users.map(user => createUserCard(user)).join('') + '</div>';
+        }
+
+        if (data.gigs.length > 0) {
+            html += '<h2 style="font-size: 20px; margin: 32px 0 16px; color: var(--text-dark);">Gigs</h2>';
+            html += '<div class="gigs-grid">' + data.gigs.map(gig => createGigCard(gig)).join('') + '</div>';
+        }
+
+        if (data.users.length === 0 && data.gigs.length === 0) {
+            html = '<div class="empty-state">' +
+                '<div class="empty-state-icon">🔍</div>' +
+                '<div class="empty-state-title">No results found</div>' +
+                '<div class="empty-state-text">Try different search terms</div>' +
+                '</div>';
+        }
+
+        allContent.innerHTML = html;
+    }
+
+    function createUserCard(user) {
+        const initials = user.full_name ? user.full_name.substring(0, 2).toUpperCase() :
+                        user.username.substring(0, 2).toUpperCase();
+        const rating = user.rating ? parseFloat(user.rating).toFixed(1) : 'N/A';
+
+        let badges = '';
+        if (user.is_verified) {
+            badges += '<span class="user-badge verified">✓ Verified</span>';
+        }
+        if (user.halal_verified) {
+            badges += '<span class="user-badge halal">🌙 Halal Verified</span>';
+        }
+
+        return `
+            <div class="user-card" onclick="window.location.href='/profile/${user.username}'">
+                <div class="user-card-header">
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-info">
+                        <div class="user-name">${user.full_name || user.username}</div>
+                        <div class="user-username">@${user.username}</div>
+                    </div>
+                </div>
+                ${badges ? `<div class="user-badges">${badges}</div>` : ''}
+                ${user.bio ? `<div class="user-bio">${user.bio}</div>` : ''}
+                <div class="user-meta">
+                    ${user.location ? `<div class="user-meta-item">📍 ${user.location}</div>` : ''}
+                    <div class="user-meta-item">⭐ ${rating} (${user.review_count || 0})</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function createGigCard(gig) {
+        const icon = getCategoryIcon(gig.category);
+        const budget = gig.approved_budget ?
+            `RM${parseFloat(gig.approved_budget).toFixed(2)}` :
+            `RM${parseFloat(gig.budget_min).toFixed(2)} - RM${parseFloat(gig.budget_max).toFixed(2)}`;
+
+        let badges = '';
+        if (gig.halal_compliant) {
+            badges += '<span class="gig-badge halal">🌙 HALAL</span>';
+        }
+        if (gig.is_instant_payout) {
+            badges += '<span class="gig-badge instant">⚡ INSTANT PAYOUT</span>';
+        }
+        if (gig.is_brand_partnership) {
+            badges += '<span class="gig-badge brand">⭐ BRAND</span>';
+        }
+        if (gig.is_remote) {
+            badges += '<span class="gig-badge remote">🌐 REMOTE</span>';
+        }
+
+        return `
+            <div class="gig-card" onclick="window.location.href='/gig/${gig.id}'">
+                <div class="gig-header">
+                    <div class="gig-icon">${icon}</div>
+                    <div>
+                        <div class="gig-title">${gig.title}</div>
+                        <div class="gig-category">${gig.category}</div>
+                    </div>
+                </div>
+                <div class="gig-description">${gig.description}</div>
+                ${badges ? `<div class="gig-meta">${badges}</div>` : ''}
+                <div class="gig-footer">
+                    <div class="gig-budget">${budget}</div>
+                    ${gig.location ? `<div class="gig-location">📍 ${gig.location}</div>` : '<div></div>'}
+                    <div class="gig-client">by ${gig.client_name}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function getCategoryIcon(category) {
+        const icons = {
+            'design': '🎨',
+            'writing': '✍️',
+            'video': '🎬',
+            'tutoring': '📚',
+            'content': '📝',
+            'web': '💻',
+            'marketing': '📢',
+            'admin': '📋',
+            'general': '🔧',
+            'programming': '💻',
+            'consulting': '💼',
+            'engineering': '⚙️',
+            'music': '🎵',
+            'photography': '📷',
+            'finance': '💰',
+            'crafts': '🎨',
+            'garden': '🌱',
+            'coaching': '🏆',
+            'data': '📊',
+            'pets': '🐾',
+            'handyman': '🔨',
+            'tours': '🗺️',
+            'events': '🎉',
+            'online-selling': '🛒',
+            'virtual-assistant': '💻',
+            'delivery': '🚚',
+            'micro-tasks': '✓',
+            'caregiving': '❤️',
+            'creative-other': '✨'
+        };
+        return icons[category] || '💼';
+    }
+});
+</script>
+{% endblock %}
