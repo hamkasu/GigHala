@@ -28,6 +28,31 @@
             0%, 100% { opacity: 0.3; }
             50% { opacity: 0.5; }
         }
+        @keyframes bgPan {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .animated-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('/static/images/card_bg.png') center/cover;
+            opacity: 0.15;
+            z-index: 0;
+            animation: bgPan 20s ease infinite;
+        }
+        .animated-card > * {
+            position: relative;
+            z-index: 1;
+        }
     </style>
     <style>
         /* Mobile-first and desktop adjustments for the top bar */
@@ -214,7 +239,7 @@
             <div class="container" style="display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 32px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
                 <!-- Left Column: Latest Gigs -->
                 <div style="flex: 1; min-width: 320px; max-width: 500px;">
-                    <div style="width: 100%; text-align: left; background: #1f2937; padding: 24px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); height: 100%;">
+                    <div class="animated-card" style="width: 100%; text-align: left; background: #1f2937; padding: 24px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); height: 100%;">
                         <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 20px; line-height: 1.2; border-bottom: 2px solid rgba(13, 124, 102, 0.3); padding-bottom: 12px;">
                             {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
                         </h2>
@@ -253,7 +278,7 @@
                     </div>
 
                     <!-- Upah Freelancer Card -->
-                    <div style="text-align: left; background: #1f2937; padding: 28px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                    <div class="animated-card" style="text-align: left; background: #1f2937; padding: 28px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
                         <h2 style="font-size: 1.75rem; font-weight: 800; color: white; margin-bottom: 20px; line-height: 1.25;">
                             {% if lang == 'ms' %}Upah freelancer terbaik untuk sebarang pekerjaan, secara dalam talian.{% else %}Hire the best freelancers for any job, online.{% endif %}
                         </h2>
