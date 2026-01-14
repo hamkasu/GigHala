@@ -14,6 +14,201 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance):
+    """
+    Send AI-matched gigs to workers based on their skills, location, and preferences.
+    This job runs twice daily at 9 AM and 9 PM (1 hour after the general digest).
+
+    Args:
+        app: Flask application instance
+        db: SQLAlchemy database instance
+        User: User model
+        Gig: Gig model
+        WorkerSpecialization: WorkerSpecialization model
+        NotificationPreference: NotificationPreference model
+        EmailDigestLog: EmailDigestLog model
+        email_service: EmailService instance
+        calculate_distance: Function to calculate distance between coordinates
+    """
+    with app.app_context():
+        try:
+            logger.info("Starting AI-matched gigs email job...")
+
+            # Import the matching service
+            from gig_matching_service import GigMatchingService
+
+            # Initialize the matching service
+            matching_service = GigMatchingService(
+                db=db,
+                User=User,
+                Gig=Gig,
+                WorkerSpecialization=WorkerSpecialization,
+                calculate_distance=calculate_distance
+            )
+
+            # Get the last digest send time
+            last_digest = db.session.query(EmailDigestLog).filter_by(
+                digest_type='matched_gigs'
+            ).order_by(EmailDigestLog.sent_at.desc()).first()
+
+            # If no previous digest, look for gigs from last 12 hours
+            # Otherwise, look for gigs since the last digest
+            if last_digest:
+                hours_back = max(12, int((datetime.utcnow() - last_digest.sent_at).total_seconds() / 3600))
+            else:
+                hours_back = 12
+
+            logger.info(f"Looking for gigs posted in the last {hours_back} hours")
+
+            # Get all worker matches
+            worker_matches = matching_service.get_all_worker_matches(
+                hours_back=hours_back,
+                min_score=0.3  # 30% minimum match threshold
+            )
+
+            logger.info(f"Found matches for {len(worker_matches)} workers")
+
+            if not worker_matches:
+                logger.info("No matched gigs to send")
+                # Log the digest send even if no matches
+                digest_log = EmailDigestLog(
+                    digest_type='matched_gigs',
+                    sent_at=datetime.utcnow(),
+                    recipient_count=0,
+                    gig_count=0,
+                    success=True,
+                    error_message="No matches found"
+                )
+                db.session.add(digest_log)
+                db.session.commit()
+                return
+
+            # Get base URL for links in email
+            base_url = os.getenv('BASE_URL', 'https://gighala.com')
+
+            # Prepare emails for each worker
+            emails_to_send = []
+            total_matches_count = 0
+
+            for user_id, matches in worker_matches.items():
+                user = db.session.query(User).get(user_id)
+                if not user or not user.email:
+                    continue
+
+                total_matches_count += len(matches)
+                user_name = user.full_name or user.username or "User"
+
+                # Render email template
+                with app.test_request_context():
+                    html_content = render_template(
+                        'email_matched_gigs.html',
+                        user_name=user_name,
+                        matches=matches,
+                        gig_count=len(matches),
+                        base_url=base_url
+                    )
+
+                # Determine subject based on language preference
+                if user.language == 'ms':
+                    if len(matches) == 1:
+                        subject = "GigHala - 1 Gig Yang Sesuai Untuk Anda!"
+                    else:
+                        subject = f"GigHala - {len(matches)} Gig Yang Sesuai Untuk Anda!"
+                else:
+                    if len(matches) == 1:
+                        subject = "GigHala - 1 Gig Matched For You!"
+                    else:
+                        subject = f"GigHala - {len(matches)} Gigs Matched For You!"
+
+                emails_to_send.append({
+                    'to': user.email,
+                    'subject': subject,
+                    'html': html_content
+                })
+
+            # Send emails
+            if emails_to_send:
+                total_emails = len(emails_to_send)
+                logger.info(f"Starting to send {total_emails} matched gig emails...")
+
+                successful_sends = 0
+                failed_sends = 0
+                failed_recipients = []
+
+                for idx, email_data in enumerate(emails_to_send, 1):
+                    try:
+                        logger.info(f"Sending email {idx}/{total_emails} to {email_data['to']}...")
+
+                        success, message, status_code, details = email_service.send_single_email(
+                            to_email=email_data['to'],
+                            to_name=None,
+                            subject=email_data['subject'],
+                            html_content=email_data['html']
+                        )
+
+                        if success:
+                            successful_sends += 1
+                            logger.info(f"✓ Email {idx}/{total_emails} sent successfully to {email_data['to']}")
+                        else:
+                            failed_sends += 1
+                            failed_recipients.append(email_data['to'])
+                            logger.error(f"✗ Email {idx}/{total_emails} failed for {email_data['to']}: {message}")
+
+                    except Exception as e:
+                        failed_sends += 1
+                        failed_recipients.append(email_data['to'])
+                        logger.error(f"✗ Email {idx}/{total_emails} error for {email_data['to']}: {str(e)}")
+
+                # Log summary
+                logger.info(f"Email sending complete: {successful_sends} succeeded, {failed_sends} failed out of {total_emails} total")
+                logger.info(f"Total matched gigs sent: {total_matches_count}")
+
+                # Log the digest send
+                if successful_sends > 0:
+                    digest_log = EmailDigestLog(
+                        digest_type='matched_gigs',
+                        sent_at=datetime.utcnow(),
+                        recipient_count=successful_sends,
+                        gig_count=total_matches_count,
+                        success=True,
+                        error_message=f"Failed: {failed_sends}" if failed_sends > 0 else None
+                    )
+                    db.session.add(digest_log)
+                    db.session.commit()
+                    logger.info(f"Successfully sent {successful_sends} matched gig emails")
+                else:
+                    error_msg = f"All {total_emails} emails failed"
+                    digest_log = EmailDigestLog(
+                        digest_type='matched_gigs',
+                        sent_at=datetime.utcnow(),
+                        recipient_count=0,
+                        gig_count=total_matches_count,
+                        success=False,
+                        error_message=error_msg
+                    )
+                    db.session.add(digest_log)
+                    db.session.commit()
+                    logger.error(error_msg)
+
+            logger.info("AI-matched gigs email job completed")
+
+        except Exception as e:
+            logger.error(f"Error in send_matched_gigs_email: {str(e)}", exc_info=True)
+            try:
+                digest_log = EmailDigestLog(
+                    digest_type='matched_gigs',
+                    sent_at=datetime.utcnow(),
+                    recipient_count=0,
+                    gig_count=0,
+                    success=False,
+                    error_message=str(e)
+                )
+                db.session.add(digest_log)
+                db.session.commit()
+            except Exception as log_error:
+                logger.error(f"Failed to log error: {str(log_error)}")
+
+
 def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service):
     """
     Send email digest of new gigs to all users who have opted in
@@ -213,7 +408,7 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                 logger.error(f"Failed to log error: {str(log_error)}")
 
 
-def init_scheduler(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service):
+def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance):
     """
     Initialize APScheduler with all scheduled jobs
 
@@ -222,9 +417,11 @@ def init_scheduler(app, db, User, Gig, NotificationPreference, EmailDigestLog, e
         db: SQLAlchemy database instance
         User: User model
         Gig: Gig model
+        WorkerSpecialization: WorkerSpecialization model
         NotificationPreference: NotificationPreference model
         EmailDigestLog: EmailDigestLog model
         email_service: EmailService instance
+        calculate_distance: Function to calculate distance between coordinates
 
     Returns:
         scheduler: Configured APScheduler instance
@@ -257,12 +454,32 @@ def init_scheduler(app, db, User, Gig, NotificationPreference, EmailDigestLog, e
         replace_existing=True
     )
 
+    # Schedule AI-matched gigs at 9 AM daily (1 hour after general digest)
+    scheduler.add_job(
+        func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance),
+        trigger=CronTrigger(hour=9, minute=0, timezone=timezone),
+        id='matched_gigs_morning',
+        name='Send AI-matched gigs email (9 AM)',
+        replace_existing=True
+    )
+
+    # Schedule AI-matched gigs at 9 PM daily (1 hour after general digest)
+    scheduler.add_job(
+        func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance),
+        trigger=CronTrigger(hour=21, minute=0, timezone=timezone),
+        id='matched_gigs_evening',
+        name='Send AI-matched gigs email (9 PM)',
+        replace_existing=True
+    )
+
     # Start the scheduler
     scheduler.start()
     logger.info(f"Scheduler started with timezone: {timezone}")
     logger.info("Scheduled jobs:")
     logger.info("  - New gigs email digest at 8:00 AM")
     logger.info("  - New gigs email digest at 8:00 PM")
+    logger.info("  - AI-matched gigs email at 9:00 AM")
+    logger.info("  - AI-matched gigs email at 9:00 PM")
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
