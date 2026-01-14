@@ -1071,71 +1071,47 @@
         /* Small Mobile */
         @media (max-width: 480px) {
             .header-top {
-                padding: 12px 8px;
+                padding: 8px;
                 gap: 8px;
                 overflow: visible;
-                flex-wrap: wrap;
+                flex-wrap: nowrap; /* Prevent wrapping */
+                justify-content: space-between;
             }
 
             .logo {
-                font-size: 18px;
+                font-size: 16px;
                 flex-shrink: 0;
-                flex-basis: auto;
-                width: auto;
+                margin-right: 4px;
+            }
+
+            .logo span {
+                display: none; /* Hide "GigHala" text on very small screens to save space */
             }
 
             .header-nav {
-                gap: 6px;
+                gap: 4px;
                 flex-shrink: 1;
                 overflow: visible;
-                order: 10;
-                width: 100%;
+                display: flex;
+                align-items: center;
                 justify-content: flex-end;
+                width: auto;
             }
 
             .nav-link {
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                min-height: 0 !important;
-            }
-
-            .lang-switcher span#langText {
-                display: none !important;
+                padding: 4px 6px !important;
+                font-size: 10px !important;
             }
 
             .lang-switcher {
-                min-width: auto;
-                padding: 6px 8px;
-                flex-shrink: 0;
-                font-size: 16px;
+                padding: 4px 6px;
+                font-size: 14px;
             }
 
             .user-avatar {
-                width: 32px;
-                height: 32px;
-                min-width: 32px;
-                flex-shrink: 0;
-            }
-
-            .user-menu {
-                flex-shrink: 0;
-            }
-
-            .footer-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-
-            .main-content {
-                padding: 12px;
-            }
-
-            .category-link {
-                font-size: 11px;
-                padding: 6px 10px;
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
             }
         }
 
