@@ -20534,7 +20534,7 @@ with app.app_context():
     init_database()
 
 # Initialize scheduled jobs (email digests, etc.)
-scheduler = init_scheduler(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service)
+scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance)
 
 # Setup Google OAuth if credentials are available
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint

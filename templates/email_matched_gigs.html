@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gigs Matched For You - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            color: #ffffff;
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        .gig-count {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f5e9 100%);
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #555555;
+            border-radius: 4px;
+        }
+        .personalized-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .gig-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            transition: box-shadow 0.3s ease;
+            position: relative;
+        }
+        .gig-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .match-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+        .gig-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin: 0 0 10px 0;
+            padding-right: 80px;
+        }
+        .gig-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #666666;
+        }
+        .gig-meta-item {
+            display: flex;
+            align-items: center;
+        }
+        .gig-meta-item strong {
+            color: #333333;
+            margin-right: 5px;
+        }
+        .gig-category {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .gig-budget {
+            font-size: 16px;
+            font-weight: 600;
+            color: #10b981;
+            margin: 10px 0;
+        }
+        .gig-description {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.6;
+            margin: 12px 0;
+        }
+        .gig-location {
+            font-size: 13px;
+            color: #888888;
+            margin: 8px 0;
+        }
+        .match-reason {
+            background-color: #f0fdf4;
+            border-left: 3px solid #10b981;
+            padding: 10px 12px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #166534;
+            border-radius: 4px;
+        }
+        .match-reason strong {
+            color: #065f46;
+        }
+        .matched-skills {
+            margin-top: 8px;
+        }
+        .skill-tag {
+            display: inline-block;
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-right: 6px;
+            margin-bottom: 4px;
+        }
+        .view-button {
+            display: inline-block;
+            background-color: #667eea;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 12px;
+        }
+        .view-button:hover {
+            background-color: #5568d3;
+        }
+        .browse-all {
+            text-align: center;
+            margin: 30px 0 20px 0;
+        }
+        .browse-all-button {
+            display: inline-block;
+            background-color: #10b981;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .browse-all-button:hover {
+            background-color: #059669;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 25px 20px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .unsubscribe {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .ai-note {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 15px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #92400e;
+            border-radius: 4px;
+        }
+        @media only screen and (max-width: 600px) {
+            .gig-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .match-badge {
+                position: static;
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+            .gig-title {
+                padding-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 GigHala</h1>
+            <p>Personalized Gig Recommendations</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                <strong>Assalamualaikum {{ user_name }},</strong>
+            </div>
+
+            <span class="personalized-badge">✨ AI-Matched Just For You</span>
+
+            {% if gig_count > 0 %}
+            <div class="gig-count">
+                We found <strong>{{ gig_count }}</strong> gig{{ 's' if gig_count > 1 else '' }} that match{{ '' if gig_count > 1 else 'es' }} your skills and preferences!
+            </div>
+
+            <div class="ai-note">
+                <strong>🤖 How matching works:</strong> Our AI analyzes your skills, location, specializations, and work history to find the most relevant opportunities for you.
+            </div>
+
+            <!-- Gig Cards -->
+            {% for match in matches %}
+            {% set gig = match.gig %}
+            <div class="gig-card">
+                <div class="match-badge">{{ match.match_percentage }}% Match</div>
+
+                <span class="gig-category">{{ gig.category }}</span>
+                <h2 class="gig-title">{{ gig.title }}</h2>
+
+                <div class="gig-meta">
+                    <div class="gig-meta-item">
+                        <strong>Code:</strong> {{ gig.gig_code }}
+                    </div>
+                    <div class="gig-meta-item">
+                        <strong>Duration:</strong> {{ gig.duration }}
+                    </div>
+                    {% if gig.is_remote %}
+                    <div class="gig-meta-item">
+                        <strong>🌐 Remote</strong>
+                    </div>
+                    {% endif %}
+                    {% if gig.halal_compliant %}
+                    <div class="gig-meta-item">
+                        <strong>✓ Halal Compliant</strong>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if gig.budget_min and gig.budget_max %}
+                <div class="gig-budget">
+                    RM {{ "{:,.2f}".format(gig.budget_min) }} - RM {{ "{:,.2f}".format(gig.budget_max) }}
+                </div>
+                {% endif %}
+
+                <div class="gig-description">
+                    {{ gig.description[:200] }}{% if gig.description|length > 200 %}...{% endif %}
+                </div>
+
+                {% if gig.location %}
+                <div class="gig-location">
+                    📍 {{ gig.location }}
+                </div>
+                {% endif %}
+
+                <!-- Match Reason -->
+                <div class="match-reason">
+                    <strong>Why this matches you:</strong><br>
+                    {% if match.breakdown.matched_skills %}
+                    Your matching skills:
+                    <div class="matched-skills">
+                        {% for skill in match.breakdown.matched_skills[:5] %}
+                        <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                        {% if match.breakdown.matched_skills|length > 5 %}
+                        <span class="skill-tag">+{{ match.breakdown.matched_skills|length - 5 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if match.breakdown.category_score >= 0.8 %}
+                    • This is in your specialized category<br>
+                    {% endif %}
+                    {% if match.breakdown.location_score >= 0.8 %}
+                    • Great location match for you<br>
+                    {% endif %}
+                    {% if match.breakdown.budget_score >= 0.8 %}
+                    • Budget aligns with your experience level<br>
+                    {% endif %}
+                </div>
+
+                <a href="{{ base_url }}/gig/{{ gig.id }}" class="view-button">View Details & Apply</a>
+            </div>
+            {% endfor %}
+
+            <!-- Browse All Button -->
+            <div class="browse-all">
+                <a href="{{ base_url }}/gigs" class="browse-all-button">Browse All Gigs</a>
+            </div>
+
+            {% else %}
+            <div class="gig-count">
+                No new gigs matching your profile have been posted since our last update. Check back soon for new opportunities!
+            </div>
+            <div class="browse-all">
+                <a href="{{ base_url }}/gigs" class="browse-all-button">Browse All Gigs</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>GigHala</strong> - Malaysia's Halal-Compliant Freelance Platform</p>
+            <p>
+                <a href="{{ base_url }}/gigs">Browse Gigs</a> |
+                <a href="{{ base_url }}/dashboard">Dashboard</a> |
+                <a href="{{ base_url }}/settings">Settings</a>
+            </p>
+            <p class="unsubscribe">
+                You are receiving this email because you opted in to receive new gig notifications.<br>
+                To manage your email preferences, visit your <a href="{{ base_url }}/settings">account settings</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

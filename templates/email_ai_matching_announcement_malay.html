@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Padanan AI Baharu - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header .emoji {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .header p {
+            color: #ffffff;
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        .announcement-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .intro-text {
+            font-size: 16px;
+            color: #333333;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        .feature-box {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f5e9 100%);
+            border-left: 5px solid #667eea;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+        .feature-box h2 {
+            color: #667eea;
+            font-size: 22px;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+        }
+        .feature-box p {
+            color: #555555;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 10px 0;
+        }
+        .benefits-list {
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px 30px;
+            margin: 25px 0;
+        }
+        .benefits-list h3 {
+            color: #333333;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            font-weight: 600;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 15px;
+            font-size: 15px;
+            color: #555555;
+        }
+        .benefit-item .icon {
+            font-size: 24px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .action-required {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6e6 100%);
+            border-left: 5px solid #ff9800;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        .action-required h3 {
+            color: #f57c00;
+            font-size: 20px;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+        }
+        .checklist {
+            margin: 20px 0;
+        }
+        .checklist-item {
+            background-color: #ffffff;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #10b981;
+            font-size: 15px;
+            color: #333333;
+        }
+        .checklist-item .number {
+            display: inline-block;
+            background-color: #10b981;
+            color: #ffffff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 700;
+            margin-right: 12px;
+            font-size: 14px;
+        }
+        .checklist-item strong {
+            color: #10b981;
+        }
+        .cta-button {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .cta-button a {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: transform 0.2s;
+        }
+        .cta-button a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+        .example-box {
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+        .example-box h4 {
+            color: #667eea;
+            font-size: 16px;
+            margin: 0 0 12px 0;
+            font-weight: 600;
+        }
+        .example-box p {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+        .match-example {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .match-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 25px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .social-proof {
+            background-color: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+            font-style: italic;
+            color: #166534;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 26px;
+            }
+            .cta-button a {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="emoji">🤖✨</div>
+            <h1>Sistem Padanan AI Baharu!</h1>
+            <p>Dapatkan gig yang paling sesuai untuk anda</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                <strong>Assalamualaikum {{ user_name }},</strong>
+            </div>
+
+            <span class="announcement-badge">🎉 Ciri Baharu</span>
+
+            <div class="intro-text">
+                Kami dengan gembira ingin memperkenalkan ciri terbaharu GigHala - <strong>Sistem Padanan AI Berkuasa Pintar</strong> yang akan mengubah cara anda mencari gig!
+            </div>
+
+            <!-- Feature Explanation -->
+            <div class="feature-box">
+                <h2>🎯 Apa Itu Sistem Padanan AI?</h2>
+                <p>
+                    Sistem AI kami menganalisis <strong>kemahiran</strong>, <strong>lokasi</strong>, <strong>pengalaman</strong>,
+                    dan <strong>kepakaran</strong> anda untuk mencari gig yang PALING SESUAI untuk anda.
+                </p>
+                <p>
+                    Tidak lagi menerima semua gig yang tidak berkaitan - hanya gig yang benar-benar sesuai dengan profil anda!
+                </p>
+            </div>
+
+            <!-- Benefits -->
+            <div class="benefits-list">
+                <h3>✨ Faedah Untuk Anda:</h3>
+
+                <div class="benefit-item">
+                    <span class="icon">🎯</span>
+                    <div>
+                        <strong>Gig Yang Relevan Sahaja</strong> - Hanya terima cadangan gig yang sesuai dengan kemahiran anda
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">⏱️</span>
+                    <div>
+                        <strong>Jimat Masa</strong> - Tidak perlu mencari-cari gig yang sesuai, kami cari untuk anda!
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">📊</span>
+                    <div>
+                        <strong>Peratusan Padanan</strong> - Lihat berapa % setiap gig sesuai dengan anda (cth: 85% Padanan)
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">💡</span>
+                    <div>
+                        <strong>Penjelasan Padanan</strong> - Tahu mengapa gig itu sesuai untuk anda
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">📧</span>
+                    <div>
+                        <strong>Email Peribadi</strong> - Dapatkan email 2 kali sehari (9 pagi & 9 malam) dengan gig terpilih
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">📍</span>
+                    <div>
+                        <strong>Lokasi Pintar</strong> - Gig berdekatan atau kerja remote yang sesuai
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example -->
+            <div class="example-box">
+                <h4>📝 Contoh Email Yang Anda Akan Terima:</h4>
+                <div class="match-example">
+                    <span class="match-badge">85% Padanan</span>
+                    <p style="font-size: 16px; font-weight: 600; color: #333; margin: 10px 0;">
+                        Reka Logo Untuk Restoran Halal
+                    </p>
+                    <p style="font-size: 14px; color: #666; margin: 8px 0;">
+                        💰 RM 500 - RM 800
+                    </p>
+                    <p style="font-size: 13px; color: #10b981; margin: 10px 0;">
+                        <strong>Mengapa ini sesuai untuk anda:</strong><br>
+                        ✓ Kemahiran sepadan: Graphic Design, Logo Design, Adobe Illustrator<br>
+                        ✓ Dalam kategori kepakaran anda<br>
+                        ✓ Lokasi berdekatan (5km dari anda)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Required -->
+            <div class="action-required">
+                <h3>⚠️ Apa Yang Perlu Anda Buat Sekarang?</h3>
+                <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 20px;">
+                    Untuk mendapatkan cadangan gig terbaik, sila lengkapkan profil anda dengan maklumat berikut:
+                </p>
+
+                <div class="checklist">
+                    <div class="checklist-item">
+                        <span class="number">1</span>
+                        <strong>Tambah Kemahiran Anda</strong> (PALING PENTING!) - Senaraikan semua kemahiran yang anda ada.
+                        Semakin banyak kemahiran, semakin baik padanan!
+                    </div>
+
+                    <div class="checklist-item">
+                        <span class="number">2</span>
+                        <strong>Tetapkan Kepakaran Kategori</strong> - Pilih kategori kerja yang anda pakar
+                        (cth: Design & Creative, Penulisan, Video, dll)
+                    </div>
+
+                    <div class="checklist-item">
+                        <span class="number">3</span>
+                        <strong>Aktifkan Lokasi</strong> - Supaya kami boleh cari gig berdekatan dengan anda
+                        (untuk kerja on-site)
+                    </div>
+
+                    <div class="checklist-item">
+                        <span class="number">4</span>
+                        <strong>Pastikan Email Anda Betul</strong> - Untuk menerima notifikasi gig yang sesuai
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Proof -->
+            <div class="social-proof">
+                "Pekerja dengan profil lengkap menerima <strong>3x lebih banyak</strong> cadangan gig yang relevan dan berpeluang tinggi untuk berjaya!"
+            </div>
+
+            <!-- CTA Button -->
+            <div class="cta-button">
+                <a href="{{ base_url }}/settings">Lengkapkan Profil Saya Sekarang</a>
+            </div>
+
+            <!-- How It Works -->
+            <div class="feature-box" style="background: linear-gradient(135deg, #fff5e6 0%, #ffe6f0 100%); border-left-color: #ff9800;">
+                <h2 style="color: #f57c00;">🔍 Bagaimana Sistem AI Berfungsi?</h2>
+                <p>
+                    <strong>1. Pengumpulan Data</strong> - Sistem menganalisis kemahiran, lokasi, kepakaran, dan sejarah kerja anda
+                </p>
+                <p>
+                    <strong>2. Penilaian Pintar</strong> - Setiap gig diberi markah berdasarkan:
+                </p>
+                <ul style="margin: 10px 0 10px 25px; color: #555;">
+                    <li>Kemahiran yang sepadan (40%)</li>
+                    <li>Kategori kepakaran (25%)</li>
+                    <li>Jarak lokasi (20%)</li>
+                    <li>Budget yang sesuai (10%)</li>
+                    <li>Kesegaran gig (5%)</li>
+                </ul>
+                <p>
+                    <strong>3. Penapis Automatik</strong> - Hanya gig dengan 30% padanan atau lebih akan dihantar kepada anda
+                </p>
+                <p>
+                    <strong>4. Email Peribadi</strong> - Terima maksimum 10 gig terbaik setiap kali notifikasi
+                </p>
+            </div>
+
+            <!-- When It Starts -->
+            <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                <h3 style="color: #1976d2; margin: 0 0 10px 0; font-size: 18px;">📅 Bila Bermula?</h3>
+                <p style="color: #555; font-size: 15px; margin: 5px 0;">
+                    Sistem AI sudah aktif sekarang! Anda akan mula menerima email padanan gig pada:
+                </p>
+                <p style="color: #1976d2; font-size: 16px; font-weight: 700; margin: 10px 0;">
+                    🌅 Setiap hari, 9:00 PAGI<br>
+                    🌙 Setiap hari, 9:00 MALAM
+                </p>
+                <p style="color: #555; font-size: 14px; margin: 10px 0 0 0;">
+                    (Waktu Malaysia)
+                </p>
+            </div>
+
+            <!-- FAQ -->
+            <div style="margin: 30px 0;">
+                <h3 style="color: #333; font-size: 18px; margin-bottom: 15px;">❓ Soalan Lazim</h3>
+
+                <div style="background-color: #f9fafb; padding: 15px; margin-bottom: 10px; border-radius: 6px;">
+                    <p style="font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                        T: Adakah saya masih boleh melihat semua gig?
+                    </p>
+                    <p style="color: #555; font-size: 14px; margin: 0;">
+                        J: Ya! Anda masih boleh browse semua gig di platform. Email padanan hanya cadangan sahaja.
+                    </p>
+                </div>
+
+                <div style="background-color: #f9fafb; padding: 15px; margin-bottom: 10px; border-radius: 6px;">
+                    <p style="font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                        T: Bolehkah saya matikan notifikasi ini?
+                    </p>
+                    <p style="color: #555; font-size: 14px; margin: 0;">
+                        J: Ya, anda boleh tutup notifikasi email di dalam tetapan akaun anda bila-bila masa.
+                    </p>
+                </div>
+
+                <div style="background-color: #f9fafb; padding: 15px; margin-bottom: 10px; border-radius: 6px;">
+                    <p style="font-weight: 600; color: #333; margin: 0 0 8px 0;">
+                        T: Adakah ciri ini percuma?
+                    </p>
+                    <p style="color: #555; font-size: 14px; margin: 0;">
+                        J: Ya, sepenuhnya PERCUMA untuk semua pengguna GigHala!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Final CTA -->
+            <div style="text-align: center; margin: 35px 0 20px 0;">
+                <p style="font-size: 16px; color: #333; margin-bottom: 20px; font-weight: 500;">
+                    Jangan lepaskan peluang untuk mendapat gig terbaik!
+                </p>
+                <a href="{{ base_url }}/settings" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 35px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                    Kemaskini Profil Sekarang →
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="font-weight: 600; color: #333; font-size: 15px;">GigHala</p>
+            <p>Platform Freelance Patuh Halal Malaysia</p>
+            <p>
+                <a href="{{ base_url }}/gigs">Cari Gig</a> |
+                <a href="{{ base_url }}/dashboard">Dashboard</a> |
+                <a href="{{ base_url }}/settings">Tetapan</a> |
+                <a href="{{ base_url }}/help">Bantuan</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 13px; color: #9ca3af;">
+                Anda menerima email ini kerana anda adalah ahli GigHala.<br>
+                Untuk mengubah tetapan notifikasi, sila lawati <a href="{{ base_url }}/settings">tetapan akaun</a> anda.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
