@@ -151,20 +151,155 @@ Remember: When uncertain, ALWAYS flag for manual review. Never approve questiona
 
 def ai_halal_moderation(title: str, description: str) -> Dict:
     """
-    AI moderation is currently DISABLED.
-    Returns a success response with 'approve' action for all content.
+    Perform AI-powered halal compliance checking using Groq API.
+
+    This function sends the gig title and description to Groq's Llama model
+    for semantic analysis of halal compliance. The AI evaluates the content
+    against Islamic Shariah principles and returns a structured decision.
+
+    Args:
+        title: The gig title to check
+        description: The gig description to check
+
+    Returns:
+        Dict containing:
+        {
+            'success': bool,           # Whether API call succeeded
+            'is_halal': bool,          # AI's halal determination
+            'confidence': float,       # Confidence score (0.0-1.0)
+            'reason': str,            # AI's explanation
+            'violations': List[str],  # List of violations found
+            'action': str,            # 'approve', 'flag', or 'reject'
+            'model': str,             # Model used
+            'timestamp': str,         # ISO timestamp
+            'tokens_used': int        # API tokens consumed (if available)
+        }
+
+    Notes:
+        - Returns fallback response if API key not configured
+        - Uses retry logic for transient failures
+        - Defaults to 'flag' action if AI call fails (safe default)
     """
-    return {
-        'success': True,
-        'is_halal': True,
-        'confidence': 1.0,
-        'reason': 'AI moderation disabled by administrator.',
-        'violations': [],
-        'action': 'approve',
-        'model': 'disabled',
-        'timestamp': datetime.utcnow().isoformat(),
-        'tokens_used': 0
+    # Check if API key is configured
+    if not GROQ_API_KEY:
+        logger.warning("GROQ_API_KEY not configured, flagging for manual review")
+        return _create_fallback_response("API key not configured", flag=True)
+
+    # Construct user prompt
+    user_prompt = f"""Analyze this gig posting for halal compliance:
+
+**Title:** {title}
+
+**Description:** {description}
+
+Determine if this gig is halal-compliant according to Islamic Shariah principles. Respond ONLY with valid JSON."""
+
+    # Prepare API request payload
+    payload = {
+        'model': GROQ_MODEL,
+        'messages': [
+            {
+                'role': 'system',
+                'content': HALAL_COMPLIANCE_SYSTEM_PROMPT
+            },
+            {
+                'role': 'user',
+                'content': user_prompt
+            }
+        ],
+        'temperature': 0.1,  # Low temperature for consistent, deterministic results
+        'max_tokens': 500,   # Limit response length
+        'response_format': {'type': 'json_object'}  # Request JSON response
     }
+
+    headers = {
+        'Authorization': f'Bearer {GROQ_API_KEY}',
+        'Content-Type': 'application/json'
+    }
+
+    # Retry logic for API calls
+    last_error = None
+    for attempt in range(GROQ_MAX_RETRIES + 1):
+        try:
+            logger.info(f"Groq API call attempt {attempt + 1}/{GROQ_MAX_RETRIES + 1}")
+
+            response = requests.post(
+                GROQ_API_URL,
+                headers=headers,
+                json=payload,
+                timeout=GROQ_TIMEOUT
+            )
+
+            # Check for HTTP errors
+            response.raise_for_status()
+
+            # Parse response
+            response_data = response.json()
+
+            # Extract AI message content
+            if 'choices' not in response_data or len(response_data['choices']) == 0:
+                raise ValueError("No choices in API response")
+
+            ai_message = response_data['choices'][0]['message']['content']
+
+            # Parse AI's JSON response
+            try:
+                ai_result = json.loads(ai_message)
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse AI response as JSON: {ai_message}")
+                raise ValueError(f"Invalid JSON from AI: {str(e)}")
+
+            # Validate response structure
+            if not _validate_ai_response(ai_result):
+                raise ValueError("AI response missing required fields or has invalid values")
+
+            # Determine final action (may override AI's suggested action)
+            final_action = _determine_action(ai_result['is_halal'], ai_result['confidence'])
+
+            # Extract token usage if available
+            tokens_used = response_data.get('usage', {}).get('total_tokens', 0)
+
+            # Build successful response
+            result = {
+                'success': True,
+                'is_halal': ai_result['is_halal'],
+                'confidence': float(ai_result['confidence']),
+                'reason': ai_result['reason'],
+                'violations': ai_result.get('violations', []),
+                'action': final_action,  # Use determined action, not AI's suggestion
+                'model': GROQ_MODEL,
+                'timestamp': datetime.utcnow().isoformat(),
+                'tokens_used': tokens_used
+            }
+
+            logger.info(f"AI moderation successful: {final_action} (confidence: {ai_result['confidence']})")
+            return result
+
+        except requests.exceptions.Timeout as e:
+            last_error = f"Request timeout: {str(e)}"
+            logger.warning(f"Attempt {attempt + 1} timed out: {last_error}")
+
+        except requests.exceptions.RequestException as e:
+            last_error = f"Request failed: {str(e)}"
+            logger.error(f"Attempt {attempt + 1} failed: {last_error}")
+
+        except ValueError as e:
+            last_error = f"Response parsing error: {str(e)}"
+            logger.error(f"Attempt {attempt + 1} parsing failed: {last_error}")
+
+        except Exception as e:
+            last_error = f"Unexpected error: {str(e)}"
+            logger.error(f"Attempt {attempt + 1} unexpected error: {last_error}")
+
+        # If not the last attempt, continue to retry
+        if attempt < GROQ_MAX_RETRIES:
+            logger.info(f"Retrying in 1 second...")
+            import time
+            time.sleep(1)
+
+    # All retries exhausted, return fallback
+    logger.error(f"All {GROQ_MAX_RETRIES + 1} attempts failed. Last error: {last_error}")
+    return _create_fallback_response(last_error, flag=True)
 
 
 def _validate_ai_response(ai_result: Dict) -> bool:
