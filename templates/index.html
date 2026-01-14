@@ -42,42 +42,56 @@
             .date-bar .logo-container span {
                 font-size: 16px !important;
             }
-            /* Optimize all navigation buttons for mobile */
-            .date-bar .btn-primary {
-                padding: 6px 8px !important;
-                font-size: 13px !important;
-                gap: 3px !important;
-                border-radius: 6px !important;
+            /* Hide language, Majikan, and Pekerja buttons on mobile */
+            .language-toggle-btn,
+            .mobile-hide {
+                display: none !important;
             }
-            .date-bar .btn-primary span {
-                font-size: 14px !important;
-            }
-            /* Reduce gap between buttons on mobile */
-            .date-bar > div > div:last-child {
+            /* Show Login and Daftar buttons on mobile */
+            .desktop-only-controls {
+                display: flex !important;
                 gap: 4px !important;
             }
+            /* Optimize all navigation buttons for mobile */
+            .date-bar .btn-primary {
+                padding: 6px 10px !important;
+                font-size: 13px !important;
+                border-radius: 6px !important;
+                white-space: nowrap !important;
+            }
             .install-btn {
-                padding: 6px 8px !important;
+                padding: 6px 10px !important;
                 font-size: 13px !important;
                 min-width: auto !important;
                 flex-shrink: 0 !important;
                 border: 1px solid #0D7C66 !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 3px !important;
             }
-            .language-toggle-btn {
-                padding: 6px 8px !important;
-                font-size: 13px !important;
+            .install-btn span {
+                font-size: 14px !important;
+            }
+            /* Reduce gap between button groups on mobile */
+            .date-bar > div > div:last-child {
+                gap: 4px !important;
             }
         }
-        /* Extra small mobile screens - show icons only */
+        /* Extra small mobile screens - show icons only for Install */
         @media (max-width: 480px) {
-            /* Hide text, show only icons for very small screens */
-            .date-bar .btn-primary {
+            /* Hide text for Install button, show only icon */
+            .install-btn {
                 padding: 8px !important;
                 font-size: 0 !important;
                 min-width: auto !important;
             }
-            .date-bar .btn-primary span {
+            .install-btn span {
                 font-size: 18px !important;
+            }
+            /* Keep Login and Daftar text visible but compact */
+            .desktop-only-controls .btn-primary {
+                padding: 6px 8px !important;
+                font-size: 12px !important;
             }
             .date-bar > div > div:last-child {
                 gap: 3px !important;
@@ -91,11 +105,15 @@
                 width: 28px !important;
                 height: 28px !important;
             }
-            .date-bar .btn-primary {
+            .install-btn {
                 padding: 6px !important;
             }
-            .date-bar .btn-primary span {
+            .install-btn span {
                 font-size: 16px !important;
+            }
+            .desktop-only-controls .btn-primary {
+                padding: 5px 6px !important;
+                font-size: 11px !important;
             }
         }
         @media (min-width: 769px) {
@@ -133,10 +151,10 @@
                 <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
                     <span style="font-size: 16px;">🌐</span> {% if lang == 'ms' %}EN{% else %}MS{% endif %}
                 </button>
-                <button class="btn-primary" onclick="const section = document.getElementById('client-section'); if(section) { section.scrollIntoView({behavior: 'smooth', block: 'start'}); } else { console.error('client-section not found'); }" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
+                <button class="btn-primary mobile-hide majikan-btn" onclick="const section = document.getElementById('client-section'); if(section) { section.scrollIntoView({behavior: 'smooth', block: 'start'}); } else { console.error('client-section not found'); }" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
                     <span style="font-size: 16px;">💼</span> Majikan
                 </button>
-                <button class="btn-primary" onclick="const section = document.getElementById('benefits-section'); if(section) { section.scrollIntoView({behavior: 'smooth', block: 'start'}); } else { console.error('benefits-section not found'); }" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
+                <button class="btn-primary mobile-hide pekerja-btn" onclick="const section = document.getElementById('benefits-section'); if(section) { section.scrollIntoView({behavior: 'smooth', block: 'start'}); } else { console.error('benefits-section not found'); }" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
                     <span style="font-size: 16px;">👷</span> Pekerja
                 </button>
                 <div class="desktop-only-controls" style="display: none; align-items: center; gap: 8px;">
