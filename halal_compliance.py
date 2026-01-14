@@ -420,10 +420,41 @@ for category, keywords in PROHIBITED_KEYWORDS.items():
 
 def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
     """
-    Keyword-based compliance check is DISABLED.
-    Always returns compliant.
+    Check if text contains any prohibited keywords.
+
+    Uses case-insensitive matching with word boundaries to detect
+    prohibited content while minimizing false positives.
+
+    Args:
+        text: Text to check (title, description, skills, etc.)
+
+    Returns:
+        Tuple of (is_compliant, violations_found)
+        - is_compliant: True if no violations, False otherwise
+        - violations_found: List of prohibited keywords detected
     """
-    return True, []
+    if not text:
+        return True, []
+
+    text_lower = text.lower()
+    violations_found = []
+
+    # Check each prohibited keyword
+    for keyword in ALL_PROHIBITED_KEYWORDS:
+        keyword_lower = keyword.lower()
+
+        # Use word boundary regex for accurate matching
+        # \b ensures we match whole words/phrases, not partial matches
+        pattern = r'\b' + re.escape(keyword_lower) + r'\b'
+
+        if re.search(pattern, text_lower):
+            violations_found.append(keyword)
+
+    # Remove duplicates and sort
+    violations_found = sorted(list(set(violations_found)))
+
+    is_compliant = len(violations_found) == 0
+    return is_compliant, violations_found
 
 
 def validate_category(category: str) -> Tuple[bool, str]:
