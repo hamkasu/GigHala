@@ -1472,14 +1472,21 @@
 
     <!-- PWA-Only Logo Header -->
     <div class="pwa-logo-header" style="display: none;">
-        <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: linear-gradient(135deg, #00C853 0%, #00A844 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <img src="/static/images/logo.png" alt="GigHala" style="height: 36px; width: 36px; border-radius: 50%; object-fit: contain;">
-            <div style="display: flex; flex-direction: column;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-weight: 800; color: #ffffff; font-size: 20px; line-height: 1;">GigHala</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: linear-gradient(135deg, #00C853 0%, #00A844 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="/static/images/logo.png" alt="GigHala" style="height: 36px; width: 36px; border-radius: 50%; object-fit: contain;">
+                <div style="display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-weight: 800; color: #ffffff; font-size: 20px; line-height: 1;">GigHala</span>
+                    </div>
+                    <span style="font-size: 10px; color: rgba(255,255,255,0.9); font-weight: 500;">Platform Gig Halal #1 Malaysia</span>
                 </div>
-                <span style="font-size: 10px; color: rgba(255,255,255,0.9); font-weight: 500;">Platform Gig Halal #1 Malaysia</span>
             </div>
+            {% if user %}
+            <a href="/api/logout" style="color: #ffffff; display: flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; background: rgba(255,255,255,0.15);">
+                <i data-feather="log-out" style="width: 20px; height: 20px;"></i>
+            </a>
+            {% endif %}
         </div>
     </div>
 
