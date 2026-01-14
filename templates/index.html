@@ -42,12 +42,45 @@
             .date-bar .logo-container span {
                 font-size: 16px !important;
             }
+            /* Optimize all navigation buttons for mobile */
+            .date-bar .btn-primary {
+                padding: 6px 8px !important;
+                font-size: 13px !important;
+                gap: 3px !important;
+                border-radius: 6px !important;
+            }
+            .date-bar .btn-primary span {
+                font-size: 14px !important;
+            }
+            /* Reduce gap between buttons on mobile */
+            .date-bar > div > div:last-child {
+                gap: 4px !important;
+            }
             .install-btn {
-                padding: 8px 15px !important;
-                font-size: 15px !important;
-                min-width: 106px !important;
+                padding: 6px 8px !important;
+                font-size: 13px !important;
+                min-width: auto !important;
                 flex-shrink: 0 !important;
-                border: 1.5px solid rgba(255,255,255,0.6) !important;
+                border: 1px solid #0D7C66 !important;
+            }
+            .language-toggle-btn {
+                padding: 6px 8px !important;
+                font-size: 13px !important;
+            }
+        }
+        /* Extra small mobile screens - show icons only */
+        @media (max-width: 480px) {
+            /* Hide text, show only icons for very small screens */
+            .date-bar .btn-primary {
+                padding: 8px !important;
+                font-size: 0 !important;
+                min-width: auto !important;
+            }
+            .date-bar .btn-primary span {
+                font-size: 18px !important;
+            }
+            .date-bar > div > div:last-child {
+                gap: 3px !important;
             }
         }
         @media (max-width: 360px) {
@@ -58,10 +91,11 @@
                 width: 28px !important;
                 height: 28px !important;
             }
-            .install-btn {
-                padding: 6px 10px !important;
-                font-size: 14px !important;
-                min-width: 94px !important;
+            .date-bar .btn-primary {
+                padding: 6px !important;
+            }
+            .date-bar .btn-primary span {
+                font-size: 16px !important;
             }
         }
         @media (min-width: 769px) {
