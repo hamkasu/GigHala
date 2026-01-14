@@ -1100,12 +1100,24 @@
 
             .nav-link {
                 padding: 4px 6px !important;
-                font-size: 10px !important;
+                font-size: 0 !important; /* Hide text */
+            }
+
+            .nav-link i, .nav-link svg {
+                font-size: 18px !important;
+                margin: 0 !important;
+            }
+
+            .lang-switcher span#langText, 
+            .btn-logout-nav span, 
+            .nav-link span {
+                display: none !important;
             }
 
             .lang-switcher {
                 padding: 4px 6px;
-                font-size: 14px;
+                font-size: 16px;
+                min-width: auto;
             }
 
             .user-avatar {
