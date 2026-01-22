@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance):
+def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance):
     """
     Send AI-matched gigs to workers based on their skills, location, and preferences.
     This job runs twice daily at 9 AM and 9 PM (1 hour after the general digest).
@@ -27,6 +27,7 @@ def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, Notificati
         WorkerSpecialization: WorkerSpecialization model
         NotificationPreference: NotificationPreference model
         EmailDigestLog: EmailDigestLog model
+        EmailSendLog: EmailSendLog model
         email_service: EmailService instance
         calculate_distance: Function to calculate distance between coordinates
     """
@@ -123,7 +124,8 @@ def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, Notificati
                 emails_to_send.append({
                     'to': user.email,
                     'subject': subject,
-                    'html': html_content
+                    'html': html_content,
+                    'user_id': user.id
                 })
 
             # Send emails
@@ -134,6 +136,7 @@ def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, Notificati
                 successful_sends = 0
                 failed_sends = 0
                 failed_recipients = []
+                all_brevo_message_ids = []
 
                 for idx, email_data in enumerate(emails_to_send, 1):
                     try:
@@ -146,8 +149,32 @@ def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, Notificati
                             html_content=email_data['html']
                         )
 
+                        # Log individual email to database for archival
+                        try:
+                            import json
+                            email_log = EmailSendLog(
+                                email_type='digest',
+                                subject=email_data['subject'],
+                                html_content=email_data['html'],
+                                recipient_emails=json.dumps([email_data['to']]),
+                                recipient_user_id=email_data.get('user_id'),
+                                recipient_count=1,
+                                successful_count=1 if success else 0,
+                                failed_count=0 if success else 1,
+                                recipient_type='workers',
+                                success=success,
+                                error_message=message if not success else None,
+                                brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                                failed_recipients=json.dumps(details.get('failed_recipients', []))
+                            )
+                            db.session.add(email_log)
+                            db.session.commit()
+                        except Exception as log_error:
+                            logger.error(f"Failed to log email to database: {str(log_error)}")
+
                         if success:
                             successful_sends += 1
+                            all_brevo_message_ids.extend(details.get('brevo_message_ids', []))
                             logger.info(f"✓ Email {idx}/{total_emails} sent successfully to {email_data['to']}")
                         else:
                             failed_sends += 1
@@ -209,7 +236,7 @@ def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, Notificati
                 logger.error(f"Failed to log error: {str(log_error)}")
 
 
-def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service):
+def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, EmailSendLog, email_service):
     """
     Send email digest of new gigs to all users who have opted in
     This job runs twice daily at 8 AM and 8 PM
@@ -221,6 +248,7 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
         Gig: Gig model
         NotificationPreference: NotificationPreference model
         EmailDigestLog: EmailDigestLog model
+        EmailSendLog: EmailSendLog model
         email_service: EmailService instance
     """
     with app.app_context():
@@ -317,7 +345,8 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                 emails_to_send.append({
                     'to': user.email,
                     'subject': subject,
-                    'html': html_content
+                    'html': html_content,
+                    'user_id': user.id
                 })
 
             # Send emails individually with progress tracking
@@ -341,6 +370,29 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                             subject=email_data['subject'],
                             html_content=email_data['html']
                         )
+
+                        # Log individual email to database for archival
+                        try:
+                            import json
+                            email_log = EmailSendLog(
+                                email_type='digest',
+                                subject=email_data['subject'],
+                                html_content=email_data['html'],
+                                recipient_emails=json.dumps([email_data['to']]),
+                                recipient_user_id=email_data.get('user_id'),
+                                recipient_count=1,
+                                successful_count=1 if success else 0,
+                                failed_count=0 if success else 1,
+                                recipient_type='opted_in_users',
+                                success=success,
+                                error_message=message if not success else None,
+                                brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                                failed_recipients=json.dumps(details.get('failed_recipients', []))
+                            )
+                            db.session.add(email_log)
+                            db.session.commit()
+                        except Exception as log_error:
+                            logger.error(f"Failed to log email to database: {str(log_error)}")
 
                         if success:
                             successful_sends += 1
@@ -408,7 +460,7 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                 logger.error(f"Failed to log error: {str(log_error)}")
 
 
-def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance):
+def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance):
     """
     Initialize APScheduler with all scheduled jobs
 
@@ -420,6 +472,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         WorkerSpecialization: WorkerSpecialization model
         NotificationPreference: NotificationPreference model
         EmailDigestLog: EmailDigestLog model
+        EmailSendLog: EmailSendLog model
         email_service: EmailService instance
         calculate_distance: Function to calculate distance between coordinates
 
@@ -438,7 +491,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
 
     # Schedule new gigs digest at 8 AM daily
     scheduler.add_job(
-        func=lambda: send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service),
+        func=lambda: send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, EmailSendLog, email_service),
         trigger=CronTrigger(hour=8, minute=0, timezone=timezone),
         id='new_gigs_digest_morning',
         name='Send new gigs email digest (8 AM)',
@@ -447,7 +500,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
 
     # Schedule new gigs digest at 8 PM daily
     scheduler.add_job(
-        func=lambda: send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, email_service),
+        func=lambda: send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigestLog, EmailSendLog, email_service),
         trigger=CronTrigger(hour=20, minute=0, timezone=timezone),
         id='new_gigs_digest_evening',
         name='Send new gigs email digest (8 PM)',
@@ -456,7 +509,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
 
     # Schedule AI-matched gigs at 9 AM daily (1 hour after general digest)
     scheduler.add_job(
-        func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance),
+        func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance),
         trigger=CronTrigger(hour=9, minute=0, timezone=timezone),
         id='matched_gigs_morning',
         name='Send AI-matched gigs email (9 AM)',
@@ -465,7 +518,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
 
     # Schedule AI-matched gigs at 9 PM daily (1 hour after general digest)
     scheduler.add_job(
-        func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance),
+        func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance),
         trigger=CronTrigger(hour=21, minute=0, timezone=timezone),
         id='matched_gigs_evening',
         name='Send AI-matched gigs email (9 PM)',

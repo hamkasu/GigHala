@@ -58,6 +58,7 @@ class EmailService:
         # Track success and failures
         successful_sends = 0
         failed_sends = 0
+        successful_recipients = []
         failed_recipients = []
         brevo_message_ids = []
         total_recipients = len(recipient_list)
@@ -88,6 +89,7 @@ class EmailService:
                 # Brevo returns a message ID if successful
                 if api_response and hasattr(api_response, 'message_id'):
                     successful_sends += 1
+                    successful_recipients.append(email)
                     brevo_message_ids.append(api_response.message_id)
                     current_app.logger.info(f"[EMAIL_SEND] ✓ Email {idx}/{total_recipients} sent successfully to {email} (Brevo ID: {api_response.message_id})")
                 else:
@@ -112,8 +114,9 @@ class EmailService:
             'successful_count': successful_sends,
             'failed_count': failed_sends,
             'total_count': total_recipients,
-            'brevo_message_ids': brevo_message_ids,
-            'failed_recipients': failed_recipients
+            'successful_recipients': successful_recipients,
+            'failed_recipients': failed_recipients,
+            'brevo_message_ids': brevo_message_ids
         }
 
         # Prepare result message
