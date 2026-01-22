@@ -1586,10 +1586,23 @@ def send_verification_email(user_email, token, username):
         """
 
         # Send email using the email service
-        success = email_service.send_email(
+        success, message, status_code, details = email_service.send_single_email(
             to_email=user_email,
+            to_name=username,
             subject=subject,
             html_content=html_content
+        )
+
+        # Log email to database for archival
+        log_email_to_database(
+            email_type='transactional',
+            subject=subject,
+            html_content=html_content,
+            recipient_emails=user_email,
+            success=success,
+            error_message=message if not success else None,
+            brevo_message_ids=details.get('brevo_message_ids', []),
+            failed_recipients=details.get('failed_recipients', [])
         )
 
         if success:
@@ -1676,10 +1689,23 @@ def send_password_reset_email(user_email, token, username):
         """
 
         # Send email using the email service
-        success = email_service.send_email(
+        success, message, status_code, details = email_service.send_single_email(
             to_email=user_email,
+            to_name=username,
             subject=subject,
             html_content=html_content
+        )
+
+        # Log email to database for archival
+        log_email_to_database(
+            email_type='transactional',
+            subject=subject,
+            html_content=html_content,
+            recipient_emails=user_email,
+            success=success,
+            error_message=message if not success else None,
+            brevo_message_ids=details.get('brevo_message_ids', []),
+            failed_recipients=details.get('failed_recipients', [])
         )
 
         if success:
@@ -1711,6 +1737,97 @@ def verify_password_reset_token(token):
     except Exception as e:
         app.logger.error(f"Error verifying password reset token: {str(e)}")
         return False, f"Error verifying token: {str(e)}", None
+
+def log_email_to_database(
+    email_type,
+    subject,
+    html_content,
+    text_content=None,
+    recipient_emails=None,
+    recipient_user_id=None,
+    sender_user_id=None,
+    recipient_type=None,
+    success=True,
+    error_message=None,
+    brevo_message_ids=None,
+    failed_recipients=None
+):
+    """
+    Log an email send to the database for archival and compliance
+
+    Args:
+        email_type: Type of email ('transactional', 'digest', 'admin_bulk', etc.)
+        subject: Email subject line
+        html_content: HTML email body
+        text_content: Plain text email body (optional)
+        recipient_emails: List of recipient email addresses or single email string
+        recipient_user_id: User ID of recipient (for single-recipient transactional emails)
+        sender_user_id: User ID of sender (for admin emails)
+        recipient_type: Type of recipients ('all', 'freelancers', 'clients', 'selected')
+        success: Whether email send succeeded
+        error_message: Error message if send failed
+        brevo_message_ids: List of Brevo message IDs
+        failed_recipients: List of failed recipient emails
+
+    Returns:
+        EmailSendLog instance or None if logging failed
+    """
+    try:
+        # Normalize recipient_emails to list
+        if isinstance(recipient_emails, str):
+            recipient_emails = [recipient_emails]
+        elif recipient_emails is None:
+            recipient_emails = []
+
+        # Normalize brevo_message_ids to list
+        if brevo_message_ids is None:
+            brevo_message_ids = []
+        elif isinstance(brevo_message_ids, str):
+            brevo_message_ids = [brevo_message_ids]
+
+        # Normalize failed_recipients to list
+        if failed_recipients is None:
+            failed_recipients = []
+        elif isinstance(failed_recipients, str):
+            failed_recipients = [failed_recipients]
+
+        # Calculate counts
+        recipient_count = len(recipient_emails)
+        successful_count = recipient_count - len(failed_recipients)
+        failed_count = len(failed_recipients)
+
+        # Create log entry
+        email_log = EmailSendLog(
+            email_type=email_type,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content,
+            recipient_emails=json.dumps(recipient_emails),
+            recipient_user_id=recipient_user_id,
+            sender_user_id=sender_user_id,
+            recipient_count=recipient_count,
+            successful_count=successful_count,
+            failed_count=failed_count,
+            recipient_type=recipient_type,
+            success=success,
+            error_message=error_message,
+            brevo_message_ids=json.dumps(brevo_message_ids),
+            failed_recipients=json.dumps(failed_recipients)
+        )
+
+        db.session.add(email_log)
+        db.session.commit()
+
+        app.logger.info(f"[EMAIL_LOG] Created database log entry ID {email_log.id} for {email_type} email to {recipient_count} recipient(s)")
+        return email_log
+
+    except Exception as e:
+        app.logger.error(f"[EMAIL_LOG] Failed to log email to database: {str(e)}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return None
 
 def send_transaction_sms_notification(phone, message_text):
     """
@@ -1800,14 +1917,29 @@ def send_interaction_notification(user, subject, message, html_content=None, tex
     # Send email if user has email
     if user and user.email:
         try:
-            email_service.send_single_email(
+            success, msg, status_code, details = email_service.send_single_email(
                 to_email=user.email,
                 to_name=user.full_name or user.username,
                 subject=subject,
                 html_content=html_content,
                 text_content=text_content
             )
-            result['email_sent'] = True
+
+            # Log email to database for archival
+            log_email_to_database(
+                email_type='transactional',
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                recipient_emails=user.email,
+                recipient_user_id=user.id,
+                success=success,
+                error_message=msg if not success else None,
+                brevo_message_ids=details.get('brevo_message_ids', []),
+                failed_recipients=details.get('failed_recipients', [])
+            )
+
+            result['email_sent'] = success
             app.logger.info(f"Interaction email sent to user {user.id}: {subject}")
         except Exception as e:
             error_msg = f"Failed to send email: {str(e)}"
@@ -2352,8 +2484,14 @@ class EmailSendLog(db.Model):
     error_message = db.Column(db.Text)
     brevo_message_ids = db.Column(db.Text)  # JSON array of message IDs from Brevo
     failed_recipients = db.Column(db.Text)  # JSON array of failed email addresses
+    # Email content archiving (added in migration 016)
+    html_content = db.Column(db.Text)  # HTML email body for archival
+    text_content = db.Column(db.Text)  # Plain text email body for archival
+    recipient_emails = db.Column(db.Text)  # JSON array of all recipient emails
+    recipient_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Recipient user for transactional emails
 
     sender = db.relationship('User', foreign_keys=[sender_user_id], backref='sent_emails')
+    recipient_user = db.relationship('User', foreign_keys=[recipient_user_id], backref='received_emails')
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6712,12 +6850,27 @@ GigHala - Your Trusted Gig Platform
                 """.strip()
 
                 # Send the email
-                email_service.send_single_email(
+                email_subject = f"New bid received for {gig.title}"
+                success, message, status_code, details = email_service.send_single_email(
                     to_email=client.email,
                     to_name=client.full_name or client.username,
-                    subject=f"New bid received for {gig.title}",
+                    subject=email_subject,
                     html_content=html_content,
                     text_content=text_content
+                )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=email_subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=client.email,
+                    recipient_user_id=client.id,
+                    success=success,
+                    error_message=message if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
                 )
 
                 app.logger.info(f"Sent new bid notification email to client {client.id} for gig {gig.id}")
@@ -7306,13 +7459,28 @@ You can now start working on the project. Check your dashboard for more details.
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=freelancer.email,
                     to_name=freelancer.full_name or freelancer.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=freelancer.email,
+                    recipient_user_id=freelancer.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent application accepted email to freelancer {freelancer.id}")
 
             except Exception as e:
@@ -7412,13 +7580,28 @@ Keep applying and showcasing your skills!
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=freelancer.email,
                     to_name=freelancer.full_name or freelancer.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=freelancer.email,
+                    recipient_user_id=freelancer.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent application rejection email to freelancer {freelancer.id}")
 
             except Exception as e:
@@ -7745,12 +7928,28 @@ def submit_freelancer_invoice(gig_id):
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
 
-                email_service.send_single_email(
+                subject = f"New Invoice from {freelancer.full_name or freelancer.username if freelancer else 'Freelancer'}"
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=client.email,
                     to_name=client.full_name or client.username,
-                    subject=f"New Invoice from {freelancer.full_name or freelancer.username if freelancer else 'Freelancer'}",
+                    subject=subject,
                     html_content=html_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=None,
+                    recipient_emails=client.email,
+                    recipient_user_id=client.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent invoice notification email to client {client.id}")
             except Exception as e:
                 app.logger.error(f"Failed to send invoice notification email: {str(e)}")
@@ -7927,13 +8126,28 @@ Please review the submitted work and either approve it or request revisions.
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=client.email,
                     to_name=client.full_name or client.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=client.email,
+                    recipient_user_id=client.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent work submission email to client {client.id}")
 
             except Exception as e:
@@ -8076,13 +8290,28 @@ The client will release payment soon. You will be notified when the payment is p
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=freelancer.email,
                     to_name=freelancer.full_name or freelancer.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=freelancer.email,
+                    recipient_user_id=freelancer.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent work approval email to freelancer {freelancer.id}")
 
             except Exception as e:
@@ -8219,13 +8448,28 @@ Please review the feedback carefully, make the necessary changes, and resubmit y
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=freelancer.email,
                     to_name=freelancer.full_name or freelancer.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=freelancer.email,
+                    recipient_user_id=freelancer.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent revision request email to freelancer {freelancer.id}")
 
             except Exception as e:
@@ -9289,13 +9533,28 @@ The amount has been credited to your GigHala wallet.
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=freelancer.email,
                     to_name=freelancer.full_name or freelancer.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=freelancer.email,
+                    recipient_user_id=freelancer.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent payment received email to freelancer {freelancer.id}")
 
             except Exception as e:
@@ -9345,13 +9604,28 @@ Thank you for using GigHala!
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=client.email,
                     to_name=client.full_name or client.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=client.email,
+                    recipient_user_id=client.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent payment completed email to client {client.id}")
 
             except Exception as e:
@@ -10410,11 +10684,26 @@ def stripe_webhook():
                                 terms_url=request.host_url.rstrip('/') + '/terms'
                             )
 
-                            email_service.send_single_email(
+                            subject = f"Bayaran Instant Selesai - {payout_record.payout_number}"
+                            success, msg, status_code, details = email_service.send_single_email(
                                 to_email=user.email,
                                 to_name=user.full_name or user.username,
-                                subject=f"Bayaran Instant Selesai - {payout_record.payout_number}",
+                                subject=subject,
                                 html_content=html_content
+                            )
+
+                            # Log email to database for archival
+                            log_email_to_database(
+                                email_type='transactional',
+                                subject=subject,
+                                html_content=html_content,
+                                text_content=None,
+                                recipient_emails=user.email,
+                                recipient_user_id=user.id,
+                                success=success,
+                                error_message=msg if not success else None,
+                                brevo_message_ids=details.get('brevo_message_ids', []),
+                                failed_recipients=details.get('failed_recipients', [])
                             )
                         except Exception as e:
                             app.logger.error(f"Failed to send payout completion email: {str(e)}")
@@ -10499,11 +10788,26 @@ def stripe_webhook():
                                 terms_url=request.host_url.rstrip('/') + '/terms'
                             )
 
-                            email_service.send_single_email(
+                            subject = f"Bayaran Instant Gagal - {payout_record.payout_number}"
+                            success, msg, status_code, details = email_service.send_single_email(
                                 to_email=user.email,
                                 to_name=user.full_name or user.username,
-                                subject=f"Bayaran Instant Gagal - {payout_record.payout_number}",
+                                subject=subject,
                                 html_content=html_content
+                            )
+
+                            # Log email to database for archival
+                            log_email_to_database(
+                                email_type='transactional',
+                                subject=subject,
+                                html_content=html_content,
+                                text_content=None,
+                                recipient_emails=user.email,
+                                recipient_user_id=user.id,
+                                success=success,
+                                error_message=msg if not success else None,
+                                brevo_message_ids=details.get('brevo_message_ids', []),
+                                failed_recipients=details.get('failed_recipients', [])
                             )
                         except Exception as e:
                             app.logger.error(f"Failed to send payout failure email: {str(e)}")
@@ -11082,11 +11386,26 @@ def create_instant_payout():
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
 
-                email_service.send_single_email(
+                subject = f"Bayaran Instant - {payout_number}"
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=user.email,
                     to_name=user.full_name or user.username,
-                    subject=f"Bayaran Instant - {payout_number}",
+                    subject=subject,
                     html_content=html_content
+                )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=None,
+                    recipient_emails=user.email,
+                    recipient_user_id=user.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
                 )
             except Exception as e:
                 app.logger.error(f"Failed to send instant payout email: {str(e)}")
@@ -12709,11 +13028,17 @@ def admin_send_email():
             text_content=text_content or None
         )
 
-        # Create database log entry
+        # Create database log entry with email content for archival
         try:
+            # Get all recipient emails
+            all_recipient_emails = [email for email, name in to_emails]
+
             email_log = EmailSendLog(
                 email_type='admin_bulk',
                 subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                recipient_emails=json.dumps(all_recipient_emails),
                 sender_user_id=current_user.id if current_user and current_user.is_authenticated else None,
                 recipient_count=details.get('total_count', len(users)),
                 successful_count=details.get('successful_count', 0),
@@ -13016,7 +13341,7 @@ This is an automated notification. Please do not reply to this email.
 """
 
                 # Send the email
-                email_sent = email_service.send_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=gig_owner.email,
                     to_name=recipient_name,
                     subject=subject,
@@ -13024,7 +13349,21 @@ This is an automated notification. Please do not reply to this email.
                     text_content=text_content
                 )
 
-                if email_sent:
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=gig_owner.email,
+                    recipient_user_id=gig_owner.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
+                if success:
                     app.logger.info(f"Breach notification email sent to {gig_owner.email} for deleted gig: {gig.title}")
                 else:
                     app.logger.warning(f"Failed to send breach notification email to {gig_owner.email}")
@@ -13970,12 +14309,28 @@ def request_payout():
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
 
-                email_service.send_single_email(
+                subject = f"Withdrawal Request Received - {payout_number}"
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=user.email,
                     to_name=user.full_name or user.username,
-                    subject=f"Withdrawal Request Received - {payout_number}",
+                    subject=subject,
                     html_content=html_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=None,
+                    recipient_emails=user.email,
+                    recipient_user_id=user.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent withdrawal request email to user {user_id}")
             except Exception as e:
                 app.logger.error(f"Failed to send withdrawal request email: {str(e)}")
@@ -16499,12 +16854,28 @@ def admin_update_payout(payout_id):
                             terms_url=request.host_url.rstrip('/') + '/terms'
                         )
 
-                        email_service.send_single_email(
+                        subject = f"Withdrawal Completed - {payout.payout_number}"
+                        success, msg, status_code, details = email_service.send_single_email(
                             to_email=user.email,
                             to_name=user.full_name or user.username,
-                            subject=f"Withdrawal Completed - {payout.payout_number}",
+                            subject=subject,
                             html_content=html_content
                         )
+
+                        # Log email to database for archival
+                        log_email_to_database(
+                            email_type='transactional',
+                            subject=subject,
+                            html_content=html_content,
+                            text_content=None,
+                            recipient_emails=user.email,
+                            recipient_user_id=user.id,
+                            success=success,
+                            error_message=msg if not success else None,
+                            brevo_message_ids=details.get('brevo_message_ids', []),
+                            failed_recipients=details.get('failed_recipients', [])
+                        )
+
                         app.logger.info(f"Sent withdrawal completion email to user {user.id}")
                     except Exception as e:
                         app.logger.error(f"Failed to send withdrawal completion email: {str(e)}")
@@ -16764,12 +17135,28 @@ def admin_confirm_payout_payment(payout_id):
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
 
-                email_service.send_single_email(
+                subject = f"Withdrawal Completed - {payout.payout_number}"
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=user.email,
                     to_name=user.full_name or user.username,
-                    subject=f"Withdrawal Completed - {payout.payout_number}",
+                    subject=subject,
                     html_content=html_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=None,
+                    recipient_emails=user.email,
+                    recipient_user_id=user.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent withdrawal completion email to user {user.id}")
             except Exception as e:
                 app.logger.error(f"Failed to send withdrawal completion email: {str(e)}")
@@ -19522,13 +19909,28 @@ Login to your dashboard to read and reply.
 GigHala - Your Trusted Halal Gig Platform
                 """.strip()
 
-                email_service.send_single_email(
+                success, msg, status_code, details = email_service.send_single_email(
                     to_email=recipient.email,
                     to_name=recipient.full_name or recipient.username,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content
                 )
+
+                # Log email to database for archival
+                log_email_to_database(
+                    email_type='transactional',
+                    subject=subject,
+                    html_content=html_content,
+                    text_content=text_content,
+                    recipient_emails=recipient.email,
+                    recipient_user_id=recipient.id,
+                    success=success,
+                    error_message=msg if not success else None,
+                    brevo_message_ids=details.get('brevo_message_ids', []),
+                    failed_recipients=details.get('failed_recipients', [])
+                )
+
                 app.logger.info(f"Sent message notification email to user {recipient.id}")
 
             except Exception as e:
@@ -20534,7 +20936,7 @@ with app.app_context():
     init_database()
 
 # Initialize scheduled jobs (email digests, etc.)
-scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, email_service, calculate_distance)
+scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance)
 
 # Setup Google OAuth if credentials are available
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint
