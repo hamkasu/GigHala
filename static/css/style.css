@@ -2464,4 +2464,18 @@ html, body {
     .date-bar > div {
         gap: 6px !important;
     }
+
+    /* Hide button text on mobile, show only icons */
+    .date-bar .btn-text,
+    .user-email-bar .btn-text,
+    .header-nav .btn-text {
+        display: none !important;
+    }
+
+    .date-bar .btn-primary,
+    .user-email-bar a,
+    .user-email-bar button {
+        padding: 6px 10px !important;
+        min-width: auto !important;
+    }
 }
