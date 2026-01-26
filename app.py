@@ -872,6 +872,9 @@ TRANSLATIONS = {
         'duration_1_month': '1 bulan',
         'duration_ongoing': 'Berterusan',
         'deadline': 'Tarikh Akhir',
+        'workers_needed': 'Bilangan Pekerja',
+        'workers_needed_hint': '(Berapa ramai pekerja yang anda perlukan?)',
+        'custom_workers_count': 'Bilangan Pekerja Tersuai',
         'location_skills': 'Lokasi & Kemahiran',
         'type_or_select_location': 'Taip atau pilih lokasi',
         'all_locations_option': 'Semua lokasi',
@@ -1224,6 +1227,9 @@ TRANSLATIONS = {
         'duration_1_month': '1 month',
         'duration_ongoing': 'Ongoing',
         'deadline': 'Deadline',
+        'workers_needed': 'Workers Needed',
+        'workers_needed_hint': '(How many workers do you need?)',
+        'custom_workers_count': 'Custom Workers Count',
         'location_skills': 'Location & Skills',
         'type_or_select_location': 'Type or select location',
         'all_locations_option': 'All locations',
@@ -2511,6 +2517,7 @@ class Gig(db.Model):
     status = db.Column(db.String(20), default='open')  # open, in_progress, pending_review, completed, cancelled, blocked
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    workers_needed = db.Column(db.Integer, default=1)  # Number of workers needed for this gig (1 = single worker, >1 = multiple workers)
     agreed_amount = db.Column(db.Float)
     halal_compliant = db.Column(db.Boolean, default=True)
     halal_verified = db.Column(db.Boolean, default=False)
@@ -2529,6 +2536,28 @@ class Gig(db.Model):
     block_reason = db.Column(db.Text)  # Reason for blocking
     report_count = db.Column(db.Integer, default=0)  # Number of reports received
     ai_moderation_result = db.Column(db.Text)  # JSON result from AI halal compliance check
+
+class GigWorker(db.Model):
+    """Track multiple workers assigned to a gig when workers_needed > 1"""
+    __table_args__ = (
+        db.UniqueConstraint('gig_id', 'worker_id', name='unique_worker_per_gig'),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
+    worker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)  # Link to the accepted application
+    agreed_amount = db.Column(db.Float)  # Individual worker's agreed amount
+    status = db.Column(db.String(20), default='active')  # active, completed, withdrawn
+    work_submitted = db.Column(db.Boolean, default=False)
+    work_submission_date = db.Column(db.DateTime)
+    completion_notes = db.Column(db.Text)
+    assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)
+
+    # Relationships
+    gig = db.relationship('Gig', backref=db.backref('gig_workers', lazy='dynamic'))
+    worker = db.relationship('User', backref=db.backref('gig_assignments', lazy='dynamic'))
+    application = db.relationship('Application', backref='gig_worker_assignment')
 
 class GigReport(db.Model):
     """User reports for flagging inappropriate or haram content in gigs"""
@@ -3761,6 +3790,14 @@ def post_gig():
     form_data = {}
     
     if request.method == 'POST':
+        # Handle workers_needed - can be a preset value or custom
+        workers_needed_value = request.form.get('workers_needed', '1')
+        if workers_needed_value == 'custom':
+            workers_needed = int(request.form.get('custom_workers_needed', 1) or 1)
+        else:
+            workers_needed = int(workers_needed_value or 1)
+        workers_needed = max(1, min(100, workers_needed))  # Clamp between 1 and 100
+
         form_data = {
             'title': request.form.get('title', ''),
             'description': request.form.get('description', ''),
@@ -3774,7 +3811,8 @@ def post_gig():
             'halal_compliant': request.form.get('halal_compliant') == 'on',
             'is_instant_payout': request.form.get('is_instant_payout') == 'on',
             'is_brand_partnership': request.form.get('is_brand_partnership') == 'on',
-            'skills_required': request.form.get('skills_required', '[]')
+            'skills_required': request.form.get('skills_required', '[]'),
+            'workers_needed': workers_needed
         }
         
         try:
@@ -3928,6 +3966,7 @@ def post_gig():
                 is_brand_partnership=form_data['is_brand_partnership'],
                 skills_required=json.dumps(skills_required),
                 deadline=deadline,
+                workers_needed=form_data['workers_needed'],  # Number of workers needed for this gig
                 ai_moderation_result=ai_moderation_json  # Store AI result for audit
             )
 
@@ -7351,28 +7390,71 @@ def accept_application(application_id):
         if gig.client_id != user_id:
             return jsonify({'error': 'Only the gig owner can accept applications'}), 403
 
-        # Check if gig is still open
-        if gig.status != 'open':
-            return jsonify({'error': 'This gig is no longer accepting applications'}), 400
+        # Check if gig is still open or in_progress (for multi-worker gigs)
+        workers_needed = gig.workers_needed or 1
+        if workers_needed > 1:
+            # For multi-worker gigs, allow acceptance even when in_progress if slots available
+            if gig.status not in ['open', 'in_progress']:
+                return jsonify({'error': 'This gig is no longer accepting applications'}), 400
+        else:
+            # Single worker gig - must be open
+            if gig.status != 'open':
+                return jsonify({'error': 'This gig is no longer accepting applications'}), 400
+
+        # Check if this freelancer is already assigned to this gig
+        existing_assignment = GigWorker.query.filter_by(
+            gig_id=gig.id,
+            worker_id=application.freelancer_id
+        ).first()
+        if existing_assignment:
+            return jsonify({'error': 'This freelancer is already assigned to this gig'}), 400
+
+        # Count current workers assigned
+        current_workers_count = GigWorker.query.filter_by(gig_id=gig.id, status='active').count()
+
+        # Check if we have room for more workers
+        if current_workers_count >= workers_needed:
+            return jsonify({'error': 'All worker positions for this gig have been filled'}), 400
 
         # Accept this application
         application.status = 'accepted'
 
-        # Assign freelancer to gig and set agreed amount
-        gig.freelancer_id = application.freelancer_id
-        gig.status = 'in_progress'
-        # Store the freelancer's proposed price as the agreed amount
-        gig.agreed_amount = application.proposed_price if application.proposed_price else gig.budget_min
+        # Calculate agreed amount for this worker
+        agreed_amount = application.proposed_price if application.proposed_price else gig.budget_min
 
-        # Reject all other pending applications for this gig
-        other_applications = Application.query.filter(
-            Application.gig_id == gig.id,
-            Application.id != application_id,
-            Application.status == 'pending'
-        ).all()
+        # Create GigWorker entry for multi-worker tracking
+        gig_worker = GigWorker(
+            gig_id=gig.id,
+            worker_id=application.freelancer_id,
+            application_id=application.id,
+            agreed_amount=agreed_amount,
+            status='active'
+        )
+        db.session.add(gig_worker)
 
-        for other_app in other_applications:
-            other_app.status = 'rejected'
+        # For backwards compatibility, also set the legacy freelancer_id if this is single worker gig
+        # or if it's the first worker in a multi-worker gig
+        if workers_needed == 1 or current_workers_count == 0:
+            gig.freelancer_id = application.freelancer_id
+            gig.agreed_amount = agreed_amount
+
+        # Update gig status
+        new_workers_count = current_workers_count + 1
+        if new_workers_count >= workers_needed:
+            # All positions filled - change to in_progress
+            gig.status = 'in_progress'
+            # Reject all remaining pending applications since all positions are filled
+            other_applications = Application.query.filter(
+                Application.gig_id == gig.id,
+                Application.id != application_id,
+                Application.status == 'pending'
+            ).all()
+            for other_app in other_applications:
+                other_app.status = 'rejected'
+        else:
+            # Still need more workers - change to in_progress but keep accepting
+            gig.status = 'in_progress'
+            # Note: Other applications remain pending so client can accept more
 
         # Auto-create conversation between client and freelancer for THIS specific gig
         # Check if a conversation already exists for this specific gig
@@ -7491,12 +7573,28 @@ GigHala - Your Trusted Halal Gig Platform
                 sms_message = f"GigHala: Congratulations! Your application for '{gig.title}' has been accepted. Check your dashboard to start working!"
                 send_transaction_sms_notification(freelancer.phone, sms_message)
 
+        # Build response message based on worker count
+        workers_needed = gig.workers_needed or 1
+        current_count = GigWorker.query.filter_by(gig_id=gig.id, status='active').count()
+        remaining_slots = workers_needed - current_count
+
+        if workers_needed > 1:
+            if remaining_slots > 0:
+                message = f'Application accepted successfully. {current_count}/{workers_needed} workers hired. {remaining_slots} more position(s) available.'
+            else:
+                message = f'Application accepted successfully. All {workers_needed} workers have been hired.'
+        else:
+            message = 'Application accepted successfully'
+
         return jsonify({
-            'message': 'Application accepted successfully',
+            'message': message,
             'gig': {
                 'id': gig.id,
                 'status': gig.status,
-                'freelancer_id': gig.freelancer_id
+                'freelancer_id': gig.freelancer_id,
+                'workers_needed': workers_needed,
+                'workers_hired': current_count,
+                'remaining_slots': remaining_slots
             }
         }), 200
 
@@ -7504,6 +7602,63 @@ GigHala - Your Trusted Halal Gig Platform
         db.session.rollback()
         app.logger.error(f"Accept application error: {str(e)}")
         return jsonify({'error': 'Failed to accept application'}), 500
+
+
+@app.route('/api/gigs/<int:gig_id>/workers', methods=['GET'])
+def get_gig_workers(gig_id):
+    """Get all workers assigned to a gig (for multi-worker gigs)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only client or assigned workers can view the workers list
+        is_client = gig.client_id == user_id
+        is_worker = GigWorker.query.filter_by(gig_id=gig_id, worker_id=user_id).first() is not None
+
+        if not is_client and not is_worker:
+            return jsonify({'error': 'Access denied'}), 403
+
+        # Get all workers for this gig
+        gig_workers = GigWorker.query.filter_by(gig_id=gig_id).all()
+        workers_needed = gig.workers_needed or 1
+        workers_data = []
+
+        for gw in gig_workers:
+            worker = User.query.get(gw.worker_id)
+            if worker:
+                workers_data.append({
+                    'id': gw.id,
+                    'worker_id': gw.worker_id,
+                    'worker_name': worker.full_name or worker.username,
+                    'worker_username': worker.username,
+                    'worker_avatar': worker.profile_picture,
+                    'worker_rating': worker.rating,
+                    'worker_verified': worker.is_verified,
+                    'agreed_amount': gw.agreed_amount,
+                    'status': gw.status,
+                    'work_submitted': gw.work_submitted,
+                    'work_submission_date': gw.work_submission_date.isoformat() if gw.work_submission_date else None,
+                    'assigned_at': gw.assigned_at.isoformat() if gw.assigned_at else None,
+                    'completed_at': gw.completed_at.isoformat() if gw.completed_at else None
+                })
+
+        return jsonify({
+            'gig_id': gig_id,
+            'gig_title': gig.title,
+            'workers_needed': workers_needed,
+            'workers_hired': len(gig_workers),
+            'remaining_slots': max(0, workers_needed - len(gig_workers)),
+            'is_multi_worker': workers_needed > 1,
+            'workers': workers_data
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get gig workers error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve workers'}), 500
+
 
 @app.route('/api/applications/<int:application_id>/reject', methods=['POST'])
 def reject_application(application_id):

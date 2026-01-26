@@ -555,6 +555,35 @@
                         <input type="date" class="form-input" id="deadline" name="deadline" value="{{ form_data.deadline if form_data else '' }}">
                     </div>
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            {{ t('workers_needed') if t else 'Workers Needed' }}
+                            <small class="text-muted" style="font-weight: normal;">{{ t('workers_needed_hint') if t else '(How many workers do you need?)' }}</small>
+                        </label>
+                        <select class="form-select" id="workers_needed" name="workers_needed" onchange="updateWorkersInfo()">
+                            <option value="1" {% if not form_data or (form_data and form_data.workers_needed == 1) %}selected{% endif %}>1 Worker (Single assignment)</option>
+                            <option value="2" {% if form_data and form_data.workers_needed == 2 %}selected{% endif %}>2 Workers</option>
+                            <option value="3" {% if form_data and form_data.workers_needed == 3 %}selected{% endif %}>3 Workers</option>
+                            <option value="4" {% if form_data and form_data.workers_needed == 4 %}selected{% endif %}>4 Workers</option>
+                            <option value="5" {% if form_data and form_data.workers_needed == 5 %}selected{% endif %}>5 Workers</option>
+                            <option value="10" {% if form_data and form_data.workers_needed == 10 %}selected{% endif %}>10 Workers</option>
+                            <option value="custom" {% if form_data and form_data.workers_needed and form_data.workers_needed > 10 %}selected{% endif %}>Custom (specify below)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-workers-group" style="display: none;">
+                        <label class="form-label">
+                            {{ t('custom_workers_count') if t else 'Custom Workers Count' }}
+                        </label>
+                        <input type="number" class="form-input" id="custom_workers_needed" name="custom_workers_needed"
+                               min="1" max="100" placeholder="Enter number of workers"
+                               value="{{ form_data.workers_needed if form_data and form_data.workers_needed > 10 else '' }}">
+                    </div>
+                </div>
+                <div id="workers-info-message" class="form-hint" style="margin-bottom: 20px; padding: 10px; background: #f0f9ff; border-radius: 8px; display: none;">
+                    <strong>Multiple Workers Mode:</strong> You can accept multiple freelancers for this gig. Each accepted worker will work independently on their portion.
+                </div>
             </div>
 
             <div class="form-section">
@@ -1199,6 +1228,7 @@
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         toggleMilestones();
+        updateWorkersInfo();
 
         // Listen to approved budget changes to update milestone total
         const approvedBudgetInput = document.getElementById('approved_budget');
@@ -1206,5 +1236,38 @@
             approvedBudgetInput.addEventListener('change', calculateMilestoneTotal);
         }
     });
+
+    // ============================================================================
+    // MULTIPLE WORKERS FUNCTIONS
+    // ============================================================================
+
+    function updateWorkersInfo() {
+        const workersSelect = document.getElementById('workers_needed');
+        const customGroup = document.getElementById('custom-workers-group');
+        const infoMessage = document.getElementById('workers-info-message');
+        const selectedValue = workersSelect.value;
+
+        // Show/hide custom input
+        if (selectedValue === 'custom') {
+            customGroup.style.display = 'block';
+        } else {
+            customGroup.style.display = 'none';
+        }
+
+        // Show/hide info message for multiple workers
+        const workersCount = selectedValue === 'custom'
+            ? parseInt(document.getElementById('custom_workers_needed').value) || 1
+            : parseInt(selectedValue);
+
+        if (workersCount > 1) {
+            infoMessage.style.display = 'block';
+            infoMessage.innerHTML = `<strong>Multiple Workers Mode:</strong> You are hiring <strong>${workersCount} workers</strong> for this gig. Each accepted worker will work independently on their portion. The budget shown is per worker.`;
+        } else {
+            infoMessage.style.display = 'none';
+        }
+    }
+
+    // Update info when custom input changes
+    document.getElementById('custom_workers_needed')?.addEventListener('input', updateWorkersInfo);
 </script>
 {% endblock %}
