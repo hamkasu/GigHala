@@ -145,11 +145,11 @@
 
             <!-- Buttons and dates on the right -->
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                <button class="btn-primary install-btn" onclick="showInstallModal()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
-                    <span style="font-size: 18px;">📱</span> Install
+                <button class="btn-primary install-btn" onclick="showInstallModal()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="Install App">
+                    <span style="font-size: 18px;">📱</span><span class="btn-text"> Install</span>
                 </button>
                 <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
-                    <span style="font-size: 16px;">🌐</span> {% if lang == 'ms' %}EN{% else %}MS{% endif %}
+                    <span style="font-size: 16px;">🌐</span><span class="btn-text"> {% if lang == 'ms' %}EN{% else %}MS{% endif %}</span>
                 </button>
                 <button class="btn-primary mobile-hide majikan-btn" onclick="const section = document.getElementById('client-section'); if(section) { section.scrollIntoView({behavior: 'smooth', block: 'start'}); } else { console.error('client-section not found'); }" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
                     <span style="font-size: 16px;">💼</span> Majikan
@@ -159,10 +159,10 @@
                 </button>
                 <div class="desktop-only-controls" style="display: none; align-items: center; gap: 8px;">
                     <a href="/login" style="text-decoration: none;">
-                        <button class="btn-primary" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s;">Log Masuk</button>
+                        <button class="btn-primary" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="Log Masuk"><span style="font-size: 16px;">🔑</span><span class="btn-text"> Log Masuk</span></button>
                     </a>
                     <a href="/register" style="text-decoration: none;">
-                        <button class="btn-primary" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s;">Daftar Percuma</button>
+                        <button class="btn-primary" style="background: #0D7C66; color: white; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="Daftar Percuma"><span style="font-size: 16px;">👤</span><span class="btn-text"> Daftar</span></button>
                     </a>
                 </div>
 
