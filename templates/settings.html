@@ -657,8 +657,8 @@
             <div class="category-selector">
                 {% if categories %}
                     {% for category in categories %}
-                    <div class="category-option" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}" data-category-slug="{{ category.slug }}" data-category-icon="{{ category.icon or '📋' }}">
-                        <span style="font-size: 20px;">{{ category.icon or '📋' }}</span>
+                    <div class="category-option" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}" data-category-slug="{{ category.slug }}" data-category-icon="{{ category.icon or 'clipboard' }}">
+                        <i data-feather="{{ category.icon or 'clipboard' }}" style="width: 20px; height: 20px;"></i>
                         <span>{{ category.name }}</span>
                     </div>
                     {% endfor %}
@@ -1004,11 +1004,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="specialization-card">
                 <div class="specialization-header">
                     <div class="specialization-title">
-                        <span style="font-size: 20px;">${spec.category_icon || '📋'}</span>
+                        <i data-feather="${spec.category_icon || 'clipboard'}" style="width: 20px; height: 20px;"></i>
                         <span>${spec.category_name}</span>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick='editSpecializationFull(${spec.id}, ${spec.category_id}, "${spec.category_name}", "${spec.category_icon || '📋'}", ${specData})'>Edit</button>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;" onclick='editSpecializationFull(${spec.id}, ${spec.category_id}, "${spec.category_name}", "${spec.category_icon || 'clipboard'}", ${specData})'>Edit</button>
                         <button class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;" onclick="deleteSpecialization(${spec.id})">Padam</button>
                     </div>
                 </div>
@@ -1021,6 +1021,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         }).join('');
+
+        // Re-initialize feather icons after rendering
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
     }
 
     // Update category options (disable already selected categories)
@@ -1061,7 +1066,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentSkills = [...skills];
 
         document.getElementById('modal-category-name').textContent = categoryName;
-        document.getElementById('modal-category-icon').textContent = categoryIcon;
+        // Use Feather icon in modal header
+        document.getElementById('modal-category-icon').innerHTML = `<i data-feather="${categoryIcon || 'clipboard'}" style="width: 24px; height: 24px;"></i>`;
         document.getElementById('skill-input').value = '';
 
         // Set rate fields
@@ -1075,6 +1081,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide category selector and show modal
         document.getElementById('add-specialization-section').style.display = 'none';
         document.getElementById('edit-specialization-modal').style.display = 'block';
+
+        // Re-initialize feather icons after showing modal
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
     }
 
     // Edit specialization with full data (called from list)
@@ -1232,6 +1243,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load specializations on page load
     loadSpecializations();
+
+    // Initialize Feather icons for category selector
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
 });
 </script>
 {% endblock %}
