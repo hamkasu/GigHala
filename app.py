@@ -2538,7 +2538,10 @@ class Gig(db.Model):
     ai_moderation_result = db.Column(db.Text)  # JSON result from AI halal compliance check
 
 class GigWorker(db.Model):
-    """Track multiple workers assigned to a gig when workers_needed > 1"""
+    """Track multiple workers assigned to a gig when workers_needed > 1.
+
+    Supports specialized rate tracking for analytics and transparent pricing.
+    """
     __table_args__ = (
         db.UniqueConstraint('gig_id', 'worker_id', name='unique_worker_per_gig'),
     )
@@ -2554,10 +2557,15 @@ class GigWorker(db.Model):
     assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)
 
+    # Specialized rate tracking for analytics and transparency
+    specialized_rate_used = db.Column(db.Boolean, default=False)  # Flag if specialized rate was applied
+    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id'))  # Which specialization was used
+
     # Relationships
     gig = db.relationship('Gig', backref=db.backref('gig_workers', lazy='dynamic'))
     worker = db.relationship('User', backref=db.backref('gig_assignments', lazy='dynamic'))
     application = db.relationship('Application', backref='gig_worker_assignment')
+    specialization = db.relationship('WorkerSpecialization', backref='gig_assignments')
 
 class GigReport(db.Model):
     """User reports for flagging inappropriate or haram content in gigs"""
@@ -2578,6 +2586,10 @@ class GigReport(db.Model):
     reviewer = db.relationship('User', foreign_keys=[reviewed_by], backref='gig_reports_reviewed')
 
 class Application(db.Model):
+    """Worker application for a gig.
+
+    Supports specialized rates with transparent pricing.
+    """
     id = db.Column(db.Integer, primary_key=True)
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -2589,6 +2601,13 @@ class Application(db.Model):
     work_submission_date = db.Column(db.DateTime)  # When work was submitted
     completion_notes = db.Column(db.Text)  # Freelancer's notes when marking work as completed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Specialized rate fields for transparent pricing
+    use_specialized_rate = db.Column(db.Boolean, default=False)  # Worker chose to use their specialized rate
+    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id'))  # Reference to specialization used
+
+    # Relationship to specialization
+    specialization = db.relationship('WorkerSpecialization', backref='applications')
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2793,12 +2812,26 @@ class Category(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class WorkerSpecialization(db.Model):
-    """Model for storing worker specializations - links workers to categories with specific skills"""
+    """Model for storing worker specializations - links workers to categories with specific skills and rates.
+
+    Supports specialized workers who can define their own charges/rates visible to clients.
+    - specialization_title: Custom title (e.g., "Senior Quran Tutor", "Certified Halal Chef")
+    - base_hourly_rate: MYR per hour for hourly gigs
+    - base_fixed_rate: MYR per fixed gig
+    - premium_multiplier: Float multiplier for specialized work (default 1.0, e.g., 1.2 = 20% premium)
+    """
     __tablename__ = 'worker_specialization'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     skills = db.Column(db.Text)  # JSON array of skills for this category
+
+    # Specialized rate fields
+    specialization_title = db.Column(db.String(100))  # Custom title like "Senior Quran Tutor"
+    base_hourly_rate = db.Column(db.Float)  # MYR per hour
+    base_fixed_rate = db.Column(db.Float)  # MYR per fixed gig
+    premium_multiplier = db.Column(db.Float, default=1.0)  # Multiplier for premium work (1.0 = no premium)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -2806,6 +2839,30 @@ class WorkerSpecialization(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'category_id', name='unique_user_category'),
     )
+
+    # Relationship to user
+    user = db.relationship('User', backref=db.backref('specializations', lazy='dynamic'))
+    category = db.relationship('Category', backref=db.backref('worker_specializations', lazy='dynamic'))
+
+    def calculate_suggested_rate(self, hours: float = None, is_hourly: bool = True) -> float:
+        """Calculate suggested rate based on specialization settings.
+
+        Args:
+            hours: Number of hours (for hourly gigs)
+            is_hourly: Whether to use hourly or fixed rate
+
+        Returns:
+            Calculated rate with premium multiplier applied
+        """
+        multiplier = self.premium_multiplier or 1.0
+
+        if is_hourly and self.base_hourly_rate:
+            base = self.base_hourly_rate * (hours or 1)
+            return round(base * multiplier, 2)
+        elif not is_hourly and self.base_fixed_rate:
+            return round(self.base_fixed_rate * multiplier, 2)
+
+        return None
 
     def to_dict(self):
         """Convert specialization to dictionary for JSON response"""
@@ -2819,9 +2876,66 @@ class WorkerSpecialization(db.Model):
             'category_slug': category.slug if category else None,
             'category_icon': category.icon if category else None,
             'skills': json.loads(self.skills) if self.skills else [],
+            'specialization_title': self.specialization_title,
+            'base_hourly_rate': self.base_hourly_rate,
+            'base_fixed_rate': self.base_fixed_rate,
+            'premium_multiplier': self.premium_multiplier or 1.0,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+    def to_public_dict(self):
+        """Convert specialization to public-facing dictionary (for client view)"""
+        import json
+        category = Category.query.get(self.category_id)
+        return {
+            'id': self.id,
+            'category_name': category.name if category else None,
+            'category_icon': category.icon if category else None,
+            'skills': json.loads(self.skills) if self.skills else [],
+            'specialization_title': self.specialization_title,
+            'base_hourly_rate': self.base_hourly_rate,
+            'base_fixed_rate': self.base_fixed_rate,
+            'has_premium': (self.premium_multiplier or 1.0) > 1.0
+        }
+
+
+class WorkerRateAudit(db.Model):
+    """Audit log for worker rate changes - PDPA compliance.
+
+    Tracks all changes to worker specialization rates for transparency and compliance.
+    """
+    __tablename__ = 'worker_rate_audit'
+    id = db.Column(db.Integer, primary_key=True)
+    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    field_changed = db.Column(db.String(50), nullable=False)
+    old_value = db.Column(db.Text)
+    new_value = db.Column(db.Text)
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+
+    # Relationships
+    specialization = db.relationship('WorkerSpecialization', backref='rate_audits')
+    user = db.relationship('User', backref='rate_change_audits')
+
+    @classmethod
+    def log_change(cls, specialization_id: int, user_id: int, field: str,
+                   old_val, new_val, ip_address: str = None, user_agent: str = None):
+        """Log a rate change for audit purposes."""
+        audit = cls(
+            specialization_id=specialization_id,
+            user_id=user_id,
+            field_changed=field,
+            old_value=str(old_val) if old_val is not None else None,
+            new_value=str(new_val) if new_val is not None else None,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+        db.session.add(audit)
+        return audit
+
 
 class WorkPhoto(db.Model):
     """Model for storing work photos uploaded by freelancers and clients"""
@@ -3648,7 +3762,11 @@ def view_gig(gig_id):
         
         # Get gig photos
         gig_photos = GigPhoto.query.filter_by(gig_id=gig_id).order_by(GigPhoto.created_at.desc()).all()
-        
+
+        # Get category ID for specialized rate lookup in apply form
+        gig_category = Category.query.filter_by(slug=gig.category).first()
+        gig_category_id = gig_category.id if gig_category else 0
+
         # Get applications for gig owner to manage
         gig_applications = []
         if is_own_gig:
@@ -3763,6 +3881,7 @@ def view_gig(gig_id):
                               freelancer_user=freelancer_user,
                               gig_invoices=gig_invoices,
                               gig_receipts=gig_receipts,
+                              gig_category_id=gig_category_id,
                               timedelta=timedelta,
                               lang=get_user_language(),
                               t=t)
@@ -6782,6 +6901,13 @@ def get_gig(gig_id):
 @app.route('/api/gigs/<int:gig_id>/apply', methods=['POST'])
 @api_rate_limit(requests_per_minute=20)
 def apply_to_gig(gig_id):
+    """Apply to a gig with optional specialized rate.
+
+    Supports:
+    - use_specialized_rate: Boolean, use worker's specialized rate
+    - specialization_id: ID of the specialization to use
+    - proposed_price: Override price (can be auto-calculated from specialization)
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -6805,6 +6931,20 @@ def apply_to_gig(gig_id):
         # Sanitize and validate inputs
         cover_letter = sanitize_input(data.get('cover_letter', ''), max_length=2000)
 
+        # Handle specialized rate
+        use_specialized_rate = data.get('use_specialized_rate', False)
+        specialization_id = data.get('specialization_id')
+        specialization = None
+
+        if use_specialized_rate and specialization_id:
+            # Validate specialization belongs to current user
+            specialization = WorkerSpecialization.query.filter_by(
+                id=specialization_id,
+                user_id=session['user_id']
+            ).first()
+            if not specialization:
+                return jsonify({'error': 'Invalid specialization'}), 400
+
         # Validate proposed price
         proposed_price = None
         if data.get('proposed_price'):
@@ -6814,6 +6954,16 @@ def apply_to_gig(gig_id):
                     return jsonify({'error': 'Invalid proposed price'}), 400
             except (ValueError, TypeError):
                 return jsonify({'error': 'Invalid price format'}), 400
+
+        # If using specialized rate and no proposed_price, calculate from specialization
+        if use_specialized_rate and specialization and not proposed_price:
+            # Default to fixed rate for this platform (gigs are typically fixed-price)
+            if specialization.base_fixed_rate:
+                proposed_price = specialization.calculate_suggested_rate(is_hourly=False)
+            elif specialization.base_hourly_rate:
+                # Estimate hours based on gig duration if available
+                estimated_hours = 8  # Default estimate
+                proposed_price = specialization.calculate_suggested_rate(hours=estimated_hours, is_hourly=True)
 
         # Sanitize video pitch URL (basic validation)
         video_pitch = sanitize_input(data.get('video_pitch', ''), max_length=255)
@@ -6825,7 +6975,9 @@ def apply_to_gig(gig_id):
             freelancer_id=session['user_id'],
             cover_letter=cover_letter,
             proposed_price=proposed_price,
-            video_pitch=video_pitch
+            video_pitch=video_pitch,
+            use_specialized_rate=use_specialized_rate,
+            specialization_id=specialization.id if specialization else None
         )
 
         # Handle None case for applications count (existing gigs may have None)
@@ -7423,12 +7575,15 @@ def accept_application(application_id):
         agreed_amount = application.proposed_price if application.proposed_price else gig.budget_min
 
         # Create GigWorker entry for multi-worker tracking
+        # Include specialized rate tracking for analytics and transparency
         gig_worker = GigWorker(
             gig_id=gig.id,
             worker_id=application.freelancer_id,
             application_id=application.id,
             agreed_amount=agreed_amount,
-            status='active'
+            status='active',
+            specialized_rate_used=application.use_specialized_rate or False,
+            specialization_id=application.specialization_id
         )
         db.session.add(gig_worker)
 
@@ -11965,7 +12120,14 @@ def get_specializations():
 
 @app.route('/api/specializations', methods=['POST'])
 def add_or_update_specialization():
-    """Add or update a worker specialization for a specific category"""
+    """Add or update a worker specialization for a specific category.
+
+    Supports specialized rates:
+    - specialization_title: Custom title (e.g., "Senior Quran Tutor")
+    - base_hourly_rate: MYR per hour
+    - base_fixed_rate: MYR per fixed gig
+    - premium_multiplier: Float multiplier (default 1.0)
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -11992,6 +12154,42 @@ def add_or_update_specialization():
         # Sanitize and limit skills (max 10 per category, each max 50 chars)
         skills = [sanitize_input(str(skill).strip(), max_length=50) for skill in skills[:10] if str(skill).strip()]
 
+        # Extract and validate rate fields
+        specialization_title = data.get('specialization_title')
+        if specialization_title:
+            specialization_title = sanitize_input(str(specialization_title).strip(), max_length=100)
+
+        base_hourly_rate = None
+        if data.get('base_hourly_rate') is not None:
+            try:
+                base_hourly_rate = float(data['base_hourly_rate'])
+                if base_hourly_rate < 0 or base_hourly_rate > 10000:  # Max RM10,000/hour
+                    return jsonify({'error': 'Invalid hourly rate. Must be between 0 and 10000'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid hourly rate format'}), 400
+
+        base_fixed_rate = None
+        if data.get('base_fixed_rate') is not None:
+            try:
+                base_fixed_rate = float(data['base_fixed_rate'])
+                if base_fixed_rate < 0 or base_fixed_rate > 1000000:  # Max RM1,000,000 per gig
+                    return jsonify({'error': 'Invalid fixed rate. Must be between 0 and 1000000'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid fixed rate format'}), 400
+
+        premium_multiplier = 1.0
+        if data.get('premium_multiplier') is not None:
+            try:
+                premium_multiplier = float(data['premium_multiplier'])
+                if premium_multiplier < 1.0 or premium_multiplier > 3.0:  # Max 3x premium
+                    return jsonify({'error': 'Invalid premium multiplier. Must be between 1.0 and 3.0'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid premium multiplier format'}), 400
+
+        # Get IP and user agent for audit logging
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+        user_agent = request.headers.get('User-Agent', '')[:500]
+
         # Check if specialization already exists for this user and category
         existing = WorkerSpecialization.query.filter_by(
             user_id=session['user_id'],
@@ -11999,18 +12197,77 @@ def add_or_update_specialization():
         ).first()
 
         if existing:
+            # Track changes for audit log
+            changes = []
+            if existing.skills != json.dumps(skills):
+                changes.append(('skills', existing.skills, json.dumps(skills)))
+            if existing.specialization_title != specialization_title:
+                changes.append(('specialization_title', existing.specialization_title, specialization_title))
+            if existing.base_hourly_rate != base_hourly_rate:
+                changes.append(('base_hourly_rate', existing.base_hourly_rate, base_hourly_rate))
+            if existing.base_fixed_rate != base_fixed_rate:
+                changes.append(('base_fixed_rate', existing.base_fixed_rate, base_fixed_rate))
+            if existing.premium_multiplier != premium_multiplier:
+                changes.append(('premium_multiplier', existing.premium_multiplier, premium_multiplier))
+
             # Update existing specialization
             existing.skills = json.dumps(skills)
+            existing.specialization_title = specialization_title
+            existing.base_hourly_rate = base_hourly_rate
+            existing.base_fixed_rate = base_fixed_rate
+            existing.premium_multiplier = premium_multiplier
             existing.updated_at = datetime.utcnow()
+
+            # Log rate changes for audit (PDPA compliance)
+            for field, old_val, new_val in changes:
+                if 'rate' in field or 'multiplier' in field:
+                    WorkerRateAudit.log_change(
+                        specialization_id=existing.id,
+                        user_id=session['user_id'],
+                        field=field,
+                        old_val=old_val,
+                        new_val=new_val,
+                        ip_address=ip_address,
+                        user_agent=user_agent
+                    )
+
             message = 'Specialization updated successfully'
         else:
             # Create new specialization
             specialization = WorkerSpecialization(
                 user_id=session['user_id'],
                 category_id=category_id,
-                skills=json.dumps(skills)
+                skills=json.dumps(skills),
+                specialization_title=specialization_title,
+                base_hourly_rate=base_hourly_rate,
+                base_fixed_rate=base_fixed_rate,
+                premium_multiplier=premium_multiplier
             )
             db.session.add(specialization)
+            db.session.flush()  # Get the ID for audit logging
+
+            # Log initial rate setup for audit
+            if base_hourly_rate is not None:
+                WorkerRateAudit.log_change(
+                    specialization_id=specialization.id,
+                    user_id=session['user_id'],
+                    field='base_hourly_rate',
+                    old_val=None,
+                    new_val=base_hourly_rate,
+                    ip_address=ip_address,
+                    user_agent=user_agent
+                )
+            if base_fixed_rate is not None:
+                WorkerRateAudit.log_change(
+                    specialization_id=specialization.id,
+                    user_id=session['user_id'],
+                    field='base_fixed_rate',
+                    old_val=None,
+                    new_val=base_fixed_rate,
+                    ip_address=ip_address,
+                    user_agent=user_agent
+                )
+
             message = 'Specialization added successfully'
 
         db.session.commit()
@@ -12053,6 +12310,146 @@ def delete_specialization(specialization_id):
         db.session.rollback()
         app.logger.error(f"Delete specialization error: {str(e)}")
         return jsonify({'error': 'Failed to delete specialization'}), 500
+
+
+@app.route('/api/workers/<int:worker_id>/specializations', methods=['GET'])
+def get_worker_specializations(worker_id):
+    """Get public specializations for a specific worker (client view).
+
+    Returns worker's specializations with rates for transparent pricing.
+    Clients can use this to see worker's expertise and rates before hiring.
+    """
+    try:
+        worker = User.query.get_or_404(worker_id)
+
+        # Get all specializations for this worker
+        specializations = WorkerSpecialization.query.filter_by(user_id=worker_id).all()
+
+        return jsonify({
+            'worker_id': worker_id,
+            'worker_name': worker.full_name or worker.username,
+            'specializations': [spec.to_public_dict() for spec in specializations]
+        })
+    except Exception as e:
+        app.logger.error(f"Get worker specializations error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch worker specializations'}), 500
+
+
+@app.route('/api/workers/<int:worker_id>/specializations/<int:category_id>', methods=['GET'])
+def get_worker_specialization_for_category(worker_id, category_id):
+    """Get a worker's specialization for a specific category.
+
+    Useful when a client is viewing an application or worker profile
+    to see their rates for a specific category.
+    """
+    try:
+        specialization = WorkerSpecialization.query.filter_by(
+            user_id=worker_id,
+            category_id=category_id
+        ).first()
+
+        if not specialization:
+            return jsonify({'error': 'Specialization not found'}), 404
+
+        return jsonify({
+            'specialization': specialization.to_public_dict()
+        })
+    except Exception as e:
+        app.logger.error(f"Get worker specialization for category error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch specialization'}), 500
+
+
+@app.route('/api/specializations/by-category/<int:category_id>', methods=['GET'])
+def get_my_specialization_for_category(category_id):
+    """Get current user's specialization for a specific category.
+
+    Used by the apply form to pre-fill rates when applying to a gig.
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        specialization = WorkerSpecialization.query.filter_by(
+            user_id=session['user_id'],
+            category_id=category_id
+        ).first()
+
+        if not specialization:
+            return jsonify({
+                'specialization': None,
+                'message': 'No specialization set for this category'
+            })
+
+        return jsonify({
+            'specialization': specialization.to_dict()
+        })
+    except Exception as e:
+        app.logger.error(f"Get my specialization for category error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch specialization'}), 500
+
+
+@app.route('/api/workers/search', methods=['GET'])
+def search_specialized_workers():
+    """Search for workers by specialization and rate range.
+
+    Query params:
+    - category_id: Filter by category
+    - min_rate: Minimum hourly rate
+    - max_rate: Maximum hourly rate
+    - has_rates: Boolean, only show workers with defined rates
+    - limit: Number of results (default 20)
+    """
+    try:
+        category_id = request.args.get('category_id', type=int)
+        min_rate = request.args.get('min_rate', type=float)
+        max_rate = request.args.get('max_rate', type=float)
+        has_rates = request.args.get('has_rates', 'false').lower() == 'true'
+        limit = min(request.args.get('limit', 20, type=int), 100)
+
+        query = WorkerSpecialization.query
+
+        if category_id:
+            query = query.filter_by(category_id=category_id)
+
+        if has_rates:
+            query = query.filter(
+                db.or_(
+                    WorkerSpecialization.base_hourly_rate.isnot(None),
+                    WorkerSpecialization.base_fixed_rate.isnot(None)
+                )
+            )
+
+        if min_rate is not None:
+            query = query.filter(WorkerSpecialization.base_hourly_rate >= min_rate)
+
+        if max_rate is not None:
+            query = query.filter(WorkerSpecialization.base_hourly_rate <= max_rate)
+
+        specializations = query.limit(limit).all()
+
+        # Build response with worker info
+        results = []
+        for spec in specializations:
+            worker = User.query.get(spec.user_id)
+            if worker:
+                results.append({
+                    'worker_id': worker.id,
+                    'worker_name': worker.full_name or worker.username,
+                    'worker_rating': worker.rating,
+                    'worker_review_count': worker.review_count,
+                    'is_verified': worker.is_verified,
+                    'location': worker.location,
+                    'specialization': spec.to_public_dict()
+                })
+
+        return jsonify({
+            'workers': results,
+            'count': len(results)
+        })
+    except Exception as e:
+        app.logger.error(f"Search specialized workers error: {str(e)}")
+        return jsonify({'error': 'Failed to search workers'}), 500
+
 
 @app.route('/api/microtasks', methods=['GET'])
 def get_microtasks():
@@ -19836,9 +20233,9 @@ def public_profile(username):
     reviews = Review.query.filter_by(reviewee_id=profile_user.id).order_by(Review.created_at.desc()).limit(10).all()
     current_user = User.query.get(session.get('user_id')) if 'user_id' in session else None
 
-    # Get worker specializations
+    # Get worker specializations with public rate data
     specializations = WorkerSpecialization.query.filter_by(user_id=profile_user.id).all()
-    specializations_data = [spec.to_dict() for spec in specializations]
+    specializations_data = [spec.to_public_dict() for spec in specializations]
 
     review_details = []
     for review in reviews:

@@ -2488,6 +2488,20 @@
             </button>
         </div>
         <form id="applicationForm" onsubmit="submitApplication(event)">
+            <!-- Specialized Rate Section (loaded dynamically) -->
+            <div id="specializedRateSection" style="display: none; margin-bottom: 20px; padding: 16px; background: #f0fdf4; border: 1px solid var(--primary); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <input type="checkbox" id="useSpecializedRate" name="use_specialized_rate" style="width: 20px; height: 20px;">
+                    <label for="useSpecializedRate" style="font-weight: 600; color: var(--primary); cursor: pointer;">
+                        {{ 'Guna Kadar Pakar Saya' if lang == 'ms' else 'Use My Specialized Rate' }}
+                    </label>
+                </div>
+                <div id="specializationDetails" style="font-size: 13px; color: var(--text-gray);">
+                    <!-- Will be populated by JS -->
+                </div>
+                <input type="hidden" id="specializationId" name="specialization_id" value="">
+            </div>
+
             <div class="form-group">
                 <label class="form-label">{{ 'Harga Cadangan (RM)' if lang == 'ms' else 'Proposed Price (RM)' }}</label>
                 <input type="number" class="form-input" name="proposed_price" id="proposedPrice"
@@ -2497,7 +2511,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">{{ 'Surat Lamaran' if lang == 'ms' else 'Cover Letter' }}</label>
-                <textarea class="form-textarea" name="cover_letter" id="coverLetter" 
+                <textarea class="form-textarea" name="cover_letter" id="coverLetter"
                           placeholder="{{ 'Terangkan mengapa anda sesuai untuk gig ini...' if lang == 'ms' else 'Explain why you are suitable for this gig...' }}" required></textarea>
                 <p class="form-hint">{{ 'Minimum 15 aksara' if lang == 'ms' else 'Minimum 15 characters' }}</p>
             </div>
@@ -2589,20 +2603,82 @@
         }
     }
 
+    // Store specialization data for the apply form
+    let currentSpecialization = null;
+
     function openApplicationModal() {
         document.getElementById('applicationModal').classList.add('active');
+
+        // Load worker's specialization for this gig category
+        loadWorkerSpecialization();
+    }
+
+    async function loadWorkerSpecialization() {
+        const categoryId = {{ gig_category_id|default(0) }};  // Passed from backend
+        if (!categoryId) return;
+
+        try {
+            const response = await fetch(`/api/specializations/by-category/${categoryId}`);
+            const data = await response.json();
+
+            const section = document.getElementById('specializedRateSection');
+            const details = document.getElementById('specializationDetails');
+            const specIdInput = document.getElementById('specializationId');
+
+            if (data.specialization && (data.specialization.base_hourly_rate || data.specialization.base_fixed_rate)) {
+                currentSpecialization = data.specialization;
+                specIdInput.value = data.specialization.id;
+
+                // Build details display
+                let rateInfo = '';
+                if (data.specialization.specialization_title) {
+                    rateInfo += `<strong>${data.specialization.specialization_title}</strong><br>`;
+                }
+                if (data.specialization.base_fixed_rate) {
+                    const rate = data.specialization.base_fixed_rate * (data.specialization.premium_multiplier || 1);
+                    rateInfo += `{{ 'Kadar Tetap Anda:' if lang == 'ms' else 'Your Fixed Rate:' }} <strong style="color: var(--primary);">RM${rate.toFixed(0)}</strong>`;
+                } else if (data.specialization.base_hourly_rate) {
+                    const rate = data.specialization.base_hourly_rate * (data.specialization.premium_multiplier || 1);
+                    rateInfo += `{{ 'Kadar Sejam Anda:' if lang == 'ms' else 'Your Hourly Rate:' }} <strong style="color: var(--primary);">RM${rate.toFixed(0)}/jam</strong>`;
+                }
+                details.innerHTML = rateInfo;
+
+                section.style.display = 'block';
+
+                // Set up checkbox handler
+                document.getElementById('useSpecializedRate').addEventListener('change', function() {
+                    if (this.checked && currentSpecialization) {
+                        const multiplier = currentSpecialization.premium_multiplier || 1;
+                        let suggestedPrice = 0;
+                        if (currentSpecialization.base_fixed_rate) {
+                            suggestedPrice = currentSpecialization.base_fixed_rate * multiplier;
+                        } else if (currentSpecialization.base_hourly_rate) {
+                            suggestedPrice = currentSpecialization.base_hourly_rate * multiplier * 8; // Estimate 8 hours
+                        }
+                        document.getElementById('proposedPrice').value = suggestedPrice.toFixed(0);
+                    }
+                });
+            } else {
+                section.style.display = 'none';
+            }
+        } catch (error) {
+            console.log('No specialization found for category');
+        }
     }
 
     function closeApplicationModal() {
         document.getElementById('applicationModal').classList.remove('active');
+        currentSpecialization = null;
     }
 
     function submitApplication(event) {
         event.preventDefault();
-        
+
         const form = document.getElementById('applicationForm');
         const proposedPrice = document.getElementById('proposedPrice').value;
         const coverLetter = document.getElementById('coverLetter').value;
+        const useSpecializedRate = document.getElementById('useSpecializedRate')?.checked || false;
+        const specializationId = document.getElementById('specializationId')?.value || null;
 
         if (coverLetter.length < 15) {
             alert('{{ "Surat lamaran mesti sekurang-kurangnya 15 aksara" if lang == "ms" else "Cover letter must be at least 15 characters" }}');
@@ -2613,15 +2689,19 @@
         submitBtn.disabled = true;
         submitBtn.textContent = '{{ "Menghantar..." if lang == "ms" else "Submitting..." }}';
 
+        const payload = {
+            proposed_price: parseFloat(proposedPrice),
+            cover_letter: coverLetter,
+            use_specialized_rate: useSpecializedRate,
+            specialization_id: useSpecializedRate && specializationId ? parseInt(specializationId) : null
+        };
+
         fetch('/api/gigs/{{ gig.id }}/apply', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                proposed_price: parseFloat(proposedPrice),
-                cover_letter: coverLetter
-            })
+            body: JSON.stringify(payload)
         })
         .then(response => response.json())
         .then(data => {

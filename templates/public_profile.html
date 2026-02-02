@@ -297,12 +297,33 @@
             <div class="specialization-category-title">
                 <span style="font-size: 20px;">{{ spec.category_icon or '📋' }}</span>
                 <span>{{ spec.category_name }}</span>
+                {% if spec.has_premium %}
+                <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px;">Premium</span>
+                {% endif %}
             </div>
+            {% if spec.specialization_title %}
+            <div style="font-size: 13px; color: var(--text-gray); margin-bottom: 8px; font-style: italic;">{{ spec.specialization_title }}</div>
+            {% endif %}
             <div class="specialization-skills">
                 {% for skill in spec.skills %}
                 <span class="skill-badge">{{ skill }}</span>
                 {% endfor %}
             </div>
+            {% if spec.base_hourly_rate or spec.base_fixed_rate %}
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 13px;">
+                <strong style="color: var(--primary);">Kadar Asas:</strong>
+                {% if spec.base_hourly_rate %}
+                <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 12px; margin-left: 8px;">
+                    RM{{ "%.0f"|format(spec.base_hourly_rate) }}/jam
+                </span>
+                {% endif %}
+                {% if spec.base_fixed_rate %}
+                <span style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-left: 8px;">
+                    RM{{ "%.0f"|format(spec.base_fixed_rate) }}/gig
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
