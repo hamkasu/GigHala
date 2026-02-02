@@ -3701,6 +3701,16 @@ def browse_gigs():
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
+@app.route('/workers')
+@page_login_required
+def browse_workers():
+    """Browse registered workers page - allows clients to search for workers"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    # Get main categories only (exclude detailed subcategories)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+    return render_template('workers.html', user=user, categories=categories, active_page='workers', lang=get_user_language(), t=t)
+
 @app.route('/search')
 @page_login_required
 def search_page():
@@ -12390,27 +12400,68 @@ def get_my_specialization_for_category(category_id):
 
 @app.route('/api/workers/search', methods=['GET'])
 def search_specialized_workers():
-    """Search for workers by specialization and rate range.
+    """Search for workers by specialization, skills, and rate range.
 
     Query params:
+    - q: Search query (name, username, skills)
     - category_id: Filter by category
+    - skill: Filter by specific skill
     - min_rate: Minimum hourly rate
     - max_rate: Maximum hourly rate
+    - min_fixed_rate: Minimum fixed rate
+    - max_fixed_rate: Maximum fixed rate
     - has_rates: Boolean, only show workers with defined rates
-    - limit: Number of results (default 20)
+    - location: Filter by location
+    - min_rating: Minimum rating (1-5)
+    - verified_only: Boolean, only verified workers
+    - page: Page number (default 1)
+    - limit: Number of results per page (default 20, max 50)
     """
     try:
+        search_query = request.args.get('q', '').strip()
         category_id = request.args.get('category_id', type=int)
+        skill = request.args.get('skill', '').strip()
         min_rate = request.args.get('min_rate', type=float)
         max_rate = request.args.get('max_rate', type=float)
+        min_fixed_rate = request.args.get('min_fixed_rate', type=float)
+        max_fixed_rate = request.args.get('max_fixed_rate', type=float)
         has_rates = request.args.get('has_rates', 'false').lower() == 'true'
-        limit = min(request.args.get('limit', 20, type=int), 100)
+        location = request.args.get('location', '').strip()
+        min_rating = request.args.get('min_rating', type=float)
+        verified_only = request.args.get('verified_only', 'false').lower() == 'true'
+        page = max(1, request.args.get('page', 1, type=int))
+        limit = min(request.args.get('limit', 20, type=int), 50)
+        offset = (page - 1) * limit
 
-        query = WorkerSpecialization.query
+        # Build query - join User and WorkerSpecialization
+        query = db.session.query(User, WorkerSpecialization).join(
+            WorkerSpecialization, User.id == WorkerSpecialization.user_id
+        ).filter(
+            User.user_type.in_(['freelancer', 'both'])
+        )
 
+        # Search by name/username
+        if search_query:
+            search_pattern = f'%{search_query}%'
+            query = query.filter(
+                db.or_(
+                    User.full_name.ilike(search_pattern),
+                    User.username.ilike(search_pattern),
+                    WorkerSpecialization.skills.ilike(search_pattern),
+                    WorkerSpecialization.specialization_title.ilike(search_pattern)
+                )
+            )
+
+        # Filter by category
         if category_id:
-            query = query.filter_by(category_id=category_id)
+            query = query.filter(WorkerSpecialization.category_id == category_id)
 
+        # Filter by skill (search within JSON skills array)
+        if skill:
+            skill_pattern = f'%{skill}%'
+            query = query.filter(WorkerSpecialization.skills.ilike(skill_pattern))
+
+        # Filter by rates
         if has_rates:
             query = query.filter(
                 db.or_(
@@ -12425,26 +12476,62 @@ def search_specialized_workers():
         if max_rate is not None:
             query = query.filter(WorkerSpecialization.base_hourly_rate <= max_rate)
 
-        specializations = query.limit(limit).all()
+        if min_fixed_rate is not None:
+            query = query.filter(WorkerSpecialization.base_fixed_rate >= min_fixed_rate)
 
-        # Build response with worker info
-        results = []
-        for spec in specializations:
-            worker = User.query.get(spec.user_id)
-            if worker:
-                results.append({
-                    'worker_id': worker.id,
-                    'worker_name': worker.full_name or worker.username,
-                    'worker_rating': worker.rating,
-                    'worker_review_count': worker.review_count,
-                    'is_verified': worker.is_verified,
-                    'location': worker.location,
-                    'specialization': spec.to_public_dict()
-                })
+        if max_fixed_rate is not None:
+            query = query.filter(WorkerSpecialization.base_fixed_rate <= max_fixed_rate)
+
+        # Filter by location
+        if location:
+            location_pattern = f'%{location}%'
+            query = query.filter(User.location.ilike(location_pattern))
+
+        # Filter by minimum rating
+        if min_rating is not None:
+            query = query.filter(User.rating >= min_rating)
+
+        # Filter verified only
+        if verified_only:
+            query = query.filter(User.is_verified == True)
+
+        # Get total count before pagination
+        total_count = query.count()
+
+        # Order by rating (descending), then by completed gigs
+        query = query.order_by(User.rating.desc().nullslast(), User.completed_gigs.desc().nullslast())
+
+        # Apply pagination
+        results_raw = query.offset(offset).limit(limit).all()
+
+        # Group specializations by worker
+        workers_dict = {}
+        for user, spec in results_raw:
+            if user.id not in workers_dict:
+                workers_dict[user.id] = {
+                    'worker_id': user.id,
+                    'username': user.username,
+                    'full_name': user.full_name,
+                    'bio': user.bio[:200] + '...' if user.bio and len(user.bio) > 200 else user.bio,
+                    'location': user.location,
+                    'rating': user.rating,
+                    'review_count': user.review_count or 0,
+                    'completed_gigs': user.completed_gigs or 0,
+                    'is_verified': user.is_verified,
+                    'halal_verified': user.halal_verified,
+                    'specializations': []
+                }
+            workers_dict[user.id]['specializations'].append(spec.to_public_dict())
+
+        workers = list(workers_dict.values())
 
         return jsonify({
-            'workers': results,
-            'count': len(results)
+            'workers': workers,
+            'count': len(workers),
+            'total': total_count,
+            'page': page,
+            'pages': (total_count + limit - 1) // limit,
+            'limit': limit
         })
     except Exception as e:
         app.logger.error(f"Search specialized workers error: {str(e)}")
