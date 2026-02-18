@@ -732,6 +732,16 @@
 {% endblock %}
 
 {% block content %}
+{% if is_ramadan %}
+<div class="ramadan-banner" style="background: linear-gradient(135deg, #1a5c3a 0%, #0d7c66 50%, #2d9b7b 100%); color: white; padding: 24px 28px; border-radius: var(--radius-lg); margin-bottom: 24px; text-align: center; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 4px 16px rgba(13,124,102,0.3); position: relative; overflow: hidden;">
+    <div style="position: relative; z-index: 1;">
+        <div style="font-size: 28px; margin-bottom: 4px;">&#9790;</div>
+        <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 6px;">{{ t('selamat_berpuasa') }}</h2>
+        <p style="font-size: 14px; opacity: 0.9; margin: 0;">{{ t('ramadan_greeting_subtitle') }}</p>
+    </div>
+</div>
+{% endif %}
+
 <div class="welcome-header">
     <h1>
         <span>{{ user.full_name or user.username }}</span>
