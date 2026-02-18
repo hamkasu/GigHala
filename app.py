@@ -917,6 +917,11 @@ TRANSLATIONS = {
         'message_placeholder': 'Taip mesej anda di sini...',
         'type_message': 'Taip mesej...',
         'gig_reference': 'Rujuk:',
+
+        # Ramadan Greeting
+        'selamat_berpuasa': 'Selamat Berpuasa',
+        'ramadan_greeting_subtitle': 'Semoga Ramadan ini membawa keberkatan dan ketenangan kepada anda dan keluarga.',
+        'ramadan_kareem': 'Ramadan Kareem',
     },
     'en': {
         # Dashboard
@@ -1272,6 +1277,11 @@ TRANSLATIONS = {
         'message_placeholder': 'Type your message here...',
         'type_message': 'Type a message...',
         'gig_reference': 'Reference:',
+
+        # Ramadan Greeting
+        'selamat_berpuasa': 'Selamat Berpuasa',
+        'ramadan_greeting_subtitle': 'May this Ramadan bring blessings and peace to you and your family.',
+        'ramadan_kareem': 'Ramadan Kareem',
     }
 }
 
@@ -1336,6 +1346,13 @@ def format_date_dual(date_obj, lang=None):
         lang = get_user_language()
     return get_dual_date(date_obj, lang)
 
+def is_ramadan():
+    """Check if the current Hijri date falls in Ramadan (month 9)"""
+    timezone_str = os.getenv('TIMEZONE', 'Asia/Kuala_Lumpur')
+    now = datetime.now(ZoneInfo(timezone_str))
+    hijri = Gregorian(now.year, now.month, now.day).to_hijri()
+    return hijri.month == 9
+
 # Make translation function and dates available in templates
 @app.context_processor
 def inject_translations():
@@ -1394,6 +1411,7 @@ def inject_translations():
         today_hijri=today_dual['hijri'],
         today_dual=today_dual['full'],
         format_date_dual=format_date_dual,
+        is_ramadan=is_ramadan(),
         unread_message_count=unread_message_count,
         csrf_token=generate_csrf,
         user=user,

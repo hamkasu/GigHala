@@ -175,6 +175,16 @@
         </div>
     </div>
 
+    {% if is_ramadan %}
+    <div style="background: linear-gradient(135deg, #1a5c3a 0%, #0d7c66 50%, #2d9b7b 100%); color: white; padding: 14px 20px; text-align: center; position: relative; overflow: hidden;">
+        <div style="position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 20px;">&#9790;</span>
+            <span style="font-weight: 700; font-size: 16px;">{{ t('selamat_berpuasa') }}</span>
+            <span style="font-size: 13px; opacity: 0.9;">{{ t('ramadan_greeting_subtitle') }}</span>
+        </div>
+    </div>
+    {% endif %}
+
     <div id="app">
         <!-- Mobile Splash Screen -->
         <div id="mobileSplashScreen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: #0D7C66;">
