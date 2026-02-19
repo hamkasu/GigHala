@@ -251,6 +251,24 @@ if os.environ.get('APPLE_CLIENT_ID') and os.environ.get('APPLE_CLIENT_SECRET'):
 else:
     apple = None
 
+# X (Twitter) OAuth 2.0 - only register if credentials are provided
+if os.environ.get('X_CLIENT_ID') and os.environ.get('X_CLIENT_SECRET'):
+    x_twitter = oauth.register(
+        name='x_twitter',
+        client_id=os.environ.get('X_CLIENT_ID'),
+        client_secret=os.environ.get('X_CLIENT_SECRET'),
+        authorize_url='https://twitter.com/i/oauth2/authorize',
+        access_token_url='https://api.twitter.com/2/oauth2/token',
+        api_base_url='https://api.twitter.com/2/',
+        client_kwargs={
+            'scope': 'users.read tweet.read offline.access',
+            'code_challenge_method': 'S256',
+            'token_endpoint_auth_method': 'client_secret_basic',
+        }
+    )
+else:
+    x_twitter = None
+
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx'}
@@ -6277,6 +6295,64 @@ def apple_callback():
     except Exception as e:
         app.logger.error(f"Apple OAuth error: {str(e)}")
         return redirect('/?error=apple_auth_failed')
+
+@app.route('/api/auth/x')
+def x_login():
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/x/callback'
+    return x_twitter.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/x/callback')
+def x_callback():
+    try:
+        token = x_twitter.authorize_access_token()
+
+        # Fetch user info from X API v2
+        resp = x_twitter.get('users/me', params={'user.fields': 'id,name,username,profile_image_url'})
+        user_info = resp.json().get('data', {})
+
+        if not user_info:
+            return redirect('/?error=x_auth_failed')
+
+        # Get user data from X
+        oauth_id = user_info.get('id')
+        x_username = user_info.get('username')
+        full_name = user_info.get('name')
+
+        if not oauth_id:
+            return redirect('/?error=missing_x_data')
+
+        # Check if user exists with this OAuth provider
+        user = User.query.filter_by(oauth_provider='x', oauth_id=oauth_id).first()
+
+        if not user:
+            # X doesn't provide email - check by oauth_id only
+            # Create new user with X username
+            username = x_username + '_' + secrets.token_hex(4) if x_username else 'x_user_' + secrets.token_hex(4)
+            new_user = User(
+                username=username,
+                email=f'{x_username or oauth_id}@x.placeholder',
+                full_name=full_name or x_username or 'X User',
+                oauth_provider='x',
+                oauth_id=oauth_id,
+                user_type='both',
+                is_verified=False  # X doesn't verify email
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            user = new_user
+
+        # Log user in
+        session['user_id'] = user.id
+        session.permanent = True
+
+        # Check if user needs phone/email setup
+        if not user.phone or not user.phone_verified or user.email.endswith('@x.placeholder'):
+            return redirect('/dashboard?show_phone_prompt=true')
+
+        return redirect('/dashboard')
+    except Exception as e:
+        app.logger.error(f"X OAuth error: {str(e)}")
+        return redirect('/?error=x_auth_failed')
 
 @app.route('/api/billing/stats')
 @login_required
