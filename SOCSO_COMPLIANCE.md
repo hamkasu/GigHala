@@ -534,8 +534,8 @@ SELECT * FROM socso_monthly_report LIMIT 5;
 - Gig Workers Bill 2025: [Parliament Malaysia Official Gazette]
 
 ### Technical Support
-- Platform Admin: admin@gighala.com
-- SOCSO Compliance Officer: compliance@gighala.com
+- Platform Admin: admin@gighala.my
+- SOCSO Compliance Officer: compliance@gighala.my
 
 ### Code References
 - Migration: `/migrations/005_add_socso_compliance.sql`

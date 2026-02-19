@@ -886,9 +886,9 @@ class GigReport(db.Model):
 ## Contact & Support
 
 **Halal Compliance Team:**
-📧 Email: halal@gighala.com
+📧 Email: halal@gighala.my
 📱 WhatsApp: +60 12-345-6789
-🌐 Website: https://gighala.calmic.com.my/halal-compliance
+🌐 Website: https://gighala.my/halal-compliance
 
 **Report Violations:**
 If you encounter a gig that violates halal compliance, please report it immediately.

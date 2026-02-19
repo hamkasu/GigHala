@@ -35,7 +35,7 @@ This document describes the comprehensive SEO improvements implemented for GigHa
 <meta name="description" content="Design modern halal logo for new restaurant... Gaji: RM200-RM500. Lokasi: Kuala Lumpur. Mohon sekarang di GigHala!">
 <meta property="og:title" content="Logo Design for Halal Restaurant - GigHala">
 <meta property="og:description" content="Design modern halal logo for new restaurant... Gaji: RM200-RM500">
-<meta property="og:image" content="https://gighala.calmic.com.my/uploads/gig_photos/restaurant-sample.jpg">
+<meta property="og:image" content="https://gighala.my/uploads/gig_photos/restaurant-sample.jpg">
 ```
 
 ---
@@ -69,8 +69,8 @@ This document describes the comprehensive SEO improvements implemented for GigHa
   "hiringOrganization": {
     "@type": "Organization",
     "name": "GigHala",
-    "sameAs": "https://gighala.calmic.com.my",
-    "logo": "https://gighala.calmic.com.my/static/logo.png"
+    "sameAs": "https://gighala.my",
+    "logo": "https://gighala.my/static/logo.png"
   },
   "jobLocation": {
     "@type": "Place",
@@ -118,20 +118,20 @@ Dynamic sitemap generation that includes:
 ✅ **Crawl efficiency** - Search engines know what to prioritize
 
 #### Access
-Visit: `https://gighala.calmic.com.my/sitemap.xml`
+Visit: `https://gighala.my/sitemap.xml`
 
 #### Example Output
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://gighala.calmic.com.my/</loc>
+    <loc>https://gighala.my/</loc>
     <lastmod>2025-12-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://gighala.calmic.com.my/gig/123</loc>
+    <loc>https://gighala.my/gig/123</loc>
     <lastmod>2025-12-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
@@ -159,7 +159,7 @@ Visit: `https://gighala.calmic.com.my/sitemap.xml`
 ✅ **Sitemap discovery** - Bots automatically find the sitemap
 
 #### Access
-Visit: `https://gighala.calmic.com.my/robots.txt`
+Visit: `https://gighala.my/robots.txt`
 
 #### Content
 ```
@@ -171,7 +171,7 @@ Disallow: /admin
 Disallow: /profile
 Disallow: /logout
 
-Sitemap: https://gighala.calmic.com.my/sitemap.xml
+Sitemap: https://gighala.my/sitemap.xml
 
 Crawl-delay: 1
 
@@ -236,16 +236,16 @@ Allow: /
 ### 1. Submit to Google Search Console
 ```
 1. Go to https://search.google.com/search-console
-2. Add property: gighala.calmic.com.my
+2. Add property: gighala.my
 3. Verify ownership (DNS or HTML file upload)
-4. Submit sitemap: https://gighala.calmic.com.my/sitemap.xml
+4. Submit sitemap: https://gighala.my/sitemap.xml
 5. Request indexing for key pages
 ```
 
 ### 2. Submit to Bing Webmaster Tools
 ```
 1. Go to https://www.bing.com/webmasters
-2. Add site: gighala.calmic.com.my
+2. Add site: gighala.my
 3. Submit sitemap
 4. Enable URL inspection
 ```
@@ -279,35 +279,35 @@ Allow: /
 Use Google's Rich Results Test:
 ```
 https://search.google.com/test/rich-results
-Enter: https://gighala.calmic.com.my/gig/[any-gig-id]
+Enter: https://gighala.my/gig/[any-gig-id]
 ```
 
 #### 2. Check Meta Tags
 Use Facebook Sharing Debugger:
 ```
 https://developers.facebook.com/tools/debug/
-Enter: https://gighala.calmic.com.my/gig/[any-gig-id]
+Enter: https://gighala.my/gig/[any-gig-id]
 ```
 
 #### 3. Validate Sitemap
 Check sitemap structure:
 ```
 https://www.xml-sitemaps.com/validate-xml-sitemap.html
-Enter: https://gighala.calmic.com.my/sitemap.xml
+Enter: https://gighala.my/sitemap.xml
 ```
 
 #### 4. Test Robots.txt
 Validate robots.txt:
 ```
 https://www.google.com/webmasters/tools/robots-testing-tool
-Enter: https://gighala.calmic.com.my/robots.txt
+Enter: https://gighala.my/robots.txt
 ```
 
 #### 5. Page Speed Test
 Test loading speed:
 ```
 https://pagespeed.web.dev/
-Enter: https://gighala.calmic.com.my
+Enter: https://gighala.my
 ```
 
 ---

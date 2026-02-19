@@ -85,7 +85,7 @@ def send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, Notificati
                 return
 
             # Get base URL for links in email
-            base_url = os.getenv('BASE_URL', 'https://gighala.com')
+            base_url = os.getenv('BASE_URL', 'https://gighala.my')
 
             # Prepare emails for each worker
             emails_to_send = []
@@ -306,7 +306,7 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                 return
 
             # Get base URL for links in email
-            base_url = os.getenv('BASE_URL', 'https://gighala.com')
+            base_url = os.getenv('BASE_URL', 'https://gighala.my')
 
             # Prepare email list
             emails_to_send = []

@@ -58,7 +58,7 @@ UPDATE "user"
 SET admin_role = 'billing',
     admin_permissions = NULL,
     is_admin = TRUE
-WHERE email = 'accountant@gighala.com';
+WHERE email = 'accountant@gighala.my';
 ```
 
 ## API Endpoints
@@ -97,7 +97,7 @@ with app.app_context():
 
     billing_user = User(
         username='accountant',
-        email='accountant@gighala.com',
+        email='accountant@gighala.my',
         password_hash=password_hash,
         full_name='Finance Manager',
         user_type='freelancer',  # Required field

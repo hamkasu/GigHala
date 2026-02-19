@@ -187,7 +187,7 @@ SECRET_KEY=<generated-secret>
 2. Click "Generate Domain" (free subdomain)
 3. Or add custom domain:
    - Click "Custom Domain"
-   - Add your domain (e.g., gighala.com)
+   - Add your domain (e.g., gighala.my)
    - Update DNS CNAME record
 
 ## Scaling
@@ -261,7 +261,7 @@ After successful deployment:
 
 **GigHala Support:**
 - GitHub Issues: https://github.com/yourusername/gighala/issues
-- Email: support@gighala.com
+- Email: support@gighala.my
 
 ---
 

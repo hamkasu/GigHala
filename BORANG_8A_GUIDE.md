@@ -97,7 +97,7 @@ GET /api/admin/socso/borang-8a?year=2026&month=1&format=txt
     "company_name": "GigHala Sdn Bhd",
     "company_address": "...",
     "company_phone": "+60123456789",
-    "company_email": "compliance@gighala.com"
+    "company_email": "compliance@gighala.my"
   },
   "period": {
     "month": 1,
@@ -365,8 +365,8 @@ If no contributions exist for the selected period:
 ## Support
 
 For technical issues or questions regarding Borang 8A generation:
-- **Platform Admin**: admin@gighala.com
-- **SOCSO Compliance Officer**: compliance@gighala.com
+- **Platform Admin**: admin@gighala.my
+- **SOCSO Compliance Officer**: compliance@gighala.my
 - **Technical Support**: Create an issue in the repository
 
 ---

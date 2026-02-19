@@ -33,7 +33,7 @@ def send_ai_announcement_emails(test_mode=True, test_email=None, language='ms'):
         email_service = EmailService()
 
         # Get base URL
-        base_url = os.getenv('BASE_URL', 'https://gighala.com')
+        base_url = os.getenv('BASE_URL', 'https://gighala.my')
 
         if test_mode:
             if not test_email:

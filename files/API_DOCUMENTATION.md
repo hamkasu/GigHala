@@ -422,6 +422,6 @@ Real-time features planned:
 ## Support
 
 For API support:
-- Email: api@gighala.com
-- Documentation: https://docs.gighala.com
-- Status Page: https://status.gighala.com
+- Email: api@gighala.my
+- Documentation: https://docs.gighala.my
+- Status Page: https://status.gighala.my

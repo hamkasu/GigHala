@@ -126,7 +126,7 @@ The application enforces strict CORS policies based on the `FLASK_ENV` setting:
 - Wildcard (`*`) origins are **strictly prohibited**
 - `ALLOWED_ORIGINS` must be explicitly set to a comma-separated list of your actual domains
 - The application will refuse to start if ALLOWED_ORIGINS is not properly configured
-- Example: `ALLOWED_ORIGINS=https://gighala.com,https://www.gighala.com`
+- Example: `ALLOWED_ORIGINS=https://gighala.my,https://www.gighala.my`
 
 ## Production Deployment Notes
 

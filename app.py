@@ -336,7 +336,7 @@ def geocode_location(location_string):
 
         # Set a user agent (required by Nominatim)
         headers = {
-            'User-Agent': 'GigHala/1.0 (contact@gighala.com)'
+            'User-Agent': 'GigHala/1.0 (contact@gighala.my)'
         }
 
         response = requests.get(url, params=params, headers=headers, timeout=5)
@@ -1579,7 +1579,7 @@ def send_verification_email(user_email, token, username):
     Returns (success, message) tuple
     """
     try:
-        verification_url = f"{os.getenv('APP_URL', 'http://localhost:5000')}/verify-email?token={token}"
+        verification_url = f"{os.getenv('APP_URL', 'https://gighala.my')}/verify-email?token={token}"
 
         subject = "Verify Your GigHala Email Address"
         html_content = f"""
@@ -1682,7 +1682,7 @@ def send_password_reset_email(user_email, token, username):
     Returns (success, message) tuple
     """
     try:
-        reset_url = f"{os.getenv('APP_URL', 'http://localhost:5000')}/reset-password?token={token}"
+        reset_url = f"{os.getenv('APP_URL', 'https://gighala.my')}/reset-password?token={token}"
 
         subject = "Reset Your GigHala Password"
         html_content = f"""
@@ -7028,7 +7028,7 @@ def apply_to_gig(gig_id):
 
             if client and client.email and worker:
                 # Get base URL for links
-                base_url = os.environ.get('BASE_URL', 'https://gighala.com')
+                base_url = os.environ.get('BASE_URL', 'https://gighala.my')
 
                 # Render email template
                 html_content = render_template(
@@ -11023,7 +11023,7 @@ def stripe_webhook():
                                 wallet_url=request.host_url.rstrip('/') + '/wallet',
                                 transaction_url=request.host_url.rstrip('/') + '/payments',
                                 support_url=request.host_url.rstrip('/') + '/support',
-                                support_contact='support@gighala.com',
+                                support_contact='support@gighala.my',
                                 settings_url=request.host_url.rstrip('/') + '/settings',
                                 terms_url=request.host_url.rstrip('/') + '/terms'
                             )
@@ -11127,7 +11127,7 @@ def stripe_webhook():
                                 wallet_url=request.host_url.rstrip('/') + '/wallet',
                                 transaction_url=request.host_url.rstrip('/') + '/payments',
                                 support_url=request.host_url.rstrip('/') + '/support',
-                                support_contact='support@gighala.com',
+                                support_contact='support@gighala.my',
                                 settings_url=request.host_url.rstrip('/') + '/settings',
                                 terms_url=request.host_url.rstrip('/') + '/terms'
                             )
@@ -11725,7 +11725,7 @@ def create_instant_payout():
                     wallet_url=request.host_url.rstrip('/') + '/wallet',
                     transaction_url=request.host_url.rstrip('/') + '/payments',
                     support_url=request.host_url.rstrip('/') + '/support',
-                    support_contact='support@gighala.com',
+                    support_contact='support@gighala.my',
                     settings_url=request.host_url.rstrip('/') + '/settings',
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
@@ -13953,7 +13953,7 @@ def admin_delete_gig(gig_id):
         <div style="background: #e0e7ff; padding: 15px; margin: 25px 0; border-radius: 4px; text-align: center;">
             <p style="margin: 0; color: #3730a3;">
                 <strong>Need Help?</strong><br>
-                Please review our <a href="https://gighala.com/terms" style="color: #4f46e5;">Terms and Conditions</a> to ensure future gigs comply with our policies.
+                Please review our <a href="https://gighala.my/terms" style="color: #4f46e5;">Terms and Conditions</a> to ensure future gigs comply with our policies.
             </p>
         </div>
 
@@ -13993,7 +13993,7 @@ What happens next?
 
 If you believe this action was taken in error, please contact our support team with details about your gig.
 
-Please review our Terms and Conditions at https://gighala.com/terms to ensure future gigs comply with our policies.
+Please review our Terms and Conditions at https://gighala.my/terms to ensure future gigs comply with our policies.
 
 Thank you for your understanding.
 The GigHala Team
@@ -14967,7 +14967,7 @@ def request_payout():
                     wallet_url=request.host_url.rstrip('/') + '/wallet',
                     transaction_url=request.host_url.rstrip('/') + '/payments',
                     support_url=request.host_url.rstrip('/') + '/support',
-                    support_contact='support@gighala.com',
+                    support_contact='support@gighala.my',
                     settings_url=request.host_url.rstrip('/') + '/settings',
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
@@ -15680,7 +15680,7 @@ def admin_generate_borang_8a():
         company_name = get_site_setting('socso_company_name', 'GigHala Sdn Bhd')
         company_address = get_site_setting('socso_company_address', '')
         company_phone = get_site_setting('socso_company_phone', '')
-        company_email = get_site_setting('socso_company_email', 'compliance@gighala.com')
+        company_email = get_site_setting('socso_company_email', 'compliance@gighala.my')
 
         # Validate required settings
         if not employer_code or not ssm_number:
@@ -17512,7 +17512,7 @@ def admin_update_payout(payout_id):
                             wallet_url=request.host_url.rstrip('/') + '/wallet',
                             transaction_url=request.host_url.rstrip('/') + '/payments',
                             support_url=request.host_url.rstrip('/') + '/support',
-                            support_contact='support@gighala.com',
+                            support_contact='support@gighala.my',
                             settings_url=request.host_url.rstrip('/') + '/settings',
                             terms_url=request.host_url.rstrip('/') + '/terms'
                         )
@@ -17793,7 +17793,7 @@ def admin_confirm_payout_payment(payout_id):
                     wallet_url=request.host_url.rstrip('/') + '/wallet',
                     transaction_url=request.host_url.rstrip('/') + '/payments',
                     support_url=request.host_url.rstrip('/') + '/support',
-                    support_contact='support@gighala.com',
+                    support_contact='support@gighala.my',
                     settings_url=request.host_url.rstrip('/') + '/settings',
                     terms_url=request.host_url.rstrip('/') + '/terms'
                 )
@@ -19278,7 +19278,7 @@ def init_database():
             # Sample users
             sample_user = User(
                 username='demo_freelancer',
-                email='freelancer@gighala.com',
+                email='freelancer@gighala.my',
                 password_hash=generate_password_hash('password123'),
                 full_name='Ahmad Zaki',
                 user_type='freelancer',
@@ -19294,7 +19294,7 @@ def init_database():
             
             sample_client = User(
                 username='demo_client',
-                email='client@gighala.com',
+                email='client@gighala.my',
                 password_hash=generate_password_hash('password123'),
                 full_name='Siti Nurhaliza',
                 user_type='client',
@@ -19305,7 +19305,7 @@ def init_database():
             # Admin user
             admin_user = User(
                 username='admin',
-                email='admin@gighala.com',
+                email='admin@gighala.my',
                 password_hash=generate_password_hash('Admin123!'),
                 full_name='GigHala Administrator',
                 user_type='both',
@@ -19802,7 +19802,7 @@ def faq():
         
         <div class="faq-item">
             <div class="faq-question">Bagaimana cara menghubungi sokongan pelanggan?</div>
-            <div class="faq-answer">Anda boleh menghubungi kami melalui email di support@gighala.com atau WhatsApp di +60 12-345 6789. Waktu operasi: Isnin-Jumaat, 9am-6pm.</div>
+            <div class="faq-answer">Anda boleh menghubungi kami melalui email di support@gighala.my atau WhatsApp di +60 12-345 6789. Waktu operasi: Isnin-Jumaat, 9am-6pm.</div>
         </div>
     </div>
     '''
@@ -19825,7 +19825,7 @@ def support():
             <div class="contact-card">
                 <div class="icon">📧</div>
                 <h4>Email</h4>
-                <p>support@gighala.com</p>
+                <p>support@gighala.my</p>
                 <p style="font-size: 12px; margin-top: 8px;">Balas dalam 24 jam</p>
             </div>
             
@@ -20063,12 +20063,12 @@ def privasi():
         <p>Kami telah melantik Pegawai Perlindungan Data (DPO) yang bertanggungjawab untuk mengawasi pematuhan dengan PDPA.</p>
         <p><strong>Hubungi DPO:</strong></p>
         <ul>
-            <li>Email: dpo@gighala.com</li>
+            <li>Email: dpo@gighala.my</li>
             <li>Telefon: +60 3-XXXX XXXX</li>
         </ul>
         
         <h3>14. Hubungi Kami</h3>
-        <p>Untuk soalan tentang privasi, hubungi: privacy@gighala.com</p>
+        <p>Untuk soalan tentang privasi, hubungi: privacy@gighala.my</p>
     </div>
     '''
     return render_template('static_page.html', 
@@ -20150,13 +20150,13 @@ def halal_compliance():
             <p><strong>Misi Kami:</strong> Menyediakan platform gig economy yang membolehkan umat Islam menjana pendapatan yang halal dan berkah, sambil memastikan semua aktiviti mematuhi prinsip syariah.</p>
         </div>
         
-        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus mematuhi garis panduan Islam. Jika anda mempunyai sebarang soalan atau kebimbangan tentang pematuhan halal, sila hubungi kami di halal@gighala.com.</p>
+        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus mematuhi garis panduan Islam. Jika anda mempunyai sebarang soalan atau kebimbangan tentang pematuhan halal, sila hubungi kami di halal@gighala.my.</p>
     </div>
     
     <div class="content-section">
         <h2><span class="icon">📣</span> Laporkan Pelanggaran</h2>
         <p>Jika anda menjumpai gig yang tidak mematuhi prinsip halal, sila laporkan kepada kami. Kami akan menyiasat dan mengambil tindakan yang sewajarnya.</p>
-        <p>Email: halal@gighala.com</p>
+        <p>Email: halal@gighala.my</p>
     </div>
     '''
     return render_template('static_page.html', 
@@ -20246,7 +20246,7 @@ def gig_workers_bill():
             <li>PERKESO (Pertubuhan Keselamatan Sosial)</li>
             <li>LHDN (Lembaga Hasil Dalam Negeri)</li>
         </ul>
-        <p style="margin-top: 16px;">Atau hubungi kami di: legal@gighala.com</p>
+        <p style="margin-top: 16px;">Atau hubungi kami di: legal@gighala.my</p>
     </div>
     '''
     return render_template('static_page.html', 
@@ -21459,7 +21459,7 @@ def sitemap():
 
         # Homepage - highest priority
         pages.append({
-            'loc': 'https://gighala.calmic.com.my/',
+            'loc': 'https://gighala.my/',
             'lastmod': datetime.now().strftime('%Y-%m-%d'),
             'changefreq': 'daily',
             'priority': '1.0'
@@ -21477,7 +21477,7 @@ def sitemap():
 
         for page in static_pages:
             pages.append({
-                'loc': f"https://gighala.calmic.com.my{page['url']}",
+                'loc': f"https://gighala.my{page['url']}",
                 'lastmod': datetime.now().strftime('%Y-%m-%d'),
                 'changefreq': page['changefreq'],
                 'priority': page['priority']
@@ -21501,7 +21501,7 @@ def sitemap():
                 changefreq = 'monthly'
 
             pages.append({
-                'loc': f"https://gighala.calmic.com.my/gig/{gig.id}",
+                'loc': f"https://gighala.my/gig/{gig.id}",
                 'lastmod': gig.updated_at.strftime('%Y-%m-%d') if gig.updated_at else gig.created_at.strftime('%Y-%m-%d'),
                 'changefreq': changefreq,
                 'priority': priority
@@ -21548,7 +21548,7 @@ Disallow: /profile
 Disallow: /logout
 
 # Sitemaps
-Sitemap: https://gighala.calmic.com.my/sitemap.xml
+Sitemap: https://gighala.my/sitemap.xml
 
 # Crawl delay (be nice to server)
 Crawl-delay: 1

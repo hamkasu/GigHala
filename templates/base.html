@@ -18,15 +18,15 @@
     <meta name="copyright" content="GigHala {{ now.year if now else '2025' }}">
 
     <!-- SEO: Canonical URL (prevents duplicate content issues) -->
-    <link rel="canonical" href="{% block canonical_url %}https://gighala.calmic.com.my{{ request.path }}{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}https://gighala.my{{ request.path }}{% endblock %}">
 
     <!-- Open Graph Meta Tags for Social Media -->
     <meta property="og:site_name" content="GigHala">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:title" content="{% block og_title %}GigHala - Platform Gig Halal #1 Malaysia{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Platform gig halal terbesar di Malaysia. Cari kerja freelance, side hustle, dan projek sambilan yang mematuhi prinsip halal.{% endblock %}">
-    <meta property="og:url" content="{% block og_url %}https://gighala.calmic.com.my{{ request.path }}{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}https://gighala.calmic.com.my/static/logo.png{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://gighala.my{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://gighala.my/static/logo.png{% endblock %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="ms_MY">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}GigHala - Platform Gig Halal #1 Malaysia{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}Platform gig halal terbesar di Malaysia. Cari kerja freelance dan projek sambilan yang mematuhi prinsip halal.{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}https://gighala.calmic.com.my/static/logo.png{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://gighala.my/static/logo.png{% endblock %}">
 
     <!-- Additional SEO Meta Tags -->
     <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
@@ -1424,11 +1424,11 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "GigHala",
-        "url": "https://gighala.calmic.com.my",
+        "url": "https://gighala.my",
         "description": "Platform gig halal terbesar di Malaysia untuk pekerja freelance dan projek sambilan",
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://gighala.calmic.com.my/gigs?search={search_term_string}",
+            "target": "https://gighala.my/gigs?search={search_term_string}",
             "query-input": "required name=search_term_string"
         }
     }
@@ -1510,14 +1510,14 @@
         </div>
 
         <div id="pwaAndroidInstructions" class="pwa-instructions active">
-            <div class="pwa-step"><i data-feather="chrome"></i> <span>1. Buka <strong>gighala.calmic.com.my</strong> dalam browser Chrome.</span></div>
+            <div class="pwa-step"><i data-feather="chrome"></i> <span>1. Buka <strong>gighala.my</strong> dalam browser Chrome.</span></div>
             <div class="pwa-step"><i data-feather="more-vertical"></i> <span>2. Ketik menu tiga titik (⋮) di kanan atas.</span></div>
             <div class="pwa-step"><i data-feather="plus-square"></i> <span>3. Pilih <strong>"Tambah ke skrin utama"</strong> atau <strong>"Install app"</strong>.</span></div>
             <div class="pwa-step"><i data-feather="check-circle"></i> <span>4. Sahkan – ikon GigHala akan muncul di skrin utama anda!</span></div>
         </div>
 
         <div id="pwaiOSInstructions" class="pwa-instructions">
-            <div class="pwa-step"><i data-feather="compass"></i> <span>1. Buka <strong>gighala.calmic.com.my</strong> dalam Safari.</span></div>
+            <div class="pwa-step"><i data-feather="compass"></i> <span>1. Buka <strong>gighala.my</strong> dalam Safari.</span></div>
             <div class="pwa-step"><i data-feather="share"></i> <span>2. Ketik butang <strong>Kongsi</strong> (kotak dengan anak panah ke atas).</span></div>
             <div class="pwa-step"><i data-feather="plus-square"></i> <span>3. Tatal dan pilih <strong>"Tambah ke Skrin Utama"</strong>.</span></div>
             <div class="pwa-step"><i data-feather="plus"></i> <span>4. Ketik <strong>"Tambah"</strong> – ikon akan muncul di skrin utama!</span></div>

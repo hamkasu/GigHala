@@ -84,10 +84,10 @@ Add to your `.env` file:
 ```bash
 # Required for sending emails
 SENDGRID_API_KEY=your-sendgrid-api-key
-SENDGRID_FROM_EMAIL=noreply@gighala.com
+SENDGRID_FROM_EMAIL=noreply@gighala.my
 
 # Application URL (for links in emails)
-BASE_URL=https://gighala.com
+BASE_URL=https://gighala.my
 
 # Timezone for scheduled jobs (default: Asia/Kuala_Lumpur)
 TIMEZONE=Asia/Kuala_Lumpur

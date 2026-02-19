@@ -1128,7 +1128,7 @@ with app.app_context():
         # Sample users
         sample_user = User(
             username='demo_freelancer',
-            email='freelancer@gighala.com',
+            email='freelancer@gighala.my',
             password_hash=generate_password_hash('password123'),
             full_name='Ahmad Zaki',
             user_type='freelancer',
@@ -1144,7 +1144,7 @@ with app.app_context():
         
         sample_client = User(
             username='demo_client',
-            email='client@gighala.com',
+            email='client@gighala.my',
             password_hash=generate_password_hash('password123'),
             full_name='Siti Nurhaliza',
             user_type='client',

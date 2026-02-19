@@ -178,7 +178,7 @@ allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
 
 **Recommendation for Production:**
 - Set `ALLOWED_ORIGINS` environment variable to specific domains only
-- Example: `ALLOWED_ORIGINS=https://gighala.com,https://www.gighala.com`
+- Example: `ALLOWED_ORIGINS=https://gighala.my,https://www.gighala.my`
 
 **Action:** Will be set during deployment configuration
 
@@ -255,7 +255,7 @@ allowed_origins = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
   STRIPE_SECRET_KEY=<stripe-production-key>
   STRIPE_PUBLISHABLE_KEY=<stripe-production-key>
   DATABASE_URL=<production-postgresql-url>
-  ALLOWED_ORIGINS=https://gighala.com,https://www.gighala.com
+  ALLOWED_ORIGINS=https://gighala.my,https://www.gighala.my
   FLASK_ENV=production
   FLASK_DEBUG=False
   ```

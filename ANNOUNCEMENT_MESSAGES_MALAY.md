@@ -31,7 +31,7 @@ APA PERLU BUAT:
 3. Aktifkan lokasi
 
 Lengkapkan profil sekarang:
-https://gighala.com/settings
+https://gighala.my/settings
 
 Terima gig terbaik setiap hari! 🚀
 ```
@@ -75,7 +75,7 @@ Untuk dapatkan padanan terbaik, lengkapkan profil anda:
 
 📧 Email pertama akan dihantar esok pagi!
 
-🔗 Kemaskini profil: https://gighala.com/settings
+🔗 Kemaskini profil: https://gighala.my/settings
 
 Pekerja dengan profil lengkap dapat 3X lebih banyak gig yang sesuai! 🚀
 
@@ -124,7 +124,7 @@ Sistem AI kami cari gig yang sesuai dengan skills korang:
 ✅ 2x daily emails
 ✅ % padanan untuk setiap gig
 
-Lengkapkan profile sekarang → https://gighala.com/settings
+Lengkapkan profile sekarang → https://gighala.my/settings
 
 3X more relevant gigs untuk profile lengkap! 🎯
 
@@ -166,7 +166,7 @@ TO GET STARTED:
 
 This is a game-changer for the Malaysian gig economy, combining technology with our commitment to halal, ethical work practices.
 
-Learn more: https://gighala.com
+Learn more: https://gighala.my
 
 #FreelanceEconomy #AIMatching #Malaysia #HalalBusiness #TechForGood #FutureOfWork #GigEconomy
 ```
@@ -198,7 +198,7 @@ AI kami analyze:
 
 ⚠️ PENTING!
 Untuk dapat matching terbaik, UPDATE PROFILE sekarang:
-https://gighala.com/settings
+https://gighala.my/settings
 
 Tambah:
 1. Skills (WAJIB!)
@@ -358,7 +358,7 @@ python send_ai_announcement.py all
 1. Choose appropriate message for platform
 2. Customize with branded graphics
 3. Add relevant hashtags
-4. Include link to https://gighala.com/settings
+4. Include link to https://gighala.my/settings
 5. Monitor and respond to comments/questions
 
 ### For customer support:

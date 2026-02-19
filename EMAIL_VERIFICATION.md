@@ -31,7 +31,7 @@ Users can verify their email in two ways:
 
 **Via Email Link (GET request):**
 - Click the link in the verification email
-- Format: `https://gighala.com/verify-email?token={token}`
+- Format: `https://gighala.my/verify-email?token={token}`
 - Automatically logs in the user after successful verification
 - Redirects to dashboard with success message
 
@@ -199,7 +199,7 @@ sqlite3 database.db < migrations/010_add_email_verification_sqlite.sql
 Ensure the following environment variable is set:
 
 ```bash
-APP_URL=https://gighala.com  # or http://localhost:5000 for development
+APP_URL=https://gighala.my  # or http://localhost:5000 for development
 ```
 
 This is used to generate the verification link in the email.
