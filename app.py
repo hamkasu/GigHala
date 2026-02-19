@@ -506,6 +506,12 @@ def cleanup_rate_limits():
     _last_cleanup = current_time
 
 @app.before_request
+def redirect_www():
+    """Redirect www.gighala.my to gighala.my for consistent URLs and OAuth compatibility"""
+    if request.host and request.host.startswith('www.'):
+        return redirect(request.url.replace('://www.', '://', 1), code=301)
+
+@app.before_request
 def before_request_handler():
     """Run periodic cleanup on rate limit storage and log visitor"""
     global _last_cleanup
