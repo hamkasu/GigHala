@@ -294,7 +294,7 @@ DROP INDEX IF EXISTS idx_payout_external_payment_confirmed;
 For issues or questions:
 - Check Security Logs: Admin Dashboard → Security Logs
 - Review Database: Check `payout` table for batch assignments
-- Contact Support: support@gighala.com
+- Contact Support: support@gighala.my
 
 ## Version History
 

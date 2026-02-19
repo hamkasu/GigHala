@@ -310,7 +310,7 @@ flutter pub add http provider
 - GitHub Issues: https://github.com/yourusername/gighala/issues
 
 ### Business Support
-- Email: support@gighala.com
+- Email: support@gighala.my
 - WhatsApp: +60123456789
 - Office Hours: 9 AM - 6 PM MYT
 

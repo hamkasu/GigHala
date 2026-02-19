@@ -12,7 +12,7 @@ VALUES
     ('socso_company_name', 'GigHala Sdn Bhd', 'Registered Company Name for SOCSO', NOW()),
     ('socso_company_address', '', 'Company Registered Address for SOCSO Borang 8A', NOW()),
     ('socso_company_phone', '', 'Company Contact Phone Number', NOW()),
-    ('socso_company_email', 'compliance@gighala.com', 'Company Email for SOCSO Correspondence', NOW()),
+    ('socso_company_email', 'compliance@gighala.my', 'Company Email for SOCSO Correspondence', NOW()),
     ('socso_submission_reminder_enabled', 'true', 'Enable monthly SOCSO submission reminders (15th of each month)', NOW()),
     ('socso_last_submission_date', '', 'Last SOCSO Borang 8A submission date', NOW())
 ON CONFLICT (key) DO NOTHING;

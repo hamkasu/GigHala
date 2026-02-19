@@ -633,7 +633,7 @@ REQUIREMENTS:
 ✅ Ensure all content is Shariah-compliant
 ✅ Use respectful and modest language
 ✅ Confirm your gig serves halal purposes
-✅ Report any violations to halal@gighala.com
+✅ Report any violations to halal@gighala.my
 
 When in doubt, contact our Halal Compliance Team.
         """,
@@ -656,7 +656,7 @@ KEPERLUAN:
 ✅ Pastikan semua kandungan mematuhi Syariah
 ✅ Gunakan bahasa yang sopan dan sederhana
 ✅ Sahkan gig anda untuk tujuan halal
-✅ Laporkan sebarang pelanggaran ke halal@gighala.com
+✅ Laporkan sebarang pelanggaran ke halal@gighala.my
 
 Jika ragu-ragu, hubungi Pasukan Pematuhan Halal kami.
         """

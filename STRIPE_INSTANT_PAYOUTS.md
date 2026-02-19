@@ -301,7 +301,7 @@ Potential improvements:
 ## Support
 
 For issues or questions:
-- Email: support@gighala.com
+- Email: support@gighala.my
 - Stripe Support: https://support.stripe.com
 - Documentation: https://stripe.com/docs/connect/instant-payouts
 

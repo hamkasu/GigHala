@@ -816,7 +816,7 @@ For questions or issues with AI moderation:
 
 - **GitHub Issues:** [hamkasu/GigHala/issues](https://github.com/hamkasu/GigHala/issues)
 - **Documentation:** This file + inline code comments
-- **Email:** support@gighala.com
+- **Email:** support@gighala.my
 
 ---
 

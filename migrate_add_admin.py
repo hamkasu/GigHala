@@ -25,15 +25,15 @@ def migrate():
                 print("✅ Added is_admin column to user table")
 
             # Update admin user if exists
-            result = db.session.execute(text("SELECT id FROM \"user\" WHERE email = 'admin@gighala.com'"))
+            result = db.session.execute(text("SELECT id FROM \"user\" WHERE email = 'admin@gighala.my'"))
             admin_user = result.fetchone()
 
             if admin_user:
-                db.session.execute(text("UPDATE \"user\" SET is_admin = TRUE WHERE email = 'admin@gighala.com'"))
+                db.session.execute(text("UPDATE \"user\" SET is_admin = TRUE WHERE email = 'admin@gighala.my'"))
                 db.session.commit()
-                print("✅ Updated admin user (admin@gighala.com) with admin privileges")
+                print("✅ Updated admin user (admin@gighala.my) with admin privileges")
             else:
-                print("⚠️  Admin user (admin@gighala.com) not found. Will be created on next app start.")
+                print("⚠️  Admin user (admin@gighala.my) not found. Will be created on next app start.")
 
             # Verify migration
             result = db.session.execute(text("SELECT username, email, is_admin FROM \"user\" WHERE is_admin = TRUE"))

@@ -227,7 +227,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 Having issues? Contact us:
-- **Email**: support@gighala.com
+- **Email**: support@gighala.my
 - **WhatsApp**: +60123456789
 - **Office**: Calmic Sdn Bhd, Johor Bahru, Malaysia
 
