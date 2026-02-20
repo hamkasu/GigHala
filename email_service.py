@@ -1,8 +1,15 @@
 """Brevo Email Service for bulk admin emails"""
 import os
-import brevo_python
-from brevo_python.rest import ApiException
 from flask import current_app
+
+try:
+    import brevo_python
+    from brevo_python.rest import ApiException
+    BREVO_AVAILABLE = True
+except ImportError:
+    brevo_python = None
+    ApiException = Exception
+    BREVO_AVAILABLE = False
 
 
 class EmailService:
@@ -15,7 +22,7 @@ class EmailService:
 
     def is_configured(self):
         """Check if Brevo is properly configured"""
-        return bool(self.api_key and self.from_email)
+        return BREVO_AVAILABLE and bool(self.api_key and self.from_email)
 
     def send_bulk_email(self, to_emails, subject, html_content, text_content=None):
         """
