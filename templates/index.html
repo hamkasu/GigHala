@@ -763,6 +763,29 @@
     </div>
 
     <script>
+        async function toggleLanguage() {
+            const currentLang = '{{ lang }}';
+            const newLang = currentLang === 'ms' ? 'en' : 'ms';
+
+            try {
+                const response = await fetch('/api/language', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ language: newLang })
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Failed to change language');
+                }
+            } catch (error) {
+                console.error('Error changing language:', error);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('login') || window.location.pathname === '/login') {
