@@ -766,12 +766,14 @@
         async function toggleLanguage() {
             const currentLang = '{{ lang }}';
             const newLang = currentLang === 'ms' ? 'en' : 'ms';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
 
             try {
                 const response = await fetch('/api/language', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken ? csrfToken.getAttribute('content') : ''
                     },
                     body: JSON.stringify({ language: newLang })
                 });
