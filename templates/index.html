@@ -42,8 +42,7 @@
             .date-bar .logo-container span {
                 font-size: 16px !important;
             }
-            /* Hide language, Majikan, and Pekerja buttons on mobile */
-            .language-toggle-btn,
+            /* Hide Majikan and Pekerja buttons on mobile */
             .mobile-hide {
                 display: none !important;
             }
@@ -147,9 +146,6 @@
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                 <button class="btn-primary install-btn" onclick="showInstallModal()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="Install App">
                     <span style="font-size: 18px;">📱</span><span class="btn-text"> Install</span>
-                </button>
-                <button class="btn-primary language-toggle-btn" onclick="toggleLanguage()" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;" title="{% if lang == 'ms' %}Switch to English{% else %}Tukar ke Bahasa Melayu{% endif %}">
-                    <span style="font-size: 16px;">🌐</span><span class="btn-text"> {% if lang == 'ms' %}EN{% else %}MS{% endif %}</span>
                 </button>
                 <button class="btn-primary mobile-hide majikan-btn" onclick="const section = document.getElementById('client-section'); if(section) { section.scrollIntoView({behavior: 'smooth', block: 'start'}); } else { console.error('client-section not found'); }" style="background: #e6ffed; color: #0D7C66; border: 1px solid #0D7C66; padding: 8px 13px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 15px; white-space: nowrap; transition: all 0.3s; display: flex; align-items: center; gap: 4px;">
                     <span style="font-size: 16px;">💼</span> Majikan
@@ -763,31 +759,6 @@
     </div>
 
     <script>
-        async function toggleLanguage() {
-            const currentLang = '{{ lang }}';
-            const newLang = currentLang === 'ms' ? 'en' : 'ms';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]');
-
-            try {
-                const response = await fetch('/api/language', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken ? csrfToken.getAttribute('content') : ''
-                    },
-                    body: JSON.stringify({ language: newLang })
-                });
-
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    console.error('Failed to change language');
-                }
-            } catch (error) {
-                console.error('Error changing language:', error);
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('login') || window.location.pathname === '/login') {

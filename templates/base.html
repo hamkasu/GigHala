@@ -586,27 +586,6 @@
             margin: 4px 0;
         }
 
-        .lang-switcher {
-            background: #2a2a2a;
-            color: #ccc;
-            border: 1px solid #444;
-            padding: 6px 12px;
-            border-radius: var(--radius-md);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .lang-switcher:hover {
-            background: #333;
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-
         .header-categories {
             display: none;
             background: var(--bg-white);
@@ -1012,12 +991,6 @@
                 padding: 4px 8px !important;
             }
 
-            .lang-switcher {
-                padding: 6px 10px;
-                font-size: 12px;
-                flex-shrink: 0;
-            }
-
             .user-avatar {
                 width: 32px;
                 height: 32px;
@@ -1108,16 +1081,9 @@
                 margin: 0 !important;
             }
 
-            .lang-switcher span#langText, 
-            .btn-logout-nav span, 
+            .btn-logout-nav span,
             .nav-link span {
                 display: none !important;
-            }
-
-            .lang-switcher {
-                padding: 4px 6px;
-                font-size: 16px;
-                min-width: auto;
             }
 
             .user-avatar {
@@ -1133,7 +1099,7 @@
                 display: none !important;
             }
             
-            .category-link, .lang-switcher {
+            .category-link {
                 min-height: 44px;
                 display: flex;
                 align-items: center;
@@ -1659,9 +1625,6 @@
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
 
-                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
-                        <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
-                    </button>
                     <div class="user-menu">
                         <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
                         <div class="user-dropdown" id="userDropdown">
@@ -1677,10 +1640,6 @@
                         </div>
                     </div>
                 {% else %}
-
-                    <button onclick="toggleLanguage()" class="lang-switcher" title="Switch language / Tukar bahasa">
-                        <span id="langText">{{ 'EN' if lang == 'ms' else 'MS' }}</span>
-                    </button>
                 {% endif %}
             </nav>
         </div>
@@ -1940,30 +1899,6 @@
             }
             
         });
-
-        async function toggleLanguage() {
-            const currentLang = '{{ lang }}';
-            const newLang = currentLang === 'ms' ? 'en' : 'ms';
-
-            try {
-                const response = await fetch('/api/language', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ language: newLang })
-                });
-
-                if (response.ok) {
-                    // Reload page to apply language change
-                    location.reload();
-                } else {
-                    console.error('Failed to change language');
-                }
-            } catch (error) {
-                console.error('Error changing language:', error);
-            }
-        }
 
         // Update wallet balance in header dynamically
         async function updateWalletBalance() {
