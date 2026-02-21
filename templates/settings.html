@@ -386,6 +386,63 @@
         min-height: 32px;
     }
 
+    .skill-input-wrapper {
+        position: relative;
+        flex: 1;
+    }
+
+    .skill-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid var(--border);
+        border-top: none;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+        display: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .skill-suggestions.active {
+        display: block;
+    }
+
+    .skill-suggestion-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--text-dark);
+        border-bottom: 1px solid var(--border-light, #f0f0f0);
+        transition: background 0.15s;
+    }
+
+    .skill-suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .skill-suggestion-item:hover,
+    .skill-suggestion-item.highlighted {
+        background: #f0fdf4;
+        color: var(--primary);
+    }
+
+    .skill-suggestions-header {
+        padding: 8px 14px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #fafafa;
+        border-bottom: 1px solid var(--border-light, #f0f0f0);
+        position: sticky;
+        top: 0;
+    }
+
     .add-specialization-section {
         background: #f0fdf4;
         border: 2px dashed var(--primary);
@@ -685,10 +742,13 @@
             <div class="form-group">
                 <label class="form-label">Kemahiran (sehingga 10)</label>
                 <div class="skill-input-group">
-                    <input type="text" id="skill-input" class="skill-input" placeholder="Contoh: Logo Design, Branding, UI/UX" maxlength="50">
+                    <div class="skill-input-wrapper">
+                        <input type="text" id="skill-input" class="skill-input" style="width:100%;" placeholder="Pilih atau taip kemahiran..." maxlength="50" autocomplete="off">
+                        <div id="skill-suggestions" class="skill-suggestions"></div>
+                    </div>
                     <button type="button" id="add-skill-btn" class="btn btn-primary" style="white-space: nowrap;">Tambah</button>
                 </div>
-                <p class="form-hint">Tekan Enter atau klik Tambah untuk menambah kemahiran</p>
+                <p class="form-hint">Pilih dari senarai cadangan atau taip kemahiran anda sendiri</p>
 
                 <div id="skills-list" class="skills-list">
                     <!-- Skills will be added here -->
@@ -945,9 +1005,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==================== SPECIALIZATIONS MANAGEMENT ====================
     let currentCategoryId = null;
+    let currentCategorySlug = null;
     let currentSpecializationId = null;
     let currentSkills = [];
     let allSpecializations = [];
+    let highlightedIndex = -1;
+
+    // Predefined skills for each category
+    const PREDEFINED_SKILLS = {
+        'design': ['Logo Design', 'Graphic Design', 'UI/UX Design', 'Branding', 'Poster Design', 'Banner Design', 'Flyer Design', 'Business Card Design', 'Packaging Design', 'Illustration'],
+        'writing': ['Copywriting', 'Content Writing', 'Blog Writing', 'Technical Writing', 'Proofreading', 'Editing', 'SEO Writing', 'Academic Writing', 'Creative Writing', 'Translation'],
+        'video': ['Video Editing', 'Motion Graphics', 'Animation', 'Videography', 'Video Production', 'Color Grading', 'Subtitling', 'Short Film', 'Drone Videography', 'Live Streaming'],
+        'tutoring': ['Mengaji Al-Quran', 'Matematik', 'Bahasa Inggeris', 'Bahasa Melayu', 'Sains', 'Sejarah', 'Fizik', 'Kimia', 'Biologi', 'Bahasa Arab'],
+        'content': ['Social Media Content', 'Blog Posts', 'Newsletter', 'Infographic', 'Podcast', 'Ebook', 'Whitepaper', 'Press Release', 'Script Writing', 'Storytelling'],
+        'web': ['Web Development', 'WordPress', 'Frontend Development', 'Backend Development', 'E-commerce', 'Landing Page', 'Web Design', 'Shopify', 'API Development', 'Database Design'],
+        'marketing': ['Digital Marketing', 'Social Media Marketing', 'SEO', 'SEM', 'Email Marketing', 'Facebook Ads', 'Google Ads', 'TikTok Marketing', 'Influencer Marketing', 'Content Marketing'],
+        'admin': ['Data Entry', 'Virtual Assistant', 'Bookkeeping', 'Scheduling', 'Email Management', 'Document Preparation', 'Filing', 'Customer Service', 'Transcription', 'Research'],
+        'general': ['Khidmat Am', 'Pemasangan', 'Pembersihan', 'Penghantaran', 'Pemindahan', 'Bantuan Acara', 'Kerja Manual', 'Pengangkutan', 'Susun Atur', 'Kerja Pejabat'],
+        'programming': ['Python', 'JavaScript', 'Java', 'PHP', 'React', 'Node.js', 'Flutter', 'Mobile App', 'Machine Learning', 'SQL'],
+        'consulting': ['Business Consulting', 'Management Consulting', 'HR Consulting', 'IT Consulting', 'Financial Advisory', 'Legal Advisory', 'Strategy Planning', 'Risk Management', 'Process Improvement', 'Market Research'],
+        'engineering': ['CAD Design', 'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Project Management', 'Quality Control', 'Prototyping', '3D Modeling', 'Technical Drawing', 'Structural Analysis'],
+        'music': ['Music Production', 'Mixing', 'Mastering', 'Songwriting', 'Vocal Recording', 'Guitar', 'Piano', 'Nasyid', 'Jingle', 'Sound Design'],
+        'photography': ['Portrait Photography', 'Product Photography', 'Event Photography', 'Wedding Photography', 'Photo Editing', 'Photo Retouching', 'Food Photography', 'Real Estate Photography', 'Aerial Photography', 'Studio Photography'],
+        'finance': ['Accounting', 'Tax Filing', 'Financial Planning', 'Budgeting', 'Payroll', 'Invoice Management', 'Audit', 'GST/SST', 'Financial Analysis', 'Bookkeeping'],
+        'crafts': ['Handmade Crafts', 'Sewing', 'Embroidery', 'Woodworking', 'Jewelry Making', 'Calligraphy', 'Gift Wrapping', 'Custom Gifts', 'Batik', 'Kraftangan'],
+        'garden': ['Landscaping', 'Garden Maintenance', 'Lawn Mowing', 'Tree Trimming', 'Plant Care', 'Garden Design', 'Irrigation', 'Pest Control', 'Composting', 'Indoor Plants'],
+        'coaching': ['Life Coaching', 'Fitness Training', 'Yoga', 'Personal Training', 'Nutrition Coaching', 'Career Coaching', 'Public Speaking', 'Leadership Training', 'Motivational Speaking', 'Sports Coaching'],
+        'data': ['Data Analysis', 'Data Visualization', 'Excel', 'Power BI', 'Tableau', 'SQL', 'Python Analytics', 'Report Generation', 'Dashboard Design', 'Data Cleaning'],
+        'pets': ['Dog Walking', 'Pet Sitting', 'Pet Grooming', 'Pet Training', 'Pet Photography', 'Veterinary Advice', 'Pet Boarding', 'Cat Care', 'Aquarium Maintenance', 'Bird Care'],
+        'handyman': ['Plumbing', 'Electrical Work', 'Painting', 'Tiling', 'Carpentry', 'Furniture Assembly', 'Aircon Service', 'Door/Lock Repair', 'Renovation', 'Waterproofing'],
+        'tours': ['Tour Guide', 'Travel Planning', 'City Tours', 'Heritage Tours', 'Nature Trekking', 'Food Tours', 'Transportation', 'Itinerary Planning', 'Local Guide', 'Adventure Tours'],
+        'events': ['Event Planning', 'Wedding Planning', 'MC/Emcee', 'Sound System', 'Decoration', 'Catering', 'Canopy Rental', 'Event Photography', 'Invitation Design', 'Stage Setup'],
+        'online-selling': ['Shopee', 'Lazada', 'Product Listing', 'Product Photography', 'Inventory Management', 'Customer Service', 'Social Commerce', 'Dropshipping', 'TikTok Shop', 'Order Fulfillment'],
+        'virtual-assistant': ['Admin Support', 'Calendar Management', 'Email Management', 'Social Media Management', 'Data Entry', 'Research', 'Customer Support', 'Document Formatting', 'Travel Booking', 'CRM Management'],
+        'delivery': ['Food Delivery', 'Parcel Delivery', 'Same-day Delivery', 'Courier Service', 'Grocery Delivery', 'Document Delivery', 'Motorcycle Delivery', 'Van Delivery', 'Interstate Delivery', 'Last-mile Delivery'],
+        'micro-tasks': ['Survey', 'App Testing', 'Mystery Shopping', 'Data Labeling', 'Feedback', 'Short Tasks', 'Product Review', 'Sign Up Tasks', 'QR Scanning', 'Quick Research'],
+        'caregiving': ['Elderly Care', 'Child Care', 'Babysitting', 'Disability Care', 'Home Nursing', 'Companionship', 'Meal Preparation', 'Personal Care', 'Respite Care', 'Special Needs Care'],
+        'creative-other': ['Custom Art', 'Digital Art', 'Mural Painting', 'Face Painting', 'Henna Art', 'Balloon Decoration', 'Custom Printing', 'Sticker Design', 'T-shirt Design', 'Caricature']
+    };
 
     // Load existing specializations
     function loadSpecializations() {
@@ -997,7 +1092,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: spec.specialization_title || '',
                 hourlyRate: spec.base_hourly_rate || '',
                 fixedRate: spec.base_fixed_rate || '',
-                multiplier: spec.premium_multiplier || 1.0
+                multiplier: spec.premium_multiplier || 1.0,
+                slug: spec.category_slug || ''
             }).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
 
             return `
@@ -1053,16 +1149,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const categoryId = parseInt(this.dataset.categoryId);
             const categoryName = this.dataset.categoryName;
             const categoryIcon = this.dataset.categoryIcon;
+            const categorySlug = this.dataset.categorySlug;
 
             // Show edit modal
-            showEditModal(null, categoryId, categoryName, categoryIcon, []);
+            showEditModal(null, categoryId, categoryName, categoryIcon, [], null, categorySlug);
         });
     });
 
     // Show edit modal with all fields
-    function showEditModal(specializationId, categoryId, categoryName, categoryIcon, skills, specData = null) {
+    function showEditModal(specializationId, categoryId, categoryName, categoryIcon, skills, specData = null, categorySlug = null) {
         currentSpecializationId = specializationId;
         currentCategoryId = categoryId;
+        currentCategorySlug = categorySlug;
         currentSkills = [...skills];
 
         document.getElementById('modal-category-name').textContent = categoryName;
@@ -1077,6 +1175,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('premium-multiplier').value = specData?.multiplier || '1.0';
 
         renderSkills();
+        hideSuggestions();
 
         // Hide category selector and show modal
         document.getElementById('add-specialization-section').style.display = 'none';
@@ -1090,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Edit specialization with full data (called from list)
     window.editSpecializationFull = function(id, categoryId, categoryName, categoryIcon, specData) {
-        showEditModal(id, categoryId, categoryName, categoryIcon, specData.skills || [], specData);
+        showEditModal(id, categoryId, categoryName, categoryIcon, specData.skills || [], specData, specData.slug || '');
     };
 
     // Hide edit modal
@@ -1098,8 +1197,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('add-specialization-section').style.display = 'block';
         document.getElementById('edit-specialization-modal').style.display = 'none';
         currentCategoryId = null;
+        currentCategorySlug = null;
         currentSpecializationId = null;
         currentSkills = [];
+        hideSuggestions();
         // Clear rate fields
         document.getElementById('specialization-title').value = '';
         document.getElementById('base-hourly-rate').value = '';
@@ -1147,7 +1248,78 @@ document.addEventListener('DOMContentLoaded', function() {
     window.removeSkill = function(index) {
         currentSkills.splice(index, 1);
         renderSkills();
+        updateSuggestions();
     };
+
+    // ==================== SKILL SUGGESTIONS DROPDOWN ====================
+
+    function getFilteredSuggestions(query) {
+        const predefined = PREDEFINED_SKILLS[currentCategorySlug] || [];
+        return predefined.filter(skill =>
+            !currentSkills.includes(skill) &&
+            skill.toLowerCase().includes(query.toLowerCase())
+        );
+    }
+
+    function showSuggestions(query) {
+        const container = document.getElementById('skill-suggestions');
+        const suggestions = getFilteredSuggestions(query || '');
+
+        if (suggestions.length === 0 || currentSkills.length >= 10) {
+            hideSuggestions();
+            return;
+        }
+
+        const header = query ? 'Cadangan' : 'Kemahiran Popular';
+        container.innerHTML = `<div class="skill-suggestions-header">${header}</div>` +
+            suggestions.map((skill, i) =>
+                `<div class="skill-suggestion-item${i === highlightedIndex ? ' highlighted' : ''}" data-skill="${skill}" data-index="${i}">${skill}</div>`
+            ).join('');
+
+        container.classList.add('active');
+
+        // Add click handlers
+        container.querySelectorAll('.skill-suggestion-item').forEach(item => {
+            item.addEventListener('mousedown', function(e) {
+                e.preventDefault(); // Prevent input blur
+                selectSuggestion(this.dataset.skill);
+            });
+        });
+    }
+
+    function hideSuggestions() {
+        const container = document.getElementById('skill-suggestions');
+        if (container) {
+            container.classList.remove('active');
+            container.innerHTML = '';
+        }
+        highlightedIndex = -1;
+    }
+
+    function updateSuggestions() {
+        const input = document.getElementById('skill-input');
+        if (input && document.activeElement === input) {
+            showSuggestions(input.value.trim());
+        }
+    }
+
+    function selectSuggestion(skill) {
+        if (currentSkills.length >= 10) {
+            alert('Anda hanya boleh menambah sehingga 10 kemahiran setiap kategori');
+            return;
+        }
+        if (!currentSkills.includes(skill)) {
+            currentSkills.push(skill);
+            renderSkills();
+        }
+        const input = document.getElementById('skill-input');
+        input.value = '';
+        highlightedIndex = -1;
+        showSuggestions('');
+        input.focus();
+    }
+
+    // ==================== END SKILL SUGGESTIONS ====================
 
     // Save specialization with rate fields
     function saveSpecialization() {
@@ -1231,13 +1403,52 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Event listeners
-    document.getElementById('add-skill-btn').addEventListener('click', addSkill);
-    document.getElementById('skill-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+    const skillInput = document.getElementById('skill-input');
+
+    document.getElementById('add-skill-btn').addEventListener('click', function() {
+        addSkill();
+        hideSuggestions();
+    });
+
+    skillInput.addEventListener('keydown', function(e) {
+        const container = document.getElementById('skill-suggestions');
+        const items = container.querySelectorAll('.skill-suggestion-item');
+
+        if (e.key === 'ArrowDown') {
             e.preventDefault();
-            addSkill();
+            highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+            showSuggestions(this.value.trim());
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedIndex = Math.max(highlightedIndex - 1, -1);
+            showSuggestions(this.value.trim());
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (highlightedIndex >= 0 && items[highlightedIndex]) {
+                selectSuggestion(items[highlightedIndex].dataset.skill);
+            } else {
+                addSkill();
+                hideSuggestions();
+            }
+        } else if (e.key === 'Escape') {
+            hideSuggestions();
         }
     });
+
+    skillInput.addEventListener('input', function() {
+        highlightedIndex = -1;
+        showSuggestions(this.value.trim());
+    });
+
+    skillInput.addEventListener('focus', function() {
+        showSuggestions(this.value.trim());
+    });
+
+    skillInput.addEventListener('blur', function() {
+        // Delay to allow click on suggestion
+        setTimeout(hideSuggestions, 200);
+    });
+
     document.getElementById('save-specialization-btn').addEventListener('click', saveSpecialization);
     document.getElementById('cancel-specialization-btn').addEventListener('click', hideEditModal);
 
