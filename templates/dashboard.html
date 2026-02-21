@@ -841,6 +841,14 @@
     </a>
     {% endif %}
 
+    <a href="/accepted-gigs" class="stat-card-link">
+        <div class="stat-card" style="border-left-color: #8b5cf6;">
+            <div class="stat-label">{{ t('gigs_in_progress') }}</div>
+            <div class="stat-value">{{ gigs_in_progress }}</div>
+            <div class="stat-description">{{ t('currently_active') }}</div>
+        </div>
+    </a>
+
     <a href="/billing" class="stat-card-link">
         <div class="stat-card green">
             <div class="stat-label">{{ t('total_earned') }}</div>
