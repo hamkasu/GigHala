@@ -4281,10 +4281,20 @@ def edit_gig(gig_id):
         'halal_compliant': gig.halal_compliant,
         'is_instant_payout': gig.is_instant_payout,
         'is_brand_partnership': gig.is_brand_partnership,
-        'skills_required': json.dumps(existing_skills)
+        'skills_required': json.dumps(existing_skills),
+        'payment_type': gig.payment_type or 'full_payment',
+        'workers_needed': gig.workers_needed or 1
     }
-    
+
     if request.method == 'POST':
+        # Handle workers_needed - can be a preset value or custom
+        workers_needed_value = request.form.get('workers_needed', '1')
+        if workers_needed_value == 'custom':
+            workers_needed = int(request.form.get('custom_workers_needed', 1) or 1)
+        else:
+            workers_needed = int(workers_needed_value or 1)
+        workers_needed = max(1, min(100, workers_needed))  # Clamp between 1 and 100
+
         form_data = {
             'title': request.form.get('title', ''),
             'description': request.form.get('description', ''),
@@ -4299,7 +4309,9 @@ def edit_gig(gig_id):
             'halal_compliant': request.form.get('halal_compliant') == 'on',
             'is_instant_payout': request.form.get('is_instant_payout') == 'on',
             'is_brand_partnership': request.form.get('is_brand_partnership') == 'on',
-            'skills_required': request.form.get('skills_required', '[]')
+            'skills_required': request.form.get('skills_required', '[]'),
+            'payment_type': request.form.get('payment_type', 'full_payment'),
+            'workers_needed': workers_needed
         }
 
         try:
@@ -4401,7 +4413,9 @@ def edit_gig(gig_id):
             gig.is_brand_partnership = form_data['is_brand_partnership']
             gig.skills_required = json.dumps(skills_required)
             gig.deadline = deadline
-            
+            gig.payment_type = form_data['payment_type']
+            gig.workers_needed = form_data['workers_needed']
+
             db.session.commit()
             
             flash('Gig berjaya dikemaskini!', 'success')
