@@ -3750,6 +3750,15 @@ def browse_workers():
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('workers.html', user=user, categories=categories, active_page='workers', lang=get_user_language(), t=t)
 
+@app.route('/services')
+@page_login_required
+def browse_services():
+    """Browse worker skills and services with pricing - Fiverr-style listing page"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+    return render_template('worker_skills.html', user=user, categories=categories, active_page='services', lang=get_user_language(), t=t)
+
 @app.route('/search')
 @page_login_required
 def search_page():
@@ -12647,6 +12656,169 @@ def search_specialized_workers():
     except Exception as e:
         app.logger.error(f"Search specialized workers error: {str(e)}")
         return jsonify({'error': 'Failed to search workers'}), 500
+
+
+@app.route('/api/skills/browse', methods=['GET'])
+def browse_skills_api():
+    """Browse individual worker skills/services with pricing - Fiverr-style.
+
+    Returns one card per WorkerSpecialization (skill offering), not per worker.
+
+    Query params:
+    - q: Search query (skill name, title, worker name)
+    - category_id: Filter by category
+    - min_price: Minimum price (checks both hourly and fixed rates)
+    - max_price: Maximum price
+    - sort: Sorting option (price_low, price_high, rating, newest, popular)
+    - verified_only: Boolean, only verified workers
+    - page: Page number (default 1)
+    - limit: Results per page (default 24, max 60)
+    """
+    try:
+        import json as json_lib
+
+        search_query = request.args.get('q', '').strip()
+        category_id = request.args.get('category_id', type=int)
+        min_price = request.args.get('min_price', type=float)
+        max_price = request.args.get('max_price', type=float)
+        sort = request.args.get('sort', 'popular').strip()
+        verified_only = request.args.get('verified_only', 'false').lower() == 'true'
+        page = max(1, request.args.get('page', 1, type=int))
+        limit = min(request.args.get('limit', 24, type=int), 60)
+        offset = (page - 1) * limit
+
+        # Query WorkerSpecialization joined with User and Category
+        query = db.session.query(WorkerSpecialization, User, Category).join(
+            User, WorkerSpecialization.user_id == User.id
+        ).join(
+            Category, WorkerSpecialization.category_id == Category.id
+        ).filter(
+            User.user_type.in_(['freelancer', 'both'])
+        )
+
+        # Only show skills that have at least one rate defined
+        query = query.filter(
+            db.or_(
+                WorkerSpecialization.base_hourly_rate.isnot(None),
+                WorkerSpecialization.base_fixed_rate.isnot(None)
+            )
+        )
+
+        # Search filter
+        if search_query:
+            search_pattern = f'%{search_query}%'
+            query = query.filter(
+                db.or_(
+                    WorkerSpecialization.specialization_title.ilike(search_pattern),
+                    WorkerSpecialization.skills.ilike(search_pattern),
+                    Category.name.ilike(search_pattern),
+                    User.full_name.ilike(search_pattern),
+                    User.username.ilike(search_pattern)
+                )
+            )
+
+        # Category filter
+        if category_id:
+            query = query.filter(WorkerSpecialization.category_id == category_id)
+
+        # Price filter (check both hourly and fixed rates)
+        if min_price is not None:
+            query = query.filter(
+                db.or_(
+                    WorkerSpecialization.base_hourly_rate >= min_price,
+                    WorkerSpecialization.base_fixed_rate >= min_price
+                )
+            )
+        if max_price is not None:
+            query = query.filter(
+                db.or_(
+                    db.and_(
+                        WorkerSpecialization.base_hourly_rate.isnot(None),
+                        WorkerSpecialization.base_hourly_rate <= max_price
+                    ),
+                    db.and_(
+                        WorkerSpecialization.base_fixed_rate.isnot(None),
+                        WorkerSpecialization.base_fixed_rate <= max_price
+                    )
+                )
+            )
+
+        # Verified filter
+        if verified_only:
+            query = query.filter(User.is_verified == True)
+
+        # Get total count
+        total_count = query.count()
+
+        # Sorting
+        if sort == 'price_low':
+            query = query.order_by(
+                db.func.coalesce(WorkerSpecialization.base_fixed_rate, WorkerSpecialization.base_hourly_rate).asc()
+            )
+        elif sort == 'price_high':
+            query = query.order_by(
+                db.func.coalesce(WorkerSpecialization.base_fixed_rate, WorkerSpecialization.base_hourly_rate).desc()
+            )
+        elif sort == 'rating':
+            query = query.order_by(User.rating.desc().nullslast())
+        elif sort == 'newest':
+            query = query.order_by(WorkerSpecialization.created_at.desc())
+        else:  # popular (default)
+            query = query.order_by(User.completed_gigs.desc().nullslast(), User.rating.desc().nullslast())
+
+        # Pagination
+        results = query.offset(offset).limit(limit).all()
+
+        # Build response - one entry per skill/service
+        services = []
+        for spec, user, category in results:
+            skills_list = json_lib.loads(spec.skills) if spec.skills else []
+
+            # Determine the display price
+            starting_price = None
+            price_type = None
+            if spec.base_fixed_rate:
+                starting_price = spec.base_fixed_rate
+                price_type = 'fixed'
+            elif spec.base_hourly_rate:
+                starting_price = spec.base_hourly_rate
+                price_type = 'hourly'
+
+            services.append({
+                'id': spec.id,
+                'title': spec.specialization_title or f"{category.name} Service",
+                'category_name': category.name,
+                'category_id': category.id,
+                'category_icon': category.icon,
+                'skills': skills_list[:5],
+                'starting_price': starting_price,
+                'price_type': price_type,
+                'hourly_rate': spec.base_hourly_rate,
+                'fixed_rate': spec.base_fixed_rate,
+                'has_premium': (spec.premium_multiplier or 1.0) > 1.0,
+                'worker': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.full_name or user.username,
+                    'location': user.location,
+                    'rating': user.rating or 0,
+                    'review_count': user.review_count or 0,
+                    'completed_gigs': user.completed_gigs or 0,
+                    'is_verified': user.is_verified,
+                    'halal_verified': user.halal_verified,
+                }
+            })
+
+        return jsonify({
+            'services': services,
+            'total': total_count,
+            'page': page,
+            'pages': (total_count + limit - 1) // limit if total_count > 0 else 0,
+            'limit': limit
+        })
+    except Exception as e:
+        app.logger.error(f"Browse skills API error: {str(e)}")
+        return jsonify({'error': 'Failed to browse services'}), 500
 
 
 @app.route('/api/microtasks', methods=['GET'])
