@@ -1011,37 +1011,86 @@ document.addEventListener('DOMContentLoaded', function() {
     let allSpecializations = [];
     let highlightedIndex = -1;
 
-    // Predefined skills for each category
+    // Predefined skills for each category (main + subcategories)
     const PREDEFINED_SKILLS = {
+        // ── Design ──
         'design': ['Logo Design', 'Graphic Design', 'UI/UX Design', 'Branding', 'Poster Design', 'Banner Design', 'Flyer Design', 'Business Card Design', 'Packaging Design', 'Illustration'],
+        'graphic-design': ['Logo Design', 'Banner Design', 'Poster Design', 'Brochure Design', 'Infographic Design', 'Social Media Graphics', 'Flyer Design', 'Print Design', 'Brand Identity', 'Packaging Design'],
+        'ui-ux': ['UI Design', 'UX Research', 'Wireframing', 'Prototyping', 'Figma', 'User Testing', 'Responsive Design', 'Design System', 'Interaction Design', 'Information Architecture'],
+        'illustration': ['Digital Illustration', 'Character Design', 'Book Illustration', 'Vector Art', 'Concept Art', 'Comic Art', 'Storyboard', 'Pattern Design', 'Icon Design', 'Infographic Illustration'],
+        'logo-design': ['Minimalist Logo', 'Wordmark Logo', 'Mascot Logo', 'Emblem Logo', 'Brand Identity', 'Logo Animation', 'Logo Redesign', 'Monogram Logo', 'Vintage Logo', '3D Logo'],
+        'fashion': ['Fashion Illustration', 'Pattern Making', 'Garment Design', 'Textile Design', 'Fashion Sketching', 'Clothing Design', 'Costume Design', 'Baju Kurung Design', 'Hijab Design', 'Streetwear Design'],
+        'interior-design': ['Room Layout', 'Space Planning', 'Furniture Selection', '3D Rendering', 'Color Scheme', 'Home Staging', 'Kitchen Design', 'Bathroom Design', 'Office Design', 'Mood Board'],
+        // ── Writing & Content ──
         'writing': ['Copywriting', 'Content Writing', 'Blog Writing', 'Technical Writing', 'Proofreading', 'Editing', 'SEO Writing', 'Academic Writing', 'Creative Writing', 'Translation'],
-        'video': ['Video Editing', 'Motion Graphics', 'Animation', 'Videography', 'Video Production', 'Color Grading', 'Subtitling', 'Short Film', 'Drone Videography', 'Live Streaming'],
-        'tutoring': ['Mengaji Al-Quran', 'Matematik', 'Bahasa Inggeris', 'Bahasa Melayu', 'Sains', 'Sejarah', 'Fizik', 'Kimia', 'Biologi', 'Bahasa Arab'],
+        'content-writing': ['Blog Posts', 'Website Copy', 'Article Writing', 'SEO Content', 'Product Description', 'Technical Writing', 'Ghostwriting', 'Press Release', 'White Paper', 'Case Study'],
+        'translation': ['English-Malay', 'Malay-English', 'Arabic-Malay', 'Chinese-Malay', 'Document Translation', 'Website Localization', 'Subtitle Translation', 'Legal Translation', 'Medical Translation', 'Certified Translation'],
+        'proofreading': ['Grammar Checking', 'Copy Editing', 'Academic Proofreading', 'Business Proofreading', 'Manuscript Editing', 'ESL Editing', 'Formatting', 'Fact Checking', 'Style Guide Compliance', 'Content Review'],
+        'resume': ['Resume Writing', 'CV Formatting', 'Cover Letter', 'LinkedIn Profile', 'Portfolio Design', 'Career Consulting', 'Interview Prep', 'Bio Writing', 'Executive Resume', 'Fresh Graduate Resume'],
+        'email-marketing': ['Newsletter Design', 'Email Campaign', 'Email Template', 'Drip Campaign', 'Mailchimp', 'Email Copywriting', 'A/B Testing', 'List Management', 'Automation Setup', 'Email Analytics'],
+        'social-copy': ['Instagram Captions', 'Facebook Posts', 'TikTok Scripts', 'Twitter/X Posts', 'LinkedIn Posts', 'Hashtag Strategy', 'Content Calendar', 'Brand Voice', 'Engagement Copy', 'Ad Copy'],
         'content': ['Social Media Content', 'Blog Posts', 'Newsletter', 'Infographic', 'Podcast', 'Ebook', 'Whitepaper', 'Press Release', 'Script Writing', 'Storytelling'],
-        'web': ['Web Development', 'WordPress', 'Frontend Development', 'Backend Development', 'E-commerce', 'Landing Page', 'Web Design', 'Shopify', 'API Development', 'Database Design'],
-        'marketing': ['Digital Marketing', 'Social Media Marketing', 'SEO', 'SEM', 'Email Marketing', 'Facebook Ads', 'Google Ads', 'TikTok Marketing', 'Influencer Marketing', 'Content Marketing'],
-        'admin': ['Data Entry', 'Virtual Assistant', 'Bookkeeping', 'Scheduling', 'Email Management', 'Document Preparation', 'Filing', 'Customer Service', 'Transcription', 'Research'],
-        'general': ['Khidmat Am', 'Pemasangan', 'Pembersihan', 'Penghantaran', 'Pemindahan', 'Bantuan Acara', 'Kerja Manual', 'Pengangkutan', 'Susun Atur', 'Kerja Pejabat'],
-        'programming': ['Python', 'JavaScript', 'Java', 'PHP', 'React', 'Node.js', 'Flutter', 'Mobile App', 'Machine Learning', 'SQL'],
-        'consulting': ['Business Consulting', 'Management Consulting', 'HR Consulting', 'IT Consulting', 'Financial Advisory', 'Legal Advisory', 'Strategy Planning', 'Risk Management', 'Process Improvement', 'Market Research'],
-        'engineering': ['CAD Design', 'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Project Management', 'Quality Control', 'Prototyping', '3D Modeling', 'Technical Drawing', 'Structural Analysis'],
-        'music': ['Music Production', 'Mixing', 'Mastering', 'Songwriting', 'Vocal Recording', 'Guitar', 'Piano', 'Nasyid', 'Jingle', 'Sound Design'],
+        // ── Video & Media ──
+        'video': ['Video Editing', 'Motion Graphics', 'Animation', 'Videography', 'Video Production', 'Color Grading', 'Subtitling', 'Short Film', 'Drone Videography', 'Live Streaming'],
+        'video-editing': ['Premiere Pro', 'Final Cut Pro', 'DaVinci Resolve', 'Color Grading', 'Sound Design', 'Subtitling', 'Transitions', 'Short Form Video', 'YouTube Editing', 'Wedding Video'],
+        'animation': ['2D Animation', '3D Animation', 'Motion Graphics', 'Explainer Video', 'Character Animation', 'After Effects', 'Whiteboard Animation', 'Logo Animation', 'GIF Animation', 'Stop Motion'],
+        'voiceover': ['Malay Voiceover', 'English Voiceover', 'Commercial VO', 'Narration', 'Character Voice', 'IVR Recording', 'Audiobook', 'E-learning VO', 'Dubbing', 'Radio Ad'],
+        'podcast': ['Podcast Editing', 'Audio Mixing', 'Sound Design', 'Intro/Outro', 'Show Notes', 'Transcript', 'Music Production', 'Audio Restoration', 'RSS Setup', 'Podcast Launch'],
         'photography': ['Portrait Photography', 'Product Photography', 'Event Photography', 'Wedding Photography', 'Photo Editing', 'Photo Retouching', 'Food Photography', 'Real Estate Photography', 'Aerial Photography', 'Studio Photography'],
-        'finance': ['Accounting', 'Tax Filing', 'Financial Planning', 'Budgeting', 'Payroll', 'Invoice Management', 'Audit', 'GST/SST', 'Financial Analysis', 'Bookkeeping'],
-        'crafts': ['Handmade Crafts', 'Sewing', 'Embroidery', 'Woodworking', 'Jewelry Making', 'Calligraphy', 'Gift Wrapping', 'Custom Gifts', 'Batik', 'Kraftangan'],
-        'garden': ['Landscaping', 'Garden Maintenance', 'Lawn Mowing', 'Tree Trimming', 'Plant Care', 'Garden Design', 'Irrigation', 'Pest Control', 'Composting', 'Indoor Plants'],
-        'coaching': ['Life Coaching', 'Fitness Training', 'Yoga', 'Personal Training', 'Nutrition Coaching', 'Career Coaching', 'Public Speaking', 'Leadership Training', 'Motivational Speaking', 'Sports Coaching'],
-        'data': ['Data Analysis', 'Data Visualization', 'Excel', 'Power BI', 'Tableau', 'SQL', 'Python Analytics', 'Report Generation', 'Dashboard Design', 'Data Cleaning'],
-        'pets': ['Dog Walking', 'Pet Sitting', 'Pet Grooming', 'Pet Training', 'Pet Photography', 'Veterinary Advice', 'Pet Boarding', 'Cat Care', 'Aquarium Maintenance', 'Bird Care'],
-        'handyman': ['Plumbing', 'Electrical Work', 'Painting', 'Tiling', 'Carpentry', 'Furniture Assembly', 'Aircon Service', 'Door/Lock Repair', 'Renovation', 'Waterproofing'],
-        'tours': ['Tour Guide', 'Travel Planning', 'City Tours', 'Heritage Tours', 'Nature Trekking', 'Food Tours', 'Transportation', 'Itinerary Planning', 'Local Guide', 'Adventure Tours'],
-        'events': ['Event Planning', 'Wedding Planning', 'MC/Emcee', 'Sound System', 'Decoration', 'Catering', 'Canopy Rental', 'Event Photography', 'Invitation Design', 'Stage Setup'],
-        'online-selling': ['Shopee', 'Lazada', 'Product Listing', 'Product Photography', 'Inventory Management', 'Customer Service', 'Social Commerce', 'Dropshipping', 'TikTok Shop', 'Order Fulfillment'],
+        // ── Web & App Development ──
+        'web': ['Web Development', 'WordPress', 'Frontend Development', 'Backend Development', 'E-commerce', 'Landing Page', 'Web Design', 'Shopify', 'API Development', 'Database Design'],
+        'web-development': ['HTML/CSS', 'JavaScript', 'React', 'WordPress', 'PHP', 'Node.js', 'Python', 'Responsive Design', 'Landing Page', 'Web App'],
+        'app-development': ['iOS Development', 'Android Development', 'Flutter', 'React Native', 'Mobile UI Design', 'App Prototyping', 'API Integration', 'App Testing', 'App Store Submission', 'Cross-platform App'],
+        'ecommerce': ['Shopify Setup', 'WooCommerce', 'Product Listing', 'Payment Gateway', 'Inventory System', 'Order Management', 'Store Theme Design', 'SEO Optimization', 'Product Photography', 'Dropship Setup'],
+        // ── Marketing & Business ──
+        'marketing': ['Digital Marketing', 'Social Media Marketing', 'SEO', 'SEM', 'Email Marketing', 'Facebook Ads', 'Google Ads', 'TikTok Marketing', 'Influencer Marketing', 'Content Marketing'],
+        'digital-marketing': ['SEO', 'Google Ads', 'Facebook Ads', 'TikTok Ads', 'Content Marketing', 'Email Marketing', 'Analytics', 'Conversion Optimization', 'Funnel Building', 'Marketing Strategy'],
+        'social-media': ['Content Planning', 'Community Management', 'Instagram Management', 'TikTok Management', 'Facebook Management', 'Posting Schedule', 'Engagement Strategy', 'Analytics Reporting', 'Influencer Outreach', 'Hashtag Research'],
+        'business-consulting': ['Business Plan', 'Market Research', 'Financial Modeling', 'Startup Consulting', 'Operations Strategy', 'Growth Strategy', 'Competitive Analysis', 'SWOT Analysis', 'Pitch Deck', 'Business Registration'],
+        'data-analysis': ['Excel Analysis', 'Google Sheets', 'Data Visualization', 'Survey Analysis', 'Report Generation', 'Dashboard Creation', 'Statistical Analysis', 'Data Cleaning', 'Trend Analysis', 'Power BI'],
+        'consulting': ['Business Consulting', 'Management Consulting', 'HR Consulting', 'IT Consulting', 'Financial Advisory', 'Legal Advisory', 'Strategy Planning', 'Risk Management', 'Process Improvement', 'Market Research'],
+        // ── Education & Tutoring ──
+        'tutoring': ['Mengaji Al-Quran', 'Matematik', 'Bahasa Inggeris', 'Bahasa Melayu', 'Sains', 'Sejarah', 'Fizik', 'Kimia', 'Biologi', 'Bahasa Arab'],
+        'language-teaching': ['Bahasa Inggeris', 'Bahasa Melayu', 'Bahasa Arab', 'Bahasa Mandarin', 'Bahasa Jepun', 'IELTS Prep', 'MUET Prep', 'Business English', 'Conversational English', 'Grammar'],
+        // ── Technical & Engineering ──
+        'programming': ['Python', 'JavaScript', 'Java', 'PHP', 'React', 'Node.js', 'Flutter', 'Mobile App', 'Machine Learning', 'SQL'],
+        'engineering': ['CAD Design', 'Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering', 'Project Management', 'Quality Control', 'Prototyping', '3D Modeling', 'Technical Drawing', 'Structural Analysis'],
+        // ── Admin & Support ──
+        'admin': ['Data Entry', 'Virtual Assistant', 'Bookkeeping', 'Scheduling', 'Email Management', 'Document Preparation', 'Filing', 'Customer Service', 'Transcription', 'Research'],
         'virtual-assistant': ['Admin Support', 'Calendar Management', 'Email Management', 'Social Media Management', 'Data Entry', 'Research', 'Customer Support', 'Document Formatting', 'Travel Booking', 'CRM Management'],
+        'transcription': ['Audio Transcription', 'Video Transcription', 'Meeting Minutes', 'Medical Transcription', 'Legal Transcription', 'Interview Transcription', 'Subtitle Creation', 'Malay Transcription', 'English Transcription', 'Verbatim Transcription'],
+        'data-entry': ['Data Input', 'Spreadsheet Work', 'Database Entry', 'Form Filling', 'PDF to Excel', 'Web Scraping', 'CRM Data Entry', 'Invoice Processing', 'List Building', 'Data Migration'],
+        // ── Finance & Legal ──
+        'finance': ['Accounting', 'Tax Filing', 'Financial Planning', 'Budgeting', 'Payroll', 'Invoice Management', 'Audit', 'GST/SST', 'Financial Analysis', 'Bookkeeping'],
+        'bookkeeping': ['Basic Accounting', 'Invoice Management', 'Bank Reconciliation', 'Tax Preparation', 'SST Filing', 'Payroll Processing', 'Financial Reports', 'QuickBooks', 'Cash Flow Management', 'Expense Tracking'],
+        'legal': ['Contract Drafting', 'Document Review', 'Legal Research', 'Agreement Templates', 'Terms & Conditions', 'Privacy Policy', 'Notarization', 'Company Secretary', 'IP Registration', 'Compliance'],
+        // ── Lifestyle & Personal ──
+        'coaching': ['Life Coaching', 'Fitness Training', 'Yoga', 'Personal Training', 'Nutrition Coaching', 'Career Coaching', 'Public Speaking', 'Leadership Training', 'Motivational Speaking', 'Sports Coaching'],
+        'wellness-coaching': ['Health Coaching', 'Fitness Guidance', 'Nutrition Plan', 'Weight Management', 'Mental Wellness', 'Stress Management', 'Meditation Guide', 'Wellness Consulting', 'Lifestyle Coaching', 'Detox Program'],
+        'personal-styling': ['Wardrobe Styling', 'Personal Shopping', 'Image Consulting', 'Color Analysis', 'Outfit Planning', 'Hijab Styling', 'Fashion Advice', 'Grooming Tips', 'Event Styling', 'Capsule Wardrobe'],
+        'pets': ['Dog Walking', 'Pet Sitting', 'Pet Grooming', 'Pet Training', 'Pet Photography', 'Veterinary Advice', 'Pet Boarding', 'Cat Care', 'Aquarium Maintenance', 'Bird Care'],
+        'pet-services': ['Dog Walking', 'Pet Sitting', 'Pet Grooming', 'Pet Training', 'Pet Boarding', 'Cat Care', 'Fish Tank Maintenance', 'Pet Photography', 'Pet Transport', 'Veterinary Advice'],
+        // ── Home & Handyman ──
+        'handyman': ['Plumbing', 'Electrical Work', 'Painting', 'Tiling', 'Carpentry', 'Furniture Assembly', 'Aircon Service', 'Door/Lock Repair', 'Renovation', 'Waterproofing'],
+        'home-repair': ['Plumbing', 'Electrical Repair', 'Painting', 'Furniture Assembly', 'Aircon Service', 'Door Repair', 'Lock Installation', 'Shelving', 'Curtain Rod', 'TV Mounting'],
+        'cleaning': ['House Cleaning', 'Office Cleaning', 'Deep Cleaning', 'Post-renovation Cleaning', 'Carpet Cleaning', 'Window Cleaning', 'Disinfection', 'Move-in Cleaning', 'Upholstery Cleaning', 'Kitchen Deep Clean'],
+        'garden': ['Landscaping', 'Garden Maintenance', 'Lawn Mowing', 'Tree Trimming', 'Plant Care', 'Garden Design', 'Irrigation', 'Pest Control', 'Composting', 'Indoor Plants'],
+        'gardening': ['Lawn Mowing', 'Tree Trimming', 'Plant Care', 'Garden Design', 'Landscaping', 'Pest Control', 'Irrigation Setup', 'Composting', 'Herb Garden', 'Vertical Garden'],
+        // ── Specialized Services ──
+        'crafts': ['Handmade Crafts', 'Sewing', 'Embroidery', 'Woodworking', 'Jewelry Making', 'Calligraphy', 'Gift Wrapping', 'Custom Gifts', 'Batik', 'Kraftangan'],
+        'music': ['Music Production', 'Mixing', 'Mastering', 'Songwriting', 'Vocal Recording', 'Guitar', 'Piano', 'Nasyid', 'Jingle', 'Sound Design'],
+        'music-production': ['Beat Making', 'Mixing', 'Mastering', 'Music Composition', 'Songwriting', 'Vocal Production', 'Jingle Creation', 'Film Score', 'Nasyid Production', 'Sound Design'],
+        'events': ['Event Planning', 'Wedding Planning', 'MC/Emcee', 'Sound System', 'Decoration', 'Catering', 'Canopy Rental', 'Event Photography', 'Invitation Design', 'Stage Setup'],
+        'event-planning': ['Wedding Planning', 'Corporate Event', 'Birthday Party', 'Kenduri', 'MC/Emcee', 'Decoration', 'Vendor Coordination', 'Catering Management', 'Invitation Design', 'Event Logistics'],
+        'tours': ['Tour Guide', 'Travel Planning', 'City Tours', 'Heritage Tours', 'Nature Trekking', 'Food Tours', 'Transportation', 'Itinerary Planning', 'Local Guide', 'Adventure Tours'],
+        // ── Other Categories ──
+        'online-selling': ['Shopee', 'Lazada', 'Product Listing', 'Product Photography', 'Inventory Management', 'Customer Service', 'Social Commerce', 'Dropshipping', 'TikTok Shop', 'Order Fulfillment'],
         'delivery': ['Food Delivery', 'Parcel Delivery', 'Same-day Delivery', 'Courier Service', 'Grocery Delivery', 'Document Delivery', 'Motorcycle Delivery', 'Van Delivery', 'Interstate Delivery', 'Last-mile Delivery'],
         'micro-tasks': ['Survey', 'App Testing', 'Mystery Shopping', 'Data Labeling', 'Feedback', 'Short Tasks', 'Product Review', 'Sign Up Tasks', 'QR Scanning', 'Quick Research'],
         'caregiving': ['Elderly Care', 'Child Care', 'Babysitting', 'Disability Care', 'Home Nursing', 'Companionship', 'Meal Preparation', 'Personal Care', 'Respite Care', 'Special Needs Care'],
-        'creative-other': ['Custom Art', 'Digital Art', 'Mural Painting', 'Face Painting', 'Henna Art', 'Balloon Decoration', 'Custom Printing', 'Sticker Design', 'T-shirt Design', 'Caricature']
+        'creative-other': ['Custom Art', 'Digital Art', 'Mural Painting', 'Face Painting', 'Henna Art', 'Balloon Decoration', 'Custom Printing', 'Sticker Design', 'T-shirt Design', 'Caricature'],
+        'data': ['Data Analysis', 'Data Visualization', 'Excel', 'Power BI', 'Tableau', 'SQL', 'Python Analytics', 'Report Generation', 'Dashboard Design', 'Data Cleaning'],
+        'general': ['Khidmat Am', 'Pemasangan', 'Pembersihan', 'Penghantaran', 'Pemindahan', 'Bantuan Acara', 'Kerja Manual', 'Pengangkutan', 'Susun Atur', 'Kerja Pejabat']
     };
 
     // Load existing specializations
