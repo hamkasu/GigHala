@@ -10,15 +10,23 @@ Root cause: If migration 050 (or the original table creation) was run by a
 different PostgreSQL role than the application user, the app user will receive
 "permission denied for table worker_specialization" on every query.
 
-Usage:
+Usage (two modes):
+
+  Mode A – app user is a superuser / table owner (most common):
+    python migrations/051_fix_worker_specialization_permissions.py
+
+  Mode B – app user is NOT a superuser; supply a superuser URL via
+  SUPERUSER_DATABASE_URL so the grants can be issued with elevated privileges:
+    SUPERUSER_DATABASE_URL="postgresql://postgres:secret@host/db" \
     python migrations/051_fix_worker_specialization_permissions.py
 
 This will:
-1. Parse the DATABASE_URL to determine the application database user
-2. GRANT SELECT, INSERT, UPDATE, DELETE on worker_specialization
-3. GRANT SELECT, INSERT, UPDATE, DELETE on worker_rate_audit
-4. GRANT USAGE, SELECT on associated sequences (for SERIAL primary keys)
-5. Verify the grants were applied successfully
+1. Parse DATABASE_URL to determine the application database user
+2. Connect via SUPERUSER_DATABASE_URL (or DATABASE_URL if not set)
+3. GRANT ALL on worker_specialization
+4. GRANT ALL on worker_rate_audit
+5. GRANT USAGE, SELECT on associated sequences (for SERIAL primary keys)
+6. Verify the grants were applied successfully
 """
 
 import os
@@ -38,6 +46,10 @@ def get_db_username(database_url):
 
 def run_migration():
     database_url = os.environ.get('DATABASE_URL', '')
+    # Optional: a superuser URL used only to issue the GRANTs.
+    # When the app DATABASE_URL user is not a superuser/table-owner,
+    # set SUPERUSER_DATABASE_URL to a postgres superuser connection string.
+    superuser_url = os.environ.get('SUPERUSER_DATABASE_URL', '') or database_url
 
     if not database_url:
         print("ERROR: DATABASE_URL environment variable is not set.")
@@ -60,20 +72,27 @@ def run_migration():
         return False
 
     print(f"Database type: PostgreSQL")
-    print(f"Application DB user: {app_user}")
-    print()
+    print(f"Application DB user (grantee): {app_user}")
 
     # Normalise the URL so psycopg2 accepts it (postgres:// -> postgresql://)
-    if database_url.startswith('postgres://'):
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    def _normalise(url):
+        if url.startswith('postgres://'):
+            return url.replace('postgres://', 'postgresql://', 1)
+        return url
 
-    engine = create_engine(database_url)
+    grant_url = _normalise(superuser_url)
+    grant_user = get_db_username(grant_url)
+    if grant_user and grant_user != app_user:
+        print(f"Granting via superuser URL (user: {grant_user})")
+    print()
+
+    engine = create_engine(grant_url)
 
     statements = [
-        # worker_specialization – DML privileges
-        f'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_specialization TO "{app_user}"',
-        # worker_rate_audit – DML privileges
-        f'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_rate_audit TO "{app_user}"',
+        # worker_specialization – full DML privileges
+        f'GRANT ALL ON TABLE worker_specialization TO "{app_user}"',
+        # worker_rate_audit – full DML privileges
+        f'GRANT ALL ON TABLE worker_rate_audit TO "{app_user}"',
         # Sequences used by SERIAL / BIGSERIAL primary keys
         f'GRANT USAGE, SELECT ON SEQUENCE worker_specialization_id_seq TO "{app_user}"',
         f'GRANT USAGE, SELECT ON SEQUENCE worker_rate_audit_id_seq TO "{app_user}"',
@@ -120,13 +139,18 @@ def run_migration():
     if error_count > 0:
         print("Migration completed with errors.")
         print()
-        print("If GRANT failed due to insufficient privileges, ask your")
-        print("PostgreSQL superuser to run the following commands:")
+        print("The GRANT failed because the connecting user is not the table owner")
+        print("and not a superuser.  Retry with a superuser connection:")
         print()
-        print(f'  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_specialization TO "{app_user}";')
-        print(f'  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_rate_audit TO "{app_user}";')
-        print(f'  GRANT USAGE, SELECT ON SEQUENCE worker_specialization_id_seq TO "{app_user}";')
-        print(f'  GRANT USAGE, SELECT ON SEQUENCE worker_rate_audit_id_seq TO "{app_user}";')
+        print("  SUPERUSER_DATABASE_URL='postgresql://postgres:secret@host/db' \\")
+        print("  python migrations/051_fix_worker_specialization_permissions.py")
+        print()
+        print("Or connect as a superuser in psql and run:")
+        print()
+        print(f'  GRANT ALL ON TABLE worker_specialization TO "{app_user}";')
+        print(f'  GRANT ALL ON TABLE worker_rate_audit TO "{app_user}";')
+        print(f'  GRANT ALL ON SEQUENCE worker_specialization_id_seq TO "{app_user}";')
+        print(f'  GRANT ALL ON SEQUENCE worker_rate_audit_id_seq TO "{app_user}";')
         print()
         return False
 
