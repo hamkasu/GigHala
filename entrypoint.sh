@@ -40,6 +40,12 @@ if [ -f "migrations/014_normalize_user_emails.py" ]; then
     python migrations/014_normalize_user_emails.py || echo "Warning: Email normalization migration had warnings"
 fi
 
+# Fix worker_specialization table permissions (migration 051)
+if [ -f "migrations/051_fix_worker_specialization_permissions.py" ]; then
+    echo "Running worker specialization permissions fix..."
+    python migrations/051_fix_worker_specialization_permissions.py || echo "Warning: Worker specialization permissions migration had warnings"
+fi
+
 echo ""
 echo "========================================="
 echo "Starting Gunicorn server..."
