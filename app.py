@@ -19426,7 +19426,40 @@ def init_database():
     try:
         # Create tables
         db.create_all()
-        
+
+        # Grant necessary privileges on worker_specialization tables when using PostgreSQL.
+        # In some managed PostgreSQL environments the tables may be owned by a different role,
+        # causing "permission denied for table worker_specialization" at runtime.
+        # Running explicit GRANTs here (as the connecting user) is a no-op when the user
+        # already has the privileges, and fixes missing privileges when possible.
+        database_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        if 'postgresql' in database_url or 'postgres://' in database_url:
+            try:
+                from urllib.parse import urlparse as _urlparse
+                from sqlalchemy import text as _sa_text
+                _parsed = _urlparse(database_url)
+                _app_user = _parsed.username
+                if _app_user:
+                    _grant_stmts = [
+                        f'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_specialization TO "{_app_user}"',
+                        f'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_rate_audit TO "{_app_user}"',
+                        f'GRANT USAGE, SELECT ON SEQUENCE worker_specialization_id_seq TO "{_app_user}"',
+                        f'GRANT USAGE, SELECT ON SEQUENCE worker_rate_audit_id_seq TO "{_app_user}"',
+                    ]
+                    with db.engine.connect() as _conn:
+                        for _stmt in _grant_stmts:
+                            try:
+                                _conn.execute(_sa_text(_stmt))
+                                _conn.commit()
+                            except Exception as _ge:
+                                _conn.rollback()
+                                # Ignore "already has privilege" and "does not exist" errors
+                                _ge_str = str(_ge).lower()
+                                if 'already' not in _ge_str and 'does not exist' not in _ge_str:
+                                    print(f"Warning: Could not grant permission ({_stmt}): {_ge}")
+            except Exception as _grant_err:
+                print(f"Warning: Permission grant step failed: {_grant_err}")
+
         # Add default categories if they don't exist
         default_categories = [
             # Design & Creative
