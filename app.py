@@ -19580,29 +19580,39 @@ def init_database():
                         pass
 
                 if not _can_access and _app_user:
-                    # ── Step 3c: SUPERUSER_DATABASE_URL – dedicated privileged connection ──
-                    # Set SUPERUSER_DATABASE_URL env var to a PostgreSQL superuser connection
-                    # string and the app will use it on startup to fix permissions automatically.
+                    # ── Step 3c: SUPERUSER_DATABASE_URL – drop broken tables, recreate fresh ──
+                    # The table is owned by a different role; no GRANT trick can fix it.
+                    # Strategy: use the superuser connection to DROP the broken tables, then
+                    # let SQLAlchemy's create_all() recreate them owned by the app user.
+                    # Set SUPERUSER_DATABASE_URL env var to enable this on startup.
                     _su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
                     if _su_url:
                         try:
                             _su_engine = _create_engine(_norm_url(_su_url))
                             with _su_engine.connect() as _su_conn:
-                                for _t in _fix_tables:
-                                    _su_conn.execute(_sa_text(f'ALTER TABLE {_t} OWNER TO "{_app_user}"'))
-                                for _s in _fix_seqs:
+                                # Remove FK constraints that reference worker_specialization
+                                # so we can drop it without CASCADE wiping related data
+                                for _fk_drop in (
+                                    'ALTER TABLE IF EXISTS gig_worker DROP CONSTRAINT IF EXISTS gig_worker_specialization_id_fkey',
+                                    'ALTER TABLE IF EXISTS application DROP CONSTRAINT IF EXISTS application_specialization_id_fkey',
+                                    'DROP TABLE IF EXISTS worker_rate_audit',
+                                    'DROP TABLE IF EXISTS worker_specialization',
+                                ):
                                     try:
-                                        _su_conn.execute(_sa_text(f'ALTER SEQUENCE {_s} OWNER TO "{_app_user}"'))
+                                        _su_conn.execute(_sa_text(_fk_drop))
                                     except Exception:
-                                        pass
+                                        _su_conn.rollback()
                                 _su_conn.commit()
-                            # verify with app connection
+                            print('[DB-FIX] Step 3c: dropped old worker_specialization tables via SUPERUSER_DATABASE_URL.')
+                            # Recreate tables owned by the app user
+                            db.create_all()
+                            # Verify
                             with db.engine.connect() as _conn:
                                 _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
-                            print('[DB-FIX] Step 3c success: fixed ownership via SUPERUSER_DATABASE_URL.')
+                            print('[DB-FIX] Step 3c success: worker_specialization recreated, owned by app user.')
                             _can_access = True
                         except Exception as _su_err:
-                            print(f'[DB-FIX] Step 3c (SUPERUSER_DATABASE_URL) failed: {_su_err}')
+                            print(f'[DB-FIX] Step 3c (drop+recreate) failed: {_su_err}')
 
                 if not _can_access:
                     # ── Step 4: all attempts failed – print exact manual SQL ────────────
@@ -19621,26 +19631,23 @@ def init_database():
 
                     _fix_user = _app_user or _cur_user or '<app_db_user>'
                     print('=' * 70)
-                    print('STARTUP WARNING: cannot access worker_specialization')
-                    print(f'  Table owner   : {_tbl_owner}')
-                    print(f'  App DB user   : {_fix_user}')
-                    print(f'  Current user  : {_cur_user}')
+                    print('STARTUP ERROR: worker_specialization permission denied')
+                    print(f'  Table owner  : {_tbl_owner}')
+                    print(f'  App DB user  : {_fix_user}')
+                    print(f'  Current user : {_cur_user}')
                     print()
-                    print('  OPTION A – paste this in your hosting SQL console (Railway/Neon/Supabase):')
-                    print(f'    ALTER TABLE worker_specialization OWNER TO "{_fix_user}";')
-                    print(f'    ALTER TABLE worker_rate_audit     OWNER TO "{_fix_user}";')
+                    print('  OPTION A – paste in your Railway/Neon/Supabase SQL console:')
+                    print('    DROP TABLE IF EXISTS worker_rate_audit;')
+                    print('    DROP TABLE IF EXISTS worker_specialization;')
+                    print('    -- Then restart the app; it will recreate the tables correctly.')
                     print()
-                    print('  OPTION B – set env var and redeploy:')
+                    print('  OPTION B – set env var and redeploy (app fixes itself on startup):')
                     print('    SUPERUSER_DATABASE_URL=postgresql://<superuser>:<pass>@<host>/<db>')
-                    print('    (app will use this on next startup to fix permissions automatically)')
                     print()
-                    print('  OPTION C – run migration script with superuser URL:')
+                    print('  OPTION C – run flask CLI command with superuser URL:')
                     print('    SUPERUSER_DATABASE_URL="postgresql://postgres:pass@host/db" \\')
-                    print('    python migrations/052_reassign_specialization_ownership.py')
+                    print('    flask fix-db-permissions')
                     print('=' * 70)
-
-            except Exception as _perm_err:
-                print(f'Warning: worker_specialization permission check failed: {_perm_err}')
 
         # Add default categories if they don't exist
         default_categories = [
@@ -22193,7 +22200,7 @@ def fix_db_permissions_cmd():
     except Exception as e:
         print(f'  Failed: {e}')
 
-    # Strategy 4: SUPERUSER_DATABASE_URL
+    # Strategy 4: SUPERUSER_DATABASE_URL – try ALTER TABLE OWNER first
     _su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
     if _su_url:
         print('[Strategy 4] ALTER TABLE OWNER via SUPERUSER_DATABASE_URL …')
@@ -22215,20 +22222,49 @@ def fix_db_permissions_cmd():
                 sys.exit(0)
         except Exception as e:
             print(f'  Failed: {e}')
-    else:
-        print('[Strategy 4] Skipped (SUPERUSER_DATABASE_URL not set)')
 
-    # All failed
+        # Strategy 5: DROP + recreate (nuclear, data-safe since feature was broken)
+        print('[Strategy 5] DROP broken tables + recreate via SUPERUSER_DATABASE_URL …')
+        print('  (worker_specialization data will be lost, but the feature was inaccessible anyway)')
+        try:
+            su_engine = _ce(_norm(_su_url))
+            with su_engine.connect() as c:
+                for stmt in (
+                    'ALTER TABLE IF EXISTS gig_worker DROP CONSTRAINT IF EXISTS gig_worker_specialization_id_fkey',
+                    'ALTER TABLE IF EXISTS application DROP CONSTRAINT IF EXISTS application_specialization_id_fkey',
+                    'DROP TABLE IF EXISTS worker_rate_audit',
+                    'DROP TABLE IF EXISTS worker_specialization',
+                ):
+                    try:
+                        c.execute(_t(stmt))
+                    except Exception:
+                        c.rollback()
+                c.commit()
+            print('  Dropped old tables. Recreating via SQLAlchemy …')
+            with app.app_context():
+                db.create_all()
+            if _check_access(db.engine):
+                print('  Success! Tables recreated and owned by app user.')
+                sys.exit(0)
+            else:
+                print('  Tables recreated but still cannot access – check DATABASE_URL.')
+        except Exception as e:
+            print(f'  Failed: {e}')
+    else:
+        print('[Strategy 4/5] Skipped (SUPERUSER_DATABASE_URL not set)')
+
+    # All failed – print manual instructions
     fix = _app_user or '<app_db_user>'
     print()
     print('=' * 60)
-    print('All strategies failed. Manual fix required.')
+    print('All strategies failed.')
     print()
-    print('Open your hosting SQL console and run:')
-    print(f'  ALTER TABLE worker_specialization OWNER TO "{fix}";')
-    print(f'  ALTER TABLE worker_rate_audit     OWNER TO "{fix}";')
+    print('Paste this in your Railway/Neon/Supabase SQL console:')
+    print('  DROP TABLE IF EXISTS worker_rate_audit;')
+    print('  DROP TABLE IF EXISTS worker_specialization;')
+    print('Then restart the app – it will recreate the tables correctly.')
     print()
-    print('Or set SUPERUSER_DATABASE_URL env var and re-run this command.')
+    print('Or set SUPERUSER_DATABASE_URL and re-run: flask fix-db-permissions')
     print('=' * 60)
     sys.exit(1)
 
