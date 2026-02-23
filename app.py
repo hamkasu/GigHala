@@ -728,7 +728,6 @@ TRANSLATIONS = {
         'cta_benefits': '✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Halal verified',
 
         # Homepage - Footer
-        'payhalal_notice': 'Pembayaran Selamat & Halal dengan PayHalal – Gateway Pembayaran Shariah-Compliant Pertama di Dunia 🌙',
         'footer_description': 'Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah.',
         'about_us': 'Tentang Kami',
         'platform': 'Platform',
@@ -1115,7 +1114,6 @@ TRANSLATIONS = {
 
         # Homepage - Footer
         'footer_description': "Malaysia's #1 halal gig economy platform. Earn blessed income from home.",
-        'payhalal_notice': 'Secure & Halal Payments with PayHalal – The World\'s First Shariah-Compliant Payment Gateway 🌙',
         'about_us': 'About Us',
         'platform': 'Platform',
         'pricing': 'Pricing',
