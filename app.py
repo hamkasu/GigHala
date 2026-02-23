@@ -19427,38 +19427,96 @@ def init_database():
         # Create tables
         db.create_all()
 
-        # Grant necessary privileges on worker_specialization tables when using PostgreSQL.
-        # In some managed PostgreSQL environments the tables may be owned by a different role,
-        # causing "permission denied for table worker_specialization" at runtime.
-        # Running explicit GRANTs here (as the connecting user) is a no-op when the user
-        # already has the privileges, and fixes missing privileges when possible.
+        # Fix worker_specialization table permissions for PostgreSQL.
+        # In some managed PostgreSQL environments the table may be owned by a different
+        # role (e.g. 'postgres' superuser) while the app connects as a restricted user,
+        # producing "permission denied for table worker_specialization".
+        # Strategy (each step is tried in turn; first success wins):
+        #   1. Verify access is already OK – skip everything if so.
+        #   2. ALTER TABLE … OWNER TO CURRENT_USER – works when the app user is a superuser.
+        #   3. GRANT ALL … TO current_user – works when the connecting user already owns the table
+        #      (no-op) or has WITH GRANT OPTION.
+        #   4. Log a precise, actionable error with the exact SQL for a DBA to run manually.
         database_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
         if 'postgresql' in database_url or 'postgres://' in database_url:
             try:
                 from urllib.parse import urlparse as _urlparse
                 from sqlalchemy import text as _sa_text
+
                 _parsed = _urlparse(database_url)
-                _app_user = _parsed.username
-                if _app_user:
-                    _grant_stmts = [
-                        f'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_specialization TO "{_app_user}"',
-                        f'GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE worker_rate_audit TO "{_app_user}"',
-                        f'GRANT USAGE, SELECT ON SEQUENCE worker_specialization_id_seq TO "{_app_user}"',
-                        f'GRANT USAGE, SELECT ON SEQUENCE worker_rate_audit_id_seq TO "{_app_user}"',
-                    ]
-                    with db.engine.connect() as _conn:
-                        for _stmt in _grant_stmts:
+                _app_user = _parsed.username or ''
+
+                with db.engine.connect() as _conn:
+                    # Step 1 – verify existing access
+                    _can_access = False
+                    try:
+                        _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
+                        _can_access = True
+                    except Exception:
+                        _conn.rollback()
+
+                    if not _can_access:
+                        # Step 2 – take ownership (succeeds when app user is a superuser)
+                        try:
+                            _conn.execute(_sa_text('ALTER TABLE worker_specialization OWNER TO CURRENT_USER'))
+                            _conn.execute(_sa_text('ALTER TABLE worker_rate_audit OWNER TO CURRENT_USER'))
+                            _conn.commit()
+                            print('[DB-FIX] Took ownership of worker_specialization tables.')
+                            _can_access = True
+                        except Exception:
+                            _conn.rollback()
+
+                    if not _can_access and _app_user:
+                        # Step 3 – explicit GRANTs (succeeds when connecting user owns the table)
+                        _fixed = 0
+                        for _tbl in ('worker_specialization', 'worker_rate_audit'):
                             try:
-                                _conn.execute(_sa_text(_stmt))
+                                _conn.execute(_sa_text(
+                                    f'GRANT ALL ON TABLE {_tbl} TO "{_app_user}"'
+                                ))
                                 _conn.commit()
-                            except Exception as _ge:
+                                _fixed += 1
+                            except Exception:
                                 _conn.rollback()
-                                # Ignore "already has privilege" and "does not exist" errors
-                                _ge_str = str(_ge).lower()
-                                if 'already' not in _ge_str and 'does not exist' not in _ge_str:
-                                    print(f"Warning: Could not grant permission ({_stmt}): {_ge}")
-            except Exception as _grant_err:
-                print(f"Warning: Permission grant step failed: {_grant_err}")
+                        for _seq in ('worker_specialization_id_seq', 'worker_rate_audit_id_seq'):
+                            try:
+                                _conn.execute(_sa_text(
+                                    f'GRANT USAGE, SELECT ON SEQUENCE {_seq} TO "{_app_user}"'
+                                ))
+                                _conn.commit()
+                            except Exception:
+                                _conn.rollback()
+                        if _fixed > 0:
+                            _can_access = True
+
+                    if not _can_access:
+                        # Step 4 – get owner info and log actionable instructions
+                        _table_owner = 'unknown'
+                        try:
+                            _row = _conn.execute(_sa_text(
+                                "SELECT tableowner FROM pg_tables "
+                                "WHERE tablename = 'worker_specialization'"
+                            )).fetchone()
+                            if _row:
+                                _table_owner = _row[0]
+                        except Exception:
+                            pass
+
+                        _fix_user = _app_user or '<your_app_db_user>'
+                        print('=' * 60)
+                        print('DATABASE PERMISSION ERROR – worker_specialization')
+                        print(f'  Table owner : {_table_owner}')
+                        print(f'  App DB user : {_fix_user}')
+                        print('  Connect as a PostgreSQL superuser and run:')
+                        print(f'    GRANT ALL ON TABLE worker_specialization TO "{_fix_user}";')
+                        print(f'    GRANT ALL ON TABLE worker_rate_audit TO "{_fix_user}";')
+                        print(f'    GRANT ALL ON SEQUENCE worker_specialization_id_seq TO "{_fix_user}";')
+                        print(f'    GRANT ALL ON SEQUENCE worker_rate_audit_id_seq TO "{_fix_user}";')
+                        print('  Or run: python migrations/051_fix_worker_specialization_permissions.py')
+                        print('  (as a superuser DB connection)')
+                        print('=' * 60)
+            except Exception as _perm_err:
+                print(f'Warning: worker_specialization permission check failed: {_perm_err}')
 
         # Add default categories if they don't exist
         default_categories = [
