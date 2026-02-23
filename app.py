@@ -19491,139 +19491,154 @@ def init_database():
         db.create_all()
 
         # Fix worker_specialization table permissions for PostgreSQL.
-        # In some managed PostgreSQL environments the table may be owned by a different
-        # role (e.g. 'postgres' superuser) while the app connects as a restricted user,
-        # producing "permission denied for table worker_specialization".
-        # Strategy (each step is tried in turn; first success wins):
-        #   1. Verify access is already OK – skip everything if so.
-        #   2. ALTER TABLE … OWNER TO CURRENT_USER – works when the app user is a superuser.
-        #   3. GRANT ALL … TO current_user – works when the connecting user already owns the table
-        #      (no-op) or has WITH GRANT OPTION.
-        #   4. Log a precise, actionable error with the exact SQL for a DBA to run manually.
+        # The table may be owned by a different PostgreSQL role than the app user,
+        # causing "permission denied for table worker_specialization" on every query.
+        # Four strategies are tried in order; first success wins.
+        _fix_tables = ('worker_specialization', 'worker_rate_audit')
+        _fix_seqs   = ('worker_specialization_id_seq', 'worker_rate_audit_id_seq')
+
         database_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
         if 'postgresql' in database_url or 'postgres://' in database_url:
             try:
                 from urllib.parse import urlparse as _urlparse
-                from sqlalchemy import text as _sa_text
+                from sqlalchemy import create_engine as _create_engine, text as _sa_text
 
-                _parsed = _urlparse(database_url)
+                def _norm_url(u):
+                    return u.replace('postgres://', 'postgresql://', 1) if u.startswith('postgres://') else u
+
+                _parsed   = _urlparse(database_url)
                 _app_user = _parsed.username or ''
 
+                # ── Step 1: verify access is already OK ───────────────────────────
+                _can_access = False
                 with db.engine.connect() as _conn:
-                    # Step 1 – verify existing access
-                    _can_access = False
                     try:
                         _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
                         _can_access = True
                     except Exception:
                         _conn.rollback()
 
-                    if not _can_access:
-                        # Step 2 – take ownership (succeeds when app user is a superuser)
-                        try:
+                if not _can_access:
+                    # ── Step 2: ALTER TABLE OWNER (works when app user is a superuser) ──
+                    try:
+                        with db.engine.connect() as _conn:
                             _conn.execute(_sa_text('ALTER TABLE worker_specialization OWNER TO CURRENT_USER'))
                             _conn.execute(_sa_text('ALTER TABLE worker_rate_audit OWNER TO CURRENT_USER'))
                             _conn.commit()
-                            print('[DB-FIX] Took ownership of worker_specialization tables.')
-                            _can_access = True
-                        except Exception:
-                            _conn.rollback()
+                        print('[DB-FIX] Step 2 success: took ownership of worker_specialization tables.')
+                        _can_access = True
+                    except Exception:
+                        pass
 
-                    if not _can_access and _app_user:
-                        # Step 3 – explicit GRANTs (succeeds when connecting user owns the table)
-                        _fixed = 0
-                        for _tbl in ('worker_specialization', 'worker_rate_audit'):
-                            try:
-                                _conn.execute(_sa_text(
-                                    f'GRANT ALL ON TABLE {_tbl} TO "{_app_user}"'
-                                ))
-                                _conn.commit()
-                                _fixed += 1
-                            except Exception:
-                                _conn.rollback()
-                        for _seq in ('worker_specialization_id_seq', 'worker_rate_audit_id_seq'):
-                            try:
-                                _conn.execute(_sa_text(
-                                    f'GRANT USAGE, SELECT ON SEQUENCE {_seq} TO "{_app_user}"'
-                                ))
-                                _conn.commit()
-                            except Exception:
-                                _conn.rollback()
-                        if _fixed > 0:
-                            # Verify the grant actually took effect
-                            try:
-                                _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
-                                _can_access = True
-                                print('[DB-FIX] Permissions granted successfully.')
-                            except Exception:
-                                _conn.rollback()
+                if not _can_access and _app_user:
+                    # ── Step 3: GRANT via same connection (works when app user owns the table) ──
+                    try:
+                        with db.engine.connect() as _conn:
+                            for _t in _fix_tables:
+                                _conn.execute(_sa_text(f'GRANT ALL ON TABLE {_t} TO "{_app_user}"'))
+                            for _s in _fix_seqs:
+                                try:
+                                    _conn.execute(_sa_text(f'GRANT ALL ON SEQUENCE {_s} TO "{_app_user}"'))
+                                except Exception:
+                                    pass
+                            _conn.commit()
+                        # verify
+                        with db.engine.connect() as _conn:
+                            _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
+                        print('[DB-FIX] Step 3 success: granted permissions on worker_specialization.')
+                        _can_access = True
+                    except Exception:
+                        pass
 
-                    if not _can_access and _app_user:
-                        # Step 3b – SET ROLE to the table owner, then grant to app user.
-                        # Works in managed Postgres (Railway, Neon, Supabase) where the app
-                        # user is a member of the role that owns the table. SET ROLE lets us
-                        # temporarily act as the owner and issue GRANTs we couldn't issue before.
-                        try:
-                            _owner_row = _conn.execute(_sa_text(
-                                "SELECT tableowner FROM pg_tables "
-                                "WHERE tablename = 'worker_specialization'"
+                if not _can_access and _app_user:
+                    # ── Step 3b: SET ROLE to table owner, then GRANT ──────────────────
+                    # Works on Railway/Neon/Supabase where the app user is a *member*
+                    # of the role that owns the table (role inheritance not automatic).
+                    try:
+                        with db.engine.connect() as _conn:
+                            _orow = _conn.execute(_sa_text(
+                                "SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'"
                             )).fetchone()
-                            if _owner_row:
-                                _tbl_owner = _owner_row[0]
-                                _conn.execute(_sa_text(f'SET ROLE "{_tbl_owner}"'))
-                                for _tbl in ('worker_specialization', 'worker_rate_audit'):
-                                    _conn.execute(_sa_text(
-                                        f'GRANT ALL ON TABLE {_tbl} TO "{_app_user}"'
-                                    ))
-                                for _seq in ('worker_specialization_id_seq', 'worker_rate_audit_id_seq'):
+                            if _orow:
+                                _own = _orow[0]
+                                _conn.execute(_sa_text(f'SET ROLE "{_own}"'))
+                                for _t in _fix_tables:
+                                    _conn.execute(_sa_text(f'GRANT ALL ON TABLE {_t} TO "{_app_user}"'))
+                                for _s in _fix_seqs:
                                     try:
-                                        _conn.execute(_sa_text(
-                                            f'GRANT USAGE, SELECT ON SEQUENCE {_seq} TO "{_app_user}"'
-                                        ))
+                                        _conn.execute(_sa_text(f'GRANT ALL ON SEQUENCE {_s} TO "{_app_user}"'))
                                     except Exception:
                                         pass
                                 _conn.execute(_sa_text('RESET ROLE'))
                                 _conn.commit()
-                                print(f'[DB-FIX] Granted worker_specialization access to "{_app_user}" via SET ROLE "{_tbl_owner}".')
-                                _can_access = True
-                        except Exception as _role_err:
-                            _conn.rollback()
+                        # verify
+                        with db.engine.connect() as _conn:
+                            _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
+                        print(f'[DB-FIX] Step 3b success: granted access via SET ROLE.')
+                        _can_access = True
+                    except Exception:
+                        pass
 
-                    if not _can_access:
-                        # Step 4 – get owner info and log actionable instructions
-                        _table_owner = 'unknown'
-                        _current_user = 'unknown'
+                if not _can_access and _app_user:
+                    # ── Step 3c: SUPERUSER_DATABASE_URL – dedicated privileged connection ──
+                    # Set SUPERUSER_DATABASE_URL env var to a PostgreSQL superuser connection
+                    # string and the app will use it on startup to fix permissions automatically.
+                    _su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
+                    if _su_url:
                         try:
-                            _row = _conn.execute(_sa_text(
-                                "SELECT tableowner FROM pg_tables "
-                                "WHERE tablename = 'worker_specialization'"
-                            )).fetchone()
-                            if _row:
-                                _table_owner = _row[0]
-                            _cu_row = _conn.execute(_sa_text('SELECT current_user')).fetchone()
-                            if _cu_row:
-                                _current_user = _cu_row[0]
-                        except Exception:
-                            pass
+                            _su_engine = _create_engine(_norm_url(_su_url))
+                            with _su_engine.connect() as _su_conn:
+                                for _t in _fix_tables:
+                                    _su_conn.execute(_sa_text(f'ALTER TABLE {_t} OWNER TO "{_app_user}"'))
+                                for _s in _fix_seqs:
+                                    try:
+                                        _su_conn.execute(_sa_text(f'ALTER SEQUENCE {_s} OWNER TO "{_app_user}"'))
+                                    except Exception:
+                                        pass
+                                _su_conn.commit()
+                            # verify with app connection
+                            with db.engine.connect() as _conn:
+                                _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
+                            print('[DB-FIX] Step 3c success: fixed ownership via SUPERUSER_DATABASE_URL.')
+                            _can_access = True
+                        except Exception as _su_err:
+                            print(f'[DB-FIX] Step 3c (SUPERUSER_DATABASE_URL) failed: {_su_err}')
 
-                        _fix_user = _app_user or _current_user or '<your_app_db_user>'
-                        print('=' * 60)
-                        print('DATABASE PERMISSION ERROR – worker_specialization')
-                        print(f'  Table owner      : {_table_owner}')
-                        print(f'  App DB user (URL): {_fix_user}')
-                        print(f'  Current DB user  : {_current_user}')
-                        print('  All automatic fix attempts failed.')
-                        print('  Connect as a PostgreSQL superuser and run:')
-                        print(f'    ALTER TABLE worker_specialization OWNER TO "{_fix_user}";')
-                        print(f'    ALTER TABLE worker_rate_audit OWNER TO "{_fix_user}";')
-                        print('  Or grant explicitly:')
-                        print(f'    GRANT ALL ON TABLE worker_specialization TO "{_fix_user}";')
-                        print(f'    GRANT ALL ON TABLE worker_rate_audit TO "{_fix_user}";')
-                        print(f'    GRANT ALL ON SEQUENCE worker_specialization_id_seq TO "{_fix_user}";')
-                        print(f'    GRANT ALL ON SEQUENCE worker_rate_audit_id_seq TO "{_fix_user}";')
-                        print('  Or run: SUPERUSER_DATABASE_URL="postgresql://postgres:secret@host/db" \\')
-                        print('          python migrations/051_fix_worker_specialization_permissions.py')
-                        print('=' * 60)
+                if not _can_access:
+                    # ── Step 4: all attempts failed – print exact manual SQL ────────────
+                    _tbl_owner  = 'unknown'
+                    _cur_user   = 'unknown'
+                    try:
+                        with db.engine.connect() as _conn:
+                            _r = _conn.execute(_sa_text(
+                                "SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'"
+                            )).fetchone()
+                            _tbl_owner = _r[0] if _r else 'unknown'
+                            _r2 = _conn.execute(_sa_text('SELECT current_user')).fetchone()
+                            _cur_user = _r2[0] if _r2 else 'unknown'
+                    except Exception:
+                        pass
+
+                    _fix_user = _app_user or _cur_user or '<app_db_user>'
+                    print('=' * 70)
+                    print('STARTUP WARNING: cannot access worker_specialization')
+                    print(f'  Table owner   : {_tbl_owner}')
+                    print(f'  App DB user   : {_fix_user}')
+                    print(f'  Current user  : {_cur_user}')
+                    print()
+                    print('  OPTION A – paste this in your hosting SQL console (Railway/Neon/Supabase):')
+                    print(f'    ALTER TABLE worker_specialization OWNER TO "{_fix_user}";')
+                    print(f'    ALTER TABLE worker_rate_audit     OWNER TO "{_fix_user}";')
+                    print()
+                    print('  OPTION B – set env var and redeploy:')
+                    print('    SUPERUSER_DATABASE_URL=postgresql://<superuser>:<pass>@<host>/<db>')
+                    print('    (app will use this on next startup to fix permissions automatically)')
+                    print()
+                    print('  OPTION C – run migration script with superuser URL:')
+                    print('    SUPERUSER_DATABASE_URL="postgresql://postgres:pass@host/db" \\')
+                    print('    python migrations/052_reassign_specialization_ownership.py')
+                    print('=' * 70)
+
             except Exception as _perm_err:
                 print(f'Warning: worker_specialization permission check failed: {_perm_err}')
 
@@ -22064,6 +22079,159 @@ scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, Notificatio
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint
 # The /api/auth/google and /api/auth/google/callback routes are defined above
 # Keeping this file for reference but not registering it to avoid conflicts
+
+@app.cli.command('fix-db-permissions')
+def fix_db_permissions_cmd():
+    """Fix 'permission denied for table worker_specialization' errors.
+
+    Tries four strategies in order:
+      1. ALTER TABLE OWNER TO CURRENT_USER (needs superuser)
+      2. GRANT ALL via same connection (needs table ownership)
+      3. SET ROLE <table_owner> + GRANT (needs role membership)
+      4. Use SUPERUSER_DATABASE_URL env var for elevated privileges
+
+    Usage:
+      flask fix-db-permissions
+      SUPERUSER_DATABASE_URL="postgresql://postgres:pass@host/db" flask fix-db-permissions
+    """
+    import sys
+    from urllib.parse import urlparse as _up
+    from sqlalchemy import create_engine as _ce, text as _t
+
+    database_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if 'sqlite' in database_url:
+        print('SQLite detected – no role-based permissions, nothing to do.')
+        sys.exit(0)
+
+    _app_user = _up(database_url).username or ''
+    _fix_tables = ('worker_specialization', 'worker_rate_audit')
+    _fix_seqs   = ('worker_specialization_id_seq', 'worker_rate_audit_id_seq')
+
+    def _norm(u):
+        return u.replace('postgres://', 'postgresql://', 1) if u.startswith('postgres://') else u
+
+    def _check_access(engine):
+        try:
+            with engine.connect() as c:
+                c.execute(_t('SELECT 1 FROM worker_specialization LIMIT 1'))
+            return True
+        except Exception:
+            return False
+
+    print('=' * 60)
+    print('flask fix-db-permissions')
+    print('=' * 60)
+    print(f'App DB user : {_app_user or "(not found in URL)"}')
+
+    # Get diagnostic info
+    try:
+        with db.engine.connect() as c:
+            owner = c.execute(_t("SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'")).fetchone()
+            cur   = c.execute(_t('SELECT current_user')).fetchone()
+            print(f'Table owner : {owner[0] if owner else "TABLE NOT FOUND"}')
+            print(f'Current user: {cur[0] if cur else "unknown"}')
+    except Exception as e:
+        print(f'Diagnostic query failed: {e}')
+    print()
+
+    if _check_access(db.engine):
+        print('[OK] worker_specialization is already accessible. No action needed.')
+        sys.exit(0)
+
+    # Strategy 1: ALTER TABLE OWNER (superuser)
+    print('[Strategy 1] ALTER TABLE OWNER TO CURRENT_USER …')
+    try:
+        with db.engine.connect() as c:
+            for t in _fix_tables:
+                c.execute(_t(f'ALTER TABLE {t} OWNER TO CURRENT_USER'))
+            c.commit()
+        if _check_access(db.engine):
+            print('  Success!')
+            sys.exit(0)
+    except Exception as e:
+        print(f'  Failed: {e}')
+
+    # Strategy 2: GRANT via app connection (owns the table)
+    print('[Strategy 2] GRANT ALL via app connection …')
+    try:
+        with db.engine.connect() as c:
+            for t in _fix_tables:
+                c.execute(_t(f'GRANT ALL ON TABLE {t} TO "{_app_user}"'))
+            for s in _fix_seqs:
+                try:
+                    c.execute(_t(f'GRANT ALL ON SEQUENCE {s} TO "{_app_user}"'))
+                except Exception:
+                    pass
+            c.commit()
+        if _check_access(db.engine):
+            print('  Success!')
+            sys.exit(0)
+    except Exception as e:
+        print(f'  Failed: {e}')
+
+    # Strategy 3: SET ROLE to table owner, then GRANT
+    print('[Strategy 3] SET ROLE to table owner + GRANT …')
+    try:
+        with db.engine.connect() as c:
+            row = c.execute(_t("SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'")).fetchone()
+            if row:
+                owner = row[0]
+                print(f'  Table owner: {owner}')
+                c.execute(_t(f'SET ROLE "{owner}"'))
+                for t in _fix_tables:
+                    c.execute(_t(f'GRANT ALL ON TABLE {t} TO "{_app_user}"'))
+                for s in _fix_seqs:
+                    try:
+                        c.execute(_t(f'GRANT ALL ON SEQUENCE {s} TO "{_app_user}"'))
+                    except Exception:
+                        pass
+                c.execute(_t('RESET ROLE'))
+                c.commit()
+        if _check_access(db.engine):
+            print('  Success!')
+            sys.exit(0)
+    except Exception as e:
+        print(f'  Failed: {e}')
+
+    # Strategy 4: SUPERUSER_DATABASE_URL
+    _su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
+    if _su_url:
+        print('[Strategy 4] ALTER TABLE OWNER via SUPERUSER_DATABASE_URL …')
+        try:
+            su_engine = _ce(_norm(_su_url))
+            with su_engine.connect() as c:
+                su_user = c.execute(_t('SELECT current_user')).scalar()
+                print(f'  Superuser connected as: {su_user}')
+                for t in _fix_tables:
+                    c.execute(_t(f'ALTER TABLE {t} OWNER TO "{_app_user}"'))
+                for s in _fix_seqs:
+                    try:
+                        c.execute(_t(f'ALTER SEQUENCE {s} OWNER TO "{_app_user}"'))
+                    except Exception:
+                        pass
+                c.commit()
+            if _check_access(db.engine):
+                print('  Success!')
+                sys.exit(0)
+        except Exception as e:
+            print(f'  Failed: {e}')
+    else:
+        print('[Strategy 4] Skipped (SUPERUSER_DATABASE_URL not set)')
+
+    # All failed
+    fix = _app_user or '<app_db_user>'
+    print()
+    print('=' * 60)
+    print('All strategies failed. Manual fix required.')
+    print()
+    print('Open your hosting SQL console and run:')
+    print(f'  ALTER TABLE worker_specialization OWNER TO "{fix}";')
+    print(f'  ALTER TABLE worker_rate_audit     OWNER TO "{fix}";')
+    print()
+    print('Or set SUPERUSER_DATABASE_URL env var and re-run this command.')
+    print('=' * 60)
+    sys.exit(1)
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
