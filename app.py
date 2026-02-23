@@ -630,6 +630,7 @@ TRANSLATIONS = {
 
         # Navigation Menu
         'nav_search': 'Cari',
+        'nav_workers': 'Pekerja',
         'nav_submit': 'Hantar',
         'nav_messages': 'Mesej',
         'nav_wallet': 'Dompet',
@@ -1015,6 +1016,7 @@ TRANSLATIONS = {
 
         # Navigation Menu
         'nav_search': 'Search',
+        'nav_workers': 'Workers',
         'nav_submit': 'Submit',
         'nav_messages': 'Messages',
         'nav_wallet': 'Wallet',
