@@ -12233,6 +12233,69 @@ def switch_language():
         app.logger.error(f"Language switch error: {str(e)}")
         return jsonify({'error': 'Failed to update language'}), 500
 
+@app.route('/api/admin/db-diagnostics', methods=['GET'])
+def db_diagnostics():
+    """Diagnostic endpoint: shows DB user, table ownership, and privilege status.
+
+    Only accessible to logged-in admin users (is_admin=True).
+    Hit this URL to find out exactly what SQL to run as superuser if
+    worker_specialization still shows 'permission denied'.
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    user = User.query.get(session['user_id'])
+    if not user or not getattr(user, 'is_admin', False):
+        return jsonify({'error': 'Forbidden'}), 403
+
+    result = {}
+    try:
+        from sqlalchemy import text as _diag_text
+        with db.engine.connect() as _conn:
+            # Current connected role
+            row = _conn.execute(_diag_text('SELECT current_user, session_user')).fetchone()
+            result['current_user'] = row[0] if row else 'unknown'
+            result['session_user'] = row[1] if row else 'unknown'
+
+            # Table ownership
+            for tbl in ('worker_specialization', 'worker_rate_audit'):
+                row = _conn.execute(_diag_text(
+                    f"SELECT tableowner, schemaname FROM pg_tables WHERE tablename = '{tbl}'"
+                )).fetchone()
+                result[f'{tbl}_owner'] = row[0] if row else 'TABLE NOT FOUND'
+                result[f'{tbl}_schema'] = row[1] if row else 'N/A'
+
+            # Privilege check
+            for tbl in ('worker_specialization', 'worker_rate_audit'):
+                can_select = False
+                try:
+                    _conn.execute(_diag_text(f'SELECT 1 FROM {tbl} LIMIT 1'))
+                    can_select = True
+                except Exception:
+                    _conn.rollback()
+                result[f'{tbl}_can_select'] = can_select
+
+            # Role memberships
+            try:
+                rows = _conn.execute(_diag_text(
+                    "SELECT r.rolname FROM pg_roles r "
+                    "JOIN pg_auth_members m ON m.roleid = r.oid "
+                    "JOIN pg_roles u ON u.oid = m.member "
+                    "WHERE u.rolname = current_user"
+                )).fetchall()
+                result['role_memberships'] = [r[0] for r in rows]
+            except Exception:
+                result['role_memberships'] = 'unavailable'
+
+        result['fix_sql'] = (
+            f"ALTER TABLE worker_specialization OWNER TO \"{result['current_user']}\";\n"
+            f"ALTER TABLE worker_rate_audit OWNER TO \"{result['current_user']}\";"
+        )
+    except Exception as e:
+        result['error'] = str(e)
+
+    return jsonify(result)
+
+
 @app.route('/api/specializations', methods=['GET'])
 def get_specializations():
     """Get all specializations for the current user"""
@@ -19487,11 +19550,49 @@ def init_database():
                             except Exception:
                                 _conn.rollback()
                         if _fixed > 0:
-                            _can_access = True
+                            # Verify the grant actually took effect
+                            try:
+                                _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
+                                _can_access = True
+                                print('[DB-FIX] Permissions granted successfully.')
+                            except Exception:
+                                _conn.rollback()
+
+                    if not _can_access and _app_user:
+                        # Step 3b – SET ROLE to the table owner, then grant to app user.
+                        # Works in managed Postgres (Railway, Neon, Supabase) where the app
+                        # user is a member of the role that owns the table. SET ROLE lets us
+                        # temporarily act as the owner and issue GRANTs we couldn't issue before.
+                        try:
+                            _owner_row = _conn.execute(_sa_text(
+                                "SELECT tableowner FROM pg_tables "
+                                "WHERE tablename = 'worker_specialization'"
+                            )).fetchone()
+                            if _owner_row:
+                                _tbl_owner = _owner_row[0]
+                                _conn.execute(_sa_text(f'SET ROLE "{_tbl_owner}"'))
+                                for _tbl in ('worker_specialization', 'worker_rate_audit'):
+                                    _conn.execute(_sa_text(
+                                        f'GRANT ALL ON TABLE {_tbl} TO "{_app_user}"'
+                                    ))
+                                for _seq in ('worker_specialization_id_seq', 'worker_rate_audit_id_seq'):
+                                    try:
+                                        _conn.execute(_sa_text(
+                                            f'GRANT USAGE, SELECT ON SEQUENCE {_seq} TO "{_app_user}"'
+                                        ))
+                                    except Exception:
+                                        pass
+                                _conn.execute(_sa_text('RESET ROLE'))
+                                _conn.commit()
+                                print(f'[DB-FIX] Granted worker_specialization access to "{_app_user}" via SET ROLE "{_tbl_owner}".')
+                                _can_access = True
+                        except Exception as _role_err:
+                            _conn.rollback()
 
                     if not _can_access:
                         # Step 4 – get owner info and log actionable instructions
                         _table_owner = 'unknown'
+                        _current_user = 'unknown'
                         try:
                             _row = _conn.execute(_sa_text(
                                 "SELECT tableowner FROM pg_tables "
@@ -19499,21 +19600,29 @@ def init_database():
                             )).fetchone()
                             if _row:
                                 _table_owner = _row[0]
+                            _cu_row = _conn.execute(_sa_text('SELECT current_user')).fetchone()
+                            if _cu_row:
+                                _current_user = _cu_row[0]
                         except Exception:
                             pass
 
-                        _fix_user = _app_user or '<your_app_db_user>'
+                        _fix_user = _app_user or _current_user or '<your_app_db_user>'
                         print('=' * 60)
                         print('DATABASE PERMISSION ERROR – worker_specialization')
-                        print(f'  Table owner : {_table_owner}')
-                        print(f'  App DB user : {_fix_user}')
+                        print(f'  Table owner      : {_table_owner}')
+                        print(f'  App DB user (URL): {_fix_user}')
+                        print(f'  Current DB user  : {_current_user}')
+                        print('  All automatic fix attempts failed.')
                         print('  Connect as a PostgreSQL superuser and run:')
+                        print(f'    ALTER TABLE worker_specialization OWNER TO "{_fix_user}";')
+                        print(f'    ALTER TABLE worker_rate_audit OWNER TO "{_fix_user}";')
+                        print('  Or grant explicitly:')
                         print(f'    GRANT ALL ON TABLE worker_specialization TO "{_fix_user}";')
                         print(f'    GRANT ALL ON TABLE worker_rate_audit TO "{_fix_user}";')
                         print(f'    GRANT ALL ON SEQUENCE worker_specialization_id_seq TO "{_fix_user}";')
                         print(f'    GRANT ALL ON SEQUENCE worker_rate_audit_id_seq TO "{_fix_user}";')
-                        print('  Or run: python migrations/051_fix_worker_specialization_permissions.py')
-                        print('  (as a superuser DB connection)')
+                        print('  Or run: SUPERUSER_DATABASE_URL="postgresql://postgres:secret@host/db" \\')
+                        print('          python migrations/051_fix_worker_specialization_permissions.py')
                         print('=' * 60)
             except Exception as _perm_err:
                 print(f'Warning: worker_specialization permission check failed: {_perm_err}')
