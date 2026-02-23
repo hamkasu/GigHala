@@ -19480,177 +19480,105 @@ def get_client_payment_history():
 # Lazy initialization flag
 _db_initialized = False
 
+
+def _fix_specialization_permissions():
+    """Attempt to fix worker_specialization table permissions on PostgreSQL.
+
+    Tries three strategies in order; first success wins:
+      1. ALTER TABLE OWNER TO CURRENT_USER  (works when app user is superuser)
+      2. DROP the misowned tables + db.create_all()  (works when app user can DROP)
+      3. Log exact manual SQL and continue  (graceful degradation)
+    """
+    from sqlalchemy import text as _t
+
+    app_user = 'unknown'
+    tbl_owner = 'unknown'
+    try:
+        with db.engine.connect() as c:
+            row = c.execute(_t('SELECT current_user')).fetchone()
+            app_user = row[0] if row else 'unknown'
+            row2 = c.execute(_t(
+                "SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'"
+            )).fetchone()
+            tbl_owner = row2[0] if row2 else 'unknown'
+    except Exception:
+        pass
+
+    def _accessible():
+        try:
+            with db.engine.connect() as c:
+                c.execute(_t('SELECT 1 FROM worker_specialization LIMIT 1'))
+            return True
+        except Exception:
+            return False
+
+    # Strategy 1: take ownership (works when app user is a PostgreSQL superuser)
+    try:
+        with db.engine.connect() as c:
+            c.execute(_t('ALTER TABLE worker_specialization OWNER TO CURRENT_USER'))
+            c.execute(_t('ALTER TABLE worker_rate_audit OWNER TO CURRENT_USER'))
+            for seq in ('worker_specialization_id_seq', 'worker_rate_audit_id_seq'):
+                try:
+                    c.execute(_t(f'ALTER SEQUENCE {seq} OWNER TO CURRENT_USER'))
+                except Exception:
+                    pass
+            c.commit()
+        if _accessible():
+            print(f'[DB] worker_specialization ownership transferred to {app_user}.')
+            return
+    except Exception:
+        pass
+
+    # Strategy 2: drop the misowned tables; db.create_all() recreates them owned by app user
+    try:
+        with db.engine.connect() as c:
+            c.execute(_t('DROP TABLE IF EXISTS worker_rate_audit CASCADE'))
+            c.execute(_t('DROP TABLE IF EXISTS worker_specialization CASCADE'))
+            c.commit()
+        db.create_all()
+        if _accessible():
+            print(f'[DB] worker_specialization dropped and recreated; owned by {app_user}.')
+            return
+    except Exception:
+        pass
+
+    # Strategy 3: all automatic fixes failed – print exact SQL for the user to run manually
+    print('=' * 65)
+    print('STARTUP WARNING: cannot access worker_specialization')
+    print(f'  Current DB user : {app_user}')
+    print(f'  Table owner     : {tbl_owner}')
+    print()
+    print('Run ONE of the following in your database console:')
+    print()
+    print(f'  -- Option A: grant access (fast)')
+    print(f'  GRANT ALL ON TABLE worker_specialization TO {app_user};')
+    print(f'  GRANT ALL ON SEQUENCE worker_specialization_id_seq TO {app_user};')
+    print()
+    print('  -- Option B: drop & let the app recreate it on next restart')
+    print('  DROP TABLE IF EXISTS worker_rate_audit CASCADE;')
+    print('  DROP TABLE IF EXISTS worker_specialization CASCADE;')
+    print('=' * 65)
+
+
 def init_database():
     """Initialize database with tables, categories, and sample data (lazy loading)"""
     global _db_initialized
     if _db_initialized:
         return
-    
+
     try:
-        # Create tables
         db.create_all()
 
-        # Fix worker_specialization table permissions for PostgreSQL.
-        # The table may be owned by a different PostgreSQL role than the app user,
-        # causing "permission denied for table worker_specialization" on every query.
-        # Four strategies are tried in order; first success wins.
-        _fix_tables = ('worker_specialization', 'worker_rate_audit')
-        _fix_seqs   = ('worker_specialization_id_seq', 'worker_rate_audit_id_seq')
-
-        database_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
-        if 'postgresql' in database_url or 'postgres://' in database_url:
+        # On PostgreSQL, fix permissions if the table is owned by a different role
+        db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        if 'postgres' in db_url:
             try:
-                from urllib.parse import urlparse as _urlparse
-                from sqlalchemy import create_engine as _create_engine, text as _sa_text
-
-                def _norm_url(u):
-                    return u.replace('postgres://', 'postgresql://', 1) if u.startswith('postgres://') else u
-
-                _parsed   = _urlparse(database_url)
-                _app_user = _parsed.username or ''
-
-                # ── Step 1: verify access is already OK ───────────────────────────
-                _can_access = False
-                with db.engine.connect() as _conn:
-                    try:
-                        _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
-                        _can_access = True
-                    except Exception:
-                        _conn.rollback()
-
-                if not _can_access:
-                    # ── Step 2: ALTER TABLE OWNER (works when app user is a superuser) ──
-                    try:
-                        with db.engine.connect() as _conn:
-                            _conn.execute(_sa_text('ALTER TABLE worker_specialization OWNER TO CURRENT_USER'))
-                            _conn.execute(_sa_text('ALTER TABLE worker_rate_audit OWNER TO CURRENT_USER'))
-                            _conn.commit()
-                        print('[DB-FIX] Step 2 success: took ownership of worker_specialization tables.')
-                        _can_access = True
-                    except Exception:
-                        pass
-
-                if not _can_access and _app_user:
-                    # ── Step 3: GRANT via same connection (works when app user owns the table) ──
-                    try:
-                        with db.engine.connect() as _conn:
-                            for _t in _fix_tables:
-                                _conn.execute(_sa_text(f'GRANT ALL ON TABLE {_t} TO "{_app_user}"'))
-                            for _s in _fix_seqs:
-                                try:
-                                    _conn.execute(_sa_text(f'GRANT ALL ON SEQUENCE {_s} TO "{_app_user}"'))
-                                except Exception:
-                                    pass
-                            _conn.commit()
-                        # verify
-                        with db.engine.connect() as _conn:
-                            _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
-                        print('[DB-FIX] Step 3 success: granted permissions on worker_specialization.')
-                        _can_access = True
-                    except Exception:
-                        pass
-
-                if not _can_access and _app_user:
-                    # ── Step 3b: SET ROLE to table owner, then GRANT ──────────────────
-                    # Works on Railway/Neon/Supabase where the app user is a *member*
-                    # of the role that owns the table (role inheritance not automatic).
-                    try:
-                        with db.engine.connect() as _conn:
-                            _orow = _conn.execute(_sa_text(
-                                "SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'"
-                            )).fetchone()
-                            if _orow:
-                                _own = _orow[0]
-                                _conn.execute(_sa_text(f'SET ROLE "{_own}"'))
-                                for _t in _fix_tables:
-                                    _conn.execute(_sa_text(f'GRANT ALL ON TABLE {_t} TO "{_app_user}"'))
-                                for _s in _fix_seqs:
-                                    try:
-                                        _conn.execute(_sa_text(f'GRANT ALL ON SEQUENCE {_s} TO "{_app_user}"'))
-                                    except Exception:
-                                        pass
-                                _conn.execute(_sa_text('RESET ROLE'))
-                                _conn.commit()
-                        # verify
-                        with db.engine.connect() as _conn:
-                            _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
-                        print(f'[DB-FIX] Step 3b success: granted access via SET ROLE.')
-                        _can_access = True
-                    except Exception:
-                        pass
-
-                if not _can_access and _app_user:
-                    # ── Step 3c: SUPERUSER_DATABASE_URL – drop broken tables, recreate fresh ──
-                    # The table is owned by a different role; no GRANT trick can fix it.
-                    # Strategy: use the superuser connection to DROP the broken tables, then
-                    # let SQLAlchemy's create_all() recreate them owned by the app user.
-                    # Set SUPERUSER_DATABASE_URL env var to enable this on startup.
-                    _su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
-                    if _su_url:
-                        try:
-                            _su_engine = _create_engine(_norm_url(_su_url))
-                            with _su_engine.connect() as _su_conn:
-                                # Remove FK constraints that reference worker_specialization
-                                # so we can drop it without CASCADE wiping related data
-                                for _fk_drop in (
-                                    'ALTER TABLE IF EXISTS gig_worker DROP CONSTRAINT IF EXISTS gig_worker_specialization_id_fkey',
-                                    'ALTER TABLE IF EXISTS application DROP CONSTRAINT IF EXISTS application_specialization_id_fkey',
-                                    'DROP TABLE IF EXISTS worker_rate_audit',
-                                    'DROP TABLE IF EXISTS worker_specialization',
-                                ):
-                                    try:
-                                        _su_conn.execute(_sa_text(_fk_drop))
-                                    except Exception:
-                                        _su_conn.rollback()
-                                _su_conn.commit()
-                            print('[DB-FIX] Step 3c: dropped old worker_specialization tables via SUPERUSER_DATABASE_URL.')
-                            # Recreate tables owned by the app user
-                            db.create_all()
-                            # Verify
-                            with db.engine.connect() as _conn:
-                                _conn.execute(_sa_text('SELECT 1 FROM worker_specialization LIMIT 1'))
-                            print('[DB-FIX] Step 3c success: worker_specialization recreated, owned by app user.')
-                            _can_access = True
-                        except Exception as _su_err:
-                            print(f'[DB-FIX] Step 3c (drop+recreate) failed: {_su_err}')
-
-                if not _can_access:
-                    # ── Step 4: all attempts failed – print exact manual SQL ────────────
-                    _tbl_owner  = 'unknown'
-                    _cur_user   = 'unknown'
-                    try:
-                        with db.engine.connect() as _conn:
-                            _r = _conn.execute(_sa_text(
-                                "SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'"
-                            )).fetchone()
-                            _tbl_owner = _r[0] if _r else 'unknown'
-                            _r2 = _conn.execute(_sa_text('SELECT current_user')).fetchone()
-                            _cur_user = _r2[0] if _r2 else 'unknown'
-                    except Exception:
-                        pass
-
-                    _fix_user = _app_user or _cur_user or '<app_db_user>'
-                    print('=' * 70)
-                    print('STARTUP ERROR: worker_specialization permission denied')
-                    print(f'  Table owner  : {_tbl_owner}')
-                    print(f'  App DB user  : {_fix_user}')
-                    print(f'  Current user : {_cur_user}')
-                    print()
-                    print('  OPTION A – paste in your Railway/Neon/Supabase SQL console:')
-                    print('    DROP TABLE IF EXISTS worker_rate_audit;')
-                    print('    DROP TABLE IF EXISTS worker_specialization;')
-                    print('    -- Then restart the app; it will recreate the tables correctly.')
-                    print()
-                    print('  OPTION B – set env var and redeploy (app fixes itself on startup):')
-                    print('    SUPERUSER_DATABASE_URL=postgresql://<superuser>:<pass>@<host>/<db>')
-                    print()
-                    print('  OPTION C – run flask CLI command with superuser URL:')
-                    print('    SUPERUSER_DATABASE_URL="postgresql://postgres:pass@host/db" \\')
-                    print('    flask fix-db-permissions')
-                    print('=' * 70)
-
-            except Exception as _pg_err:
-                print(f'[DB-FIX] PostgreSQL permission fix error: {_pg_err}')
+                with db.engine.connect() as _c:
+                    _c.execute(__import__('sqlalchemy').text(
+                        'SELECT 1 FROM worker_specialization LIMIT 1'
+                    ))
+            except Exception:
+                _fix_specialization_permissions()
 
         # Add default categories if they don't exist
         default_categories = [
