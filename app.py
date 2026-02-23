@@ -12308,7 +12308,10 @@ def get_specializations():
             'specializations': [spec.to_dict() for spec in specializations]
         })
     except Exception as e:
-        app.logger.error(f"Get specializations error: {str(e)}")
+        if _is_pg_permission_error(e):
+            app.logger.error(f"DB permission denied on worker_specialization – run the SQL fix shown at startup. Detail: {e}")
+            return jsonify({'specializations': [], 'error': 'Specializations unavailable (DB permission issue – contact admin)'}), 503
+        app.logger.error(f"Get specializations error: {e}")
         return jsonify({'error': 'Failed to fetch specializations'}), 500
 
 @app.route('/api/specializations', methods=['POST'])
@@ -12477,7 +12480,10 @@ def add_or_update_specialization():
         })
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Add/update specialization error: {str(e)}")
+        if _is_pg_permission_error(e):
+            app.logger.error(f"DB permission denied on worker_specialization – run the SQL fix shown at startup. Detail: {e}")
+            return jsonify({'error': 'Specializations unavailable (DB permission issue – contact admin)'}), 503
+        app.logger.error(f"Add/update specialization error: {e}")
         return jsonify({'error': 'Failed to save specialization. Please try again.'}), 500
 
 @app.route('/api/specializations/<int:specialization_id>', methods=['DELETE'])
@@ -12501,7 +12507,10 @@ def delete_specialization(specialization_id):
         return jsonify({'message': 'Specialization deleted successfully'})
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Delete specialization error: {str(e)}")
+        if _is_pg_permission_error(e):
+            app.logger.error(f"DB permission denied on worker_specialization – run the SQL fix shown at startup. Detail: {e}")
+            return jsonify({'error': 'Specializations unavailable (DB permission issue – contact admin)'}), 503
+        app.logger.error(f"Delete specialization error: {e}")
         return jsonify({'error': 'Failed to delete specialization'}), 500
 
 
@@ -12524,7 +12533,10 @@ def get_worker_specializations(worker_id):
             'specializations': [spec.to_public_dict() for spec in specializations]
         })
     except Exception as e:
-        app.logger.error(f"Get worker specializations error: {str(e)}")
+        if _is_pg_permission_error(e):
+            app.logger.error(f"DB permission denied on worker_specialization – run the SQL fix shown at startup. Detail: {e}")
+            return jsonify({'worker_id': worker_id, 'specializations': [], 'error': 'Specializations unavailable (DB permission issue)'}), 503
+        app.logger.error(f"Get worker specializations error: {e}")
         return jsonify({'error': 'Failed to fetch worker specializations'}), 500
 
 
@@ -12548,7 +12560,10 @@ def get_worker_specialization_for_category(worker_id, category_id):
             'specialization': specialization.to_public_dict()
         })
     except Exception as e:
-        app.logger.error(f"Get worker specialization for category error: {str(e)}")
+        if _is_pg_permission_error(e):
+            app.logger.error(f"DB permission denied on worker_specialization – run the SQL fix shown at startup. Detail: {e}")
+            return jsonify({'error': 'Specializations unavailable (DB permission issue)'}), 503
+        app.logger.error(f"Get worker specialization for category error: {e}")
         return jsonify({'error': 'Failed to fetch specialization'}), 500
 
 
@@ -12577,7 +12592,10 @@ def get_my_specialization_for_category(category_id):
             'specialization': specialization.to_dict()
         })
     except Exception as e:
-        app.logger.error(f"Get my specialization for category error: {str(e)}")
+        if _is_pg_permission_error(e):
+            app.logger.error(f"DB permission denied on worker_specialization – run the SQL fix shown at startup. Detail: {e}")
+            return jsonify({'specialization': None, 'error': 'Specializations unavailable (DB permission issue)'}), 503
+        app.logger.error(f"Get my specialization for category error: {e}")
         return jsonify({'error': 'Failed to fetch specialization'}), 500
 
 
@@ -19481,13 +19499,21 @@ def get_client_payment_history():
 _db_initialized = False
 
 
+def _is_pg_permission_error(exc):
+    """Return True if exc is a PostgreSQL InsufficientPrivilege error."""
+    msg = str(exc).lower()
+    return 'insufficient_privilege' in msg or 'permission denied' in msg
+
+
 def _fix_specialization_permissions():
     """Attempt to fix worker_specialization table permissions on PostgreSQL.
 
-    Tries three strategies in order; first success wins:
+    Called at startup when the table is inaccessible.  Tries three strategies
+    in order and logs the outcome of each so failures are visible in the logs:
+
       1. ALTER TABLE OWNER TO CURRENT_USER  (works when app user is superuser)
       2. DROP the misowned tables + db.create_all()  (works when app user can DROP)
-      3. Log exact manual SQL and continue  (graceful degradation)
+      3. Graceful degradation – log exact SQL for the operator to run manually
     """
     from sqlalchemy import text as _t
 
@@ -19501,8 +19527,8 @@ def _fix_specialization_permissions():
                 "SELECT tableowner FROM pg_tables WHERE tablename='worker_specialization'"
             )).fetchone()
             tbl_owner = row2[0] if row2 else 'unknown'
-    except Exception:
-        pass
+    except Exception as probe_err:
+        print(f'[DB-FIX] Could not probe DB metadata: {probe_err}')
 
     def _accessible():
         try:
@@ -19512,7 +19538,7 @@ def _fix_specialization_permissions():
         except Exception:
             return False
 
-    # Strategy 1: take ownership (works when app user is a PostgreSQL superuser)
+    # ── Strategy 1: take ownership (requires superuser privilege) ────────────
     try:
         with db.engine.connect() as c:
             c.execute(_t('ALTER TABLE worker_specialization OWNER TO CURRENT_USER'))
@@ -19524,12 +19550,13 @@ def _fix_specialization_permissions():
                     pass
             c.commit()
         if _accessible():
-            print(f'[DB] worker_specialization ownership transferred to {app_user}.')
+            print(f'[DB-FIX] Strategy 1 OK: ownership transferred to {app_user}.')
             return
-    except Exception:
-        pass
+        print('[DB-FIX] Strategy 1: ALTER OWNER succeeded but table still inaccessible.')
+    except Exception as s1_err:
+        print(f'[DB-FIX] Strategy 1 failed (ALTER OWNER): {s1_err}')
 
-    # Strategy 2: drop the misowned tables; db.create_all() recreates them owned by app user
+    # ── Strategy 2: drop + recreate (requires DROP privilege on the table) ───
     try:
         with db.engine.connect() as c:
             c.execute(_t('DROP TABLE IF EXISTS worker_rate_audit CASCADE'))
@@ -19537,27 +19564,70 @@ def _fix_specialization_permissions():
             c.commit()
         db.create_all()
         if _accessible():
-            print(f'[DB] worker_specialization dropped and recreated; owned by {app_user}.')
+            print(f'[DB-FIX] Strategy 2 OK: tables dropped and recreated owned by {app_user}.')
             return
-    except Exception:
-        pass
+        print('[DB-FIX] Strategy 2: DROP+recreate ran but table still inaccessible.')
+    except Exception as s2_err:
+        print(f'[DB-FIX] Strategy 2 failed (DROP+recreate): {s2_err}')
 
-    # Strategy 3: all automatic fixes failed – print exact SQL for the user to run manually
+    # ── Strategy 3: nothing worked – print actionable manual instructions ────
     print('=' * 65)
-    print('STARTUP WARNING: cannot access worker_specialization')
-    print(f'  Current DB user : {app_user}')
-    print(f'  Table owner     : {tbl_owner}')
+    print('STARTUP ERROR: worker_specialization is inaccessible.')
+    print(f'  App DB user : {app_user}  |  Table owner: {tbl_owner}')
     print()
-    print('Run ONE of the following in your database console:')
+    print('Paste ONE of these blocks in your Railway / Neon / Supabase SQL console:')
     print()
-    print(f'  -- Option A: grant access (fast)')
-    print(f'  GRANT ALL ON TABLE worker_specialization TO {app_user};')
-    print(f'  GRANT ALL ON SEQUENCE worker_specialization_id_seq TO {app_user};')
+    print('  -- Option A: grant SELECT/INSERT/UPDATE/DELETE to the app user')
+    print(f'  GRANT ALL ON TABLE worker_specialization TO "{app_user}";')
+    print(f'  GRANT ALL ON TABLE worker_rate_audit TO "{app_user}";')
+    print(f'  GRANT ALL ON SEQUENCE worker_specialization_id_seq TO "{app_user}";')
     print()
-    print('  -- Option B: drop & let the app recreate it on next restart')
+    print('  -- Option B: drop the tables; the app recreates them on next restart')
     print('  DROP TABLE IF EXISTS worker_rate_audit CASCADE;')
     print('  DROP TABLE IF EXISTS worker_specialization CASCADE;')
+    print()
+    print('After running Option A or B, restart the app.')
     print('=' * 65)
+
+
+@app.cli.command('fix-specializations')
+def cli_fix_specializations():
+    """Drop and recreate worker_specialization tables to fix ownership.
+
+    Run this command when the app cannot access worker_specialization due to
+    a PostgreSQL 'permission denied' error (the table is owned by a different role).
+
+    Usage:
+        flask fix-specializations
+
+    The command drops worker_specialization and worker_rate_audit (CASCADE) and
+    then calls db.create_all() so they are recreated owned by the current DB user.
+    Only run this if you have DROP privilege or are connecting as a superuser.
+    """
+    from sqlalchemy import text as _t
+    with app.app_context():
+        try:
+            with db.engine.connect() as c:
+                row = c.execute(_t('SELECT current_user')).fetchone()
+                print(f'Connected as: {row[0] if row else "unknown"}')
+                c.execute(_t('DROP TABLE IF EXISTS worker_rate_audit CASCADE'))
+                print('  Dropped worker_rate_audit')
+                c.execute(_t('DROP TABLE IF EXISTS worker_specialization CASCADE'))
+                print('  Dropped worker_specialization')
+                c.commit()
+            db.create_all()
+            print('  Recreated tables via db.create_all()')
+            with db.engine.connect() as c:
+                c.execute(_t('SELECT 1 FROM worker_specialization LIMIT 1'))
+            print('SUCCESS: worker_specialization is now accessible.')
+        except Exception as e:
+            print(f'FAILED: {e}')
+            print()
+            print('If this user cannot DROP the table, connect as the table owner or a')
+            print('superuser and run:')
+            print('  DROP TABLE IF EXISTS worker_rate_audit CASCADE;')
+            print('  DROP TABLE IF EXISTS worker_specialization CASCADE;')
+            print('Then restart the app – it will recreate the tables correctly.')
 
 
 def init_database():
