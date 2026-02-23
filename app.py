@@ -19649,6 +19649,9 @@ def init_database():
                     print('    flask fix-db-permissions')
                     print('=' * 70)
 
+            except Exception as _pg_err:
+                print(f'[DB-FIX] PostgreSQL permission fix error: {_pg_err}')
+
         # Add default categories if they don't exist
         default_categories = [
             # Design & Creative
