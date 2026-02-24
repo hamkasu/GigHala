@@ -13085,6 +13085,7 @@ def get_worker_updates():
                     'completed_gigs': user.completed_gigs or 0,
                     'is_verified': user.is_verified,
                     'halal_verified': user.halal_verified,
+                    'profile_photo': user.profile_photo,
                 }
             })
 

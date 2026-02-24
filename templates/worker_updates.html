@@ -506,7 +506,9 @@ function timeAgo(isoStr) {
 
 function buildCard(item) {
     const w = item.worker;
-    const initials = w.name.slice(0, 2).toUpperCase();
+    const avatarUrl = w.profile_photo
+        ? `/uploads/profile_photos/${w.profile_photo}`
+        : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(w.username)}`;
     const verifiedHtml = w.is_verified
         ? `<span class="v-icon">✓</span>`
         : '';
@@ -538,7 +540,7 @@ function buildCard(item) {
         </div>
         <div class="update-card-body">
             <div class="update-worker-row">
-                <div class="update-worker-avatar">${initials}</div>
+                <img class="update-worker-avatar" src="${avatarUrl}" alt="${w.name}" style="object-fit:cover;border-radius:50%;">
                 <div class="update-worker-info">
                     <div class="update-worker-name">
                         ${w.name} ${verifiedHtml} ${halalHtml}
