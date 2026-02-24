@@ -1632,7 +1632,13 @@
                     {% endif %}
 
                     <div class="user-menu">
-                        <div class="user-avatar" onclick="toggleUserDropdown()">{{ user.username[:2]|upper }}</div>
+                        <div class="user-avatar" onclick="toggleUserDropdown()" style="overflow:hidden;">
+                            {% if user.profile_photo %}
+                                <img src="/uploads/profile_photos/{{ user.profile_photo }}" alt="{{ user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                            {% else %}
+                                {{ user.username[:2]|upper }}
+                            {% endif %}
+                        </div>
                         <div class="user-dropdown" id="userDropdown">
                             <a href="/dashboard" class="dropdown-item">{{ t('nav_dashboard') }}</a>
                             <a href="/portfolio" class="dropdown-item">Portfolio</a>

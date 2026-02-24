@@ -512,6 +512,31 @@
         <h2 class="section-title">Maklumat Peribadi</h2>
         <p class="section-description">Kemaskini maklumat profil anda. Maklumat ini akan dipaparkan kepada klien dan pekerja lain.</p>
 
+        <!-- Profile Photo Upload -->
+        <div style="margin-bottom:28px; padding-bottom:24px; border-bottom:1px solid var(--border);">
+            <label class="form-label">Gambar Profil</label>
+            <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                <div id="profile-photo-preview" style="width:96px; height:96px; border-radius:50%; overflow:hidden; background:var(--primary); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; color:white; flex-shrink:0; border:3px solid var(--border);">
+                    {% if user.profile_photo %}
+                        <img src="/uploads/profile_photos/{{ user.profile_photo }}" alt="Gambar Profil" style="width:100%; height:100%; object-fit:cover;">
+                    {% else %}
+                        {{ (user.full_name or user.username)[0].upper() }}
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="profile-photo-input" class="btn btn-secondary" style="cursor:pointer; margin-bottom:8px;">
+                        Muat Naik Gambar
+                    </label>
+                    <input type="file" id="profile-photo-input" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+                    {% if user.profile_photo %}
+                    <button type="button" id="remove-photo-btn" class="btn btn-danger" style="margin-left:8px;">Padam Gambar</button>
+                    {% endif %}
+                    <p class="form-hint" style="margin-top:6px;">PNG, JPG, GIF atau WEBP. Saiz maksimum 5MB.</p>
+                    <div id="photo-upload-status" style="margin-top:6px; font-size:13px;"></div>
+                </div>
+            </div>
+        </div>
+
         <form action="/settings/profile" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-row">
@@ -1509,5 +1534,97 @@ document.addEventListener('DOMContentLoaded', function() {
         feather.replace();
     }
 });
+</script>
+
+<script>
+// Profile Photo Upload
+(function() {
+    const input = document.getElementById('profile-photo-input');
+    const preview = document.getElementById('profile-photo-preview');
+    const status = document.getElementById('photo-upload-status');
+    const removeBtn = document.getElementById('remove-photo-btn');
+
+    if (!input) return;
+
+    input.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            status.textContent = 'Fail terlalu besar. Saiz maksimum 5MB.';
+            status.style.color = 'var(--error, #dc2626)';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('photo', file);
+        formData.append('csrf_token', '{{ csrf_token() }}');
+
+        status.textContent = 'Memuat naik...';
+        status.style.color = 'var(--text-gray)';
+
+        fetch('/settings/profile/photo', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.photo_url) {
+                preview.innerHTML = '<img src="' + data.photo_url + '?t=' + Date.now() + '" alt="Gambar Profil" style="width:100%;height:100%;object-fit:cover;">';
+                status.textContent = 'Gambar profil berjaya dikemaskini!';
+                status.style.color = '#065f46';
+                // Show remove button if not already shown
+                if (!removeBtn) {
+                    const newBtn = document.createElement('button');
+                    newBtn.type = 'button';
+                    newBtn.id = 'remove-photo-btn';
+                    newBtn.className = 'btn btn-danger';
+                    newBtn.style.marginLeft = '8px';
+                    newBtn.textContent = 'Padam Gambar';
+                    newBtn.addEventListener('click', removePhoto);
+                    document.querySelector('[for="profile-photo-input"]').insertAdjacentElement('afterend', newBtn);
+                }
+            } else {
+                status.textContent = data.error || 'Gagal memuat naik gambar.';
+                status.style.color = 'var(--error, #dc2626)';
+            }
+        })
+        .catch(() => {
+            status.textContent = 'Ralat rangkaian. Sila cuba lagi.';
+            status.style.color = 'var(--error, #dc2626)';
+        });
+    });
+
+    function removePhoto() {
+        if (!confirm('Adakah anda pasti mahu memadamkan gambar profil?')) return;
+
+        fetch('/settings/profile/photo', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.message) {
+                const initial = '{{ (user.full_name or user.username)[0].upper() }}';
+                preview.innerHTML = initial;
+                if (removeBtn) removeBtn.remove();
+                status.textContent = 'Gambar profil telah dipadamkan.';
+                status.style.color = '#065f46';
+            } else {
+                status.textContent = data.error || 'Gagal memadamkan gambar.';
+                status.style.color = 'var(--error, #dc2626)';
+            }
+        })
+        .catch(() => {
+            status.textContent = 'Ralat rangkaian. Sila cuba lagi.';
+            status.style.color = 'var(--error, #dc2626)';
+        });
+    }
+
+    if (removeBtn) removeBtn.addEventListener('click', removePhoto);
+})();
 </script>
 {% endblock %}

@@ -280,6 +280,7 @@ os.makedirs(os.path.join(UPLOAD_FOLDER, 'work_photos'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'gig_photos'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'portfolio'), exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_FOLDER, 'verification'), exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'profile_photos'), exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
@@ -2498,6 +2499,13 @@ class User(UserMixin, db.Model):
     socso_submitted_to_portal = db.Column(db.Boolean, default=False)  # Whether submitted to SOCSO ASSIST Portal
     socso_portal_submission_date = db.Column(db.DateTime)  # When submitted to SOCSO portal
     socso_portal_reference_number = db.Column(db.String(50))  # Reference number from SOCSO portal (if any)
+    # Profile photo
+    profile_photo = db.Column(db.String(255))  # Filename of uploaded profile photo
+
+    @property
+    def profile_picture(self):
+        """Alias for profile_photo for backward compatibility"""
+        return self.profile_photo
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -7614,6 +7622,98 @@ def serve_verification_photo(filename):
         return jsonify({'error': 'Failed to load photo'}), 500
 
 # ============================================================================
+# PROFILE PHOTO UPLOAD
+# ============================================================================
+
+PROFILE_PHOTO_ALLOWED = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+@app.route('/settings/profile/photo', methods=['POST'])
+@page_login_required
+def upload_profile_photo():
+    """Upload or replace a user's profile photo"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    if 'photo' not in request.files:
+        return jsonify({'error': 'No photo file provided'}), 400
+
+    file = request.files['photo']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in PROFILE_PHOTO_ALLOWED:
+        return jsonify({'error': 'File type not allowed. Use PNG, JPG, JPEG, GIF, or WEBP.'}), 400
+
+    try:
+        # Delete old photo file if it exists
+        if user.profile_photo:
+            old_path = os.path.join(UPLOAD_FOLDER, 'profile_photos', user.profile_photo)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        # Save new photo
+        unique_name = f"{user_id}_{uuid.uuid4().hex}.{ext}"
+        safe_name = secure_filename(unique_name)
+        save_path = os.path.join(UPLOAD_FOLDER, 'profile_photos', safe_name)
+        file.save(save_path)
+
+        user.profile_photo = safe_name
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Profile photo uploaded successfully',
+            'photo_url': f'/uploads/profile_photos/{safe_name}'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Profile photo upload error: {str(e)}")
+        return jsonify({'error': 'Failed to upload photo. Please try again.'}), 500
+
+
+@app.route('/settings/profile/photo', methods=['DELETE'])
+@page_login_required
+def delete_profile_photo():
+    """Remove the user's profile photo"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    if not user.profile_photo:
+        return jsonify({'error': 'No profile photo to delete'}), 400
+
+    try:
+        old_path = os.path.join(UPLOAD_FOLDER, 'profile_photos', user.profile_photo)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+        user.profile_photo = None
+        db.session.commit()
+        return jsonify({'message': 'Profile photo removed successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Profile photo delete error: {str(e)}")
+        return jsonify({'error': 'Failed to remove photo. Please try again.'}), 500
+
+
+@app.route('/uploads/profile_photos/<filename>')
+def serve_profile_photo(filename):
+    """Serve user profile photos (public)"""
+    try:
+        safe_filename = secure_filename(filename)
+        if safe_filename != filename:
+            return jsonify({'error': 'Invalid filename'}), 400
+
+        file_path = os.path.join(UPLOAD_FOLDER, 'profile_photos', safe_filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'File not found'}), 404
+
+        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'profile_photos'), safe_filename)
+    except Exception as e:
+        app.logger.error(f"Serve profile photo error: {str(e)}")
+        return jsonify({'error': 'Failed to load photo'}), 500
+
+
+# ============================================================================
 # GIG WORKFLOW: CLIENT TO WORKER COMPLETE PROCESS
 # ============================================================================
 
@@ -12714,7 +12814,7 @@ def search_specialized_workers():
                     'bio': bio_text[:200] + '...' if len(bio_text) > 200 else bio_text,
                     'full_bio': bio_text,
                     'location': user.location,
-                    'profile_picture': None,
+                    'profile_picture': f'/uploads/profile_photos/{user.profile_photo}' if user.profile_photo else None,
                     'rating': float(user.rating or 0),
                     'review_count': user.review_count or 0,
                     'total_reviews': user.review_count or 0,
