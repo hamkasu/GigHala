@@ -384,6 +384,368 @@
         height: 18px;
         accent-color: var(--primary);
     }
+
+    /* ============ WORKER DETAIL MODAL ============ */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+    }
+
+    .worker-modal {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 640px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 24px 24px 20px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: var(--bg-white);
+        z-index: 1;
+    }
+
+    .modal-close-btn {
+        margin-left: auto;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-gray);
+        padding: 4px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        line-height: 1;
+        font-size: 22px;
+    }
+
+    .modal-close-btn:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+
+    .modal-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary);
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .modal-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .modal-worker-name {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .modal-meta {
+        font-size: 14px;
+        color: var(--text-gray);
+        margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .modal-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .modal-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .modal-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .modal-bio {
+        font-size: 15px;
+        color: var(--text-gray);
+        line-height: 1.7;
+    }
+
+    .modal-skills-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .skill-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 14px 16px;
+        background: var(--bg-light);
+    }
+
+    .skill-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .skill-card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .skill-card-category {
+        font-size: 12px;
+        color: var(--text-gray);
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2px 10px;
+        white-space: nowrap;
+    }
+
+    .skill-rates {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .skill-rate-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .skill-rate-pill.hourly {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .skill-rate-pill.fixed {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .skill-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .skill-tag {
+        font-size: 12px;
+        background: white;
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+
+    .modal-stats-row {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .modal-stat {
+        flex: 1;
+        text-align: center;
+        padding: 14px 8px;
+        border-right: 1px solid var(--border);
+    }
+
+    .modal-stat:last-child {
+        border-right: none;
+    }
+
+    .modal-stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .modal-stat-label {
+        font-size: 11px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .modal-footer {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border);
+        background: var(--bg-white);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .message-compose {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message-compose.open {
+        display: flex;
+    }
+
+    .message-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 90px;
+        box-sizing: border-box;
+    }
+
+    .message-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-message {
+        flex: 1;
+        padding: 12px 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .btn-message:hover {
+        opacity: 0.9;
+    }
+
+    .btn-message:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-profile {
+        flex: 1;
+        padding: 12px 20px;
+        background: white;
+        color: var(--text-dark);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.2s;
+    }
+
+    .btn-profile:hover {
+        background: var(--bg-light);
+    }
+
+    .btn-send-msg {
+        padding: 10px 24px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .btn-send-msg:hover { opacity: 0.9; }
+    .btn-send-msg:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-cancel-msg {
+        padding: 10px 16px;
+        background: none;
+        color: var(--text-gray);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+    }
+
+    .message-compose-row {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .halal-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 </style>
 {% endblock %}
 
@@ -496,6 +858,68 @@
         <button class="load-more-btn" onclick="loadMore()">Load More</button>
         <div class="load-more-info">
             Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> workers
+        </div>
+    </div>
+</div>
+
+<!-- Worker Detail Modal -->
+<div class="modal-overlay" id="workerModalOverlay" onclick="handleOverlayClick(event)">
+    <div class="worker-modal" id="workerModal">
+        <div class="modal-header">
+            <div class="modal-avatar" id="modalAvatar"></div>
+            <div style="flex:1; min-width:0;">
+                <div class="modal-worker-name" id="modalName"></div>
+                <div class="modal-meta" id="modalMeta"></div>
+            </div>
+            <button class="modal-close-btn" onclick="closeWorkerModal()" aria-label="Close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Stats row -->
+            <div class="modal-stats-row">
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modalJobs">0</div>
+                    <div class="modal-stat-label">Jobs Done</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modalReviews">0</div>
+                    <div class="modal-stat-label">Reviews</div>
+                </div>
+                <div class="modal-stat">
+                    <div class="modal-stat-value" id="modalRating">-</div>
+                    <div class="modal-stat-label">Rating</div>
+                </div>
+            </div>
+
+            <!-- Bio section -->
+            <div id="modalBioSection">
+                <div class="modal-section-title">About</div>
+                <div class="modal-bio" id="modalBio"></div>
+            </div>
+
+            <!-- Skills & Rates section -->
+            <div id="modalSkillsSection">
+                <div class="modal-section-title">Skills &amp; Going Rates</div>
+                <div class="modal-skills-grid" id="modalSkillsGrid"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <!-- Message compose area (hidden until button clicked) -->
+            <div class="message-compose" id="messageCompose">
+                <textarea class="message-textarea" id="messageText" placeholder="Write your message..."></textarea>
+                <div class="message-compose-row">
+                    <button class="btn-cancel-msg" onclick="cancelMessage()">Cancel</button>
+                    <button class="btn-send-msg" id="sendMsgBtn" onclick="sendMessage()">Send Message</button>
+                </div>
+            </div>
+            <!-- Action buttons -->
+            <div class="modal-actions" id="modalActions">
+                <button class="btn-message" id="openMessageBtn" onclick="openMessageCompose()">
+                    &#9993; Message Worker
+                </button>
+                <a class="btn-profile" id="viewProfileBtn" href="#">View Full Profile</a>
+            </div>
         </div>
     </div>
 </div>
@@ -680,9 +1104,10 @@
 
     // ============ RENDER WORKER CARD ============
     function renderWorkerCard(worker) {
+        const displayName = worker.name || worker.full_name || worker.username || 'Worker';
         const avatarContent = worker.profile_picture
-            ? `<img src="${worker.profile_picture}" alt="${escapeHtml(worker.name)}">`
-            : worker.name.charAt(0).toUpperCase();
+            ? `<img src="${worker.profile_picture}" alt="${escapeHtml(displayName)}">`
+            : displayName.charAt(0).toUpperCase();
 
         // Format rating
         const rating = worker.rating || 0;
@@ -715,15 +1140,16 @@
             rateDisplay += `<span class="rate-badge fixed">From RM${parseFloat(worker.min_fixed_rate).toFixed(0)}/gig</span>`;
         }
 
+        const wid = worker.id || worker.worker_id;
         return `
-            <div class="worker-card" onclick="window.location.href='/profile/${worker.id}'">
+            <div class="worker-card" onclick="openWorkerModalById(${wid})" style="cursor:pointer;">
                 <div class="worker-header">
                     <div class="worker-avatar">
                         ${avatarContent}
                     </div>
                     <div class="worker-info">
                         <div class="worker-name">
-                            ${escapeHtml(worker.name)}
+                            ${escapeHtml(displayName)}
                             ${worker.is_verified ? '<span class="verified-badge">✓</span>' : ''}
                         </div>
                         ${worker.location ? `<div class="worker-location"><i data-feather="map-pin" style="width:14px;height:14px;"></i> ${escapeHtml(worker.location)}</div>` : ''}
@@ -785,6 +1211,179 @@
         div.textContent = text;
         return div.innerHTML;
     }
+
+    // ============ WORKER DETAIL MODAL ============
+    let activeWorkerId = null;
+
+    function openWorkerModalById(workerId) {
+        const worker = allWorkers.find(w => (w.id || w.worker_id) === workerId);
+        if (worker) openWorkerModal(worker);
+    }
+
+    function openWorkerModal(worker) {
+        activeWorkerId = worker.id || worker.worker_id;
+
+        // Avatar
+        const avatarEl = document.getElementById('modalAvatar');
+        if (worker.profile_picture) {
+            avatarEl.innerHTML = `<img src="${escapeHtml(worker.profile_picture)}" alt="${escapeHtml(worker.name || worker.full_name)}">`;
+        } else {
+            const initial = (worker.name || worker.full_name || '?').charAt(0).toUpperCase();
+            avatarEl.textContent = initial;
+        }
+
+        // Name & badges
+        const name = escapeHtml(worker.name || worker.full_name || worker.username || 'Worker');
+        const verifiedBadge = worker.is_verified ? '<span class="verified-badge" title="Verified">✓</span>' : '';
+        const halalBadge = worker.halal_verified ? '<span class="halal-badge">&#9670; Halal Verified</span>' : '';
+        document.getElementById('modalName').innerHTML = `${name} ${verifiedBadge} ${halalBadge}`;
+
+        // Meta row
+        const rating = parseFloat(worker.rating || 0);
+        const stars = '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+        let metaHtml = `<span><span style="color:#f59e0b">${stars}</span> ${rating.toFixed(1)}</span>`;
+        if (worker.location) metaHtml += `<span>📍 ${escapeHtml(worker.location)}</span>`;
+        document.getElementById('modalMeta').innerHTML = metaHtml;
+
+        // Stats
+        document.getElementById('modalJobs').textContent = worker.completed_gigs || 0;
+        document.getElementById('modalReviews').textContent = worker.total_reviews || worker.review_count || 0;
+        document.getElementById('modalRating').textContent = rating.toFixed(1);
+
+        // Bio
+        const bioSection = document.getElementById('modalBioSection');
+        const bio = worker.full_bio || worker.bio || '';
+        if (bio) {
+            document.getElementById('modalBio').textContent = bio;
+            bioSection.style.display = '';
+        } else {
+            bioSection.style.display = 'none';
+        }
+
+        // Skills & Rates
+        const skillsGrid = document.getElementById('modalSkillsGrid');
+        const specs = worker.specializations || [];
+        if (specs.length > 0) {
+            skillsGrid.innerHTML = specs.map(spec => {
+                const title = spec.specialization_title || spec.category_name || 'Skill';
+                const category = spec.category_name || '';
+
+                let ratesHtml = '';
+                if (spec.base_hourly_rate) {
+                    ratesHtml += `<span class="skill-rate-pill hourly">⏱ RM${parseFloat(spec.base_hourly_rate).toFixed(2)}/hr</span>`;
+                }
+                if (spec.base_fixed_rate) {
+                    ratesHtml += `<span class="skill-rate-pill fixed">📋 RM${parseFloat(spec.base_fixed_rate).toFixed(2)}/gig</span>`;
+                }
+                if (!ratesHtml) {
+                    ratesHtml = '<span style="font-size:13px;color:var(--text-gray);">Rate on request</span>';
+                }
+
+                const skillsList = Array.isArray(spec.skills) ? spec.skills : [];
+                const tagsHtml = skillsList.length > 0
+                    ? `<div class="skill-tags">${skillsList.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('')}</div>`
+                    : '';
+
+                const premiumNote = spec.has_premium ? '<span style="font-size:12px;color:#7b1fa2;margin-left:6px;">★ Premium</span>' : '';
+
+                return `
+                    <div class="skill-card">
+                        <div class="skill-card-header">
+                            <span class="skill-card-title">${escapeHtml(title)}${premiumNote}</span>
+                            ${category ? `<span class="skill-card-category">${escapeHtml(category)}</span>` : ''}
+                        </div>
+                        <div class="skill-rates">${ratesHtml}</div>
+                        ${tagsHtml}
+                    </div>`;
+            }).join('');
+            document.getElementById('modalSkillsSection').style.display = '';
+        } else {
+            document.getElementById('modalSkillsSection').style.display = 'none';
+        }
+
+        // Profile link
+        document.getElementById('viewProfileBtn').href = `/profile/${worker.username || activeWorkerId}`;
+
+        // Reset message compose
+        cancelMessage();
+
+        // Show modal
+        document.getElementById('workerModalOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeWorkerModal() {
+        document.getElementById('workerModalOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        activeWorkerId = null;
+        cancelMessage();
+    }
+
+    function handleOverlayClick(event) {
+        if (event.target === document.getElementById('workerModalOverlay')) {
+            closeWorkerModal();
+        }
+    }
+
+    function openMessageCompose() {
+        document.getElementById('messageCompose').classList.add('open');
+        document.getElementById('modalActions').style.display = 'none';
+        document.getElementById('messageText').focus();
+    }
+
+    function cancelMessage() {
+        document.getElementById('messageCompose').classList.remove('open');
+        document.getElementById('modalActions').style.display = '';
+        const ta = document.getElementById('messageText');
+        if (ta) ta.value = '';
+    }
+
+    async function sendMessage() {
+        const text = document.getElementById('messageText').value.trim();
+        if (!text) {
+            document.getElementById('messageText').focus();
+            return;
+        }
+        if (!activeWorkerId) return;
+
+        const sendBtn = document.getElementById('sendMsgBtn');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+
+        try {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const resp = await fetch('/api/messages/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf
+                },
+                body: JSON.stringify({ user_id: activeWorkerId, message: text })
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok && data.conversation_id) {
+                window.location.href = `/messages/${data.conversation_id}`;
+            } else if (resp.status === 401 || resp.status === 403) {
+                window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+            } else {
+                alert(data.error || 'Failed to send message. Please try again.');
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send Message';
+            }
+        } catch (err) {
+            console.error('Send message error:', err);
+            alert('Network error. Please try again.');
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send Message';
+        }
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeWorkerModal();
+    });
 
     // ============ EVENT LISTENERS ============
     document.addEventListener('DOMContentLoaded', init);

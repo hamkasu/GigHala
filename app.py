@@ -12704,20 +12704,38 @@ def search_specialized_workers():
         workers_dict = {}
         for user, spec in results_raw:
             if user.id not in workers_dict:
+                bio_text = user.bio or ''
                 workers_dict[user.id] = {
+                    'id': user.id,
                     'worker_id': user.id,
                     'username': user.username,
+                    'name': user.full_name or user.username,
                     'full_name': user.full_name,
-                    'bio': user.bio[:200] + '...' if user.bio and len(user.bio) > 200 else user.bio,
+                    'bio': bio_text[:200] + '...' if len(bio_text) > 200 else bio_text,
+                    'full_bio': bio_text,
                     'location': user.location,
-                    'rating': user.rating,
+                    'profile_picture': None,
+                    'rating': float(user.rating or 0),
                     'review_count': user.review_count or 0,
+                    'total_reviews': user.review_count or 0,
                     'completed_gigs': user.completed_gigs or 0,
                     'is_verified': user.is_verified,
                     'halal_verified': user.halal_verified,
-                    'specializations': []
+                    'response_rate': None,
+                    'specializations': [],
+                    'min_hourly_rate': None,
+                    'min_fixed_rate': None,
                 }
             workers_dict[user.id]['specializations'].append(spec.to_public_dict())
+            # Track minimum rates across all specializations
+            if spec.base_hourly_rate:
+                current_min = workers_dict[user.id]['min_hourly_rate']
+                if current_min is None or spec.base_hourly_rate < current_min:
+                    workers_dict[user.id]['min_hourly_rate'] = float(spec.base_hourly_rate)
+            if spec.base_fixed_rate:
+                current_min = workers_dict[user.id]['min_fixed_rate']
+                if current_min is None or spec.base_fixed_rate < current_min:
+                    workers_dict[user.id]['min_fixed_rate'] = float(spec.base_fixed_rate)
 
         workers = list(workers_dict.values())
 
