@@ -1,0 +1,663 @@
+{% extends "base.html" %}
+
+{% block title %}{% if lang == 'ms' %}Kemaskini Pekerja{% else %}Worker Updates{% endif %}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .updates-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* Hero */
+    .updates-hero {
+        background: linear-gradient(135deg, #0d7c66 0%, #00C853 100%);
+        border-radius: var(--radius-lg);
+        padding: 36px 32px;
+        margin-bottom: 28px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .updates-hero::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -5%;
+        width: 280px;
+        height: 280px;
+        background: rgba(255,255,255,0.07);
+        border-radius: 50%;
+    }
+
+    .updates-hero h1 {
+        font-size: 26px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .updates-hero p {
+        font-size: 14px;
+        opacity: 0.9;
+        position: relative;
+        max-width: 560px;
+    }
+
+    .updates-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.35);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 14px;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.75); }
+    }
+
+    /* Toolbar */
+    .updates-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        color: var(--text-dark);
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .filter-chip:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .filter-chip.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .results-count {
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+
+    /* Category pills */
+    .category-pills {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        margin-bottom: 22px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .category-pills::-webkit-scrollbar { display: none; }
+
+    .category-pill {
+        padding: 7px 16px;
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-dark);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+    .category-pill:hover { border-color: var(--primary); color: var(--primary); }
+    .category-pill.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+    /* Cards grid */
+    .updates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .update-card {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .update-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* "Recently Updated" ribbon */
+    .update-ribbon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #0d7c66;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .update-ribbon .dot {
+        width: 5px;
+        height: 5px;
+        background: #fff;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    /* Card thumb */
+    .update-card-thumb {
+        height: 140px;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 44px;
+    }
+
+    /* Card body */
+    .update-card-body {
+        padding: 14px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .update-worker-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .update-worker-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--primary);
+        flex-shrink: 0;
+        border: 1px solid rgba(0,200,83,0.25);
+    }
+
+    .update-worker-info { flex: 1; min-width: 0; }
+
+    .update-worker-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .update-worker-name .v-icon {
+        width: 12px;
+        height: 12px;
+        background: #2e7d32;
+        color: white;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        flex-shrink: 0;
+    }
+
+    .update-worker-time {
+        font-size: 10px;
+        color: var(--text-gray);
+    }
+
+    .update-card-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        line-height: 1.4;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .update-skills-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+
+    .skill-chip {
+        padding: 2px 7px;
+        background: var(--bg-light);
+        border-radius: 4px;
+        font-size: 11px;
+        color: var(--text-gray);
+    }
+
+    .update-card-footer {
+        border-top: 1px solid var(--border);
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: auto;
+    }
+
+    .update-price-wrap { display: flex; flex-direction: column; }
+
+    .update-price-label {
+        font-size: 10px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .update-price {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .update-price .price-unit {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-gray);
+    }
+
+    .contact-btn {
+        padding: 6px 13px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: opacity 0.2s;
+    }
+
+    .contact-btn:hover { opacity: 0.88; }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 64px 24px;
+        color: var(--text-gray);
+    }
+
+    .empty-state i { margin-bottom: 16px; color: var(--border); }
+
+    .empty-state h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .empty-state p { font-size: 14px; }
+
+    /* Skeleton loader */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Load more */
+    .load-more-area { text-align: center; padding: 24px 0; }
+
+    .load-more-btn {
+        padding: 11px 36px;
+        background: var(--bg-white);
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .load-more-btn:hover { background: var(--primary); color: white; }
+    .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width: 768px) {
+        .updates-page { padding: 16px; }
+        .updates-hero { padding: 24px 20px; }
+        .updates-hero h1 { font-size: 20px; }
+        .updates-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    }
+
+    @media (max-width: 480px) {
+        .updates-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="updates-page">
+
+    <!-- Hero -->
+    <div class="updates-hero">
+        <h1>
+            <i data-feather="refresh-cw" style="width:26px;height:26px;"></i>
+            {% if lang == 'ms' %}Kemaskini Pekerja{% else %}Worker Updates{% endif %}
+        </h1>
+        <p>
+            {% if lang == 'ms' %}
+            Pekerja yang baru mengemas kini kemahiran dan harga mereka. Semak tawaran terbaru dari tenaga kerja kami.
+            {% else %}
+            Workers who recently updated their skills and pricing. Check out the latest offerings from our talent pool.
+            {% endif %}
+        </p>
+        <div class="updates-badge">
+            <span class="pulse-dot"></span>
+            <span id="heroCount">...</span>
+            {% if lang == 'ms' %}kemaskini dalam 30 hari lepas{% else %}updates in the last 30 days{% endif %}
+        </div>
+    </div>
+
+    <!-- Category pills -->
+    <div class="category-pills" id="categoryPills">
+        <button class="category-pill active" onclick="filterCategory(null, this)">
+            {% if lang == 'ms' %}Semua{% else %}All{% endif %}
+        </button>
+        {% for cat in categories %}
+        <button class="category-pill" onclick="filterCategory({{ cat.id }}, this)">
+            {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <!-- Toolbar -->
+    <div class="updates-toolbar">
+        <div class="toolbar-left">
+            <button class="filter-chip active" id="chip30" onclick="setDays(30, this)">
+                <i data-feather="clock" style="width:14px;height:14px;"></i>
+                {% if lang == 'ms' %}30 Hari{% else %}30 Days{% endif %}
+            </button>
+            <button class="filter-chip" id="chip7" onclick="setDays(7, this)">
+                {% if lang == 'ms' %}7 Hari{% else %}7 Days{% endif %}
+            </button>
+            <button class="filter-chip" id="chip1" onclick="setDays(1, this)">
+                {% if lang == 'ms' %}Hari Ini{% else %}Today{% endif %}
+            </button>
+        </div>
+        <span class="results-count" id="resultsCount"></span>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="updates-grid" id="updatesGrid">
+        <!-- Skeleton placeholders while loading -->
+        {% for i in range(8) %}
+        <div class="update-card skeleton-card" style="height:280px;"></div>
+        {% endfor %}
+    </div>
+
+    <div class="load-more-area" id="loadMoreArea" style="display:none;">
+        <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">
+            {% if lang == 'ms' %}Muat Lebih{% else %}Load More{% endif %}
+        </button>
+    </div>
+
+</div>
+
+<script>
+const LANG = '{{ lang }}';
+let currentPage = 1;
+let currentDays = 30;
+let currentCategoryId = null;
+let totalPages = 0;
+
+function timeAgo(isoStr) {
+    if (!isoStr) return '';
+    const diff = Date.now() - new Date(isoStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+    if (LANG === 'ms') {
+        if (mins < 2) return 'baru sahaja';
+        if (mins < 60) return `${mins} minit lalu`;
+        if (hours < 24) return `${hours} jam lalu`;
+        return `${days} hari lalu`;
+    }
+    if (mins < 2) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+}
+
+function buildCard(item) {
+    const w = item.worker;
+    const initials = w.name.slice(0, 2).toUpperCase();
+    const verifiedHtml = w.is_verified
+        ? `<span class="v-icon">✓</span>`
+        : '';
+    const halalHtml = w.halal_verified
+        ? `<span style="font-size:10px;color:#0d7c66;" title="Halal Verified">☪</span>`
+        : '';
+    const skillsHtml = item.skills.map(s => `<span class="skill-chip">${s}</span>`).join('');
+    const premiumHtml = item.has_premium
+        ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:700;">PREMIUM</span>`
+        : '';
+    const priceLabel = LANG === 'ms'
+        ? (item.price_type === 'hourly' ? 'Bermula dari/jam' : 'Harga tetap')
+        : (item.price_type === 'hourly' ? 'From/hr' : 'Fixed price');
+    const priceUnit = item.price_type === 'hourly'
+        ? `<span class="price-unit">/hr</span>`
+        : '';
+    const ratingHtml = w.rating > 0
+        ? `<span style="color:#f59e0b;font-size:12px;">★ ${w.rating.toFixed(1)}</span>`
+        : '';
+
+    return `
+    <div class="update-card">
+        <div class="update-ribbon">
+            <span class="dot"></span>
+            ${LANG === 'ms' ? 'Kemaskini' : 'Updated'}
+        </div>
+        <div class="update-card-thumb">
+            <span>${item.category_icon || '🔧'}</span>
+        </div>
+        <div class="update-card-body">
+            <div class="update-worker-row">
+                <div class="update-worker-avatar">${initials}</div>
+                <div class="update-worker-info">
+                    <div class="update-worker-name">
+                        ${w.name} ${verifiedHtml} ${halalHtml}
+                    </div>
+                    <div class="update-worker-time">${timeAgo(item.updated_at)}</div>
+                </div>
+                ${ratingHtml}
+            </div>
+            <div class="update-card-title">${item.title}</div>
+            <div class="update-skills-row">${skillsHtml} ${premiumHtml}</div>
+        </div>
+        <div class="update-card-footer">
+            <div class="update-price-wrap">
+                <span class="update-price-label">${priceLabel}</span>
+                <span class="update-price">RM ${item.starting_price ? item.starting_price.toFixed(2) : '—'}${priceUnit}</span>
+            </div>
+            <a href="/profile/${w.username}" class="contact-btn">
+                <i data-feather="message-circle" style="width:13px;height:13px;"></i>
+                ${LANG === 'ms' ? 'Hubungi' : 'Contact'}
+            </a>
+        </div>
+    </div>`;
+}
+
+function setDays(days, el) {
+    currentDays = days;
+    currentPage = 1;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    fetchUpdates(true);
+}
+
+function filterCategory(catId, el) {
+    currentCategoryId = catId;
+    currentPage = 1;
+    document.querySelectorAll('.category-pill').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    fetchUpdates(true);
+}
+
+function loadMore() {
+    currentPage++;
+    fetchUpdates(false);
+}
+
+async function fetchUpdates(reset) {
+    const grid = document.getElementById('updatesGrid');
+    const loadMoreArea = document.getElementById('loadMoreArea');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const resultsCount = document.getElementById('resultsCount');
+    const heroCount = document.getElementById('heroCount');
+
+    if (reset) {
+        grid.innerHTML = '';
+        // show skeleton
+        for (let i = 0; i < 8; i++) {
+            const sk = document.createElement('div');
+            sk.className = 'skeleton';
+            sk.style.cssText = 'height:280px;border-radius:12px;';
+            grid.appendChild(sk);
+        }
+    }
+
+    if (loadMoreBtn) loadMoreBtn.disabled = true;
+
+    let url = `/api/worker-updates?days=${currentDays}&page=${currentPage}&limit=24`;
+    if (currentCategoryId) url += `&category_id=${currentCategoryId}`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (reset) grid.innerHTML = '';
+
+        totalPages = data.pages || 0;
+        const updates = data.updates || [];
+
+        if (updates.length === 0 && reset) {
+            grid.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1;">
+                <i data-feather="refresh-cw" style="width:48px;height:48px;display:block;margin:0 auto 16px;"></i>
+                <h3>${LANG === 'ms' ? 'Tiada Kemaskini' : 'No Updates Found'}</h3>
+                <p>${LANG === 'ms' ? 'Tiada pekerja yang mengemas kini profil mereka dalam tempoh ini.' : 'No workers updated their skills or pricing in this period.'}</p>
+            </div>`;
+        } else {
+            updates.forEach(item => {
+                grid.insertAdjacentHTML('beforeend', buildCard(item));
+            });
+        }
+
+        // Update counts
+        const countLabel = LANG === 'ms'
+            ? `${data.total} pekerja dikemaskini`
+            : `${data.total} worker update${data.total !== 1 ? 's' : ''}`;
+        resultsCount.textContent = countLabel;
+        heroCount.textContent = data.total;
+
+        // Load more button
+        if (currentPage < totalPages) {
+            loadMoreArea.style.display = 'block';
+            if (loadMoreBtn) loadMoreBtn.disabled = false;
+        } else {
+            loadMoreArea.style.display = 'none';
+        }
+
+        // Re-init feather icons
+        if (window.feather) feather.replace();
+
+    } catch (err) {
+        if (reset) {
+            grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+                <h3>${LANG === 'ms' ? 'Ralat Memuatkan' : 'Failed to Load'}</h3>
+                <p>${LANG === 'ms' ? 'Sila cuba semula.' : 'Please try again.'}</p>
+            </div>`;
+        }
+    }
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', () => fetchUpdates(true));
+</script>
+{% endblock %}
