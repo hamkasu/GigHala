@@ -247,7 +247,7 @@
             {% if profile_user.profile_photo %}
                 <img src="/uploads/profile_photos/{{ profile_user.profile_photo }}" alt="{{ profile_user.full_name or profile_user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
             {% else %}
-                {{ profile_user.username[0].upper() }}
+                <img src="https://api.dicebear.com/9.x/adventurer/svg?seed={{ profile_user.username }}" alt="{{ profile_user.full_name or profile_user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
             {% endif %}
         </div>
         <div class="profile-info">
