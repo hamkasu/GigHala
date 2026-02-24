@@ -1613,6 +1613,7 @@
                     <a href="/gigs" class="nav-link {% if active_page == 'gigs' %}active{% endif %}">{{ t('nav_search') }}</a>
                     <a href="/workers" class="nav-link {% if active_page == 'workers' %}active{% endif %}">{{ t('nav_workers') }}</a>
                     <a href="/services" class="nav-link {% if active_page == 'services' %}active{% endif %}">{% if lang == 'ms' %}Perkhidmatan{% else %}Services{% endif %}</a>
+                    <a href="/worker-updates" class="nav-link {% if active_page == 'worker-updates' %}active{% endif %}">{{ t('nav_worker_updates') }}</a>
                     {% if user.user_type in ['client', 'both'] %}
                     <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">{{ t('nav_submit') }}</a>
                     {% endif %}
@@ -1770,6 +1771,9 @@
             </a>
             <a href="/workers" class="mobile-nav-item {% if active_page == 'workers' %}active{% endif %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <i data-feather="users" style="width: 30px; height: 30px;"></i>
+            </a>
+            <a href="/worker-updates" class="mobile-nav-item {% if active_page == 'worker-updates' %}active{% endif %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <i data-feather="refresh-cw" style="width: 30px; height: 30px;"></i>
             </a>
             {% if user.user_type in ['client', 'both'] %}
             <a href="/post-gig" class="mobile-nav-item {% if active_page == 'post-gig' %}active{% endif %}">

@@ -631,6 +631,7 @@ TRANSLATIONS = {
         # Navigation Menu
         'nav_search': 'Cari',
         'nav_workers': 'Pekerja',
+        'nav_worker_updates': 'Kemaskini Pekerja',
         'nav_submit': 'Hantar',
         'nav_messages': 'Mesej',
         'nav_wallet': 'Dompet',
@@ -1017,6 +1018,7 @@ TRANSLATIONS = {
         # Navigation Menu
         'nav_search': 'Search',
         'nav_workers': 'Workers',
+        'nav_worker_updates': 'Worker Updates',
         'nav_submit': 'Submit',
         'nav_messages': 'Messages',
         'nav_wallet': 'Wallet',
@@ -3760,6 +3762,15 @@ def browse_services():
     user = User.query.get(user_id)
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('worker_skills.html', user=user, categories=categories, active_page='services', lang=get_user_language(), t=t)
+
+@app.route('/worker-updates')
+@page_login_required
+def worker_updates():
+    """Show workers who have recently updated their skills and pricing"""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+    return render_template('worker_updates.html', user=user, categories=categories, active_page='worker-updates', lang=get_user_language(), t=t)
 
 @app.route('/search')
 @page_login_required
@@ -12884,6 +12895,92 @@ def browse_skills_api():
     except Exception as e:
         app.logger.error(f"Browse skills API error: {str(e)}")
         return jsonify({'error': 'Failed to browse services'}), 500
+
+
+@app.route('/api/worker-updates', methods=['GET'])
+@login_required
+def get_worker_updates():
+    """Return workers who recently updated their skills or pricing.
+
+    Query params:
+    - days: Look-back window in days (default 30)
+    - category_id: Filter by category
+    - page: Page number (default 1)
+    - limit: Results per page (default 24, max 60)
+    """
+    try:
+        import json as json_lib
+
+        days = max(1, request.args.get('days', 30, type=int))
+        category_id = request.args.get('category_id', type=int)
+        page = max(1, request.args.get('page', 1, type=int))
+        limit = min(request.args.get('limit', 24, type=int), 60)
+        offset = (page - 1) * limit
+
+        since = datetime.utcnow() - timedelta(days=days)
+
+        query = db.session.query(WorkerSpecialization, User, Category).join(
+            User, WorkerSpecialization.user_id == User.id
+        ).join(
+            Category, WorkerSpecialization.category_id == Category.id
+        ).filter(
+            User.user_type.in_(['freelancer', 'both']),
+            WorkerSpecialization.updated_at >= since,
+            db.or_(
+                WorkerSpecialization.base_hourly_rate.isnot(None),
+                WorkerSpecialization.base_fixed_rate.isnot(None)
+            )
+        )
+
+        if category_id:
+            query = query.filter(WorkerSpecialization.category_id == category_id)
+
+        total_count = query.count()
+        results = query.order_by(WorkerSpecialization.updated_at.desc()).offset(offset).limit(limit).all()
+
+        updates = []
+        for spec, user, category in results:
+            skills_list = json_lib.loads(spec.skills) if spec.skills else []
+            starting_price = spec.base_fixed_rate or spec.base_hourly_rate
+            price_type = 'fixed' if spec.base_fixed_rate else 'hourly'
+
+            updates.append({
+                'id': spec.id,
+                'title': spec.specialization_title or f"{category.name} Service",
+                'category_name': category.name,
+                'category_id': category.id,
+                'category_icon': category.icon,
+                'skills': skills_list[:5],
+                'starting_price': starting_price,
+                'price_type': price_type,
+                'hourly_rate': spec.base_hourly_rate,
+                'fixed_rate': spec.base_fixed_rate,
+                'has_premium': (spec.premium_multiplier or 1.0) > 1.0,
+                'updated_at': spec.updated_at.isoformat() if spec.updated_at else None,
+                'worker': {
+                    'id': user.id,
+                    'username': user.username,
+                    'name': user.full_name or user.username,
+                    'location': user.location,
+                    'rating': user.rating or 0,
+                    'review_count': user.review_count or 0,
+                    'completed_gigs': user.completed_gigs or 0,
+                    'is_verified': user.is_verified,
+                    'halal_verified': user.halal_verified,
+                }
+            })
+
+        return jsonify({
+            'updates': updates,
+            'total': total_count,
+            'page': page,
+            'pages': (total_count + limit - 1) // limit if total_count > 0 else 0,
+            'limit': limit,
+            'days': days
+        })
+    except Exception as e:
+        app.logger.error(f"Worker updates API error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch worker updates'}), 500
 
 
 @app.route('/api/microtasks', methods=['GET'])
