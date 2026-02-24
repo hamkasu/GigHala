@@ -504,11 +504,22 @@ function timeAgo(isoStr) {
     return `${days}d ago`;
 }
 
+function avatarFallback(username, name) {
+    const initials = (name || username || 'U').slice(0, 2).toUpperCase();
+    const palette = ['#00C853','#2196F3','#FF5722','#9C27B0','#FF9800','#00BCD4','#E91E63','#607D8B'];
+    let hash = 0;
+    for (const c of (username || '')) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+    const color = palette[hash % palette.length];
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="20" fill="${color}"/><text x="20" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="bold" fill="white">${initials}</text></svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
 function buildCard(item) {
     const w = item.worker;
     const avatarUrl = w.profile_photo
         ? `/uploads/profile_photos/${w.profile_photo}`
         : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(w.username)}`;
+    const fallbackUrl = avatarFallback(w.username, w.name);
     const verifiedHtml = w.is_verified
         ? `<span class="v-icon">✓</span>`
         : '';
@@ -540,7 +551,7 @@ function buildCard(item) {
         </div>
         <div class="update-card-body">
             <div class="update-worker-row">
-                <img class="update-worker-avatar" src="${avatarUrl}" alt="${w.name}" style="object-fit:cover;border-radius:50%;">
+                <img class="update-worker-avatar" src="${avatarUrl}" alt="${w.name}" style="object-fit:cover;border-radius:50%;" onerror="this.onerror=null;this.src='${fallbackUrl}';">
                 <div class="update-worker-info">
                     <div class="update-worker-name">
                         ${w.name} ${verifiedHtml} ${halalHtml}

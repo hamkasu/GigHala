@@ -2507,6 +2507,23 @@ class User(UserMixin, db.Model):
         """Alias for profile_photo for backward compatibility"""
         return self.profile_photo
 
+    @property
+    def fallback_avatar_url(self):
+        """Base64 SVG data URI – used as onerror fallback when DiceBear is unreachable."""
+        import hashlib, base64 as _b64
+        initials = ((self.full_name or self.username or 'U')[:2]).upper()
+        palette = ['#00C853','#2196F3','#FF5722','#9C27B0','#FF9800','#00BCD4','#E91E63','#607D8B']
+        idx = int(hashlib.md5((self.username or 'user').encode()).hexdigest(), 16) % len(palette)
+        color = palette[idx]
+        svg = (
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">'
+            f'<circle cx="20" cy="20" r="20" fill="{color}"/>'
+            f'<text x="20" y="26" text-anchor="middle" font-family="Arial,sans-serif" '
+            f'font-size="15" font-weight="bold" fill="white">{initials}</text></svg>'
+        )
+        encoded = _b64.b64encode(svg.encode('utf-8')).decode('ascii')
+        return f'data:image/svg+xml;base64,{encoded}'
+
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
