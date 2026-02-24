@@ -343,6 +343,84 @@
             </div>
         </div>
 
+        <!-- Bills to Watch Section -->
+        <div id="bills-section" style="background: #f0faf5; padding: 60px 20px; margin-top: 0; border-top: 1px solid rgba(13, 124, 102, 0.1);">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(13, 124, 102, 0.1); color: #0D7C66; padding: 6px 16px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">
+                        <span>📜</span> {% if lang == 'ms' %}Kemas Kini Terkini{% else %}Latest Updates{% endif %}
+                    </div>
+                    <h2 style="font-size: 2rem; font-weight: 800; color: black; margin-bottom: 12px;">
+                        {% if lang == 'ms' %}Rang Undang-Undang Diperhatikan{% else %}Bills to Watch{% endif %}
+                    </h2>
+                    <p style="color: rgba(0, 0, 0, 0.6); font-size: 1rem; max-width: 600px; margin: 0 auto;">
+                        {% if lang == 'ms' %}Perundangan Malaysia yang memberi kesan kepada pekerja gig dan ekonomi digital{% else %}Malaysian legislation impacting gig workers and the digital economy{% endif %}
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+
+                    <!-- Gig Workers Bill 2025 -->
+                    <div style="background: white; padding: 28px; border-radius: 20px; border: 2px solid #0D7C66; box-shadow: 0 4px 20px rgba(13, 124, 102, 0.12); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #0D7C66, #1DBF73);"></div>
+                        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; gap: 12px;">
+                            <div style="font-size: 36px;">⚖️</div>
+                            <span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0;">
+                                {% if lang == 'ms' %}Menanti Perkenan Diraja{% else %}Awaiting Royal Assent{% endif %}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800; color: black; margin-bottom: 10px; line-height: 1.3;">
+                            {% if lang == 'ms' %}Rang Undang-Undang Pekerja Gig 2025{% else %}Gig Workers Bill 2025{% endif %}
+                        </h3>
+                        <p style="color: rgba(0, 0, 0, 0.65); font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}Lulus Dewan Rakyat 28 Ogos 2025 dan Dewan Negara 9 September 2025. Memberikan perlindungan undang-undang kepada 1.2 juta pekerja gig — termasuk caruman SOCSO 1.25%, perjanjian bertulis wajib, dan larangan pemotongan kadar secara sepihak.{% else %}Passed Dewan Rakyat on 28 August 2025 and Dewan Negara on 9 September 2025. Grants statutory protections to 1.2 million gig workers — including mandatory 1.25% SOCSO contributions, written service agreements, and a ban on unilateral rate cuts.{% endif %}
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <span style="background: #f0faf5; color: #0D7C66; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; border: 1px solid rgba(13, 124, 102, 0.2);">SOCSO</span>
+                            <span style="background: #f0faf5; color: #0D7C66; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; border: 1px solid rgba(13, 124, 102, 0.2);">{% if lang == 'ms' %}Pekerja Gig{% else %}Gig Workers{% endif %}</span>
+                            <span style="background: #f0faf5; color: #0D7C66; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; border: 1px solid rgba(13, 124, 102, 0.2);">{% if lang == 'ms' %}112 Fasal{% else %}112 Clauses{% endif %}</span>
+                        </div>
+                        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.06); font-size: 0.8rem; color: rgba(0, 0, 0, 0.45);">
+                            {% if lang == 'ms' %}Dikemaskini: Februari 2026{% else %}Updated: February 2026{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Political Financing Bill -->
+                    <div style="background: white; padding: 28px; border-radius: 20px; border: 2px solid rgba(13, 124, 102, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; gap: 12px;">
+                            <div style="font-size: 36px;">🏛️</div>
+                            <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0;">
+                                {% if lang == 'ms' %}Perundingan Pihak Berkepentingan{% else %}Under Consultation{% endif %}
+                            </span>
+                        </div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800; color: black; margin-bottom: 10px; line-height: 1.3;">
+                            {% if lang == 'ms' %}Rang Undang-Undang Pembiayaan Politik{% else %}Political Financing Bill{% endif %}
+                        </h3>
+                        <p style="color: rgba(0, 0, 0, 0.65); font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px;">
+                            {% if lang == 'ms' %}18 sesi penglibatan telah diadakan. Kajian persepsi awam sedang dijalankan oleh UIAM dan diketuai bersama oleh NGO masyarakat sivil. Parameter dasar akan dirujuk kepada Jawatankuasa Khas Parlimen sebelum penggubalan rasmi bermula.{% else %}18 engagement sessions held to date. A public perception study is underway, led by IIUM alongside civil society organisations. Policy parameters are to be referred to a Parliamentary Special Select Committee before formal drafting begins.{% endif %}
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <span style="background: #fffbeb; color: #92400e; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; border: 1px solid rgba(245, 158, 11, 0.25);">{% if lang == 'ms' %}Tadbir Urus{% else %}Governance{% endif %}</span>
+                            <span style="background: #fffbeb; color: #92400e; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; border: 1px solid rgba(245, 158, 11, 0.25);">{% if lang == 'ms' %}Ketelusan{% else %}Transparency{% endif %}</span>
+                            <span style="background: #fffbeb; color: #92400e; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; border: 1px solid rgba(245, 158, 11, 0.25);">SPRM / MACC</span>
+                        </div>
+                        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.06); font-size: 0.8rem; color: rgba(0, 0, 0, 0.45);">
+                            {% if lang == 'ms' %}Dikemaskini: Februari 2026{% else %}Updated: February 2026{% endif %}
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Link to full bill page -->
+                <div style="text-align: center; margin-top: 32px;">
+                    <a href="/gig-workers-bill" style="display: inline-flex; align-items: center; gap: 8px; color: #0D7C66; font-weight: 700; text-decoration: none; font-size: 0.95rem; border: 2px solid #0D7C66; padding: 12px 28px; border-radius: 50px; transition: all 0.3s; background: white;">
+                        {% if lang == 'ms' %}Baca Lebih Lanjut tentang Hak Pekerja Gig{% else %}Read More on Gig Worker Rights{% endif %} →
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Benefits Section -->
         <div id="benefits-section" style="background: #ffffff; padding: 60px 20px; margin-top: 40px;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
