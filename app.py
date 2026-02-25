@@ -29,6 +29,7 @@ from halal_compliance import (
     validate_gig_halal_compliance,
     get_categories_for_dropdown,
     get_halal_guidelines_text,
+    get_category_display_name,
     HALAL_APPROVED_CATEGORY_SLUGS
 )
 from groq_moderation import ai_halal_moderation, get_cached_moderation
@@ -118,6 +119,11 @@ if twilio_account_sid and twilio_auth_token:
     twilio_client = Client(twilio_account_sid, twilio_auth_token)
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
+
+# Jinja2 filter: translate category slug to Malay display name
+@app.template_filter('translate_cat')
+def translate_cat_filter(slug):
+    return get_category_display_name(slug, 'ms')
 
 # Add ProxyFix middleware to handle Railway's proxy headers (X-Forwarded-For, X-Forwarded-Proto, etc.)
 # This is essential for OAuth to work correctly when behind a proxy
@@ -2936,12 +2942,13 @@ class WorkerSpecialization(db.Model):
         """Convert specialization to dictionary for JSON response"""
         import json
         category = Category.query.get(self.category_id)
+        cat_slug = category.slug if category else None
         return {
             'id': self.id,
             'user_id': self.user_id,
             'category_id': self.category_id,
-            'category_name': category.name if category else None,
-            'category_slug': category.slug if category else None,
+            'category_name': get_category_display_name(cat_slug, 'ms') if cat_slug else (category.name if category else None),
+            'category_slug': cat_slug,
             'category_icon': category.icon if category else None,
             'skills': json.loads(self.skills) if self.skills else [],
             'specialization_title': self.specialization_title,
@@ -13245,7 +13252,7 @@ def get_categories():
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).order_by(Category.name).all()
     result = [{
         'id': cat.slug,
-        'name': cat.name,  # Use actual category name, not translation key
+        'name': get_category_display_name(cat.slug, 'ms'),
         'icon': emoji_map.get(cat.slug, '📋')
     } for cat in categories]
 

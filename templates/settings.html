@@ -739,9 +739,9 @@
             <div class="category-selector">
                 {% if categories %}
                     {% for category in categories %}
-                    <div class="category-option" data-category-id="{{ category.id }}" data-category-name="{{ category.name }}" data-category-slug="{{ category.slug }}" data-category-icon="{{ category.icon or 'clipboard' }}">
+                    <div class="category-option" data-category-id="{{ category.id }}" data-category-name="{{ category.slug | translate_cat }}" data-category-slug="{{ category.slug }}" data-category-icon="{{ category.icon or 'clipboard' }}">
                         <i data-feather="{{ category.icon or 'clipboard' }}" style="width: 20px; height: 20px;"></i>
-                        <span>{{ category.name }}</span>
+                        <span>{{ category.slug | translate_cat }}</span>
                     </div>
                     {% endfor %}
                 {% else %}
