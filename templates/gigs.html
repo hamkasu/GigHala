@@ -331,28 +331,28 @@
     <div class="filters-bar">
         <div class="filters-row">
             <div class="filter-group">
-                <label class="filter-label">Search</label>
-                <input type="text" class="filter-input" placeholder="Keywords..." id="searchInput">
+                <label class="filter-label">Carian</label>
+                <input type="text" class="filter-input" placeholder="Kata kunci..." id="searchInput">
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">Category</label>
+                <label class="filter-label">Kategori</label>
                 <select class="filter-select" id="categorySelect">
-                    <option value="">All Categories</option>
+                    <option value="">Semua Kategori</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">Budget (RM)</label>
+                <label class="filter-label">Bajet (RM)</label>
                 <div class="budget-inputs">
                     <input type="number" class="filter-input" placeholder="Min" id="priceMin">
                     <span>-</span>
-                    <input type="number" class="filter-input" placeholder="Max" id="priceMax">
+                    <input type="number" class="filter-input" placeholder="Maks" id="priceMax">
                 </div>
             </div>
 
             <div class="filter-group" style="flex: 0;">
-                <button class="search-btn" id="searchBtn" onclick="loadGigs()">Search Gigs</button>
+                <button class="search-btn" id="searchBtn" onclick="loadGigs()">Cari Gig</button>
             </div>
         </div>
     </div>
@@ -360,14 +360,14 @@
     <!-- Results Header -->
     <div class="results-header">
         <div class="results-count">
-            <strong id="resultCount">0</strong> gigs found
+            <strong id="resultCount">0</strong> gig dijumpai
         </div>
         <div>
-            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">Sort by:</label>
+            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">Susun:</label>
             <select class="sort-select" id="sortSelect" onchange="loadGigs()">
-                <option value="newest" selected>Newest</option>
-                <option value="budget_high">Budget: High to Low</option>
-                <option value="budget_low">Budget: Low to High</option>
+                <option value="newest" selected>Terbaru</option>
+                <option value="budget_high">Bajet: Tinggi ke Rendah</option>
+                <option value="budget_low">Bajet: Rendah ke Tinggi</option>
             </select>
         </div>
     </div>
@@ -524,7 +524,7 @@
         try {
             // Disable search button while loading
             searchBtn.disabled = true;
-            searchBtn.textContent = 'Searching...';
+            searchBtn.textContent = 'Mencari...';
 
             // Show loading state
             gigsGrid.innerHTML = '<div class="loading-spinner" style="grid-column: 1/-1; justify-self: center;"></div>';
@@ -553,7 +553,7 @@
             showError('Failed to load gigs. Please try again.');
         } finally {
             searchBtn.disabled = false;
-            searchBtn.textContent = 'Search Gigs';
+            searchBtn.textContent = 'Cari Gig';
         }
     }
 

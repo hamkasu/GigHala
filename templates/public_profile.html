@@ -300,7 +300,7 @@
         <div class="specialization-category">
             <div class="specialization-category-title">
                 <i data-feather="{{ spec.category_icon or 'clipboard' }}" style="width: 20px; height: 20px;"></i>
-                <span>{{ spec.category_name }}</span>
+                <span>{{ spec.category_slug | translate_cat }}</span>
                 {% if spec.has_premium %}
                 <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 8px;">Premium</span>
                 {% endif %}

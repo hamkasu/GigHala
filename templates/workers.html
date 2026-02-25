@@ -755,55 +755,55 @@
     <div class="filters-bar">
         <div class="filters-row">
             <div class="filter-group">
-                <label class="filter-label">Search Workers</label>
-                <input type="text" class="filter-input" placeholder="Name, skill, specialization..." id="searchInput">
+                <label class="filter-label">Cari Pekerja</label>
+                <input type="text" class="filter-input" placeholder="Nama, kemahiran, kepakaran..." id="searchInput">
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">Category</label>
+                <label class="filter-label">Kategori</label>
                 <select class="filter-select" id="categorySelect">
-                    <option value="">All Categories</option>
+                    <option value="">Semua Kategori</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">Hourly Rate (RM)</label>
+                <label class="filter-label">Kadar Sejam (RM)</label>
                 <div class="rate-inputs">
                     <input type="number" class="filter-input" placeholder="Min" id="rateMin">
                     <span>-</span>
-                    <input type="number" class="filter-input" placeholder="Max" id="rateMax">
+                    <input type="number" class="filter-input" placeholder="Maks" id="rateMax">
                 </div>
             </div>
 
             <div class="filter-group" style="flex: 0;">
-                <button class="search-btn" id="searchBtn" onclick="loadWorkers()">Search Workers</button>
+                <button class="search-btn" id="searchBtn" onclick="loadWorkers()">Cari Pekerja</button>
             </div>
         </div>
 
         <button class="toggle-filters-btn" onclick="toggleAdvancedFilters()">
             <i data-feather="sliders"></i>
-            <span id="toggleFiltersText">Show More Filters</span>
+            <span id="toggleFiltersText">Tunjuk Lebih Penapis</span>
         </button>
 
         <div class="advanced-filters" id="advancedFilters">
             <div class="filters-row">
                 <div class="filter-group">
-                    <label class="filter-label">Fixed Rate (RM)</label>
+                    <label class="filter-label">Kadar Tetap (RM)</label>
                     <div class="rate-inputs">
                         <input type="number" class="filter-input" placeholder="Min" id="fixedRateMin">
                         <span>-</span>
-                        <input type="number" class="filter-input" placeholder="Max" id="fixedRateMax">
+                        <input type="number" class="filter-input" placeholder="Maks" id="fixedRateMax">
                     </div>
                 </div>
 
                 <div class="filter-group">
-                    <label class="filter-label">Min Rating</label>
+                    <label class="filter-label">Penilaian Min</label>
                     <select class="filter-select" id="minRating">
-                        <option value="">Any Rating</option>
-                        <option value="4.5">4.5+ Stars</option>
-                        <option value="4">4+ Stars</option>
-                        <option value="3.5">3.5+ Stars</option>
-                        <option value="3">3+ Stars</option>
+                        <option value="">Semua Penilaian</option>
+                        <option value="4.5">4.5+ Bintang</option>
+                        <option value="4">4+ Bintang</option>
+                        <option value="3.5">3.5+ Bintang</option>
+                        <option value="3">3+ Bintang</option>
                     </select>
                 </div>
 
@@ -834,16 +834,16 @@
     <!-- Results Header -->
     <div class="results-header">
         <div class="results-count">
-            <strong id="resultCount">0</strong> workers found
+            <strong id="resultCount">0</strong> pekerja dijumpai
         </div>
         <div>
-            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">Sort by:</label>
+            <label style="margin-right: 8px; font-size: 14px; color: var(--text-gray);">Susun:</label>
             <select class="sort-select" id="sortSelect" onchange="loadWorkers()">
-                <option value="rating" selected>Highest Rated</option>
-                <option value="jobs">Most Jobs</option>
-                <option value="rate_low">Rate: Low to High</option>
-                <option value="rate_high">Rate: High to Low</option>
-                <option value="newest">Newest</option>
+                <option value="rating" selected>Penilaian Tertinggi</option>
+                <option value="jobs">Pekerjaan Terbanyak</option>
+                <option value="rate_low">Kadar: Rendah ke Tinggi</option>
+                <option value="rate_high">Kadar: Tinggi ke Rendah</option>
+                <option value="newest">Terbaru</option>
             </select>
         </div>
     </div>
@@ -952,7 +952,7 @@
         const advancedFilters = document.getElementById('advancedFilters');
         const toggleText = document.getElementById('toggleFiltersText');
         advancedFilters.classList.toggle('show');
-        toggleText.textContent = advancedFilters.classList.contains('show') ? 'Hide Filters' : 'Show More Filters';
+        toggleText.textContent = advancedFilters.classList.contains('show') ? 'Sembunyikan Penapis' : 'Tunjuk Lebih Penapis';
     }
 
     // ============ LOAD CATEGORIES FROM API ============
@@ -1002,7 +1002,7 @@
 
         try {
             searchBtn.disabled = true;
-            searchBtn.textContent = 'Searching...';
+            searchBtn.textContent = 'Mencari...';
 
             if (!append) {
                 workersGrid.innerHTML = '<div class="loading-spinner" style="grid-column: 1/-1; justify-self: center;"></div>';
@@ -1066,7 +1066,7 @@
             showError('Failed to load workers. Please try again.');
         } finally {
             searchBtn.disabled = false;
-            searchBtn.textContent = 'Search Workers';
+            searchBtn.textContent = 'Cari Pekerja';
         }
     }
 
@@ -1081,8 +1081,8 @@
             workersGrid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">👷</div>
-                    <h3>No workers found</h3>
-                    <p>Try adjusting your search filters</p>
+                    <h3>Tiada pekerja dijumpai</h3>
+                    <p>Cuba laraskan penapis carian anda</p>
                 </div>
             `;
             document.getElementById('loadMoreSection').style.display = 'none';
