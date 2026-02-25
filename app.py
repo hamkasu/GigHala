@@ -13005,8 +13005,8 @@ def browse_skills_api():
 
             services.append({
                 'id': spec.id,
-                'title': spec.specialization_title or f"{category.name} Service",
-                'category_name': category.name,
+                'title': spec.specialization_title or f"{get_category_display_name(category.slug, 'ms')} Servis",
+                'category_name': get_category_display_name(category.slug, 'ms'),
                 'category_id': category.id,
                 'category_icon': category.icon,
                 'skills': skills_list[:5],
@@ -13089,8 +13089,8 @@ def get_worker_updates():
 
             updates.append({
                 'id': spec.id,
-                'title': spec.specialization_title or f"{category.name} Service",
-                'category_name': category.name,
+                'title': spec.specialization_title or f"{get_category_display_name(category.slug, 'ms')} Servis",
+                'category_name': get_category_display_name(category.slug, 'ms'),
                 'category_id': category.id,
                 'category_icon': category.icon,
                 'skills': skills_list[:5],
