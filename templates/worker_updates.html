@@ -441,7 +441,7 @@
         </button>
         {% for cat in categories %}
         <button class="category-pill" onclick="filterCategory({{ cat.id }}, this)">
-            {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.slug | translate_cat }}
+            {% if cat.icon %}<i data-feather="{{ cat.icon }}" style="width: 14px; height: 14px; vertical-align: middle;"></i> {% endif %}{{ cat.slug | translate_cat }}
         </button>
         {% endfor %}
     </div>
