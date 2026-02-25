@@ -2963,9 +2963,10 @@ class WorkerSpecialization(db.Model):
         """Convert specialization to public-facing dictionary (for client view)"""
         import json
         category = Category.query.get(self.category_id)
+        cat_slug = category.slug if category else None
         return {
             'id': self.id,
-            'category_name': category.name if category else None,
+            'category_name': get_category_display_name(cat_slug, 'ms') if cat_slug else (category.name if category else None),
             'category_icon': category.icon if category else None,
             'skills': json.loads(self.skills) if self.skills else [],
             'specialization_title': self.specialization_title,
@@ -13251,7 +13252,8 @@ def get_categories():
     # Get main categories only (exclude detailed subcategories) and sort alphabetically
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).order_by(Category.name).all()
     result = [{
-        'id': cat.slug,
+        'id': cat.id,
+        'slug': cat.slug,
         'name': get_category_display_name(cat.slug, 'ms'),
         'icon': emoji_map.get(cat.slug, '📋')
     } for cat in categories]
