@@ -256,9 +256,9 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
             logger.info("Starting new gigs email digest job...")
 
             # Get the last digest send time from the log
-            last_digest = db.session.query(EmailDigestLog).order_by(
-                EmailDigestLog.sent_at.desc()
-            ).first()
+            last_digest = db.session.query(EmailDigestLog).filter_by(
+                digest_type='new_gigs'
+            ).order_by(EmailDigestLog.sent_at.desc()).first()
 
             # If no previous digest, look for gigs from last 12 hours
             # Otherwise, look for gigs since the last digest
