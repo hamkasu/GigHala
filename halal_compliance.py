@@ -587,6 +587,46 @@ def validate_gig_halal_compliance(
     return result['is_compliant'], result
 
 
+_SUBCATEGORY_NAMES = {
+    'animation':           {'en': 'Animation',              'ms': 'Animasi'},
+    'app-development':     {'en': 'App Development',        'ms': 'Pembangunan Aplikasi'},
+    'bookkeeping':         {'en': 'Bookkeeping',            'ms': 'Simpan Kira'},
+    'business-consulting': {'en': 'Business Consulting',    'ms': 'Perundingan Perniagaan'},
+    'cleaning':            {'en': 'Cleaning',               'ms': 'Pembersihan'},
+    'content-writing':     {'en': 'Content Writing',        'ms': 'Penulisan Kandungan'},
+    'data-analysis':       {'en': 'Data Analysis',         'ms': 'Analisis Data'},
+    'data-entry':          {'en': 'Data Entry',             'ms': 'Kemasukan Data'},
+    'digital-marketing':   {'en': 'Digital Marketing',      'ms': 'Pemasaran Digital'},
+    'ecommerce':           {'en': 'E-commerce',             'ms': 'E-dagang'},
+    'email-marketing':     {'en': 'Email Marketing',        'ms': 'Pemasaran E-mel'},
+    'event-planning':      {'en': 'Event Planning',         'ms': 'Perancangan Acara'},
+    'fashion':             {'en': 'Fashion',                'ms': 'Fesyen'},
+    'gardening':           {'en': 'Gardening',              'ms': 'Berkebun'},
+    'graphic-design':      {'en': 'Graphic Design',         'ms': 'Reka Bentuk Grafik'},
+    'home-repair':         {'en': 'Home Repair',            'ms': 'Pembaikan Rumah'},
+    'illustration':        {'en': 'Illustration',           'ms': 'Ilustrasi'},
+    'interior-design':     {'en': 'Interior Design',        'ms': 'Reka Bentuk Dalaman'},
+    'language-teaching':   {'en': 'Language Teaching',      'ms': 'Pengajaran Bahasa'},
+    'legal':               {'en': 'Legal Services',         'ms': 'Perkhidmatan Undang-undang'},
+    'logo-design':         {'en': 'Logo Design',            'ms': 'Reka Bentuk Logo'},
+    'music-production':    {'en': 'Music Production',       'ms': 'Penghasilan Muzik'},
+    'personal-styling':    {'en': 'Personal Styling',       'ms': 'Penggayaan Peribadi'},
+    'pet-services':        {'en': 'Pet Services',           'ms': 'Perkhidmatan Haiwan'},
+    'podcast':             {'en': 'Podcast',                'ms': 'Podcast'},
+    'proofreading':        {'en': 'Proofreading',           'ms': 'Semakan Pruf'},
+    'resume':              {'en': 'Resume Writing',         'ms': 'Penulisan Resume'},
+    'social-copy':         {'en': 'Social Media Copy',      'ms': 'Penulisan Sosial'},
+    'social-media':        {'en': 'Social Media',           'ms': 'Pengurusan Media Sosial'},
+    'transcription':       {'en': 'Transcription',          'ms': 'Transkripsi'},
+    'translation':         {'en': 'Translation',            'ms': 'Terjemahan'},
+    'ui-ux':               {'en': 'UI/UX Design',           'ms': 'Reka Bentuk UI/UX'},
+    'video-editing':       {'en': 'Video Editing',          'ms': 'Penyuntingan Video'},
+    'voiceover':           {'en': 'Voiceover',              'ms': 'Suara Latar'},
+    'web-development':     {'en': 'Web Development',        'ms': 'Pembangunan Web'},
+    'wellness-coaching':   {'en': 'Wellness Coaching',      'ms': 'Bimbingan Kesihatan'},
+}
+
+
 def get_category_display_name(category_slug: str, language: str = 'en') -> str:
     """
     Get display name for a category in the specified language.
@@ -603,6 +643,8 @@ def get_category_display_name(category_slug: str, language: str = 'en') -> str:
             if language == 'ms':
                 return cat['name_ms']
             return cat['name_en']
+    if category_slug in _SUBCATEGORY_NAMES:
+        return _SUBCATEGORY_NAMES[category_slug][language if language in ('en', 'ms') else 'en']
     return category_slug
 
 
