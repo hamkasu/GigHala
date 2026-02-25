@@ -480,204 +480,229 @@
 </div>
 
 <script>
+(function () {
+'use strict';
+
+/* ── state ── */
 const LANG = '{{ lang }}';
-let currentPage = 1;
-let currentDays = 30;
-let currentCategoryId = null;
+let activeDays = 30;
+let activeCategoryId = null;
+let activePage = 1;
 let totalPages = 0;
-let currentController = null;
+let inflightRequest = null;   // AbortController for the current fetch
+
+/* ── helpers ── */
+function esc(str) {
+    // Escape user-supplied strings before inserting into HTML attributes
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
 
 function timeAgo(isoStr) {
     if (!isoStr) return '';
     const diff = Date.now() - new Date(isoStr).getTime();
-    const mins = Math.floor(diff / 60000);
+    const mins  = Math.floor(diff / 60000);
     const hours = Math.floor(mins / 60);
-    const days = Math.floor(hours / 24);
+    const days  = Math.floor(hours / 24);
     if (LANG === 'ms') {
-        if (mins < 2) return 'baru sahaja';
-        if (mins < 60) return `${mins} minit lalu`;
+        if (mins < 2)   return 'baru sahaja';
+        if (mins < 60)  return `${mins} minit lalu`;
         if (hours < 24) return `${hours} jam lalu`;
         return `${days} hari lalu`;
     }
-    if (mins < 2) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
+    if (mins < 2)   return 'just now';
+    if (mins < 60)  return `${mins}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
 }
 
-function avatarFallback(username, name) {
+function avatarInitials(username, name) {
     const initials = (name || username || 'U').slice(0, 2).toUpperCase();
-    const palette = ['#00C853','#2196F3','#FF5722','#9C27B0','#FF9800','#00BCD4','#E91E63','#607D8B'];
+    const palette  = ['#00C853','#2196F3','#FF5722','#9C27B0','#FF9800','#00BCD4','#E91E63','#607D8B'];
     let hash = 0;
-    for (const c of (username || '')) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
-    const color = palette[hash % palette.length];
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="20" fill="${color}"/><text x="20" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="bold" fill="white">${initials}</text></svg>`;
-    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    for (const c of String(username || '')) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
+    const fill = palette[hash % palette.length];
+    const svg  = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">`
+               + `<circle cx="20" cy="20" r="20" fill="${fill}"/>`
+               + `<text x="20" y="26" text-anchor="middle" font-family="Arial,sans-serif" `
+               + `font-size="15" font-weight="bold" fill="white">${initials}</text></svg>`;
+    try { return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg))); }
+    catch (_) { return ''; }
 }
 
+/* Inline SVG for the contact button — avoids any feather.replace() call on cards */
+const ICON_MSG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    aria-hidden="true">
+  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+</svg>`;
+
+/* ── card builder ── */
 function buildCard(item) {
-    const w = item.worker;
-    const avatarUrl = w.profile_photo
-        ? `/uploads/profile_photos/${w.profile_photo}`
-        : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(w.username)}`;
-    const fallbackUrl = avatarFallback(w.username, w.name);
-    const verifiedHtml = w.is_verified
-        ? `<span class="v-icon">✓</span>`
-        : '';
-    const halalHtml = w.halal_verified
-        ? `<span style="font-size:10px;color:#0d7c66;" title="Halal Verified">☪</span>`
-        : '';
-    const skillsHtml = item.skills.map(s => `<span class="skill-chip">${s}</span>`).join('');
-    const premiumHtml = item.has_premium
-        ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:700;">PREMIUM</span>`
-        : '';
+    const w          = item.worker || {};
+    const username   = esc(w.username || '');
+    const name       = esc(w.name || w.username || '');
+    const avatarSrc  = w.profile_photo
+        ? `/uploads/profile_photos/${esc(w.profile_photo)}`
+        : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(w.username || '')}`;
+    const fallback   = avatarInitials(w.username, w.name);
+    const verified   = w.is_verified    ? `<span class="v-icon">✓</span>` : '';
+    const halal      = w.halal_verified ? `<span style="font-size:10px;color:#0d7c66;" title="Halal Verified">☪</span>` : '';
+    const premium    = item.has_premium ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:700;">PREMIUM</span>` : '';
+    const skills     = Array.isArray(item.skills) ? item.skills : [];
+    const skillsHtml = skills.map(s => `<span class="skill-chip">${esc(s)}</span>`).join('');
+    const rating     = Number(w.rating) || 0;
+    const ratingHtml = rating > 0 ? `<span style="color:#f59e0b;font-size:12px;">★ ${rating.toFixed(1)}</span>` : '';
     const priceLabel = LANG === 'ms'
         ? (item.price_type === 'hourly' ? 'Bermula dari/jam' : 'Harga tetap')
         : (item.price_type === 'hourly' ? 'From/hr' : 'Fixed price');
-    const priceUnit = item.price_type === 'hourly'
-        ? `<span class="price-unit">/hr</span>`
-        : '';
-    const ratingHtml = w.rating > 0
-        ? `<span style="color:#f59e0b;font-size:12px;">★ ${w.rating.toFixed(1)}</span>`
-        : '';
+    const priceAmt   = (typeof item.starting_price === 'number')
+        ? item.starting_price.toFixed(2) : '—';
+    const priceUnit  = item.price_type === 'hourly'
+        ? `<span class="price-unit">/hr</span>` : '';
+    const contactLbl = LANG === 'ms' ? 'Hubungi' : 'Contact';
+    const ribbon     = LANG === 'ms' ? 'Kemaskini' : 'Updated';
+    const icon       = esc(item.category_icon || '🔧');
 
-    return `
-    <div class="update-card">
-        <div class="update-ribbon">
-            <span class="dot"></span>
-            ${LANG === 'ms' ? 'Kemaskini' : 'Updated'}
-        </div>
-        <div class="update-card-thumb">
-            <span>${item.category_icon || '🔧'}</span>
-        </div>
-        <div class="update-card-body">
-            <div class="update-worker-row">
-                <img class="update-worker-avatar" src="${avatarUrl}" alt="${w.name}" style="object-fit:cover;border-radius:50%;" onerror="this.onerror=null;this.src='${fallbackUrl}';">
-                <div class="update-worker-info">
-                    <div class="update-worker-name">
-                        ${w.name} ${verifiedHtml} ${halalHtml}
-                    </div>
-                    <div class="update-worker-time">${timeAgo(item.updated_at)}</div>
-                </div>
-                ${ratingHtml}
-            </div>
-            <div class="update-card-title">${item.title}</div>
-            <div class="update-skills-row">${skillsHtml} ${premiumHtml}</div>
-        </div>
-        <div class="update-card-footer">
-            <div class="update-price-wrap">
-                <span class="update-price-label">${priceLabel}</span>
-                <span class="update-price">RM ${item.starting_price ? item.starting_price.toFixed(2) : '—'}${priceUnit}</span>
-            </div>
-            <a href="/profile/${w.username}" class="contact-btn">
-                <i data-feather="message-circle" style="width:13px;height:13px;"></i>
-                ${LANG === 'ms' ? 'Hubungi' : 'Contact'}
-            </a>
-        </div>
-    </div>`;
+    return `<div class="update-card">
+  <div class="update-ribbon"><span class="dot"></span>${ribbon}</div>
+  <div class="update-card-thumb"><span>${icon}</span></div>
+  <div class="update-card-body">
+    <div class="update-worker-row">
+      <img class="update-worker-avatar"
+           src="${avatarSrc}" alt="${name}"
+           style="object-fit:cover;border-radius:50%;"
+           onerror="this.onerror=null;this.src='${fallback}';">
+      <div class="update-worker-info">
+        <div class="update-worker-name">${name} ${verified} ${halal}</div>
+        <div class="update-worker-time">${timeAgo(item.updated_at)}</div>
+      </div>
+      ${ratingHtml}
+    </div>
+    <div class="update-card-title">${esc(item.title || '')}</div>
+    <div class="update-skills-row">${skillsHtml} ${premium}</div>
+  </div>
+  <div class="update-card-footer">
+    <div class="update-price-wrap">
+      <span class="update-price-label">${priceLabel}</span>
+      <span class="update-price">RM ${priceAmt}${priceUnit}</span>
+    </div>
+    <a href="/profile/${username}" class="contact-btn">
+      ${ICON_MSG} ${contactLbl}
+    </a>
+  </div>
+</div>`;
 }
 
-function setDays(days, el) {
-    currentDays = days;
-    currentPage = 1;
+function showSkeletons(grid, n) {
+    grid.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+        const sk = document.createElement('div');
+        sk.className = 'skeleton';
+        sk.style.cssText = 'height:280px;border-radius:12px;';
+        grid.appendChild(sk);
+    }
+}
+
+/* ── public filter handlers (called from inline onclick) ── */
+window.setDays = function (days, el) {
+    activeDays = days;
+    activePage = 1;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     fetchUpdates(true);
-}
+};
 
-function filterCategory(catId, el) {
-    currentCategoryId = catId;
-    currentPage = 1;
+window.filterCategory = function (catId, el) {
+    activeCategoryId = catId;
+    activePage = 1;
     document.querySelectorAll('.category-pill').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     fetchUpdates(true);
-}
+};
 
-function loadMore() {
-    currentPage++;
+window.loadMore = function () {
+    activePage++;
     fetchUpdates(false);
-}
+};
 
+/* ── core fetch ── */
 async function fetchUpdates(reset) {
-    // Cancel any in-flight request so stale results never overwrite fresh ones
-    if (currentController) currentController.abort();
-    currentController = new AbortController();
-    const signal = currentController.signal;
+    // Cancel any request still in-flight
+    if (inflightRequest) { inflightRequest.abort(); }
+    inflightRequest = new AbortController();
+    const signal = inflightRequest.signal;
 
-    const grid = document.getElementById('updatesGrid');
+    const grid         = document.getElementById('updatesGrid');
     const loadMoreArea = document.getElementById('loadMoreArea');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const loadMoreBtn  = document.getElementById('loadMoreBtn');
     const resultsCount = document.getElementById('resultsCount');
-    const heroCount = document.getElementById('heroCount');
+    const heroCount    = document.getElementById('heroCount');
 
-    if (reset) {
-        grid.innerHTML = '';
-        // show skeleton
-        for (let i = 0; i < 8; i++) {
-            const sk = document.createElement('div');
-            sk.className = 'skeleton';
-            sk.style.cssText = 'height:280px;border-radius:12px;';
-            grid.appendChild(sk);
-        }
-    }
+    if (!grid) return;
 
+    if (reset) showSkeletons(grid, 8);
     if (loadMoreBtn) loadMoreBtn.disabled = true;
 
-    let url = `/api/worker-updates?days=${currentDays}&page=${currentPage}&limit=24`;
-    if (currentCategoryId) url += `&category_id=${currentCategoryId}`;
+    const url = `/api/worker-updates?days=${activeDays}&page=${activePage}&limit=24`
+              + (activeCategoryId ? `&category_id=${activeCategoryId}` : '');
 
+    let data;
     try {
         const res = await fetch(url, { signal });
-        const data = await res.json();
-
-        if (reset) grid.innerHTML = '';
-
-        totalPages = data.pages || 0;
-        const updates = data.updates || [];
-
-        if (updates.length === 0 && reset) {
-            grid.innerHTML = `
-            <div class="empty-state" style="grid-column:1/-1;">
-                <i data-feather="refresh-cw" style="width:48px;height:48px;display:block;margin:0 auto 16px;"></i>
-                <h3>${LANG === 'ms' ? 'Tiada Kemaskini' : 'No Updates Found'}</h3>
-                <p>${LANG === 'ms' ? 'Tiada pekerja yang mengemas kini profil mereka dalam tempoh ini.' : 'No workers updated their skills or pricing in this period.'}</p>
-            </div>`;
-        } else {
-            updates.forEach(item => {
-                grid.insertAdjacentHTML('beforeend', buildCard(item));
-            });
-        }
-
-        // Update counts
-        const countLabel = LANG === 'ms'
-            ? `${data.total} pekerja dikemaskini`
-            : `${data.total} worker update${data.total !== 1 ? 's' : ''}`;
-        resultsCount.textContent = countLabel;
-        heroCount.textContent = data.total;
-
-        // Load more button
-        if (currentPage < totalPages) {
-            loadMoreArea.style.display = 'block';
-            if (loadMoreBtn) loadMoreBtn.disabled = false;
-        } else {
-            loadMoreArea.style.display = 'none';
-        }
-
-        // Re-init feather icons
-        if (window.feather) feather.replace();
-
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        data = await res.json();
     } catch (err) {
-        if (err.name === 'AbortError') return; // silently ignore cancelled requests
+        if (err.name === 'AbortError') return;   // superseded by a newer request — do nothing
+        // Only show error state if this was a fresh load (not load-more)
         if (reset) {
             grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
                 <h3>${LANG === 'ms' ? 'Ralat Memuatkan' : 'Failed to Load'}</h3>
                 <p>${LANG === 'ms' ? 'Sila cuba semula.' : 'Please try again.'}</p>
             </div>`;
         }
+        if (loadMoreBtn) { loadMoreBtn.disabled = false; activePage = Math.max(1, activePage - 1); }
+        return;
     }
+
+    // --- data is good from here; DOM mutations cannot throw ---
+    const updates = Array.isArray(data.updates) ? data.updates : [];
+    totalPages = data.pages || 0;
+
+    if (reset) grid.innerHTML = '';   // clear skeletons right before inserting real cards
+
+    if (updates.length === 0 && reset) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+            <h3>${LANG === 'ms' ? 'Tiada Kemaskini' : 'No Updates Found'}</h3>
+            <p>${LANG === 'ms' ? 'Tiada pekerja yang mengemas kini profil mereka dalam tempoh ini.'
+                               : 'No workers updated their skills or pricing in this period.'}</p>
+        </div>`;
+    } else {
+        const frag = document.createDocumentFragment();
+        const tmp  = document.createElement('div');
+        updates.forEach(item => {
+            tmp.innerHTML = buildCard(item);
+            frag.appendChild(tmp.firstElementChild);
+        });
+        grid.appendChild(frag);
+    }
+
+    const total = Number(data.total) || 0;
+    if (resultsCount) resultsCount.textContent = LANG === 'ms'
+        ? `${total} pekerja dikemaskini`
+        : `${total} worker update${total !== 1 ? 's' : ''}`;
+    if (heroCount) heroCount.textContent = total;
+
+    if (loadMoreArea) loadMoreArea.style.display = activePage < totalPages ? 'block' : 'none';
+    if (loadMoreBtn)  loadMoreBtn.disabled = false;
 }
 
-// Initial load
+/* ── boot ── */
 document.addEventListener('DOMContentLoaded', () => fetchUpdates(true));
+
+}());
 </script>
 {% endblock %}
