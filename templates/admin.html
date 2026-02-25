@@ -1545,7 +1545,7 @@
             }
 
             if (data.user) {
-                document.getElementById('admin-welcome').textContent = `Welcome, ${data.user.username}`;
+                document.getElementById('admin-welcome').textContent = `Welcome, ${data.user.full_name || data.user.username}`;
             }
 
             loadDashboard();
