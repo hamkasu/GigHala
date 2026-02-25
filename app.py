@@ -2955,8 +2955,8 @@ class WorkerSpecialization(db.Model):
             'base_hourly_rate': self.base_hourly_rate,
             'base_fixed_rate': self.base_fixed_rate,
             'premium_multiplier': self.premium_multiplier or 1.0,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
     def to_public_dict(self):
@@ -13068,10 +13068,9 @@ def get_worker_updates():
             Category, WorkerSpecialization.category_id == Category.id
         ).filter(
             User.user_type.in_(['freelancer', 'both']),
-            WorkerSpecialization.updated_at >= since,
             db.or_(
-                WorkerSpecialization.base_hourly_rate.isnot(None),
-                WorkerSpecialization.base_fixed_rate.isnot(None)
+                WorkerSpecialization.updated_at >= since,
+                WorkerSpecialization.updated_at.is_(None)
             )
         )
 

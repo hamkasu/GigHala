@@ -530,11 +530,14 @@ function buildCard(item) {
     const premiumHtml = item.has_premium
         ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:700;">PREMIUM</span>`
         : '';
-    const priceLabel = LANG === 'ms'
-        ? (item.price_type === 'hourly' ? 'Bermula dari/jam' : 'Harga tetap')
-        : (item.price_type === 'hourly' ? 'From/hr' : 'Fixed price');
-    const priceUnit = item.price_type === 'hourly'
-        ? `<span class="price-unit">/hr</span>`
+    const hasPrice = item.starting_price != null && item.starting_price > 0;
+    const priceLabel = !hasPrice
+        ? (LANG === 'ms' ? 'Kadar belum ditetapkan' : 'Rate not set')
+        : (LANG === 'ms'
+            ? (item.price_type === 'hourly' ? 'Bermula dari/jam' : 'Harga tetap')
+            : (item.price_type === 'hourly' ? 'From/hr' : 'Fixed price'));
+    const priceUnit = hasPrice && item.price_type === 'hourly'
+        ? `<span class="price-unit">/jam</span>`
         : '';
     const ratingHtml = w.rating > 0
         ? `<span style="color:#f59e0b;font-size:12px;">★ ${w.rating.toFixed(1)}</span>`
@@ -566,7 +569,7 @@ function buildCard(item) {
         <div class="update-card-footer">
             <div class="update-price-wrap">
                 <span class="update-price-label">${priceLabel}</span>
-                <span class="update-price">RM ${item.starting_price ? item.starting_price.toFixed(2) : '—'}${priceUnit}</span>
+                <span class="update-price">${hasPrice ? `RM ${item.starting_price.toFixed(2)}${priceUnit}` : '—'}</span>
             </div>
             <a href="/profile/${w.username}" class="contact-btn">
                 <i data-feather="message-circle" style="width:13px;height:13px;"></i>
