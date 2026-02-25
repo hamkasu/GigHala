@@ -2633,13 +2633,13 @@ class GigWorker(db.Model):
 
     # Specialized rate tracking for analytics and transparency
     specialized_rate_used = db.Column(db.Boolean, default=False)  # Flag if specialized rate was applied
-    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id'))  # Which specialization was used
+    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id', ondelete='SET NULL'))  # Which specialization was used
 
     # Relationships
     gig = db.relationship('Gig', backref=db.backref('gig_workers', lazy='dynamic'))
     worker = db.relationship('User', backref=db.backref('gig_assignments', lazy='dynamic'))
     application = db.relationship('Application', backref='gig_worker_assignment')
-    specialization = db.relationship('WorkerSpecialization', backref='gig_assignments')
+    specialization = db.relationship('WorkerSpecialization', backref=db.backref('gig_assignments', passive_deletes=True))
 
 class GigReport(db.Model):
     """User reports for flagging inappropriate or haram content in gigs"""
@@ -2678,10 +2678,10 @@ class Application(db.Model):
 
     # Specialized rate fields for transparent pricing
     use_specialized_rate = db.Column(db.Boolean, default=False)  # Worker chose to use their specialized rate
-    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id'))  # Reference to specialization used
+    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id', ondelete='SET NULL'))  # Reference to specialization used
 
     # Relationship to specialization
-    specialization = db.relationship('WorkerSpecialization', backref='applications')
+    specialization = db.relationship('WorkerSpecialization', backref=db.backref('applications', passive_deletes=True))
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2982,7 +2982,7 @@ class WorkerRateAudit(db.Model):
     """
     __tablename__ = 'worker_rate_audit'
     id = db.Column(db.Integer, primary_key=True)
-    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id'))
+    specialization_id = db.Column(db.Integer, db.ForeignKey('worker_specialization.id', ondelete='SET NULL'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     field_changed = db.Column(db.String(50), nullable=False)
     old_value = db.Column(db.Text)
@@ -2992,7 +2992,7 @@ class WorkerRateAudit(db.Model):
     user_agent = db.Column(db.Text)
 
     # Relationships
-    specialization = db.relationship('WorkerSpecialization', backref='rate_audits')
+    specialization = db.relationship('WorkerSpecialization', backref=db.backref('rate_audits', passive_deletes=True))
     user = db.relationship('User', backref='rate_change_audits')
 
     @classmethod
