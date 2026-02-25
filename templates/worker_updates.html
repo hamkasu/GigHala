@@ -485,6 +485,7 @@ let currentPage = 1;
 let currentDays = 30;
 let currentCategoryId = null;
 let totalPages = 0;
+let currentController = null;
 
 function timeAgo(isoStr) {
     if (!isoStr) return '';
@@ -598,6 +599,11 @@ function loadMore() {
 }
 
 async function fetchUpdates(reset) {
+    // Cancel any in-flight request so stale results never overwrite fresh ones
+    if (currentController) currentController.abort();
+    currentController = new AbortController();
+    const signal = currentController.signal;
+
     const grid = document.getElementById('updatesGrid');
     const loadMoreArea = document.getElementById('loadMoreArea');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -621,7 +627,7 @@ async function fetchUpdates(reset) {
     if (currentCategoryId) url += `&category_id=${currentCategoryId}`;
 
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, { signal });
         const data = await res.json();
 
         if (reset) grid.innerHTML = '';
@@ -661,6 +667,7 @@ async function fetchUpdates(reset) {
         if (window.feather) feather.replace();
 
     } catch (err) {
+        if (err.name === 'AbortError') return; // silently ignore cancelled requests
         if (reset) {
             grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
                 <h3>${LANG === 'ms' ? 'Ralat Memuatkan' : 'Failed to Load'}</h3>
