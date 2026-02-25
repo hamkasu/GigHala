@@ -13653,6 +13653,7 @@ def check_admin():
         'user': {
             'id': user.id,
             'username': user.username,
+            'full_name': user.full_name,
             'email': user.email
         } if user and user.is_admin else None
     }), 200
