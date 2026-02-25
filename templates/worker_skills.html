@@ -609,7 +609,7 @@
             pill.className = 'category-pill';
             pill.dataset.id = cat.id;
             const icon = categoryIcons[cat.slug] || '📌';
-            pill.innerHTML = `${icon} ${app.translateCategoryName(cat.name)}`;
+            pill.innerHTML = `${icon} ${cat.name}`;
             pill.onclick = () => selectCategory(cat.id, pill);
             container.appendChild(pill);
         });
