@@ -1220,6 +1220,61 @@
             <div id="email-status" style="margin-top: 16px;"></div>
         </div>
     </div>
+
+    <!-- ── Email Log ── -->
+    <div class="data-table" style="margin-top: 24px;">
+        <div class="table-header" style="display:flex; align-items:center; justify-content:space-between;">
+            <h2>📋 Email Log</h2>
+            <button onclick="loadEmailLog(1)" style="background:#0D7C66;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Refresh</button>
+        </div>
+        <div style="padding: 0 24px 24px;">
+            <div id="email-log-table-wrap" style="overflow-x:auto; margin-top:16px;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                        <tr style="border-bottom:2px solid var(--border);text-align:left;">
+                            <th style="padding:10px 8px;white-space:nowrap;">Date</th>
+                            <th style="padding:10px 8px;">Type</th>
+                            <th style="padding:10px 8px;">Subject</th>
+                            <th style="padding:10px 8px;white-space:nowrap;">Recipients</th>
+                            <th style="padding:10px 8px;white-space:nowrap;">Sent To</th>
+                            <th style="padding:10px 8px;text-align:center;">Status</th>
+                            <th style="padding:10px 8px;text-align:center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="email-log-tbody">
+                        <tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text-gray);">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="email-log-pagination" style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Log Content Modal -->
+<div id="email-log-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;width:90%;max-width:860px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <div>
+                <div id="email-log-modal-subject" style="font-size:16px;font-weight:700;"></div>
+                <div id="email-log-modal-meta" style="font-size:12px;color:var(--text-gray);margin-top:4px;"></div>
+            </div>
+            <button onclick="closeEmailLogModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-gray);line-height:1;">&#x2715;</button>
+        </div>
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <button onclick="switchEmailLogTab('preview')" id="elmt-preview" style="flex:1;padding:10px;border:none;background:#f5f5f5;font-weight:600;font-size:13px;cursor:pointer;border-right:1px solid var(--border);">Preview</button>
+            <button onclick="switchEmailLogTab('html')" id="elmt-html" style="flex:1;padding:10px;border:none;background:white;font-size:13px;cursor:pointer;border-right:1px solid var(--border);">HTML Source</button>
+            <button onclick="switchEmailLogTab('recipients')" id="elmt-recipients" style="flex:1;padding:10px;border:none;background:white;font-size:13px;cursor:pointer;">Recipients</button>
+        </div>
+        <div style="flex:1;overflow:auto;">
+            <iframe id="email-log-preview-frame" style="width:100%;height:100%;border:none;min-height:400px;" sandbox="allow-same-origin"></iframe>
+            <pre id="email-log-html-source" style="display:none;padding:16px;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:0;background:#f8f8f8;min-height:400px;"></pre>
+            <div id="email-log-recipients-list" style="display:none;padding:16px;min-height:400px;">
+                <div id="email-log-failed" style="margin-bottom:12px;"></div>
+                <div id="email-log-all-recipients" style="font-size:12px;line-height:1.8;word-break:break-all;"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="settings-tab" class="tab-content">
@@ -3217,6 +3272,113 @@
 
     // Load users on page load
     window.addEventListener('load', loadAllUsers);
+
+    // ==================== EMAIL LOG ====================
+    let emailLogCurrentPage = 1;
+
+    async function loadEmailLog(page) {
+        emailLogCurrentPage = page || 1;
+        const tbody = document.getElementById('email-log-tbody');
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text-gray);">Loading…</td></tr>';
+        try {
+            const res = await fetch(`/api/admin/email-logs?page=${emailLogCurrentPage}&per_page=50`);
+            const data = await res.json();
+            if (!data.logs || data.logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text-gray);">No emails logged yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.logs.map(log => {
+                const statusBadge = log.success
+                    ? `<span style="background:#d1fae5;color:#065f46;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;">Sent</span>`
+                    : `<span style="background:#fee2e2;color:#991b1b;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;">Failed</span>`;
+                const recipientLabel = { all_users: 'All Users', all: 'Verified', freelancers: 'Freelancers', clients: 'Clients', selected: 'Selected' }[log.recipient_type] || (log.recipient_type || '—');
+                const failBadge = log.failed_count > 0 ? ` <span style="color:#dc2626;font-size:11px;">(${log.failed_count} failed)</span>` : '';
+                return `<tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:10px 8px;white-space:nowrap;color:var(--text-gray);font-size:12px;">${log.sent_at || ''}</td>
+                    <td style="padding:10px 8px;"><span style="background:#e0f2fe;color:#075985;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600;">${log.email_type || ''}</span></td>
+                    <td style="padding:10px 8px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(log.subject||'').replace(/"/g,'&quot;')}">${log.subject || '—'}</td>
+                    <td style="padding:10px 8px;white-space:nowrap;">${log.recipient_count || 0}${failBadge}</td>
+                    <td style="padding:10px 8px;">${recipientLabel}</td>
+                    <td style="padding:10px 8px;text-align:center;">${statusBadge}</td>
+                    <td style="padding:10px 8px;text-align:center;">
+                        <button onclick="openEmailLogModal(${log.id})" style="background:#0D7C66;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;">View</button>
+                    </td>
+                </tr>`;
+            }).join('');
+            // Pagination
+            const pg = document.getElementById('email-log-pagination');
+            pg.innerHTML = '';
+            if (data.pages > 1) {
+                for (let i = 1; i <= data.pages; i++) {
+                    const btn = document.createElement('button');
+                    btn.textContent = i;
+                    btn.style.cssText = `padding:6px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:13px;background:${i===emailLogCurrentPage?'#0D7C66':'white'};color:${i===emailLogCurrentPage?'white':'var(--text)'};`;
+                    btn.onclick = () => loadEmailLog(i);
+                    pg.appendChild(btn);
+                }
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:#dc2626;">Error loading logs: ${e.message}</td></tr>`;
+        }
+    }
+
+    async function openEmailLogModal(id) {
+        document.getElementById('email-log-modal').style.display = 'flex';
+        document.getElementById('email-log-modal-subject').textContent = 'Loading…';
+        document.getElementById('email-log-modal-meta').textContent = '';
+        switchEmailLogTab('preview');
+        try {
+            const res = await fetch(`/api/admin/email-logs/${id}`);
+            const log = await res.json();
+            document.getElementById('email-log-modal-subject').textContent = log.subject || '(no subject)';
+            const recipientLabel = { all_users: 'All Users', all: 'Verified Users', freelancers: 'Freelancers', clients: 'Clients', selected: 'Selected' }[log.recipient_type] || (log.recipient_type || '');
+            document.getElementById('email-log-modal-meta').textContent =
+                `${log.sent_at}  ·  ${log.email_type}  ·  ${recipientLabel}  ·  ${log.successful_count}/${log.recipient_count} delivered`;
+            // Preview
+            const frame = document.getElementById('email-log-preview-frame');
+            frame.srcdoc = log.html_content || '<p style="padding:20px;color:#888;">No HTML content stored.</p>';
+            // HTML source
+            document.getElementById('email-log-html-source').textContent = log.html_content || '';
+            // Recipients
+            const failedDiv = document.getElementById('email-log-failed');
+            if (log.failed_recipients && log.failed_recipients.length) {
+                failedDiv.innerHTML = `<div style="background:#fee2e2;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;"><strong style="color:#991b1b;">Failed (${log.failed_recipients.length}):</strong> ${log.failed_recipients.join(', ')}</div>`;
+            } else {
+                failedDiv.innerHTML = '';
+            }
+            document.getElementById('email-log-all-recipients').textContent =
+                log.recipient_emails && log.recipient_emails.length ? log.recipient_emails.join('\n') : 'No recipient list stored.';
+        } catch (e) {
+            document.getElementById('email-log-modal-subject').textContent = 'Error loading log';
+        }
+    }
+
+    function closeEmailLogModal() {
+        document.getElementById('email-log-modal').style.display = 'none';
+        document.getElementById('email-log-preview-frame').srcdoc = '';
+    }
+
+    function switchEmailLogTab(tab) {
+        document.getElementById('email-log-preview-frame').style.display = tab === 'preview' ? 'block' : 'none';
+        document.getElementById('email-log-html-source').style.display = tab === 'html' ? 'block' : 'none';
+        document.getElementById('email-log-recipients-list').style.display = tab === 'recipients' ? 'block' : 'none';
+        ['preview','html','recipients'].forEach(t => {
+            const btn = document.getElementById(`elmt-${t}`);
+            if (btn) btn.style.background = t === tab ? 'white' : '#f5f5f5';
+        });
+    }
+
+    document.getElementById('email-log-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeEmailLogModal();
+    });
+
+    // Auto-load email log when email tab is opened
+    document.querySelectorAll('[onclick*="email"]').forEach(el => {
+        const orig = el.getAttribute('onclick');
+        if (orig && orig.includes("showTab('email')")) {
+            el.setAttribute('onclick', orig.replace("showTab('email')", "showTab('email'); loadEmailLog(1);"));
+        }
+    });
 
     // ==================== DIRECT HIRE ANNOUNCEMENT ====================
     async function sendDirectHireAnnouncement() {
