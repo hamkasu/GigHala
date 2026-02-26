@@ -3,12 +3,10 @@ import os
 from flask import current_app
 
 try:
-    import brevo_python
-    from brevo_python.rest import ApiException
+    import brevo
     BREVO_AVAILABLE = True
 except ImportError:
-    brevo_python = None
-    ApiException = Exception
+    brevo = None
     BREVO_AVAILABLE = False
 
 
@@ -48,10 +46,8 @@ class EmailService:
             error_details = {'successful_count': 0, 'failed_count': 0, 'total_count': 0, 'brevo_message_ids': [], 'failed_recipients': []}
             return False, "No recipients specified.", None, error_details
 
-        # Configure Brevo API
-        configuration = brevo_python.Configuration()
-        configuration.api_key['api-key'] = self.api_key
-        api_instance = brevo_python.TransactionalEmailsApi(brevo_python.ApiClient(configuration))
+        # Create Brevo client (v4 API)
+        client = brevo.Brevo(api_key=self.api_key)
 
         # Normalize to_emails to list of (email, name) tuples
         recipient_list = []
@@ -74,26 +70,24 @@ class EmailService:
 
         for idx, (email, name) in enumerate(recipient_list, 1):
             try:
-                # Log progress
                 current_app.logger.info(f"[EMAIL_SEND] Sending email {idx}/{total_recipients} to {email}...")
 
-                # Create email object for this recipient
-                to_recipient = {"email": email}
+                # Build to recipient
+                to_item = {"email": email}
                 if name:
-                    to_recipient["name"] = name
+                    to_item["name"] = name
 
-                send_smtp_email = brevo_python.SendSmtpEmail(
-                    to=[to_recipient],
-                    sender={"email": self.from_email, "name": self.from_name},
+                # Build sender
+                sender = {"email": self.from_email, "name": self.from_name}
+
+                api_response = client.transactional_emails.send_transac_email(
+                    to=[to_item],
+                    sender=sender,
                     subject=subject,
                     html_content=html_content,
-                    text_content=text_content
+                    text_content=text_content,
                 )
 
-                # Send email to this single recipient
-                api_response = api_instance.send_transac_email(send_smtp_email)
-
-                # Brevo returns a message ID if successful
                 if api_response and hasattr(api_response, 'message_id'):
                     successful_sends += 1
                     successful_recipients.append(email)
@@ -104,19 +98,13 @@ class EmailService:
                     failed_recipients.append(email)
                     current_app.logger.error(f"[EMAIL_SEND] ✗ Email {idx}/{total_recipients} failed for {email}: No message ID returned")
 
-            except ApiException as e:
-                failed_sends += 1
-                failed_recipients.append(email)
-                current_app.logger.error(f"[EMAIL_SEND] ✗ Email {idx}/{total_recipients} error for {email}: API Error - {str(e)}")
             except Exception as e:
                 failed_sends += 1
                 failed_recipients.append(email)
                 current_app.logger.error(f"[EMAIL_SEND] ✗ Email {idx}/{total_recipients} error for {email}: {str(e)}")
 
-        # Log final summary
         current_app.logger.info(f"[EMAIL_SEND] Email sending complete: {successful_sends} succeeded, {failed_sends} failed out of {total_recipients} total")
 
-        # Prepare detailed result
         result_details = {
             'successful_count': successful_sends,
             'failed_count': failed_sends,
@@ -126,7 +114,6 @@ class EmailService:
             'brevo_message_ids': brevo_message_ids
         }
 
-        # Prepare result message
         if successful_sends == total_recipients:
             message = f"Email sent successfully to all {successful_sends} recipients."
             current_app.logger.info(f"[EMAIL_SEND] SUCCESS: {message}")
@@ -138,7 +125,7 @@ class EmailService:
                 if len(failed_recipients) > 5:
                     message += f" and {len(failed_recipients) - 5} more"
             current_app.logger.warning(f"[EMAIL_SEND] PARTIAL: {message}")
-            return True, message, 207, result_details  # 207 Multi-Status
+            return True, message, 207, result_details
         else:
             message = f"Failed to send email to all {total_recipients} recipients."
             current_app.logger.error(f"[EMAIL_SEND] FAILED: {message}")
