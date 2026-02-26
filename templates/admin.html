@@ -1241,9 +1241,7 @@
                             <th style="padding:10px 8px;text-align:center;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="email-log-tbody">
-                        <tr><td colspan="7" style="padding:24px;text-align:center;color:var(--text-gray);">Loading…</td></tr>
-                    </tbody>
+                    <tbody id="email-log-tbody"></tbody>
                 </table>
             </div>
             <div id="email-log-pagination" style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;"></div>
@@ -3272,8 +3270,9 @@
 
     // Load users on page load
     window.addEventListener('load', loadAllUsers);
+    window.addEventListener('load', () => loadEmailLog(1));
 
-    // ==================== EMAIL LOG ====================
+
     let emailLogCurrentPage = 1;
 
     async function loadEmailLog(page) {
@@ -3370,14 +3369,6 @@
 
     document.getElementById('email-log-modal').addEventListener('click', function(e) {
         if (e.target === this) closeEmailLogModal();
-    });
-
-    // Auto-load email log when email tab is opened
-    document.querySelectorAll('[onclick*="email"]').forEach(el => {
-        const orig = el.getAttribute('onclick');
-        if (orig && orig.includes("showTab('email')")) {
-            el.setAttribute('onclick', orig.replace("showTab('email')", "showTab('email'); loadEmailLog(1);"));
-        }
     });
 
     // ==================== DIRECT HIRE ANNOUNCEMENT ====================
