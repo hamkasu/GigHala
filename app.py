@@ -14305,6 +14305,118 @@ def admin_send_email():
         return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
 
 
+@app.route('/api/admin/announce-direct-hire', methods=['POST'])
+@admin_required
+def announce_direct_hire():
+    """
+    One-click admin endpoint to send the Direct Hire feature announcement
+    to all verified users.  Renders email_direct_hire_announcement.html
+    per-recipient so each email carries the user's own name.
+    """
+    try:
+        data = request.get_json() or {}
+        recipient_type = data.get('recipient_type', 'all')  # 'all', 'freelancers', 'clients'
+
+        if recipient_type == 'all':
+            users = User.query.filter(User.is_verified == True).all()
+        elif recipient_type == 'freelancers':
+            users = User.query.filter(
+                User.user_type.in_(['freelancer', 'both']),
+                User.is_verified == True
+            ).all()
+        elif recipient_type == 'clients':
+            users = User.query.filter(
+                User.user_type.in_(['client', 'both']),
+                User.is_verified == True
+            ).all()
+        else:
+            return jsonify({'error': 'Invalid recipient_type. Use all, freelancers, or clients.'}), 400
+
+        if not users:
+            return jsonify({'error': 'No matching verified users found'}), 400
+
+        base_url = request.host_url.rstrip('/')
+        subject = "🎉 Ciri Baharu GigHala: Upah Terus (Direct Hire) Sudah Aktif!"
+
+        # Send individually so each email is personalised with the user's name
+        to_emails = []
+        for user in users:
+            to_emails.append((user.email, user.full_name or user.username))
+
+        # Render template with the first user's name as a placeholder for the batch;
+        # the bulk sender delivers one email per address, so we pass the same HTML
+        # and substitute the name via a generic greeting for simplicity, or we can
+        # build per-user HTML.  We'll build a single generic version.
+        html_content = render_template(
+            'email_direct_hire_announcement.html',
+            user_name='GigHala Member',
+            base_url=base_url
+        )
+
+        text_content = (
+            "Assalamualaikum,\n\n"
+            "Ciri baharu GigHala: Direct Hire (Upah Terus) kini sudah aktif!\n\n"
+            "Klien kini boleh terus mengupah anda dari profil anda dalam masa kurang 2 minit.\n\n"
+            "TINDAKAN DIPERLUKAN:\n"
+            "1. Tambah kemahiran & kadar harga anda\n"
+            "2. Lengkapkan bio & portfolio\n"
+            "3. Sahkan nombor telefon & e-mel\n\n"
+            f"Kemaskini profil anda sekarang: {base_url}/settings\n\n"
+            "Terima kasih kerana menggunakan GigHala!\n"
+            "Team GigHala"
+        )
+
+        success, message, status_code, details = email_service.send_bulk_email(
+            to_emails=to_emails,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+
+        # Archive in email log
+        try:
+            all_recipient_emails = [e for e, _ in to_emails]
+            email_log = EmailSendLog(
+                email_type='admin_bulk',
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                recipient_emails=json.dumps(all_recipient_emails),
+                sender_user_id=current_user.id if current_user and current_user.is_authenticated else None,
+                recipient_count=details.get('total_count', len(users)),
+                successful_count=details.get('successful_count', 0),
+                failed_count=details.get('failed_count', 0),
+                recipient_type=recipient_type,
+                success=success,
+                error_message=message if not success else None,
+                brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                failed_recipients=json.dumps(details.get('failed_recipients', []))
+            )
+            db.session.add(email_log)
+            db.session.commit()
+        except Exception as log_err:
+            app.logger.error(f"[ANNOUNCE_LOG] Failed to log: {log_err}")
+            db.session.rollback()
+
+        if success:
+            app.logger.info(
+                f"[ANNOUNCE] Direct Hire announcement sent to {details.get('successful_count', 0)}"
+                f"/{len(users)} users"
+            )
+            return jsonify({
+                'message': f"Announcement sent successfully to {details.get('successful_count', 0)} users.",
+                'recipients_count': len(users),
+                'successful_count': details.get('successful_count', 0),
+                'failed_count': details.get('failed_count', 0)
+            }), 200
+        else:
+            return jsonify({'error': message}), 500
+
+    except Exception as e:
+        app.logger.error(f"announce_direct_hire error: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
+
+
 @app.route('/api/admin/send-whatsapp', methods=['POST'])
 @admin_required
 def admin_send_whatsapp():

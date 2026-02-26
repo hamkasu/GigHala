@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciri Baharu: Upah Terus (Direct Hire) - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f9f6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        /* ── Header ── */
+        .header {
+            background: linear-gradient(135deg, #0D7C66 0%, #0a6354 50%, #064e40 100%);
+            padding: 44px 28px 36px;
+            text-align: center;
+        }
+        .header .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            color: #D4AF37;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .header .emoji {
+            font-size: 52px;
+            display: block;
+            margin: 16px 0 10px;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0 0 10px;
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .header p {
+            color: rgba(255,255,255,0.9);
+            margin: 8px 0 0;
+            font-size: 16px;
+        }
+        .new-badge {
+            display: inline-block;
+            background: #D4AF37;
+            color: #1a1a1a;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 16px;
+        }
+        /* ── Content ── */
+        .content {
+            padding: 40px 32px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #1a1a1a;
+            margin-bottom: 22px;
+            font-weight: 600;
+        }
+        .intro-text {
+            font-size: 16px;
+            color: #444444;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        /* ── Feature highlight box ── */
+        .feature-box {
+            background: linear-gradient(135deg, #f0fdf9 0%, #e6f7f4 100%);
+            border-left: 5px solid #0D7C66;
+            padding: 24px 26px;
+            margin: 26px 0;
+            border-radius: 10px;
+        }
+        .feature-box h2 {
+            color: #0D7C66;
+            font-size: 21px;
+            margin: 0 0 14px;
+            font-weight: 700;
+        }
+        .feature-box p {
+            color: #444;
+            font-size: 15px;
+            line-height: 1.75;
+            margin: 10px 0;
+        }
+        /* ── Steps how-it-works ── */
+        .steps {
+            margin: 8px 0 0;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .step-number {
+            background: #0D7C66;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .step-text {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .step-text strong { color: #0D7C66; }
+        /* ── Audience split ── */
+        .audience-grid {
+            display: table;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 12px;
+            margin: 28px 0;
+        }
+        .audience-cell {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .audience-cell h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 12px;
+        }
+        .audience-cell.clients h3 { color: #1e40af; }
+        .audience-cell.workers h3 { color: #0D7C66; }
+        .benefit-row {
+            font-size: 14px;
+            color: #444;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+        /* ── Action required ── */
+        .action-box {
+            background: linear-gradient(135deg, #fefce8 0%, #fff7d4 100%);
+            border-left: 5px solid #D4AF37;
+            padding: 24px 26px;
+            margin: 28px 0;
+            border-radius: 10px;
+        }
+        .action-box h3 {
+            color: #92400e;
+            font-size: 20px;
+            margin: 0 0 14px;
+            font-weight: 700;
+        }
+        .action-box p {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.7;
+            margin: 0 0 16px;
+        }
+        /* ── Checklist ── */
+        .checklist-item {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #0D7C66;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .checklist-item .num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #0D7C66;
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 13px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+        /* ── Escrow trust block ── */
+        .trust-box {
+            background: #f0fdf9;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 20px 22px;
+            margin: 26px 0;
+            text-align: center;
+        }
+        .trust-box p {
+            font-size: 14px;
+            color: #065f46;
+            margin: 6px 0;
+            line-height: 1.6;
+        }
+        .trust-box .icon-row { font-size: 28px; margin-bottom: 10px; }
+        /* ── CTA ── */
+        .cta-block {
+            text-align: center;
+            margin: 36px 0 10px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #0D7C66 0%, #0a6354 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 38px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(13,124,102,0.35);
+            margin: 8px 6px;
+        }
+        .btn-secondary {
+            display: inline-block;
+            background: #ffffff;
+            color: #0D7C66;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            border: 2px solid #0D7C66;
+            margin: 8px 6px;
+        }
+        /* ── Social proof quote ── */
+        .quote-box {
+            background: #f0fdf9;
+            border-left: 4px solid #0D7C66;
+            padding: 18px 22px;
+            margin: 26px 0;
+            border-radius: 6px;
+            font-style: italic;
+            color: #065f46;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        /* ── Fee info ── */
+        .fee-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e5e7eb;
+            font-size: 14px;
+            color: #444;
+        }
+        .fee-row:last-child { border-bottom: none; }
+        .fee-row span:last-child { font-weight: 600; color: #0D7C66; }
+        /* ── Footer ── */
+        .footer {
+            background: #f9fafb;
+            padding: 30px 28px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 8px 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .footer a { color: #0D7C66; text-decoration: none; font-weight: 500; }
+        .footer .brand { font-size: 17px; font-weight: 800; color: #0D7C66; margin-bottom: 4px; }
+        /* Mobile */
+        @media only screen and (max-width: 600px) {
+            .content { padding: 28px 20px; }
+            .header { padding: 36px 20px 28px; }
+            .header h1 { font-size: 24px; }
+            .audience-grid { display: block; }
+            .audience-cell { display: block; width: auto; margin-bottom: 14px; }
+            .btn-primary, .btn-secondary { display: block; margin: 8px 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+
+    <!-- ───── Header ───── -->
+    <div class="header">
+        <div class="logo-text">GigHala</div>
+        <span class="new-badge">🎉 Kemaskini Platform Terbaru</span>
+        <span class="emoji">🤝💼</span>
+        <h1>Upah Terus Sekarang!<br><span style="font-size:22px; font-weight:600;">Direct Hire is Live</span></h1>
+        <p>Klien boleh upah pekerja gig terus dari profil mereka — tanpa perlu iklan kerja.</p>
+    </div>
+
+    <!-- ───── Body ───── -->
+    <div class="content">
+
+        <div class="greeting">Assalamualaikum {{ user_name }},</div>
+
+        <p class="intro-text">
+            Kami dengan gembira mengumumkan ciri terbaharu GigHala —
+            <strong>Direct Hire (Upah Terus)</strong>. Kini klien boleh <strong>terus upah pekerja gig
+            pilihan mereka</strong> hanya dengan satu klik dari profil pekerja tersebut,
+            tanpa perlu melalui proses iklan pekerjaan yang panjang.
+        </p>
+
+        <!-- What changed -->
+        <div class="feature-box">
+            <h2>🆕 Apa Yang Berubah?</h2>
+            <p>
+                Sebelum ini, klien perlu <em>iklan gig → tunggu permohonan → pilih pekerja</em>.
+                Sekarang, jika anda sudah tahu pekerja yang sesuai, anda boleh
+                <strong>terus upah mereka dalam masa kurang 2 minit.</strong>
+            </p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">
+                        Lawati profil pekerja → pilih perkhidmatan (skill &amp; harga)
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">
+                        Isi tajuk kerja, penerangan, dan tarikh akhir
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">
+                        <strong>Bayar ke Escrow</strong> — wang anda selamat sehingga kerja diluluskan
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-text">
+                        Pekerja terima notifikasi terus &amp; kerja bermula!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Split benefit: Clients vs Workers ── -->
+        <div class="audience-grid">
+            <div class="audience-cell clients">
+                <h3>👤 Jika Anda Klien</h3>
+                <div class="benefit-row">✅ Upah pekerja terbaik dengan cepat</div>
+                <div class="benefit-row">✅ Lihat harga pekerja sebelum upah</div>
+                <div class="benefit-row">✅ Wang dilindungi Escrow — bayar hanya bila berpuas hati</div>
+                <div class="benefit-row">✅ Sembang terus dimulakan secara automatik</div>
+                <div class="benefit-row">✅ Pelbagai kaedah bayaran (FPX, kad, bank transfer)</div>
+            </div>
+            <div class="audience-cell workers">
+                <h3>🛠️ Jika Anda Pekerja Gig</h3>
+                <div class="benefit-row">✅ Klien boleh upah anda terus dari profil anda</div>
+                <div class="benefit-row">✅ Harga anda dipaparkan — tiada tawar-menawar</div>
+                <div class="benefit-row">✅ Wang masuk Escrow sebelum kerja bermula</div>
+                <div class="benefit-row">✅ Notifikasi segera apabila diupah</div>
+                <div class="benefit-row">✅ Lebih banyak peluang gig tanpa perlu mohon</div>
+            </div>
+        </div>
+
+        <!-- ── Escrow trust ── -->
+        <div class="trust-box">
+            <div class="icon-row">🔒</div>
+            <p><strong>Wang anda 100% selamat dengan sistem Escrow GigHala.</strong></p>
+            <p>
+                Klien bayar ke Escrow terlebih dahulu. Pekerja terima bayaran
+                <em>hanya setelah klien meluluskan kerja siap</em>.
+                Semua transaksi direkodkan dan boleh dirujuk semula.
+            </p>
+        </div>
+
+        <!-- ── Platform fee table ── -->
+        <div style="margin: 28px 0;">
+            <p style="font-size:15px; font-weight:700; color:#333; margin-bottom:12px;">
+                💰 Yuran Platform (Tiered — bermakna lebih tinggi transaksi, lebih rendah yuran):
+            </p>
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:18px 20px;">
+                <div class="fee-row">
+                    <span>Transaksi RM 1 – RM 500</span>
+                    <span>15% yuran platform</span>
+                </div>
+                <div class="fee-row">
+                    <span>Transaksi RM 501 – RM 2,000</span>
+                    <span>10% yuran platform</span>
+                </div>
+                <div class="fee-row">
+                    <span>Transaksi melebihi RM 2,000</span>
+                    <span>5% yuran platform</span>
+                </div>
+            </div>
+            <p style="font-size:13px; color:#6b7280; margin-top:10px;">
+                * Yuran dipotong dari amaun transaksi. Pekerja menerima amaun bersih selepas yuran platform dan caruman SOCSO (1.25%).
+            </p>
+        </div>
+
+        <!-- ── Call to action: UPDATE YOUR PROFILE ── -->
+        <div class="action-box">
+            <h3>⚡ Tindakan Diperlukan — Kemaskini Profil Anda!</h3>
+            <p>
+                Supaya klien boleh <strong>terus upah anda</strong>, profil anda perlulah
+                menunjukkan kemahiran dan <strong>kadar harga anda</strong>. Tanpa maklumat ini,
+                butang "Hire Now" tidak akan muncul pada profil anda.
+            </p>
+
+            <div style="margin-top: 16px;">
+                <div class="checklist-item">
+                    <span class="num">1</span>
+                    <strong>Tambah Kepakaran &amp; Harga Anda</strong> — Pergi ke
+                    <em>Settings → Kemahiran &amp; Kepakaran</em> dan tetapkan kadar jam (RM/jam)
+                    atau kadar tetap (RM/gig) bagi setiap kategori kepakaran.
+                </div>
+
+                <div class="checklist-item">
+                    <span class="num">2</span>
+                    <strong>Lengkapkan Bio &amp; Tajuk Profesional</strong> — Ceritakan tentang diri anda,
+                    pengalaman, dan apa yang anda tawarkan. Profil lengkap = lebih dipercayai.
+                </div>
+
+                <div class="checklist-item">
+                    <span class="num">3</span>
+                    <strong>Muat Naik Portfolio</strong> — Tambah contoh kerja lalu (gambar, pautan,
+                    atau dokumen PDF) supaya klien nampak kualiti kerja anda.
+                </div>
+
+                <div class="checklist-item">
+                    <span class="num">4</span>
+                    <strong>Sahkan Nombor Telefon &amp; E-mel</strong> — Supaya anda menerima notifikasi
+                    segera apabila seseorang mengupah anda.
+                </div>
+
+                <div class="checklist-item">
+                    <span class="num">5</span>
+                    <strong>Aktifkan Lokasi (jika berkaitan)</strong> — Untuk gig on-site, lokasi membantu
+                    klien berdekatan menemui anda.
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Social proof ── -->
+        <div class="quote-box">
+            "Pekerja yang mempunyai profil lengkap dengan harga yang jelas
+            mendapat <strong>3× lebih banyak permintaan upah terus</strong>.
+            Klien suka tahu harga sebelum bertanya — jangan biarkan mereka tertanya-tanya!"
+        </div>
+
+        <!-- ── Primary CTAs ── -->
+        <div class="cta-block">
+            <a href="{{ base_url }}/settings" class="btn-primary">
+                Kemaskini Profil Saya →
+            </a>
+        </div>
+        <div class="cta-block" style="margin-top: 6px;">
+            <a href="{{ base_url }}/workers" class="btn-secondary">
+                Lihat Pekerja &amp; Cuba Direct Hire
+            </a>
+        </div>
+
+        <!-- ── FAQ ── -->
+        <div style="margin: 34px 0 10px;">
+            <p style="font-size:16px; font-weight:700; color:#333; margin-bottom:14px;">❓ Soalan Lazim</p>
+
+            <div style="background:#f9fafb; padding:14px 16px; margin-bottom:10px; border-radius:8px; border-left:3px solid #0D7C66;">
+                <p style="font-weight:600; color:#333; margin:0 0 6px;font-size:14px;">
+                    S: Adakah ciri Direct Hire ini percuma?
+                </p>
+                <p style="color:#555; font-size:14px; margin:0; line-height:1.6;">
+                    J: Ya, tiada yuran tambahan. Hanya yuran platform standard yang terpakai
+                    (sama seperti gig biasa).
+                </p>
+            </div>
+
+            <div style="background:#f9fafb; padding:14px 16px; margin-bottom:10px; border-radius:8px; border-left:3px solid #0D7C66;">
+                <p style="font-weight:600; color:#333; margin:0 0 6px;font-size:14px;">
+                    S: Bolehkah saya tolak jika klien upah saya terus?
+                </p>
+                <p style="color:#555; font-size:14px; margin:0; line-height:1.6;">
+                    J: Ya. Anda boleh berbincang melalui ruangan sembang yang dibuka secara automatik.
+                    Jika anda tidak dapat terima gig tersebut, hubungi klien terus.
+                </p>
+            </div>
+
+            <div style="background:#f9fafb; padding:14px 16px; margin-bottom:10px; border-radius:8px; border-left:3px solid #0D7C66;">
+                <p style="font-weight:600; color:#333; margin:0 0 6px;font-size:14px;">
+                    S: Bagaimana jika saya belum tetapkan harga — adakah klien masih boleh upah saya?
+                </p>
+                <p style="color:#555; font-size:14px; margin:0; line-height:1.6;">
+                    J: Butang "Hire Now" hanya muncul jika anda mempunyai sekurang-kurangnya satu
+                    kepakaran dengan harga ditetapkan. Kemaskini profil anda sekarang!
+                </p>
+            </div>
+
+            <div style="background:#f9fafb; padding:14px 16px; margin-bottom:10px; border-radius:8px; border-left:3px solid #0D7C66;">
+                <p style="font-weight:600; color:#333; margin:0 0 6px;font-size:14px;">
+                    S: Adakah sistem gig biasa (iklan + permohonan) masih ada?
+                </p>
+                <p style="color:#555; font-size:14px; margin:0; line-height:1.6;">
+                    J: Ya, sepenuhnya. Direct Hire adalah pilihan tambahan — anda boleh terus iklan gig
+                    seperti biasa dan terima permohonan.
+                </p>
+            </div>
+        </div>
+
+        <!-- ── Final CTA ── -->
+        <div style="text-align:center; margin: 36px 0 20px; padding: 28px; background: linear-gradient(135deg, #f0fdf9, #e6f7f4); border-radius:12px;">
+            <p style="font-size:17px; font-weight:700; color:#0D7C66; margin:0 0 6px;">
+                Masa untuk buat profil anda bekerja keras untuk anda!
+            </p>
+            <p style="font-size:14px; color:#555; margin:0 0 22px;">
+                Kemaskini kemahiran &amp; harga anda sekarang supaya klien boleh terus upah anda.
+            </p>
+            <a href="{{ base_url }}/settings" class="btn-primary" style="font-size:16px; padding:15px 36px;">
+                Kemaskini Profil Sekarang
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ───── Footer ───── -->
+    <div class="footer">
+        <p class="brand">GigHala</p>
+        <p>Platform Freelance Patuh Halal Malaysia 🇲🇾</p>
+        <p style="margin-top:14px;">
+            <a href="{{ base_url }}/workers">Cari Pekerja</a> &nbsp;|&nbsp;
+            <a href="{{ base_url }}/gigs">Semak Gig</a> &nbsp;|&nbsp;
+            <a href="{{ base_url }}/dashboard">Dashboard</a> &nbsp;|&nbsp;
+            <a href="{{ base_url }}/settings">Tetapan</a>
+        </p>
+        <p style="margin-top:18px; font-size:12px; color:#9ca3af; line-height:1.7;">
+            Anda menerima e-mel ini kerana anda adalah ahli GigHala.<br>
+            Untuk mengubah tetapan notifikasi, sila lawati
+            <a href="{{ base_url }}/settings">tetapan akaun</a> anda.
+        </p>
+        <p style="font-size:11px; color:#b0b0b0; margin-top:12px;">
+            © 2025 GigHala Sdn Bhd · Platform Gig Halal #1 Malaysia
+        </p>
+    </div>
+
+</div>
+</body>
+</html>
