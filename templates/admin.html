@@ -1145,6 +1145,40 @@
 </div>
 
 <div id="email-tab" class="tab-content">
+
+    <!-- ── Quick Announcement: Direct Hire feature ── -->
+    <div class="data-table" style="margin-bottom: 24px; border: 2px solid #0D7C66;">
+        <div class="table-header" style="background: linear-gradient(135deg, #0D7C66, #0a6354); color: white;">
+            <h2 style="color: white;">🚀 Quick Announcement — Direct Hire Feature</h2>
+        </div>
+        <div style="padding: 24px;">
+            <p style="font-size: 15px; color: var(--text-gray); margin: 0 0 16px;">
+                Send the pre-built "Direct Hire is Live" announcement email to all verified users.
+                The email includes the feature overview, escrow info, fee breakdown, and a
+                5-step profile update checklist.
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <div>
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Send to:</label>
+                    <select id="announce-recipient-type"
+                            style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: white;">
+                        <option value="all">All Verified Users</option>
+                        <option value="freelancers">Freelancers / Both</option>
+                        <option value="clients">Clients / Both</option>
+                    </select>
+                </div>
+                <div style="margin-top: 22px;">
+                    <button onclick="sendDirectHireAnnouncement()"
+                            id="announce-btn"
+                            style="background: #0D7C66; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Send Announcement Email
+                    </button>
+                </div>
+            </div>
+            <div id="announce-status" style="margin-top: 14px;"></div>
+        </div>
+    </div>
+
     <div class="data-table">
         <div class="table-header">
             <h2>📧 Send Email to Users</h2>
@@ -3182,6 +3216,41 @@
 
     // Load users on page load
     window.addEventListener('load', loadAllUsers);
+
+    // ==================== DIRECT HIRE ANNOUNCEMENT ====================
+    async function sendDirectHireAnnouncement() {
+        const recipientType = document.getElementById('announce-recipient-type').value;
+        const btn = document.getElementById('announce-btn');
+        const statusDiv = document.getElementById('announce-status');
+
+        if (!confirm(`Send the Direct Hire announcement email to all verified ${recipientType === 'all' ? 'users' : recipientType}? This cannot be undone.`)) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        statusDiv.innerHTML = '<div style="padding:12px;background:#f0fdf9;color:#065f46;border-radius:8px;">Sending announcement emails — this may take a moment...</div>';
+
+        try {
+            const response = await fetch('/api/admin/announce-direct-hire', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient_type: recipientType })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                statusDiv.innerHTML = `<div style="padding:12px;background:#dcfce7;color:#166534;border-radius:8px;">
+                    ✅ <strong>Announcement sent!</strong><br>
+                    Delivered: ${data.successful_count} · Failed: ${data.failed_count} · Total: ${data.recipients_count}
+                </div>`;
+            } else {
+                statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ ${data.error || 'Failed to send'}</div>`;
+            }
+        } catch (err) {
+            statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ Network error: ${err.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send Announcement Email';
+        }
+    }
 
     // ==================== GIG REPORTS FUNCTIONS ====================
     async function loadGigReports(page = 1) {
