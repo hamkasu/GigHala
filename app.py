@@ -14419,6 +14419,75 @@ def announce_direct_hire():
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
 
+@app.route('/api/admin/email-logs', methods=['GET'])
+@admin_required
+def admin_email_logs():
+    """Return paginated email send log entries."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    per_page = min(per_page, 200)
+
+    query = EmailSendLog.query.order_by(EmailSendLog.sent_at.desc())
+    total = query.count()
+    logs = query.offset((page - 1) * per_page).limit(per_page).all()
+
+    entries = []
+    for log in logs:
+        entries.append({
+            'id': log.id,
+            'email_type': log.email_type,
+            'subject': log.subject,
+            'recipient_type': log.recipient_type,
+            'recipient_count': log.recipient_count,
+            'successful_count': log.successful_count,
+            'failed_count': log.failed_count,
+            'success': log.success,
+            'sent_at': log.sent_at.strftime('%Y-%m-%d %H:%M:%S') if log.sent_at else None,
+            'error_message': log.error_message,
+        })
+
+    return jsonify({
+        'logs': entries,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'pages': (total + per_page - 1) // per_page,
+    })
+
+
+@app.route('/api/admin/email-logs/<int:log_id>', methods=['GET'])
+@admin_required
+def admin_email_log_detail(log_id):
+    """Return full detail (including html_content) for one log entry."""
+    log = EmailSendLog.query.get_or_404(log_id)
+    recipient_emails = []
+    try:
+        recipient_emails = json.loads(log.recipient_emails) if log.recipient_emails else []
+    except Exception:
+        pass
+    failed_recipients = []
+    try:
+        failed_recipients = json.loads(log.failed_recipients) if log.failed_recipients else []
+    except Exception:
+        pass
+    return jsonify({
+        'id': log.id,
+        'email_type': log.email_type,
+        'subject': log.subject,
+        'recipient_type': log.recipient_type,
+        'recipient_count': log.recipient_count,
+        'successful_count': log.successful_count,
+        'failed_count': log.failed_count,
+        'success': log.success,
+        'sent_at': log.sent_at.strftime('%Y-%m-%d %H:%M:%S') if log.sent_at else None,
+        'error_message': log.error_message,
+        'html_content': log.html_content or '',
+        'text_content': log.text_content or '',
+        'recipient_emails': recipient_emails,
+        'failed_recipients': failed_recipients,
+    })
+
+
 @app.route('/api/admin/send-whatsapp', methods=['POST'])
 @admin_required
 def admin_send_whatsapp():
