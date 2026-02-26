@@ -14485,7 +14485,62 @@ def admin_email_log_detail(log_id):
         'text_content': log.text_content or '',
         'recipient_emails': recipient_emails,
         'failed_recipients': failed_recipients,
+        'brevo_message_ids': json.loads(log.brevo_message_ids) if log.brevo_message_ids else [],
+        'from_email': os.environ.get('BREVO_FROM_EMAIL', ''),
+        'from_name': os.environ.get('BREVO_FROM_NAME', 'GigHala'),
     })
+
+
+@app.route('/api/admin/brevo-status', methods=['GET'])
+@admin_required
+def admin_brevo_status():
+    """Check Brevo account status, plan, and verified senders."""
+    try:
+        import brevo as brevo_sdk
+        api_key = os.environ.get('BREVO_API_KEY', '')
+        from_email = os.environ.get('BREVO_FROM_EMAIL', '')
+        if not api_key:
+            return jsonify({'error': 'BREVO_API_KEY not set'}), 400
+
+        client = brevo_sdk.Brevo(api_key=api_key)
+
+        # Fetch account info
+        account = client.account.get_account()
+        plan_info = []
+        if hasattr(account, 'plan') and account.plan:
+            for p in account.plan:
+                plan_info.append({
+                    'type': str(p.type) if hasattr(p, 'type') else '',
+                    'credits': getattr(p, 'credits', None),
+                    'credits_type': str(p.credits_type) if hasattr(p, 'credits_type') else '',
+                })
+
+        # Fetch verified senders
+        senders_resp = client.senders.get_senders()
+        senders = []
+        if hasattr(senders_resp, 'senders') and senders_resp.senders:
+            for s in senders_resp.senders:
+                senders.append({
+                    'id': getattr(s, 'id', None),
+                    'name': getattr(s, 'name', ''),
+                    'email': getattr(s, 'email', ''),
+                    'active': getattr(s, 'active', None),
+                })
+
+        from_email_verified = any(s['email'] == from_email for s in senders)
+
+        return jsonify({
+            'company': getattr(account, 'company_name', ''),
+            'email': getattr(account, 'email', ''),
+            'first_name': getattr(account, 'first_name', ''),
+            'last_name': getattr(account, 'last_name', ''),
+            'plan': plan_info,
+            'senders': senders,
+            'from_email': from_email,
+            'from_email_verified': from_email_verified,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/admin/send-whatsapp', methods=['POST'])

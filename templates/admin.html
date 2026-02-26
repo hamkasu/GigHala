@@ -1146,6 +1146,15 @@
 
 <div id="email-tab" class="tab-content">
 
+    <!-- ── Brevo Status ── -->
+    <div class="data-table" style="margin-bottom: 24px; border: 2px solid #4f46e5;">
+        <div class="table-header" style="background: linear-gradient(135deg,#4f46e5,#3730a3);color:white;display:flex;align-items:center;justify-content:space-between;">
+            <h2 style="color:white;">Brevo Account Status</h2>
+            <button onclick="checkBrevoStatus()" id="brevo-status-btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;">Check Status</button>
+        </div>
+        <div id="brevo-status-body" style="padding:16px 24px;font-size:13px;color:var(--text-gray);">Click "Check Status" to verify your Brevo account and sender configuration.</div>
+    </div>
+
     <!-- ── Quick Announcement: Direct Hire feature ── -->
     <div class="data-table" style="margin-bottom: 24px; border: 2px solid #0D7C66;">
         <div class="table-header" style="background: linear-gradient(135deg, #0D7C66, #0a6354); color: white;">
@@ -3273,6 +3282,56 @@
     window.addEventListener('load', () => loadEmailLog(1));
 
 
+    // ==================== BREVO STATUS ====================
+    async function checkBrevoStatus() {
+        const btn = document.getElementById('brevo-status-btn');
+        const body = document.getElementById('brevo-status-body');
+        btn.disabled = true;
+        btn.textContent = 'Checking…';
+        body.innerHTML = '<span style="color:var(--text-gray);">Fetching Brevo account info…</span>';
+        try {
+            const res = await fetch('/api/admin/brevo-status');
+            const d = await res.json();
+            if (d.error) {
+                body.innerHTML = `<div style="color:#dc2626;font-weight:600;">Error: ${d.error}</div>`;
+                return;
+            }
+            const fromOk = d.from_email_verified;
+            const fromBadge = fromOk
+                ? `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">VERIFIED</span>`
+                : `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">NOT FOUND IN BREVO</span>`;
+            let sendersHtml = d.senders && d.senders.length
+                ? d.senders.map(s => `<div style="padding:4px 0;font-size:12px;">${s.active ? '✅' : '⚠️'} <strong>${s.name}</strong> &lt;${s.email}&gt; ${s.active ? '' : '<span style="color:#dc2626;">(inactive)</span>'}</div>`).join('')
+                : '<div style="color:#dc2626;font-size:12px;">No verified senders found.</div>';
+            let planHtml = d.plan && d.plan.length
+                ? d.plan.map(p => `<span style="font-size:12px;">${p.type}: <strong>${p.credits ?? '∞'}</strong> credits</span>`).join(' &nbsp;·&nbsp; ')
+                : 'N/A';
+            body.innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:12px;color:var(--text-gray);margin-bottom:4px;">Account</div>
+                        <div style="font-weight:600;">${d.first_name} ${d.last_name} &lt;${d.email}&gt;</div>
+                        <div style="font-size:12px;color:var(--text-gray);margin-top:2px;">${d.company || ''}</div>
+                        <div style="margin-top:8px;font-size:12px;color:var(--text-gray);">Plan</div>
+                        <div>${planHtml}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px;color:var(--text-gray);margin-bottom:4px;">BREVO_FROM_EMAIL configured</div>
+                        <div style="font-weight:600;margin-bottom:4px;">${d.from_email} ${fromBadge}</div>
+                        ${!fromOk ? `<div style="font-size:12px;color:#b45309;background:#fffbeb;border-radius:6px;padding:8px;margin-top:6px;">This email is not a verified Brevo sender — emails may be rejected or go to spam. Add it at <strong>Brevo → Senders & IP → Senders</strong>.</div>` : ''}
+                        <div style="font-size:12px;color:var(--text-gray);margin-top:10px;margin-bottom:4px;">All verified senders</div>
+                        ${sendersHtml}
+                    </div>
+                </div>`;
+        } catch (e) {
+            body.innerHTML = `<div style="color:#dc2626;">Failed to reach Brevo API: ${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Check Status';
+        }
+    }
+
+    // ==================== EMAIL LOG ====================
     let emailLogCurrentPage = 1;
 
     async function loadEmailLog(page) {
@@ -3340,11 +3399,22 @@
             document.getElementById('email-log-html-source').textContent = log.html_content || '';
             // Recipients
             const failedDiv = document.getElementById('email-log-failed');
-            if (log.failed_recipients && log.failed_recipients.length) {
-                failedDiv.innerHTML = `<div style="background:#fee2e2;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;"><strong style="color:#991b1b;">Failed (${log.failed_recipients.length}):</strong> ${log.failed_recipients.join(', ')}</div>`;
-            } else {
-                failedDiv.innerHTML = '';
+            let recipientHtml = '';
+            // Sender info
+            recipientHtml += `<div style="background:#f0f9ff;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;">
+                <strong>Sent from:</strong> ${log.from_name || ''} &lt;${log.from_email || 'unknown'}&gt;</div>`;
+            // Brevo message IDs
+            if (log.brevo_message_ids && log.brevo_message_ids.length) {
+                recipientHtml += `<div style="background:#f5f3ff;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;">
+                    <strong style="color:#4f46e5;">Brevo Message IDs</strong> (look these up in your Brevo dashboard → Transactional → Email):<br>
+                    <span style="font-family:monospace;word-break:break-all;">${log.brevo_message_ids.join('<br>')}</span></div>`;
             }
+            // Failed
+            if (log.failed_recipients && log.failed_recipients.length) {
+                recipientHtml += `<div style="background:#fee2e2;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;">
+                    <strong style="color:#991b1b;">Failed (${log.failed_recipients.length}):</strong> ${log.failed_recipients.join(', ')}</div>`;
+            }
+            failedDiv.innerHTML = recipientHtml;
             document.getElementById('email-log-all-recipients').textContent =
                 log.recipient_emails && log.recipient_emails.length ? log.recipient_emails.join('\n') : 'No recipient list stored.';
         } catch (e) {
