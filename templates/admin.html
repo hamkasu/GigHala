@@ -1162,7 +1162,8 @@
                     <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Send to:</label>
                     <select id="announce-recipient-type"
                             style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: white;">
-                        <option value="all">All Verified Users</option>
+                        <option value="all_users">All Users (Everyone)</option>
+                        <option value="all">All Verified Users Only</option>
                         <option value="freelancers">Freelancers / Both</option>
                         <option value="clients">Clients / Both</option>
                     </select>
@@ -3223,7 +3224,8 @@
         const btn = document.getElementById('announce-btn');
         const statusDiv = document.getElementById('announce-status');
 
-        if (!confirm(`Send the Direct Hire announcement email to all verified ${recipientType === 'all' ? 'users' : recipientType}? This cannot be undone.`)) return;
+        const labels = { all_users: 'ALL users (including unverified)', all: 'all verified users', freelancers: 'freelancers', clients: 'clients' };
+        if (!confirm(`Send the Direct Hire announcement email to ${labels[recipientType] || recipientType}? This cannot be undone.`)) return;
 
         btn.disabled = true;
         btn.textContent = 'Sending...';

@@ -14315,9 +14315,11 @@ def announce_direct_hire():
     """
     try:
         data = request.get_json() or {}
-        recipient_type = data.get('recipient_type', 'all')  # 'all', 'freelancers', 'clients'
+        recipient_type = data.get('recipient_type', 'all_users')  # 'all_users', 'all', 'freelancers', 'clients'
 
-        if recipient_type == 'all':
+        if recipient_type == 'all_users':
+            users = User.query.all()
+        elif recipient_type == 'all':
             users = User.query.filter(User.is_verified == True).all()
         elif recipient_type == 'freelancers':
             users = User.query.filter(
@@ -14330,7 +14332,7 @@ def announce_direct_hire():
                 User.is_verified == True
             ).all()
         else:
-            return jsonify({'error': 'Invalid recipient_type. Use all, freelancers, or clients.'}), 400
+            return jsonify({'error': 'Invalid recipient_type. Use all_users, all, freelancers, or clients.'}), 400
 
         if not users:
             return jsonify({'error': 'No matching verified users found'}), 400
