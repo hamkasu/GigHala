@@ -21020,6 +21020,233 @@ def public_profile(username):
     return render_template('public_profile.html', profile_user=profile_user, portfolio_items=portfolio_items, reviews=review_details, specializations=specializations_data, user=current_user, active_page='profile', lang=get_user_language(), t=t)
 
 # ============================================
+# DIRECT HIRE ROUTES
+# ============================================
+
+@app.route('/hire/<int:worker_id>')
+@login_required
+def hire_direct_page(worker_id):
+    """Show the direct hire form for a specific worker"""
+    client_id = session['user_id']
+
+    if client_id == worker_id:
+        flash('You cannot hire yourself.', 'error')
+        return redirect(url_for('workers'))
+
+    worker = User.query.get_or_404(worker_id)
+    if worker.user_type not in ('freelancer', 'both'):
+        flash('This user is not available for hire.', 'error')
+        return redirect(url_for('workers'))
+
+    # Load all specializations with full data (includes category_slug for gig creation)
+    specializations = WorkerSpecialization.query.filter_by(user_id=worker_id).all()
+    specs_data = [s.to_dict() for s in specializations]
+
+    # Pre-select a specific specialization if ?spec=<id> provided
+    selected_spec_id = request.args.get('spec', type=int)
+    current_user = User.query.get(client_id)
+
+    return render_template(
+        'hire_direct.html',
+        worker=worker,
+        specializations=specs_data,
+        selected_spec_id=selected_spec_id,
+        user=current_user,
+        active_page='hire',
+        lang=get_user_language(),
+        t=t
+    )
+
+
+@app.route('/api/hire-direct', methods=['POST'])
+@login_required
+def hire_direct():
+    """
+    Direct hire: client hires a worker instantly from their profile card.
+    Creates a Gig (in_progress), Application (accepted), GigWorker, Conversation,
+    and a pending Escrow — then returns the payment URL.
+    """
+    client_id = session['user_id']
+
+    try:
+        data = request.json or {}
+
+        worker_id      = data.get('worker_id')
+        specialization_id = data.get('specialization_id')
+        title          = (data.get('title') or '').strip()
+        description    = (data.get('description') or '').strip()
+        amount         = float(data.get('amount', 0))
+        rate_type      = data.get('rate_type', 'fixed')   # 'fixed' or 'hourly'
+        hours          = float(data.get('hours', 1)) if rate_type == 'hourly' else None
+        deadline_str   = data.get('deadline')             # ISO date string (optional)
+
+        # --- Validation ---
+        if not worker_id:
+            return jsonify({'error': 'worker_id is required'}), 400
+        if not title:
+            return jsonify({'error': 'Job title is required'}), 400
+        if not description:
+            return jsonify({'error': 'Job description is required'}), 400
+        if amount <= 0:
+            return jsonify({'error': 'Amount must be greater than 0'}), 400
+        if client_id == worker_id:
+            return jsonify({'error': 'You cannot hire yourself'}), 400
+
+        worker = User.query.get(worker_id)
+        if not worker or worker.user_type not in ('freelancer', 'both'):
+            return jsonify({'error': 'Worker not found or not available for hire'}), 404
+
+        # --- Resolve specialization (category) ---
+        category_slug = 'other'
+        spec = None
+        if specialization_id:
+            spec = WorkerSpecialization.query.filter_by(
+                id=specialization_id, user_id=worker_id
+            ).first()
+            if spec and spec.category:
+                category_slug = spec.category.slug
+
+        # --- Parse deadline ---
+        deadline = None
+        if deadline_str:
+            try:
+                deadline = datetime.fromisoformat(deadline_str)
+            except (ValueError, TypeError):
+                deadline = None
+
+        # --- Create Gig (auto, already in_progress) ---
+        skills_json = None
+        if spec and spec.skills:
+            skills_json = spec.skills  # already a JSON string
+
+        new_gig = Gig(
+            title=title,
+            description=description,
+            category=category_slug,
+            budget_min=amount,
+            budget_max=amount,
+            agreed_amount=amount,
+            payment_type='full_payment',
+            is_remote=True,
+            status='in_progress',
+            client_id=client_id,
+            freelancer_id=worker_id,
+            workers_needed=1,
+            halal_compliant=True,
+            skills_required=skills_json,
+            deadline=deadline
+        )
+        db.session.add(new_gig)
+        db.session.flush()  # get new_gig.id
+
+        # Set readable gig code
+        new_gig.gig_code = f"GIG-{new_gig.id:05d}"
+
+        # --- Create a matching Application (auto-accepted, required for GigWorker FK) ---
+        auto_application = Application(
+            gig_id=new_gig.id,
+            freelancer_id=worker_id,
+            cover_letter='[Direct hire — no cover letter required]',
+            proposed_price=amount,
+            status='accepted',
+            use_specialized_rate=bool(spec),
+            specialization_id=specialization_id
+        )
+        db.session.add(auto_application)
+        db.session.flush()  # get auto_application.id
+
+        # --- Create GigWorker entry ---
+        gig_worker = GigWorker(
+            gig_id=new_gig.id,
+            worker_id=worker_id,
+            application_id=auto_application.id,
+            agreed_amount=amount,
+            status='active',
+            specialized_rate_used=bool(spec),
+            specialization_id=specialization_id
+        )
+        db.session.add(gig_worker)
+
+        # --- Auto-create conversation between client and worker ---
+        existing_conv = Conversation.query.filter(
+            ((Conversation.participant_1_id == client_id) & (Conversation.participant_2_id == worker_id)) |
+            ((Conversation.participant_1_id == worker_id) & (Conversation.participant_2_id == client_id)),
+            Conversation.gig_id == new_gig.id
+        ).first()
+
+        if not existing_conv:
+            conversation = Conversation(
+                participant_1_id=client_id,
+                participant_2_id=worker_id,
+                gig_id=new_gig.id
+            )
+            db.session.add(conversation)
+            db.session.flush()
+
+            client_user = User.query.get(client_id)
+            system_msg = Message(
+                conversation_id=conversation.id,
+                sender_id=client_id,
+                content=f"Hi! I've hired you directly for: {title}. Looking forward to working with you!",
+                message_type='text'
+            )
+            conversation.last_message_at = datetime.utcnow()
+            db.session.add(system_msg)
+
+        # --- Create pending Escrow ---
+        platform_fee = calculate_commission(amount)
+        net_amount = amount - platform_fee
+        order_id = f"ESC-{new_gig.id}-{uuid.uuid4().hex[:8].upper()}"
+
+        escrow = Escrow(
+            escrow_number=generate_escrow_number(),
+            gig_id=new_gig.id,
+            client_id=client_id,
+            freelancer_id=worker_id,
+            amount=amount,
+            platform_fee=platform_fee,
+            net_amount=net_amount,
+            status='pending',
+            payment_reference=order_id
+        )
+        db.session.add(escrow)
+        db.session.flush()
+
+        db.session.commit()
+
+        # --- Notify the worker ---
+        try:
+            notification = Notification(
+                user_id=worker_id,
+                type='hire',
+                title='You have been hired!',
+                message=f"{User.query.get(client_id).full_name or 'A client'} hired you directly for \"{title}\".",
+                link=f"/gig/{new_gig.id}"
+            )
+            db.session.add(notification)
+            db.session.commit()
+        except Exception:
+            pass  # notifications are non-critical
+
+        return jsonify({
+            'success': True,
+            'gig_id': new_gig.id,
+            'gig_code': new_gig.gig_code,
+            'escrow_id': escrow.id,
+            'amount': amount,
+            'platform_fee': platform_fee,
+            'net_to_worker': net_amount,
+            'payment_url': f"/escrow?gig={new_gig.id}&action=pay",
+            'message': f"Hired successfully! Please fund the escrow to start the project."
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Direct hire error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to create hire', 'details': str(e) if app.debug else None}), 500
+
+
+# ============================================
 # CHAT/MESSAGING ROUTES
 # ============================================
 
