@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}Hire {{ worker.full_name or worker.username }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .hire-container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 32px 20px;
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 28px;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        .hire-container { grid-template-columns: 1fr; }
+        .hire-sidebar { order: -1; }
+    }
+    .hire-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+    }
+    .hire-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0 0 6px;
+    }
+    .hire-subtitle {
+        color: var(--text-gray);
+        font-size: 14px;
+        margin-bottom: 28px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+    }
+    .form-input, .form-textarea, .form-select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 15px;
+        font-family: inherit;
+        background: var(--bg-white);
+        color: var(--text-dark);
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(13, 124, 102, 0.1);
+    }
+    .form-textarea { resize: vertical; min-height: 120px; }
+    .spec-options { display: flex; flex-direction: column; gap: 10px; }
+    .spec-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .spec-option:hover { border-color: var(--primary); background: #f0fdf9; }
+    .spec-option.selected { border-color: var(--primary); background: #f0fdf9; }
+    .spec-option input[type=radio] { margin-top: 3px; accent-color: var(--primary); }
+    .spec-info { flex: 1; }
+    .spec-name { font-weight: 600; font-size: 15px; color: var(--text-dark); }
+    .spec-title { font-size: 13px; color: var(--text-gray); font-style: italic; margin: 2px 0 6px; }
+    .spec-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .skill-tag {
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .spec-rates { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .rate-badge {
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .rate-hourly { background: #dcfce7; color: #166534; }
+    .rate-fixed { background: #dbeafe; color: #1e40af; }
+    .hours-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    .hours-input {
+        width: 80px;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        text-align: center;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+    /* Sidebar */
+    .worker-mini {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    .worker-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .worker-avatar-fallback {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    .worker-name { font-weight: 700; font-size: 16px; color: var(--text-dark); }
+    .worker-rating { font-size: 13px; color: var(--text-gray); }
+    .fee-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .fee-table td { padding: 6px 0; color: var(--text-dark); }
+    .fee-table td:last-child { text-align: right; font-weight: 500; }
+    .fee-total td { border-top: 1px solid var(--border); padding-top: 10px; font-weight: 700; font-size: 15px; }
+    .fee-note { font-size: 12px; color: var(--text-gray); margin-top: 8px; }
+    .btn-hire {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 18px;
+    }
+    .btn-hire:hover { background: #0a6354; }
+    .btn-hire:disabled { background: #9ca3af; cursor: not-allowed; }
+    .alert-box {
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+    .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .loading { opacity: 0.6; pointer-events: none; }
+    .section-header {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0 0 14px;
+    }
+    #amount-display {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hire-container">
+
+    <!-- ===== LEFT: HIRE FORM ===== -->
+    <div>
+        <div class="hire-card">
+            <h1 class="hire-title">Hire {{ worker.full_name or worker.username }}</h1>
+            <p class="hire-subtitle">Fill in the details below. Funds go into escrow — released only when you approve the work.</p>
+
+            <div id="alert-area"></div>
+
+            <!-- Service / Specialization Selection -->
+            {% if specializations %}
+            <div class="form-group">
+                <label class="form-label">Select Service</label>
+                <div class="spec-options" id="spec-options">
+                    {% for spec in specializations %}
+                    <label class="spec-option {% if selected_spec_id == spec.id or (loop.first and not selected_spec_id) %}selected{% endif %}"
+                           id="spec-label-{{ spec.id }}"
+                           onclick="selectSpec({{ spec.id }}, {{ spec.base_hourly_rate or 'null' }}, {{ spec.base_fixed_rate or 'null' }}, '{{ spec.category_slug or 'other' }}')">
+                        <input type="radio" name="specialization_id" value="{{ spec.id }}"
+                               {% if selected_spec_id == spec.id or (loop.first and not selected_spec_id) %}checked{% endif %}>
+                        <div class="spec-info">
+                            <div class="spec-name">{{ spec.category_name or spec.category_slug }}</div>
+                            {% if spec.specialization_title %}
+                            <div class="spec-title">{{ spec.specialization_title }}</div>
+                            {% endif %}
+                            <div class="spec-skills">
+                                {% for skill in (spec.skills or [])[:5] %}
+                                <span class="skill-tag">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="spec-rates">
+                                {% if spec.base_hourly_rate %}
+                                <span class="rate-badge rate-hourly" onclick="event.stopPropagation(); setRateType('hourly', {{ spec.base_hourly_rate }})">
+                                    RM{{ "%.0f"|format(spec.base_hourly_rate) }}/jam
+                                </span>
+                                {% endif %}
+                                {% if spec.base_fixed_rate %}
+                                <span class="rate-badge rate-fixed" onclick="event.stopPropagation(); setRateType('fixed', {{ spec.base_fixed_rate }})">
+                                    RM{{ "%.0f"|format(spec.base_fixed_rate) }}/gig
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Rate Type Toggle -->
+            <div class="form-group" id="rate-type-group">
+                <label class="form-label">Payment Type</label>
+                <select class="form-select" id="rate-type" onchange="onRateTypeChange()">
+                    <option value="fixed">Fixed Price</option>
+                    <option value="hourly">Hourly Rate</option>
+                </select>
+            </div>
+
+            <!-- Hours (shown only for hourly) -->
+            <div class="form-group" id="hours-group" style="display:none;">
+                <label class="form-label">Number of Hours</label>
+                <div class="hours-row">
+                    <input type="number" class="hours-input" id="hours-input" value="1" min="1" max="500" oninput="recalculate()">
+                    <span style="font-size: 14px; color: var(--text-gray);">hours × <span id="rate-per-hour">RM0</span>/jam</span>
+                </div>
+            </div>
+
+            <!-- Custom Amount -->
+            <div class="form-group">
+                <label class="form-label">Budget (RM)</label>
+                <input type="number" class="form-input" id="amount-input" placeholder="e.g. 150"
+                       min="10" step="0.01" oninput="recalculate()" required>
+                <div style="font-size: 12px; color: var(--text-gray); margin-top: 4px;">
+                    Minimum RM10. Worker receives amount minus platform fee.
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Job Details -->
+            <p class="section-header">Job Details</p>
+
+            <div class="form-group">
+                <label class="form-label">Job Title <span style="color:#e53e3e">*</span></label>
+                <input type="text" class="form-input" id="job-title"
+                       placeholder="e.g. Wedding catering for 100 guests" maxlength="150" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description <span style="color:#e53e3e">*</span></label>
+                <textarea class="form-textarea" id="job-description"
+                          placeholder="Describe exactly what you need, timeline, special requirements..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Deadline (optional)</label>
+                <input type="date" class="form-input" id="job-deadline"
+                       min="{{ now.strftime('%Y-%m-%d') if now else '' }}">
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== RIGHT: SIDEBAR SUMMARY ===== -->
+    <div class="hire-sidebar">
+        <div class="hire-card">
+
+            <!-- Worker mini card -->
+            <div class="worker-mini">
+                {% if worker.profile_photo %}
+                <img src="/uploads/profile_photos/{{ worker.profile_photo }}" class="worker-avatar" alt="{{ worker.username }}">
+                {% else %}
+                <div class="worker-avatar-fallback">{{ (worker.full_name or worker.username)[0].upper() }}</div>
+                {% endif %}
+                <div>
+                    <div class="worker-name">{{ worker.full_name or worker.username }}</div>
+                    <div class="worker-rating">
+                        {% if worker.rating %}
+                        ⭐ {{ "%.1f"|format(worker.rating) }} · {{ worker.review_count or 0 }} reviews
+                        {% else %}
+                        New freelancer
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider" style="margin: 16px 0;">
+
+            <!-- Fee Breakdown -->
+            <p class="section-header" style="margin-bottom: 12px;">Order Summary</p>
+            <table class="fee-table">
+                <tr>
+                    <td>Service amount</td>
+                    <td id="summary-amount">RM —</td>
+                </tr>
+                <tr>
+                    <td>Platform fee</td>
+                    <td id="summary-fee" style="color: #e53e3e;">- RM —</td>
+                </tr>
+                <tr>
+                    <td>Worker receives</td>
+                    <td id="summary-net" style="color: var(--primary);">RM —</td>
+                </tr>
+                <tr class="fee-total">
+                    <td>You pay</td>
+                    <td id="summary-total">RM —</td>
+                </tr>
+            </table>
+            <div class="fee-note">
+                Platform fee: 15% (≤RM500) · 10% (≤RM2,000) · 5% (> RM2,000)<br>
+                Funds held in escrow until you approve the completed work.
+            </div>
+
+            <button class="btn-hire" id="hire-btn" onclick="submitHire()">
+                Confirm & Fund Escrow
+            </button>
+
+            <div style="text-align: center; font-size: 12px; color: var(--text-gray); margin-top: 10px;">
+                🔒 Your payment is protected by escrow
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden worker data -->
+<input type="hidden" id="worker-id" value="{{ worker.id }}">
+<input type="hidden" id="selected-spec" value="{{ selected_spec_id or (specializations[0].id if specializations else '') }}">
+<input type="hidden" id="current-category" value="{{ (specializations[0].category_slug if specializations else 'other') }}">
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const workerSpecs = {{ specializations | tojson }};
+let currentSpecId = {{ selected_spec_id or (specializations[0].id if specializations else 'null') }};
+let currentHourlyRate = null;
+let currentFixedRate = null;
+
+// Initialise with first spec
+(function init() {
+    if (workerSpecs.length > 0) {
+        const s = workerSpecs.find(x => x.id === currentSpecId) || workerSpecs[0];
+        currentSpecId = s.id;
+        currentHourlyRate = s.base_hourly_rate || null;
+        currentFixedRate  = s.base_fixed_rate  || null;
+
+        // Pre-fill amount with fixed rate if available, else hourly
+        if (currentFixedRate) {
+            document.getElementById('rate-type').value = 'fixed';
+            document.getElementById('amount-input').value = currentFixedRate;
+        } else if (currentHourlyRate) {
+            document.getElementById('rate-type').value = 'hourly';
+            document.getElementById('rate-per-hour').textContent = 'RM' + currentHourlyRate;
+            document.getElementById('amount-input').value = currentHourlyRate;
+            document.getElementById('hours-group').style.display = 'block';
+        }
+        recalculate();
+    }
+})();
+
+function selectSpec(specId, hourlyRate, fixedRate, categorySlug) {
+    currentSpecId     = specId;
+    currentHourlyRate = hourlyRate;
+    currentFixedRate  = fixedRate;
+    document.getElementById('selected-spec').value    = specId;
+    document.getElementById('current-category').value = categorySlug;
+
+    // Highlight selected
+    document.querySelectorAll('.spec-option').forEach(el => el.classList.remove('selected'));
+    const lbl = document.getElementById('spec-label-' + specId);
+    if (lbl) lbl.classList.add('selected');
+
+    // Auto-select best rate type
+    if (fixedRate) {
+        document.getElementById('rate-type').value = 'fixed';
+        document.getElementById('amount-input').value = fixedRate;
+    } else if (hourlyRate) {
+        document.getElementById('rate-type').value = 'hourly';
+        document.getElementById('amount-input').value = hourlyRate;
+        document.getElementById('rate-per-hour').textContent = 'RM' + hourlyRate;
+    }
+    onRateTypeChange();
+    recalculate();
+}
+
+function setRateType(type, rate) {
+    document.getElementById('rate-type').value = type;
+    if (type === 'hourly') {
+        currentHourlyRate = rate;
+        document.getElementById('rate-per-hour').textContent = 'RM' + rate;
+        const hrs = parseFloat(document.getElementById('hours-input').value) || 1;
+        document.getElementById('amount-input').value = (rate * hrs).toFixed(2);
+    } else {
+        currentFixedRate = rate;
+        document.getElementById('amount-input').value = rate;
+    }
+    onRateTypeChange();
+    recalculate();
+}
+
+function onRateTypeChange() {
+    const isHourly = document.getElementById('rate-type').value === 'hourly';
+    document.getElementById('hours-group').style.display = isHourly ? 'block' : 'none';
+    if (isHourly && currentHourlyRate) {
+        document.getElementById('rate-per-hour').textContent = 'RM' + currentHourlyRate;
+        const hrs = parseFloat(document.getElementById('hours-input').value) || 1;
+        document.getElementById('amount-input').value = (currentHourlyRate * hrs).toFixed(2);
+    }
+    recalculate();
+}
+
+function recalculate() {
+    const rateType = document.getElementById('rate-type').value;
+    let amount = 0;
+    if (rateType === 'hourly' && currentHourlyRate) {
+        const hrs = parseFloat(document.getElementById('hours-input').value) || 1;
+        amount = currentHourlyRate * hrs;
+        document.getElementById('amount-input').value = amount.toFixed(2);
+    } else {
+        amount = parseFloat(document.getElementById('amount-input').value) || 0;
+    }
+
+    if (amount <= 0) {
+        ['summary-amount', 'summary-fee', 'summary-net', 'summary-total'].forEach(id => {
+            document.getElementById(id).textContent = 'RM —';
+        });
+        return;
+    }
+
+    const fee = amount <= 500 ? amount * 0.15 : (amount <= 2000 ? amount * 0.10 : amount * 0.05);
+    const net = amount - fee;
+
+    document.getElementById('summary-amount').textContent = 'RM ' + amount.toFixed(2);
+    document.getElementById('summary-fee').textContent    = '- RM ' + fee.toFixed(2);
+    document.getElementById('summary-net').textContent    = 'RM ' + net.toFixed(2);
+    document.getElementById('summary-total').textContent  = 'RM ' + amount.toFixed(2);
+}
+
+async function submitHire() {
+    const title       = document.getElementById('job-title').value.trim();
+    const description = document.getElementById('job-description').value.trim();
+    const amount      = parseFloat(document.getElementById('amount-input').value) || 0;
+    const rateType    = document.getElementById('rate-type').value;
+    const hours       = parseFloat(document.getElementById('hours-input').value) || 1;
+    const deadline    = document.getElementById('job-deadline').value || null;
+    const workerId    = parseInt(document.getElementById('worker-id').value);
+    const specId      = parseInt(document.getElementById('selected-spec').value) || null;
+    const alertArea   = document.getElementById('alert-area');
+
+    alertArea.innerHTML = '';
+
+    if (!title) {
+        alertArea.innerHTML = '<div class="alert-box alert-error">Please enter a job title.</div>';
+        return;
+    }
+    if (!description) {
+        alertArea.innerHTML = '<div class="alert-box alert-error">Please add a job description.</div>';
+        return;
+    }
+    if (amount < 10) {
+        alertArea.innerHTML = '<div class="alert-box alert-error">Minimum budget is RM10.</div>';
+        return;
+    }
+
+    const btn = document.getElementById('hire-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+        const resp = await fetch('/api/hire-direct', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+            body: JSON.stringify({
+                worker_id: workerId,
+                specialization_id: specId,
+                title: title,
+                description: description,
+                amount: amount,
+                rate_type: rateType,
+                hours: hours,
+                deadline: deadline
+            })
+        });
+
+        const data = await resp.json();
+
+        if (resp.ok && data.success) {
+            alertArea.innerHTML = `<div class="alert-box alert-success">
+                ✅ Hired successfully! Redirecting to payment...
+            </div>`;
+            setTimeout(() => { window.location.href = data.payment_url; }, 1500);
+        } else {
+            alertArea.innerHTML = `<div class="alert-box alert-error">${data.error || 'Something went wrong. Please try again.'}</div>`;
+            btn.disabled = false;
+            btn.textContent = 'Confirm & Fund Escrow';
+        }
+    } catch (e) {
+        alertArea.innerHTML = '<div class="alert-box alert-error">Network error. Please try again.</div>';
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Fund Escrow';
+    }
+}
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+</script>
+{% endblock %}

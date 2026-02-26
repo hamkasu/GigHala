@@ -288,7 +288,15 @@
             {% endif %}
 
             {% if user and user.id != profile_user.id %}
-            <button class="message-btn" style="margin-top: 20px;" onclick="startConversation()">Send Message</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                {% if profile_user.user_type in ('freelancer', 'both') and specializations %}
+                <a href="/hire/{{ profile_user.id }}"
+                   style="background: var(--primary); color: white; padding: 10px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-feather="briefcase" style="width:15px;height:15px;"></i> Hire Now
+                </a>
+                {% endif %}
+                <button class="message-btn" onclick="startConversation()">Send Message</button>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -314,19 +322,38 @@
                 {% endfor %}
             </div>
             {% if spec.base_hourly_rate or spec.base_fixed_rate %}
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 13px;">
-                <strong style="color: var(--primary);">Kadar Asas:</strong>
-                {% if spec.base_hourly_rate %}
-                <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 12px; margin-left: 8px;">
-                    RM{{ "%.0f"|format(spec.base_hourly_rate) }}/jam
-                </span>
-                {% endif %}
-                {% if spec.base_fixed_rate %}
-                <span style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-left: 8px;">
-                    RM{{ "%.0f"|format(spec.base_fixed_rate) }}/gig
-                </span>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 13px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <strong style="color: var(--primary);">Kadar Asas:</strong>
+                    {% if spec.base_hourly_rate %}
+                    <span style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 12px; margin-left: 8px;">
+                        RM{{ "%.0f"|format(spec.base_hourly_rate) }}/jam
+                    </span>
+                    {% endif %}
+                    {% if spec.base_fixed_rate %}
+                    <span style="background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-left: 8px;">
+                        RM{{ "%.0f"|format(spec.base_fixed_rate) }}/gig
+                    </span>
+                    {% endif %}
+                </div>
+                {% if user and user.id != profile_user.id %}
+                <a href="/hire/{{ profile_user.id }}?spec={{ spec.id }}"
+                   style="background: var(--primary); color: white; padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; transition: background 0.2s;"
+                   onmouseover="this.style.background='#0a6354'" onmouseout="this.style.background='var(--primary)'">
+                    Hire Now
+                </a>
                 {% endif %}
             </div>
+            {% else %}
+            {% if user and user.id != profile_user.id %}
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); text-align: right;">
+                <a href="/hire/{{ profile_user.id }}?spec={{ spec.id }}"
+                   style="background: var(--primary); color: white; padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; text-decoration: none; transition: background 0.2s;"
+                   onmouseover="this.style.background='#0a6354'" onmouseout="this.style.background='var(--primary)'">
+                    Hire Now
+                </a>
+            </div>
+            {% endif %}
             {% endif %}
         </div>
         {% endfor %}
