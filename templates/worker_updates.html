@@ -192,6 +192,13 @@
         display: flex;
         align-items: center;
         gap: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .update-ribbon:hover {
+        background: #0a6354;
     }
 
     .update-ribbon .dot {
@@ -585,7 +592,7 @@ function buildCard(item) {
     const icon       = CATEGORY_EMOJI[item.category_slug] || '🔧';
 
     return `<div class="update-card">
-  <div class="update-ribbon"><span class="dot"></span>${ribbon}</div>
+  <a href="/settings" class="update-ribbon"><span class="dot"></span>${ribbon}</a>
   <div class="update-card-thumb"><span>${icon}</span></div>
   <div class="update-card-body">
     <div class="update-worker-row">
