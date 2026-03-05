@@ -13092,6 +13092,7 @@ def get_worker_updates():
                 'title': spec.specialization_title or f"{get_category_display_name(category.slug, 'ms')} Servis",
                 'category_name': get_category_display_name(category.slug, 'ms'),
                 'category_id': category.id,
+                'category_slug': category.slug,
                 'category_icon': category.icon,
                 'skills': skills_list[:5],
                 'starting_price': starting_price,

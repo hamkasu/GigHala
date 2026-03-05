@@ -540,6 +540,23 @@ const ICON_MSG = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
 </svg>`;
 
+/* ── category slug → emoji mapping ── */
+const CATEGORY_EMOJI = {
+    'graphic-design': '🎨', 'ui-ux': '📐', 'illustration': '🖼️', 'logo-design': '🏷️',
+    'fashion': '👗', 'interior-design': '🏠', 'content-writing': '✍️', 'translation': '🌐',
+    'proofreading': '✅', 'resume': '📄', 'email-marketing': '📧', 'social-copy': '💬',
+    'video-editing': '🎬', 'animation': '🎞️', 'voiceover': '🎙️', 'podcast': '🎧',
+    'photography': '📷', 'web-development': '💻', 'app-development': '📱',
+    'ecommerce': '🛒', 'digital-marketing': '📈', 'social-media': '📲',
+    'business-consulting': '💼', 'data-analysis': '📊', 'tutoring': '📚',
+    'language-teaching': '🗣️', 'programming': '💻', 'engineering': '⚙️',
+    'virtual-assistant': '📋', 'transcription': '📝', 'data-entry': '💾',
+    'bookkeeping': '💰', 'legal': '⚖️', 'wellness-coaching': '❤️',
+    'personal-styling': '✨', 'pet-services': '🐾', 'home-repair': '🔧',
+    'cleaning': '🧹', 'gardening': '🌿', 'crafts': '🎁', 'music-production': '🎵',
+    'event-planning': '📅', 'tours': '📍', 'general': '🔧'
+};
+
 /* ── card builder ── */
 function buildCard(item) {
     const w          = item.worker || {};
@@ -565,7 +582,7 @@ function buildCard(item) {
         ? `<span class="price-unit">/hr</span>` : '';
     const contactLbl = LANG === 'ms' ? 'Hubungi' : 'Contact';
     const ribbon     = LANG === 'ms' ? 'Kemaskini' : 'Updated';
-    const icon       = esc(item.category_icon || '🔧');
+    const icon       = CATEGORY_EMOJI[item.category_slug] || '🔧';
 
     return `<div class="update-card">
   <div class="update-ribbon"><span class="dot"></span>${ribbon}</div>
