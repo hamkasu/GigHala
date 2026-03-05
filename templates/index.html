@@ -306,7 +306,7 @@
                     featuredCats.forEach(cat => {
                         const a = document.createElement('a');
                         a.className = 'hero-cat-pill';
-                        a.href = '/gigs?category=' + cat.slug;
+                        a.href = '/workers?category=' + cat.slug;
                         a.innerHTML = `<span>${cat.emoji}</span><span>${cat.label}</span>`;
                         pillsContainer.appendChild(a);
                     });
