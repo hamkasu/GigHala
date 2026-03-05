@@ -981,7 +981,8 @@
 
         const category = urlParams.get('category');
         if (category) {
-            document.getElementById('categorySelect').value = category;
+            const matched = allCategories.find(c => c.slug === category);
+            document.getElementById('categorySelect').value = matched ? matched.id : category;
         }
 
         const search = urlParams.get('q');
