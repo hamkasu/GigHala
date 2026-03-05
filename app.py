@@ -3806,11 +3806,11 @@ def worker_updates():
     return render_template('worker_updates.html', user=user, categories=categories, active_page='worker-updates', lang=get_user_language(), t=t)
 
 @app.route('/search')
-@page_login_required
 def search_page():
-    """Search results page"""
-    user_id = session['user_id']
-    user = User.query.get(user_id)
+    """Search results page - accessible without login"""
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
     search_query = request.args.get('q', '')
     return render_template('search_results.html', user=user, search_query=search_query, active_page='search', lang=get_user_language(), t=t)
 
@@ -6711,6 +6711,47 @@ def unified_search():
     except Exception as e:
         app.logger.error(f"Unified search error: {str(e)}")
         return jsonify({'error': 'Failed to perform search'}), 500
+
+@app.route('/api/search/suggestions', methods=['GET'])
+@api_rate_limit(requests_per_minute=120)
+def search_suggestions():
+    """
+    Autocomplete suggestions endpoint.
+    Returns up to 8 suggestions from gig titles and user skills matching the query prefix.
+    """
+    try:
+        q = sanitize_input(request.args.get('q', ''), max_length=100).strip()
+        if not q or len(q) < 2:
+            return jsonify([])
+
+        pattern = f'%{q}%'
+        suggestions = []
+        seen = set()
+
+        # Gig titles
+        gig_titles = db.session.query(Gig.title).filter(
+            Gig.status == 'open',
+            Gig.title.ilike(pattern)
+        ).limit(6).all()
+        for (title,) in gig_titles:
+            key = title.lower()
+            if key not in seen:
+                seen.add(key)
+                suggestions.append({'label': title, 'type': 'gig'})
+
+        # Category names from Category table
+        if len(suggestions) < 8:
+            cats = Category.query.filter(Category.name.ilike(pattern)).limit(4).all()
+            for cat in cats:
+                key = cat.name.lower()
+                if key not in seen:
+                    seen.add(key)
+                    suggestions.append({'label': cat.name, 'type': 'category', 'slug': cat.slug})
+
+        return jsonify(suggestions[:8])
+    except Exception as e:
+        app.logger.error(f"Search suggestions error: {str(e)}")
+        return jsonify([])
 
 @app.route('/api/gigs', methods=['POST'])
 @api_rate_limit(requests_per_minute=30)
