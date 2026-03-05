@@ -976,8 +976,18 @@
     }
 
     // ============ LOAD URL PARAMETERS ============
+    let urlCategorySlug = null;
+
     function loadURLParams() {
         const urlParams = new URLSearchParams(window.location.search);
+
+        const categorySlug = urlParams.get('category_slug');
+        if (categorySlug) {
+            urlCategorySlug = categorySlug;
+            // Also try to set the select if this slug happens to be a main category
+            const matched = allCategories.find(c => c.slug === categorySlug);
+            if (matched) document.getElementById('categorySelect').value = matched.id;
+        }
 
         const category = urlParams.get('category');
         if (category) {
@@ -1018,6 +1028,9 @@
 
             const category = document.getElementById('categorySelect').value;
             if (category) params.append('category_id', category);
+
+            // If a specific category slug was passed via URL, use it for precise matching
+            if (urlCategorySlug && !category) params.append('category_slug', urlCategorySlug);
 
             const rateMin = document.getElementById('rateMin').value;
             if (rateMin) params.append('min_rate', rateMin);

@@ -12782,6 +12782,7 @@ def search_specialized_workers():
     try:
         search_query = request.args.get('q', '').strip()
         category_id = request.args.get('category_id', type=int)
+        category_slug = request.args.get('category_slug', '').strip()
         skill = request.args.get('skill', '').strip()
         min_rate = request.args.get('min_rate', type=float)
         max_rate = request.args.get('max_rate', type=float)
@@ -12817,6 +12818,17 @@ def search_specialized_workers():
         # Filter by category
         if category_id:
             query = query.filter(WorkerSpecialization.category_id == category_id)
+        elif category_slug:
+            # Resolve slug to category IDs — match exact slug and sub-categories containing the slug
+            matched_cats = Category.query.filter(
+                db.or_(
+                    Category.slug == category_slug,
+                    Category.slug.ilike(f'%{category_slug}%')
+                )
+            ).all()
+            if matched_cats:
+                matched_ids = [c.id for c in matched_cats]
+                query = query.filter(WorkerSpecialization.category_id.in_(matched_ids))
 
         # Filter by skill (search within JSON skills array)
         if skill:
