@@ -1118,6 +1118,23 @@ document.addEventListener('DOMContentLoaded', function() {
         'general': ['Khidmat Am', 'Pemasangan', 'Pembersihan', 'Penghantaran', 'Pemindahan', 'Bantuan Acara', 'Kerja Manual', 'Pengangkutan', 'Susun Atur', 'Kerja Pejabat']
     };
 
+    // Category slug → emoji mapping (Feather icon names are not suitable for display)
+    const CATEGORY_EMOJI = {
+        'graphic-design': '🎨', 'ui-ux': '📐', 'illustration': '🖼️', 'logo-design': '🏷️',
+        'fashion': '👗', 'interior-design': '🏠', 'content-writing': '✍️', 'translation': '🌐',
+        'proofreading': '✅', 'resume': '📄', 'email-marketing': '📧', 'social-copy': '💬',
+        'video-editing': '🎬', 'animation': '🎞️', 'voiceover': '🎙️', 'podcast': '🎧',
+        'photography': '📷', 'web-development': '💻', 'app-development': '📱',
+        'ecommerce': '🛒', 'digital-marketing': '📈', 'social-media': '📲',
+        'business-consulting': '💼', 'data-analysis': '📊', 'tutoring': '📚',
+        'language-teaching': '🗣️', 'programming': '💻', 'engineering': '⚙️',
+        'virtual-assistant': '📋', 'transcription': '📝', 'data-entry': '💾',
+        'bookkeeping': '💰', 'legal': '⚖️', 'wellness-coaching': '❤️',
+        'personal-styling': '✨', 'pet-services': '🐾', 'home-repair': '🔧',
+        'cleaning': '🧹', 'gardening': '🌿', 'crafts': '🎁', 'music-production': '🎵',
+        'event-planning': '📅', 'tours': '📍', 'general': '🔧'
+    };
+
     // Load existing specializations
     function loadSpecializations() {
         fetch('/api/specializations')
@@ -1174,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="specialization-card">
                 <div class="specialization-header">
                     <div class="specialization-title">
-                        <i data-feather="${spec.category_icon || 'clipboard'}" style="width: 20px; height: 20px;"></i>
+                        <span style="font-size: 20px;">${CATEGORY_EMOJI[spec.category_slug] || '🔧'}</span>
                         <span>${spec.category_name}</span>
                     </div>
                     <div style="display: flex; gap: 8px;">
@@ -1238,8 +1255,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentSkills = [...skills];
 
         document.getElementById('modal-category-name').textContent = categoryName;
-        // Use Feather icon in modal header
-        document.getElementById('modal-category-icon').innerHTML = `<i data-feather="${categoryIcon || 'clipboard'}" style="width: 24px; height: 24px;"></i>`;
+        document.getElementById('modal-category-icon').textContent = CATEGORY_EMOJI[categorySlug] || '🔧';
         document.getElementById('skill-input').value = '';
 
         // Set rate fields
