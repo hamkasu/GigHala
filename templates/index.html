@@ -246,9 +246,7 @@
                     <ul id="heroSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border-radius:0 0 8px 8px; box-shadow:0 8px 24px rgba(0,0,0,0.15); margin:0; padding:4px 0; list-style:none; z-index:999; max-height:320px; overflow-y:auto;"></ul>
                 </div>
 
-                <!-- Category pills -->
-                <div id="heroCategoryPills" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; min-height:36px;"></div>
-
+                <!-- Category pills removed -->
 
                 <style>
                     #heroSuggestions li {
@@ -267,49 +265,14 @@
                     #heroSuggestions li .sug-icon { font-size: 14px; color: #0D7C66; }
                     #heroSuggestions li .sug-label { flex: 1; }
                     #heroSuggestions li .sug-type { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
-                    .hero-cat-pill {
-                        display: inline-flex; align-items: center; gap: 6px;
-                        background: rgba(255,255,255,0.15);
-                        border: 1px solid rgba(255,255,255,0.5);
-                        color: white;
-                        padding: 6px 14px;
-                        border-radius: 50px;
-                        font-size: 13px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        text-decoration: none;
-                        transition: background 0.2s, border-color 0.2s;
-                        white-space: nowrap;
-                    }
-                    .hero-cat-pill:hover {
-                        background: rgba(255,255,255,0.28);
-                        border-color: white;
-                    }
                 </style>
                 <script>
                 (function() {
                     const input = document.getElementById('heroSearchInput');
                     const dropdown = document.getElementById('heroSuggestions');
-                    const pillsContainer = document.getElementById('heroCategoryPills');
                     let debounceTimer = null;
                     let activeIndex = -1;
                     let currentSuggestions = [];
-
-                    // Featured category pills (static, shown immediately)
-                    const featuredCats = [
-                        { emoji: '💻', label: 'Pembangunan Web', slug: 'web-development' },
-                        { emoji: '🎨', label: 'Reka Bentuk Grafik', slug: 'graphic-design' },
-                        { emoji: '🎬', label: 'Penyuntingan Video', slug: 'video-editing' },
-                        { emoji: '✍️', label: 'Penulisan Kandungan', slug: 'content-writing' },
-                        { emoji: '📈', label: 'Pemasaran Digital', slug: 'digital-marketing' },
-                    ];
-                    featuredCats.forEach(cat => {
-                        const a = document.createElement('a');
-                        a.className = 'hero-cat-pill';
-                        a.href = '/workers?category_slug=' + cat.slug;
-                        a.innerHTML = `<span>${cat.emoji}</span><span>${cat.label}</span>`;
-                        pillsContainer.appendChild(a);
-                    });
 
                     function showDropdown(items) {
                         currentSuggestions = items;
