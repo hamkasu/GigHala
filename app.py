@@ -2507,6 +2507,8 @@ class User(UserMixin, db.Model):
     socso_portal_reference_number = db.Column(db.String(50))  # Reference number from SOCSO portal (if any)
     # Profile photo
     profile_photo = db.Column(db.String(255))  # Filename of uploaded profile photo
+    # External portfolio URL
+    portfolio_url = db.Column(db.String(500))  # Link to external portfolio website
 
     @property
     def profile_picture(self):
@@ -4983,6 +4985,10 @@ def update_profile_settings():
         user.user_type = request.form.get('user_type', 'freelancer')
         user.language = request.form.get('language', 'ms')
         user.bio = request.form.get('bio', '').strip()
+        portfolio_url = request.form.get('portfolio_url', '').strip()
+        if portfolio_url and not portfolio_url.startswith(('http://', 'https://')):
+            portfolio_url = 'https://' + portfolio_url
+        user.portfolio_url = portfolio_url or None
 
         ic_number = request.form.get('ic_number', '').strip()
         if ic_number:

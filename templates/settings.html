@@ -688,6 +688,12 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label">URL Portfolio Peribadi</label>
+                <input type="url" name="portfolio_url" class="form-input" value="{{ user.portfolio_url or '' }}" placeholder="https://contoh.com/portfolio">
+                <p class="form-hint">Pautan ke laman portfolio atau profil profesional anda (contoh: LinkedIn, GitHub, laman web peribadi).</p>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">No. Kad Pengenalan (IC)</label>
                 <input type="text" name="ic_number" class="form-input" value="{{ user.ic_number or '' }}" placeholder="Contoh: 901234567890" maxlength="12" pattern="[0-9]{12}">
                 <p class="form-hint">12 digit tanpa sengkang (-). Diperlukan untuk pengesahan identiti.</p>
