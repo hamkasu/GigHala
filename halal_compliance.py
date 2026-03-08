@@ -35,6 +35,14 @@ HALAL_APPROVED_CATEGORIES = [
         'icon': '🎨'
     },
     {
+        'slug': 'video',
+        'name_en': 'Video & Animation',
+        'name_ms': 'Video & Animasi',
+        'description_en': 'Video editing, animation, motion graphics (halal content only)',
+        'description_ms': 'Penyuntingan video, animasi, grafik bergerak (kandungan halal sahaja)',
+        'icon': '🎬'
+    },
+    {
         'slug': 'writing',
         'name_en': 'Writing & Translation',
         'name_ms': 'Penulisan & Terjemahan',
@@ -43,12 +51,20 @@ HALAL_APPROVED_CATEGORIES = [
         'icon': '✍️'
     },
     {
-        'slug': 'video',
-        'name_en': 'Video & Animation',
-        'name_ms': 'Video & Animasi',
-        'description_en': 'Video editing, animation, motion graphics (halal content only)',
-        'description_ms': 'Penyuntingan video, animasi, grafik bergerak (kandungan halal sahaja)',
-        'icon': '🎬'
+        'slug': 'web',
+        'name_en': 'Web Development',
+        'name_ms': 'Pembangunan Web',
+        'description_en': 'Website development, web apps (halal businesses only)',
+        'description_ms': 'Pembangunan laman web, aplikasi web (perniagaan halal sahaja)',
+        'icon': '💻'
+    },
+    {
+        'slug': 'ai-services',
+        'name_en': 'AI Services',
+        'name_ms': 'Perkhidmatan AI',
+        'description_en': 'AI content creation, automation, chatbots (halal purposes only)',
+        'description_ms': 'Penciptaan kandungan AI, automasi, chatbot (tujuan halal sahaja)',
+        'icon': '🤖'
     },
     {
         'slug': 'tutoring',
@@ -65,14 +81,6 @@ HALAL_APPROVED_CATEGORIES = [
         'description_en': 'Social media content, blog posts, newsletters (halal topics only)',
         'description_ms': 'Kandungan media sosial, catatan blog, surat berita (topik halal sahaja)',
         'icon': '📱'
-    },
-    {
-        'slug': 'web',
-        'name_en': 'Web Development',
-        'name_ms': 'Pembangunan Web',
-        'description_en': 'Website development, web apps (halal businesses only)',
-        'description_ms': 'Pembangunan laman web, aplikasi web (perniagaan halal sahaja)',
-        'icon': '💻'
     },
     {
         'slug': 'programming',

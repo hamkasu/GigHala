@@ -12,10 +12,12 @@ const app = {
     
     // Category name translations (English -> Malay)
     categoryTranslations: {
-        'Design & Creative': 'Reka Bentuk & Kreatif',
-        'Writing & Translation': 'Penulisan & Terjemahan',
+        'Graphic Design': 'Reka Bentuk Grafik',
         'Video & Animation': 'Video & Animasi',
+        'Writing & Translation': 'Penulisan & Terjemahan',
         'Web Development': 'Pembangunan Web',
+        'AI Services': 'Perkhidmatan AI',
+        'Design & Creative': 'Reka Bentuk & Kreatif',
         'Digital Marketing': 'Pemasaran Digital',
         'Tutoring & Education': 'Tunjuk Ajar & Pendidikan',
         'Content Creation': 'Penciptaan Kandungan',

@@ -102,8 +102,8 @@ PROCESSING_FEE_FIXED = 1.00
 
 # Main categories to show in category pickers (excludes detailed subcategories)
 MAIN_CATEGORY_SLUGS = [
-    'design', 'writing', 'video', 'tutoring', 'content', 'web',
-    'marketing', 'admin', 'general', 'programming', 'consulting',
+    'design', 'video', 'writing', 'web', 'ai-services',
+    'tutoring', 'content', 'marketing', 'admin', 'general', 'programming', 'consulting',
     'engineering', 'music', 'photography', 'finance', 'crafts',
     'garden', 'coaching', 'data', 'pets', 'handyman', 'tours',
     'events', 'online-selling', 'virtual-assistant', 'delivery',
@@ -796,12 +796,13 @@ TRANSLATIONS = {
         'cat_creative_other': 'Lain-lain Kreatif',
 
         # Category Translations (for API)
-        'category_design': 'Reka Bentuk',
-        'category_writing': 'Penulisan & Terjemahan',
+        'category_design': 'Reka Bentuk Grafik',
         'category_video': 'Video & Animasi',
+        'category_writing': 'Penulisan & Terjemahan',
+        'category_web': 'Pembangunan Web',
+        'category_ai-services': 'Perkhidmatan AI',
         'category_tutoring': 'Tunjuk Ajar & Pendidikan',
         'category_content': 'Penciptaan Kandungan',
-        'category_web': 'Pembangunan Web',
         'category_marketing': 'Pemasaran Digital',
         'category_admin': 'Pentadbiran & Pembantu Maya',
         'category_general': 'Kerja Am',
