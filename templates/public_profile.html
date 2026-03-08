@@ -287,6 +287,15 @@
             <p class="profile-bio">{{ profile_user.bio }}</p>
             {% endif %}
 
+            {% if profile_user.portfolio_url %}
+            <div style="margin-top: 12px;">
+                <a href="{{ profile_user.portfolio_url }}" target="_blank" rel="noopener noreferrer"
+                   style="display: inline-flex; align-items: center; gap: 6px; color: var(--primary); font-size: 14px; font-weight: 500; text-decoration: none;">
+                    <i data-feather="external-link" style="width:15px;height:15px;"></i> Lihat Portfolio
+                </a>
+            </div>
+            {% endif %}
+
             {% if user and user.id != profile_user.id %}
             <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
                 {% if profile_user.user_type in ('freelancer', 'both') and specializations %}
