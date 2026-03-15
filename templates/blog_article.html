@@ -1,0 +1,503 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} | Blog GigHala{% endblock %}
+
+{% block meta_description %}{{ article.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ article.meta_keywords }}{% endblock %}
+
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ article.title }}{% endblock %}
+{% block og_description %}{{ article.meta_description }}{% endblock %}
+
+{% block canonical_url %}https://gighala.my/blog/{{ article.slug }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .article-layout {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 48px;
+        align-items: start;
+    }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+        font-size: 13px;
+        color: var(--text-light);
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .breadcrumb a {
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span { color: var(--text-light); }
+
+    /* ── Article Header ── */
+    .article-header {
+        margin-bottom: 36px;
+    }
+
+    .article-category-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(0, 200, 83, 0.12);
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .article-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        line-height: 1.25;
+        margin-bottom: 14px;
+    }
+
+    .article-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-gray);
+        line-height: 1.65;
+        margin-bottom: 20px;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: var(--text-light);
+        padding: 16px 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .article-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* ── Article Body ── */
+    .article-body .content-section {
+        background: white;
+        border-radius: 16px;
+        padding: 36px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+    }
+
+    .article-body .content-section h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-icon {
+        font-size: 1.3rem;
+    }
+
+    .article-body .content-section p {
+        color: var(--text-gray);
+        line-height: 1.8;
+        margin-bottom: 14px;
+    }
+
+    .article-body .content-section ul,
+    .article-body .content-section ol {
+        color: var(--text-gray);
+        line-height: 1.8;
+        padding-left: 22px;
+        margin-bottom: 14px;
+    }
+
+    .article-body .content-section li {
+        margin-bottom: 6px;
+    }
+
+    .article-body .content-section table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .article-body .content-section th {
+        background: var(--bg-light);
+        font-weight: 700;
+    }
+
+    .article-body .highlight-box {
+        background: linear-gradient(135deg, rgba(0,200,83,0.08) 0%, rgba(0,168,68,0.04) 100%);
+        border-left: 4px solid var(--primary);
+        padding: 18px 22px;
+        border-radius: 0 10px 10px 0;
+        margin: 20px 0;
+    }
+
+    .article-body .highlight-box p {
+        margin: 0;
+        color: var(--text-dark) !important;
+    }
+
+    /* Step list */
+    .article-body .step-list { counter-reset: step-counter; }
+
+    .article-body .step-item {
+        display: flex;
+        gap: 18px;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .article-body .step-item:last-child { border-bottom: none; }
+
+    .article-body .step-number {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .article-body .step-content h4 {
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text-dark);
+    }
+
+    .article-body .step-content p { margin: 0; }
+
+    /* ── Sidebar ── */
+    .article-sidebar {
+        position: sticky;
+        top: 80px;
+    }
+
+    .sidebar-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+    }
+
+    .sidebar-card h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-cta {
+        background: linear-gradient(135deg, #00C853 0%, #00A844 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 28px 24px;
+        text-align: center;
+    }
+
+    .sidebar-cta h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: white;
+        border: none;
+        padding: 0;
+    }
+
+    .sidebar-cta p {
+        font-size: 13px;
+        opacity: 0.9;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .sidebar-cta a {
+        display: block;
+        background: white;
+        color: var(--primary);
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .sidebar-cta a:hover {
+        background: var(--bg-light);
+        transform: translateY(-1px);
+    }
+
+    /* Related articles in sidebar */
+    .related-article-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.15s;
+    }
+
+    .related-article-item:last-child { border-bottom: none; }
+
+    .related-article-item:hover .related-article-title {
+        color: var(--primary);
+    }
+
+    .related-article-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        background: linear-gradient(135deg, #00C853, #00A844);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .related-article-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-dark);
+        line-height: 1.4;
+        transition: color 0.15s;
+    }
+
+    .related-article-time {
+        font-size: 11px;
+        color: var(--text-light);
+        margin-top: 3px;
+    }
+
+    /* ── Share section ── */
+    .share-section {
+        background: white;
+        border-radius: 16px;
+        padding: 28px 36px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .share-section p {
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 15px;
+        margin: 0;
+    }
+
+    .share-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .share-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .share-btn-whatsapp { background: #25D366; color: white; }
+    .share-btn-whatsapp:hover { background: #20BA5A; }
+    .share-btn-facebook { background: #1877F2; color: white; }
+    .share-btn-facebook:hover { background: #1565D8; }
+    .share-btn-x { background: #000; color: white; }
+    .share-btn-x:hover { background: #333; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+        .article-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .article-sidebar {
+            position: static;
+        }
+
+        .article-title {
+            font-size: 1.6rem;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .article-body .content-section {
+            padding: 20px;
+        }
+
+        .share-section {
+            padding: 20px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="article-layout">
+
+    <!-- ── Main Content ── -->
+    <main>
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb">
+            <a href="/">Laman Utama</a>
+            <span>›</span>
+            <a href="/blog">Blog</a>
+            <span>›</span>
+            <span>{{ article.category }}</span>
+        </nav>
+
+        <!-- Article Header -->
+        <header class="article-header">
+            <div class="article-category-tag">
+                {{ article.icon }} {{ article.category }}
+            </div>
+            <h1 class="article-title">{{ article.title }}</h1>
+            <p class="article-subtitle">{{ article.subtitle }}</p>
+            <div class="article-meta">
+                <div class="article-meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {{ article.published_date }}
+                </div>
+                <div class="article-meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                    {{ article.read_time }} minit membaca
+                </div>
+                <div class="article-meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    GigHala Editorial
+                </div>
+            </div>
+        </header>
+
+        <!-- Article Body -->
+        <article class="article-body">
+            {{ article.content | safe }}
+        </article>
+
+        <!-- Share Section -->
+        <div class="share-section">
+            <p>Kongsi artikel ini:</p>
+            <div class="share-buttons">
+                <a href="https://wa.me/?text={{ article.title | urlencode }}%20https%3A//gighala.my/blog/{{ article.slug }}"
+                   target="_blank" rel="noopener" class="share-btn share-btn-whatsapp">
+                    📱 WhatsApp
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//gighala.my/blog/{{ article.slug }}"
+                   target="_blank" rel="noopener" class="share-btn share-btn-facebook">
+                    Facebook
+                </a>
+                <a href="https://twitter.com/intent/tweet?text={{ article.title | urlencode }}&url=https%3A//gighala.my/blog/{{ article.slug }}"
+                   target="_blank" rel="noopener" class="share-btn share-btn-x">
+                    X / Twitter
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- ── Sidebar ── -->
+    <aside class="article-sidebar">
+
+        <!-- CTA -->
+        <div class="sidebar-cta">
+            <h3>Sedia Mulakan Freelance?</h3>
+            <p>Daftar GigHala percuma dan akses peluang gig halal dengan bayaran segera 24 jam.</p>
+            <a href="/register">Daftar Sekarang — Percuma</a>
+        </div>
+
+        <!-- Related Articles -->
+        {% if related %}
+        <div class="sidebar-card">
+            <h3>Artikel Berkaitan</h3>
+            {% for rel in related %}
+            <a href="/blog/{{ rel.slug }}" class="related-article-item">
+                <div class="related-article-icon">{{ rel.icon }}</div>
+                <div>
+                    <div class="related-article-title">{{ rel.title }}</div>
+                    <div class="related-article-time">{{ rel.read_time }} min baca</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Quick Facts -->
+        <div class="sidebar-card">
+            <h3>Kenapa GigHala?</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-gray); display: flex; gap: 8px; align-items: flex-start;">
+                    <span style="color: var(--primary); font-weight: 700; flex-shrink:0;">✓</span>
+                    Platform gig halal #1 Malaysia
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-gray); display: flex; gap: 8px; align-items: flex-start;">
+                    <span style="color: var(--primary); font-weight: 700; flex-shrink:0;">✓</span>
+                    Bayaran escrow selamat
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-gray); display: flex; gap: 8px; align-items: flex-start;">
+                    <span style="color: var(--primary); font-weight: 700; flex-shrink:0;">✓</span>
+                    Bayaran segera dalam 24 jam
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-gray); display: flex; gap: 8px; align-items: flex-start;">
+                    <span style="color: var(--primary); font-weight: 700; flex-shrink:0;">✓</span>
+                    Padanan gig AI dua kali sehari
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-gray); display: flex; gap: 8px; align-items: flex-start;">
+                    <span style="color: var(--primary); font-weight: 700; flex-shrink:0;">✓</span>
+                    Perlindungan SOCSO bersepadu
+                </li>
+                <li style="padding: 8px 0; font-size: 13px; color: var(--text-gray); display: flex; gap: 8px; align-items: flex-start;">
+                    <span style="color: var(--primary); font-weight: 700; flex-shrink:0;">✓</span>
+                    Harga dalam Ringgit Malaysia
+                </li>
+            </ul>
+        </div>
+
+    </aside>
+</div>
+{% endblock %}

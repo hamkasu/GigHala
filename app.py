@@ -13329,6 +13329,23 @@ def about():
     """Serve the About Us page"""
     return render_template('about.html', lang=get_user_language(), t=t)
 
+@app.route('/blog')
+def blog():
+    """Blog listing page — SEO-optimised content hub"""
+    from blog_data import get_all_articles
+    articles = get_all_articles()
+    return render_template('blog.html', articles=articles, lang=get_user_language(), t=t)
+
+@app.route('/blog/<slug>')
+def blog_article(slug):
+    """Individual blog article page"""
+    from blog_data import get_article_by_slug, get_recent_articles
+    article = get_article_by_slug(slug)
+    if not article:
+        return render_template('error.html', error_code=404, error_message='Artikel tidak dijumpai.', lang=get_user_language(), t=t), 404
+    related = get_recent_articles(limit=3, exclude_slug=slug)
+    return render_template('blog_article.html', article=article, related=related, lang=get_user_language(), t=t)
+
 @app.route('/api/admin/analytics')
 def get_admin_analytics():
     """Get visitor analytics for admin panel"""

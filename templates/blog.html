@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Blog GigHala — Panduan Freelance & Gig Halal Malaysia{% endblock %}
+
+{% block meta_description %}Baca artikel terkini tentang kerja freelance Malaysia, platform gig halal, SOCSO pekerja gig, dan cara mulakan kerjaya freelance di Malaysia.{% endblock %}
+
+{% block meta_keywords %}blog freelance Malaysia, artikel gig halal, panduan SOCSO pekerja gig, cara freelance Malaysia, tips kerja sambilan halal{% endblock %}
+
+{% block og_title %}Blog GigHala — Panduan Freelance & Gig Halal Malaysia{% endblock %}
+{% block og_description %}Artikel, panduan, dan tips terkini untuk pekerja gig dan freelancer Muslim Malaysia.{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .blog-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 24px 80px;
+    }
+
+    .blog-hero {
+        text-align: center;
+        margin-bottom: 56px;
+    }
+
+    .blog-hero-tag {
+        display: inline-block;
+        background: rgba(0, 200, 83, 0.12);
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 16px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .blog-hero h1 {
+        font-size: 2.6rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+        line-height: 1.2;
+    }
+
+    .blog-hero p {
+        font-size: 1.1rem;
+        color: var(--text-gray);
+        max-width: 620px;
+        margin: 0 auto;
+        line-height: 1.7;
+    }
+
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 28px;
+    }
+
+    .blog-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid var(--border);
+    }
+
+    .blog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+        border-color: var(--primary);
+    }
+
+    .blog-card-banner {
+        height: 160px;
+        background: linear-gradient(135deg, #00C853 0%, #00A844 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 64px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .blog-card-banner::after {
+        content: '';
+        position: absolute;
+        bottom: -20px;
+        right: -20px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+    }
+
+    .blog-card-body {
+        padding: 24px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .blog-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .blog-category-tag {
+        background: rgba(0, 200, 83, 0.1);
+        color: var(--primary);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .blog-read-time {
+        font-size: 12px;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .blog-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+
+    .blog-card-excerpt {
+        font-size: 14px;
+        color: var(--text-gray);
+        line-height: 1.65;
+        flex: 1;
+        margin-bottom: 20px;
+    }
+
+    .blog-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .blog-card-date {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .blog-read-link {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .blog-cta-banner {
+        margin-top: 64px;
+        background: linear-gradient(135deg, #00C853 0%, #00A844 100%);
+        border-radius: 20px;
+        padding: 48px 40px;
+        text-align: center;
+        color: white;
+    }
+
+    .blog-cta-banner h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .blog-cta-banner p {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 28px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .blog-cta-btn {
+        display: inline-block;
+        background: white;
+        color: var(--primary);
+        padding: 14px 36px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .blog-cta-btn:hover {
+        background: var(--bg-light);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .blog-hero h1 {
+            font-size: 1.8rem;
+        }
+
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .blog-cta-banner {
+            padding: 32px 20px;
+        }
+
+        .blog-cta-banner h2 {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-page">
+
+    <!-- Hero -->
+    <div class="blog-hero">
+        <span class="blog-hero-tag">📚 Blog & Panduan</span>
+        <h1>Panduan Freelance &amp; Gig Halal Malaysia</h1>
+        <p>Artikel, tips, dan panduan terkini untuk pekerja gig dan freelancer Muslim Malaysia — dari cara bermula hingga memaksimumkan pendapatan anda.</p>
+    </div>
+
+    <!-- Article Grid -->
+    <div class="blog-grid">
+        {% for article in articles %}
+        <a href="/blog/{{ article.slug }}" class="blog-card">
+            <div class="blog-card-banner">
+                {{ article.icon }}
+            </div>
+            <div class="blog-card-body">
+                <div class="blog-card-meta">
+                    <span class="blog-category-tag">{{ article.category }}</span>
+                    <span class="blog-read-time">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                        {{ article.read_time }} min baca
+                    </span>
+                </div>
+                <div class="blog-card-title">{{ article.title }}</div>
+                <div class="blog-card-excerpt">{{ article.excerpt }}</div>
+                <div class="blog-card-footer">
+                    <span class="blog-card-date">{{ article.published_date }}</span>
+                    <span class="blog-read-link">Baca artikel <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="blog-cta-banner">
+        <h2>Sedia Mulakan Perjalanan Freelance Anda?</h2>
+        <p>Daftar GigHala percuma hari ini dan akses peluang gig halal terbaik di Malaysia — dengan bayaran segera 24 jam dan perlindungan SOCSO.</p>
+        <a href="/register" class="blog-cta-btn">Daftar Percuma Sekarang →</a>
+    </div>
+
+</div>
+{% endblock %}
