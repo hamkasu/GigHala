@@ -796,6 +796,710 @@ BLOG_ARTICLES = [
 </div>
 """
     },
+
+    # ════════════════════════════════════════════════
+    # CLIENT-SIDE ARTICLES
+    # ════════════════════════════════════════════════
+
+    {
+        "slug": "cara-hire-freelancer-malaysia",
+        "title": "Cara Hire Freelancer di Malaysia 2025: Panduan Lengkap untuk Majikan & PKS",
+        "subtitle": "Dari tulis brief hingga bayaran selamat — ikut panduan ini untuk dapatkan freelancer terbaik tanpa risiko.",
+        "meta_description": "Panduan lengkap cara hire freelancer di Malaysia 2025. Ketahui cara tulis brief, semak portfolio, tetapkan harga, dan lindungi wang anda dengan escrow.",
+        "meta_keywords": "cara hire freelancer Malaysia, ambil freelancer Malaysia, platform hire freelancer Malaysia, cari freelancer PKS Malaysia, outsource kerja Malaysia",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 7,
+        "published_date": "2025-03-15",
+        "icon": "🤝",
+        "excerpt": "Nak outsource kerja tapi tak tahu macam mana nak mula? Panduan ini tunjukkan cara hire freelancer yang betul — dari tulis brief yang jelas hingga pastikan kerja siap dengan kualiti yang diharapkan.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">💡</span> Kenapa Hire Freelancer Lebih Bijak daripada Ambil Pekerja Tetap?</h2>
+    <p>Sebagai pemilik PKS atau majikan, anda tidak sentiasa perlukan pekerja sepenuh masa untuk setiap tugas. Hire freelancer memberikan anda:</p>
+    <ul>
+        <li><strong>Jimat kos</strong> — Tiada gaji tetap, EPF, SOCSO, bonus, atau cuti tahunan yang perlu ditanggung</li>
+        <li><strong>Fleksibiliti</strong> — Ambil kemahiran yang anda perlukan, bila anda perlukan</li>
+        <li><strong>Akses kepada kepakaran khusus</strong> — Dapatkan pakar dalam bidang tertentu tanpa perlu latih dari awal</li>
+        <li><strong>Skala ikut keperluan</strong> — Tambah atau kurangkan tenaga kerja mengikut beban projek</li>
+        <li><strong>Kualiti terjamin</strong> — Freelancer bergantung pada reputasi mereka; mereka akan buat kerja terbaik</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>Fakta menarik:</strong> PKS Malaysia yang menggunakan freelancer untuk projek-projek khusus mampu menjimatkan sehingga 40% berbanding kos pengambilan pekerja tetap untuk tugas yang sama.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">📝</span> Langkah 1: Tulis Brief yang Jelas</h2>
+    <p>Kegagalan paling biasa dalam projek freelance bermula dari brief yang tidak jelas. Freelancer yang baik pun tidak boleh buat kerja yang betul jika mereka tidak faham apa yang anda mahu.</p>
+    <p>Brief yang baik perlu merangkumi:</p>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Skop kerja yang tepat</h4>
+                <p>Huraikan dengan jelas APA yang perlu dibuat. Contoh: "Reka 5 post Instagram untuk bulan April, saiz 1080x1080px, tema Ramadan, warna brand kami hijau dan emas."</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Hasil yang dijangkakan</h4>
+                <p>Nyatakan format, kuantiti, dan standard kualiti. "5 fail JPEG resolusi tinggi + fail Canva yang boleh diedit."</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Tarikh akhir yang realistik</h4>
+                <p>Beri masa yang mencukupi. Kerja berkualiti memerlukan masa. Jika anda perlukan dalam 24 jam, nyatakan ini dari awal dan jangkakan kos lebih tinggi.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h4>Bajet yang jelas</h4>
+                <p>Nyatakan julat bajet anda. Ini menjimatkan masa kedua-dua pihak dan menarik freelancer yang sesuai dengan bajet anda.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h4>Terma semakan</h4>
+                <p>Tetapkan berapa kali pindaan percuma dibenarkan. Ini mengelakkan pertikaian kemudian hari.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🔍</span> Langkah 2: Semak Portfolio dan Ulasan</h2>
+    <p>Jangan ambil freelancer berdasarkan harga sahaja. Semak:</p>
+    <ul>
+        <li><strong>Portfolio</strong> — Adakah kerja mereka sesuai dengan gaya dan standard yang anda perlukan?</li>
+        <li><strong>Ulasan dari klien sebelum</strong> — Cari pola ulasan: adakah mereka sentiasa tepat masa? Adakah komunikasi mereka baik?</li>
+        <li><strong>Kadar penyelesaian</strong> — Freelancer yang sering tinggalkan projek separuh jalan adalah isyarat amaran</li>
+        <li><strong>Pengalaman dalam industri anda</strong> — Freelancer yang pernah buat kerja serupa lebih faham keperluan anda</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>Tip GigHala:</strong> Semua freelancer di GigHala telah melalui pengesahan identiti (IC/MyKad). Anda boleh melihat rekod penyelesaian gig, ulasan, dan portfolio mereka sebelum membuat keputusan.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">💰</span> Langkah 3: Tetapkan Bayaran yang Adil</h2>
+    <p>Harga yang terlalu rendah menarik freelancer berkualiti rendah. Harga yang terlalu tinggi membazir bajet anda. Panduan kadar am untuk Malaysia:</p>
+    <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Jenis Kerja</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Kadar Am (RM)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 12px; border: 1px solid var(--border);">Post media sosial (1 unit)</td><td style="padding: 12px; border: 1px solid var(--border);">RM 30–RM 150</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 12px; border: 1px solid var(--border);">Artikel blog (500–1,000 patah perkataan)</td><td style="padding: 12px; border: 1px solid var(--border);">RM 80–RM 300</td></tr>
+            <tr><td style="padding: 12px; border: 1px solid var(--border);">Reka logo</td><td style="padding: 12px; border: 1px solid var(--border);">RM 200–RM 1,000</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 12px; border: 1px solid var(--border);">Laman web (WordPress, 5 halaman)</td><td style="padding: 12px; border: 1px solid var(--border);">RM 800–RM 3,000</td></tr>
+            <tr><td style="padding: 12px; border: 1px solid var(--border);">Video pendek (1–2 minit, diedit)</td><td style="padding: 12px; border: 1px solid var(--border);">RM 300–RM 1,500</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 12px; border: 1px solid var(--border);">Kempen iklan FB/Google (setup)</td><td style="padding: 12px; border: 1px solid var(--border);">RM 500–RM 2,000</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🔒</span> Langkah 4: Lindungi Wang Anda dengan Escrow</h2>
+    <p>Jangan sesekali bayar penuh di muka kepada freelancer yang anda belum pernah bekerja bersama. Gunakan sistem escrow — wang anda ditahan selamat oleh platform sehingga kerja siap dan anda berpuas hati.</p>
+    <p>GigHala menggunakan sistem escrow automatik:</p>
+    <ul>
+        <li>Wang anda ditahan selamat sebaik gig diterima</li>
+        <li>Freelancer tidak menerima bayaran sehingga anda luluskan kerja</li>
+        <li>Jika berlaku pertikaian, pasukan GigHala akan campur tangan</li>
+        <li>Bayaran dilepaskan kepada freelancer dalam 24 jam selepas kelulusan anda</li>
+    </ul>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Hire Freelancer Sekarang — Bayaran Selamat ✓</a>
+    </div>
+</div>
+"""
+    },
+
+    {
+        "slug": "outsource-kerja-pks-malaysia",
+        "title": "Panduan Outsource Kerja untuk PKS Malaysia: Jimat Kos, Tingkat Produktiviti",
+        "subtitle": "PKS Malaysia yang bijak tidak buat semua kerja sendiri. Inilah cara outsource secara strategik untuk kembangkan perniagaan anda.",
+        "meta_description": "Panduan outsource kerja untuk PKS Malaysia. Ketahui tugas mana perlu dioutsource, cara pilih freelancer, dan platform terbaik untuk PKS Malaysia.",
+        "meta_keywords": "outsource kerja Malaysia PKS, outsource freelancer Malaysia, cara outsource perniagaan kecil Malaysia, hire freelancer PKS Malaysia, platform outsource Malaysia",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 6,
+        "published_date": "2025-03-20",
+        "icon": "🏢",
+        "excerpt": "PKS Malaysia tidak perlu buat semua kerja sendiri. Ketahui tugas mana yang patut dioutsource kepada freelancer — dan cara buat ia dengan selamat dan kos efektif.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">📊</span> Kenapa PKS Malaysia Perlu Outsource?</h2>
+    <p>Malaysia mempunyai lebih 1.1 juta PKS yang menyumbang 38% kepada KDNK negara. Namun, ramai pemilik PKS masih cuba buat semua perkara sendiri — dari akaun hingga pemasaran hingga pentadbiran. Ini adalah kesilapan mahal.</p>
+    <p>Kajian menunjukkan bahawa pemilik PKS yang mengoutsource tugas bukan teras mereka:</p>
+    <ul>
+        <li>Menjimatkan purata <strong>15–20 jam seminggu</strong></li>
+        <li>Mampu fokus pada aktiviti yang menghasilkan pendapatan</li>
+        <li>Berkembang 2x lebih pantas berbanding yang buat semua sendiri</li>
+        <li>Mengurangkan kos kakitangan hingga <strong>40%</strong></li>
+    </ul>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">✅</span> Tugas Mana Patut Dioutsource? (Dan Mana Yang Tidak)</h2>
+    <p><strong>OUTSOURCE tugas-tugas ini:</strong></p>
+    <ul>
+        <li>Reka bentuk grafik dan kandungan visual</li>
+        <li>Penulisan blog, kandungan media sosial, dan copywriting</li>
+        <li>Pembangunan dan penyelenggaraan laman web</li>
+        <li>Pengurusan iklan Facebook, Instagram, Google Ads</li>
+        <li>Kemasukan data dan kerja pentadbiran berulang</li>
+        <li>Terjemahan dokumen dan kandungan</li>
+        <li>Edit video dan produksi kandungan multimedia</li>
+        <li>Sokongan pelanggan dan live chat</li>
+    </ul>
+    <p><strong>JANGAN outsource perkara ini:</strong></p>
+    <ul>
+        <li>Strategi perniagaan teras dan keputusan utama</li>
+        <li>Hubungan dengan pelanggan utama (high-value clients)</li>
+        <li>Maklumat sulit atau data sensitif syarikat</li>
+        <li>Tugas yang memerlukan kehadiran fizikal tetap</li>
+    </ul>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🎯</span> Strategi Outsource yang Berkesan untuk PKS</h2>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Mulakan dengan projek kecil</h4>
+                <p>Jangan terus bagi projek besar kepada freelancer baru. Mula dengan tugasan kecil (RM50–RM200) untuk uji kualiti kerja, komunikasi, dan kebolehpercayaan mereka.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Bina pasukan freelancer tetap</h4>
+                <p>Sebaik anda jumpa freelancer yang bagus, kekalkan hubungan. Freelancer tetap lebih faham brand anda, lebih pantas, dan lebih boleh dipercayai.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Dokumen SOP dengan jelas</h4>
+                <p>Sediakan panduan gaya (brand guidelines), template, dan SOP untuk setiap tugas yang dioutsource. Ini mengurangkan salah faham dan mempercepatkan kerja.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h4>Gunakan platform dengan escrow</h4>
+                <p>Sentiasa gunakan platform yang mempunyai sistem escrow. Wang anda hanya dilepaskan apabila kerja siap mengikut perjanjian — tidak ada risiko kena tipu.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h4>Semak dan beri maklum balas</h4>
+                <p>Jangan biarkan projek berjalan tanpa pemantauan. Semak kemajuan secara berkala dan beri maklum balas yang spesifik dan membina.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">💰</span> Kira ROI Outsource Anda</h2>
+    <p>Sebelum outsource, kira ROI yang dijangkakan:</p>
+    <div class="highlight-box">
+        <p><strong>Contoh:</strong> Jika anda menghabiskan 10 jam seminggu untuk pengurusan media sosial, dan masa anda bernilai RM100/jam — kos anda sebenarnya RM1,000/minggu. Seorang freelancer media sosial berpengalaman boleh dibayar RM800–RM1,500 sebulan. Penjimatan: RM2,500+ sebulan, tambah masa anda bebas untuk fokus pada jualan.</p>
+    </div>
+    <p>GigHala mempunyai lebih 500 freelancer terverifikasi merentasi 29 kategori halal — sedia untuk bantu PKS anda berkembang.</p>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Cari Freelancer untuk Perniagaan Anda →</a>
+    </div>
+</div>
+"""
+    },
+
+    {
+        "slug": "berapa-kos-hire-freelancer-malaysia",
+        "title": "Berapa Kos Hire Freelancer di Malaysia? Panduan Harga 2025",
+        "subtitle": "Panduan harga sebenar untuk setiap jenis perkhidmatan freelance di Malaysia — supaya anda tahu sama ada harga yang ditawarkan berpatutan atau tidak.",
+        "meta_description": "Berapa kos hire freelancer di Malaysia 2025? Semak panduan harga terkini untuk design, web, pemasaran, penulisan dan lebih banyak lagi.",
+        "meta_keywords": "kos hire freelancer Malaysia, harga freelancer Malaysia 2025, berapa bayar freelancer Malaysia, kadar harga perkhidmatan freelance Malaysia",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 5,
+        "published_date": "2025-03-25",
+        "icon": "💵",
+        "excerpt": "Tidak tahu sama ada harga yang diminta freelancer itu munasabah? Panduan harga ini tunjukkan kadar pasaran sebenar untuk setiap jenis perkhidmatan freelance di Malaysia.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">📊</span> Panduan Harga Freelancer Malaysia 2025</h2>
+    <p>Harga freelancer di Malaysia berbeza mengikut pengalaman, kompleksiti kerja, dan kepakaran. Berikut adalah kadar pasaran semasa berdasarkan data platform GigHala:</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🎨</span> Reka Bentuk Grafik</h2>
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Perkhidmatan</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pemula</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Berpengalaman</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pakar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Logo (konsep tunggal)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 80–150</td><td style="padding: 10px; border: 1px solid var(--border);">RM 300–600</td><td style="padding: 10px; border: 1px solid var(--border);">RM 800–2,000</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Post media sosial (1 set 5 keping)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 80–150</td><td style="padding: 10px; border: 1px solid var(--border);">RM 200–400</td><td style="padding: 10px; border: 1px solid var(--border);">RM 500–1,000</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Brosur / Flyer (2 muka)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 50–100</td><td style="padding: 10px; border: 1px solid var(--border);">RM 150–300</td><td style="padding: 10px; border: 1px solid var(--border);">RM 400–800</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Identiti jenama lengkap</td><td style="padding: 10px; border: 1px solid var(--border);">RM 300–500</td><td style="padding: 10px; border: 1px solid var(--border);">RM 800–1,500</td><td style="padding: 10px; border: 1px solid var(--border);">RM 2,000–5,000</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">💻</span> Pembangunan Web & Teknologi</h2>
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Perkhidmatan</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pemula</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Berpengalaman</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pakar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Laman web WordPress (5 halaman)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 500–800</td><td style="padding: 10px; border: 1px solid var(--border);">RM 1,200–2,500</td><td style="padding: 10px; border: 1px solid var(--border);">RM 3,000–8,000</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Kedai Shopify / e-dagang</td><td style="padding: 10px; border: 1px solid var(--border);">RM 800–1,200</td><td style="padding: 10px; border: 1px solid var(--border);">RM 2,000–4,000</td><td style="padding: 10px; border: 1px solid var(--border);">RM 5,000–15,000</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Aplikasi mudah alih (Android/iOS)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 3,000–5,000</td><td style="padding: 10px; border: 1px solid var(--border);">RM 8,000–20,000</td><td style="padding: 10px; border: 1px solid var(--border);">RM 25,000+</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">SEO asas (3 bulan)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 500–800/bln</td><td style="padding: 10px; border: 1px solid var(--border);">RM 1,000–2,000/bln</td><td style="padding: 10px; border: 1px solid var(--border);">RM 3,000+/bln</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">📢</span> Pemasaran Digital</h2>
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Perkhidmatan</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Julat Harga</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Pengurusan media sosial (sebulan)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 500–2,500</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Setup iklan Facebook/Instagram</td><td style="padding: 10px; border: 1px solid var(--border);">RM 500–1,500</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Kempen Google Ads (setup + pengurusan)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 800–3,000/bln</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Penulisan kandungan (per artikel)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 80–400</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Email marketing (setup + hantar)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 300–1,200</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🎬</span> Video & Multimedia</h2>
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Perkhidmatan</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Julat Harga</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Edit video pendek (Reels/TikTok, 30–60 saat)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 80–300</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Video promosi produk (1–2 minit)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 500–2,000</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Animasi explainer (2–3 minit)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 1,500–5,000</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Fotografi produk (satu sesi)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 300–1,200</td></tr>
+        </tbody>
+    </table>
+    <div class="highlight-box">
+        <p><strong>Petua jimat bajet:</strong> Gunakan sistem milestone GigHala — bayar 50% di muka, baki 50% selepas kerja siap. Ini melindungi anda dan memotivasikan freelancer untuk siapkan kerja dengan baik.</p>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/gigs" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Cari Freelancer dalam Bajet Anda →</a>
+    </div>
+</div>
+"""
+    },
+
+    {
+        "slug": "tips-elak-penipuan-hire-freelancer",
+        "title": "7 Tips Elak Ditipu Semasa Hire Freelancer Online di Malaysia",
+        "subtitle": "Kes penipuan freelancer semakin meningkat. Inilah cara melindungi diri dan wang perniagaan anda.",
+        "meta_description": "Cara elak penipuan semasa hire freelancer online Malaysia. 7 tips praktikal untuk majikan dan PKS Malaysia supaya tidak kena tipu oleh freelancer.",
+        "meta_keywords": "elak penipuan freelancer Malaysia, tips hire freelancer selamat Malaysia, freelancer penipu Malaysia, platform freelancer selamat Malaysia, hire freelancer tanpa risiko",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 5,
+        "published_date": "2025-04-01",
+        "icon": "🛡️",
+        "excerpt": "Pernah dengar kisah majikan yang bayar freelancer tapi kerja tak siap? Atau freelancer yang hilang selepas terima duit muka? Inilah 7 cara untuk pastikan ia tidak berlaku kepada anda.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">⚠️</span> Realiti Penipuan Freelancer di Malaysia</h2>
+    <p>Seiring pertumbuhan ekonomi gig Malaysia, kes penipuan dalam platform freelance juga meningkat. Kes-kes biasa yang dilaporkan:</p>
+    <ul>
+        <li>Freelancer terima wang muka kemudian hilang tanpa khabar</li>
+        <li>Hasil kerja yang dihantar jauh berbeza dari portfolio yang ditunjukkan</li>
+        <li>Kerja "siap" tapi freelancer minta bayaran tambahan untuk hantar fail</li>
+        <li>Freelancer gunakan hasil kerja orang lain sebagai portfolio sendiri</li>
+        <li>Identiti palsu — "freelancer" yang sebenarnya tidak wujud</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>Berita baik:</strong> Semua penipuan ini boleh dielakkan dengan langkah-langkah mudah berikut.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🔒</span> 7 Tips Perlindungan yang Wajib Diikuti</h2>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Gunakan platform yang ada sistem escrow</h4>
+                <p>Ini adalah perlindungan utama anda. Dengan escrow, wang anda hanya dilepaskan selepas anda sahkan kerja telah disiapkan mengikut perjanjian. Jangan sesekali bayar terus ke akaun peribadi freelancer untuk projek baru.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Semak pengesahan identiti freelancer</h4>
+                <p>Gunakan platform yang mengesahkan IC/MyKad freelancer mereka. Di GigHala, setiap freelancer perlu mengesahkan identiti sebelum boleh menerima gig berbayar — ini mengurangkan risiko akaun palsu.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Jangan bayar 100% di muka</h4>
+                <p>Untuk projek baru atau freelancer yang belum pernah anda bekerja bersama, gunakan pembayaran milestone — 30–50% di muka, bakinya selepas kerja siap. Ini melindungi anda daripada freelancer yang hilang selepas terima bayaran penuh.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h4>Semak ulasan dan rekod penyelesaian</h4>
+                <p>Freelancer yang baru (sifar ulasan) bukan bermakna tidak boleh dipercayai, tapi beri keutamaan kepada mereka yang mempunyai rekod ulasan positif yang konsisten. Perhatikan pola — adakah mereka sentiasa tepat masa?</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h4>Minta sampel kerja yang relevan</h4>
+                <p>Jangan terima portfolio generik sahaja. Minta contoh kerja yang serupa dengan projek anda. Jika freelancer tidak dapat tunjukkan kerja yang relevan, itu adalah tanda amaran.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">6</div>
+            <div class="step-content">
+                <h4>Simpan semua komunikasi dalam platform</h4>
+                <p>Jangan teruskan komunikasi ke WhatsApp atau emel peribadi untuk perbincangan projek. Simpan semua dalam platform — ini adalah bukti penting jika berlaku pertikaian.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">7</div>
+            <div class="step-content">
+                <h4>Kenali tanda-tanda amaran awal</h4>
+                <p>Berhati-hati dengan freelancer yang: minta bayar di luar platform, terlalu cepat bersetuju tanpa baca brief, tidak tunjukkan portfolio apabila diminta, atau minta bayaran tambahan berulang kali tanpa sebab munasabah.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🏛️</span> Apa yang Perlu Dilakukan Jika Kena Tipu</h2>
+    <p>Jika anda sudah terlanjur mengalami penipuan:</p>
+    <ul>
+        <li><strong>Failkan aduan segera</strong> — melalui platform gig dan lapor kepada PDRM melalui portal e-report</li>
+        <li><strong>Hubungi bank anda</strong> — jika bayar melalui pindahan bank, ada kemungkinan dapat dibekukan jika dilaporkan segera</li>
+        <li><strong>Simpan semua bukti</strong> — tangkap skrin komunikasi, resit bayaran, dan perjanjian</li>
+        <li><strong>Laporkan kepada MCMC</strong> — aduan berkaitan penipuan dalam talian boleh dikemukakan kepada MCMC</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>GigHala melindungi anda.</strong> Sistem escrow kami memastikan wang anda selamat sehingga kerja siap. Pasukan penyelesaian pertikaian kami sedia membantu jika berlaku sebarang masalah.</p>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Hire Freelancer dengan Selamat di GigHala →</a>
+    </div>
+</div>
+"""
+    },
+
+    {
+        "slug": "cara-post-gig-yang-menarik-permohonan",
+        "title": "Cara Post Gig yang Menarik Permohonan Freelancer Terbaik di Malaysia",
+        "subtitle": "Gig yang ditulis dengan baik menarik freelancer terbaik. Gig yang tidak jelas menarik masalah. Inilah cara tulis gig yang betul.",
+        "meta_description": "Cara post gig yang betul untuk menarik freelancer terbaik di Malaysia. Tips menulis deskripsi gig, tetapkan bajet, dan dapatkan permohonan berkualiti.",
+        "meta_keywords": "cara post gig Malaysia, cara tulis deskripsi gig, post kerja freelancer Malaysia, cara dapat freelancer terbaik Malaysia, tips majikan gig Malaysia",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 5,
+        "published_date": "2025-04-08",
+        "icon": "📋",
+        "excerpt": "Ramai majikan pelik kenapa gig mereka tidak dapat permohonan yang bagus. Kebanyakan masanya, masalahnya bukan kekurangan freelancer — tapi cara gig itu ditulis.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">💡</span> Kenapa Penulisan Gig Itu Penting</h2>
+    <p>Bayangkan anda sedang mencari kerja. Anda jumpa dua iklan:</p>
+    <p><strong>Iklan A:</strong> "Perlukan designer. Hubungi segera."</p>
+    <p><strong>Iklan B:</strong> "Cari graphic designer untuk reka 10 post Instagram bertema Raya 2025. Saiz 1080x1080px. Bajet RM300–RM500. Tarikh akhir: 15 April. Pindaan: 2x percuma."</p>
+    <p>Mana satu yang akan menarik freelancer profesional? Jelas sekali Iklan B. Gig yang jelas dan profesional:</p>
+    <ul>
+        <li>Menarik freelancer yang lebih berkualiti</li>
+        <li>Mengurangkan soalan-soalan berulang yang membuang masa</li>
+        <li>Menetapkan jangkaan yang jelas dari awal — mengurangkan pertikaian</li>
+        <li>Mendapat lebih banyak permohonan dari freelancer yang betul-betul sesuai</li>
+    </ul>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">✍️</span> Formula Gig yang Menarik Permohonan Terbaik</h2>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Tajuk yang spesifik</h4>
+                <p>Guna format: [Jenis Kerja] + [Spesifikasi Utama] + [Konteks/Industri]<br>
+                Contoh: "Reka Poster Promosi Ramadan untuk Kedai Online Pakaian Muslim"<br>
+                Bukan: "Perlukan Designer"</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Deskripsi yang merangkumi 5W1H</h4>
+                <p><strong>What:</strong> Apa yang perlu dibuat?<br>
+                <strong>Why:</strong> Untuk tujuan apa?<br>
+                <strong>Who:</strong> Siapa audiens sasaran?<br>
+                <strong>When:</strong> Bila perlu siap?<br>
+                <strong>Where:</strong> Platform/medium mana digunakan?<br>
+                <strong>How:</strong> Format dan spesifikasi teknikal?</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Sertakan contoh atau rujukan</h4>
+                <p>Muat naik gambar, pautan, atau contoh kerja yang anda suka sebagai rujukan. Ini menjimatkan banyak masa komunikasi dan memastikan freelancer faham gaya yang anda mahu.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h4>Nyatakan bajet secara telus</h4>
+                <p>Jangan tulis "bajet fleksibel" atau "boleh negotiate". Nyatakan julat: "Bajet: RM200–RM400". Ini menapis permohonan yang tidak relevan dan menjimatkan masa anda.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h4>Tetapkan tarikh akhir yang realistik</h4>
+                <p>Kerja berkualiti memerlukan masa. Berikan masa sekurang-kurangnya 3–5 hari bekerja untuk projek kecil, dan 1–3 minggu untuk projek sederhana. Projek urgent biasanya mengenakan kadar premium.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">✅</span> Contoh Gig yang Baik vs Tidak Baik</h2>
+    <p><strong>❌ Gig yang tidak berkesan:</strong></p>
+    <div style="background: #fff5f5; border-left: 4px solid #F74040; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;">
+        <p style="margin: 0; color: #666;">"Nak buat video untuk produk saya. Tolong hubungi untuk details. Bayaran berpatutan."</p>
+    </div>
+    <p><strong>✅ Gig yang berkesan:</strong></p>
+    <div style="background: rgba(0,200,83,0.08); border-left: 4px solid var(--primary); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;">
+        <p style="margin: 0; color: #444;">"<strong>Edit Video Promosi Produk Tudung untuk Instagram Reel (30–45 saat)</strong><br><br>
+        Keperluan: Saya ada footage mentah (15 klip, total 5 minit). Perlukan diedit menjadi Reel 30–45 saat dengan muzik latar bebas hak cipta, teks subtitle BM, dan transisi yang smooth. Untuk produk: tudung bawal premium, target audience wanita 20–35 tahun.<br><br>
+        Deliverable: 1 fail MP4 1080x1920px (format Reels) + 1 versi 1:1 (untuk feed)<br>
+        Tarikh akhir: 10 April 2025<br>
+        Bajet: RM150–RM250<br>
+        Pindaan: 2x percuma"</p>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/post-gig" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Post Gig Anda Sekarang →</a>
+    </div>
+</div>
+"""
+    },
+
+    {
+        "slug": "manfaat-hire-freelancer-halal-malaysia",
+        "title": "Mengapa Perniagaan Anda Patut Hire Freelancer dari Platform Halal",
+        "subtitle": "Bukan sekadar patuh syariah — hire dari platform gig halal memberi nilai tambah sebenar kepada perniagaan Muslim Malaysia.",
+        "meta_description": "Kenapa perniagaan Muslim Malaysia perlu hire freelancer dari platform halal. Manfaat, keselamatan, dan nilai jenama yang datang bersama platform gig halal.",
+        "meta_keywords": "hire freelancer halal Malaysia, platform freelancer halal untuk perniagaan, gig halal untuk syarikat Malaysia, outsource halal Malaysia, freelancer Muslim Malaysia",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 5,
+        "published_date": "2025-04-15",
+        "icon": "🌙",
+        "excerpt": "Jika perniagaan anda beroperasi mengikut prinsip Islam, platform gig yang anda gunakan seharusnya turut mencerminkan nilai yang sama. Inilah mengapa ini penting.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">🌙</span> Tanggungjawab Perniagaan Halal Bermula dari Sumber</h2>
+    <p>Sebagai pemilik perniagaan Muslim, anda mungkin sudah memastikan produk atau perkhidmatan anda halal. Anda mungkin ada sijil halal, guna bahan halal, dan ikut prosedur yang dibenarkan syarak.</p>
+    <p>Tapi pernahkah anda fikirkan: adakah <em>cara anda dapatkan perkhidmatan sokongan</em> turut halal?</p>
+    <p>Jika anda hire freelancer dari platform global tanpa tapisan halal, anda berisiko mendapatkan:</p>
+    <ul>
+        <li>Freelancer yang juga menyediakan perkhidmatan haram kepada klien lain</li>
+        <li>Kandungan yang mungkin mengandungi elemen syubhah tanpa sedar anda</li>
+        <li>Rantaian bekalan yang tidak selari dengan nilai jenama halal anda</li>
+    </ul>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">✅</span> 5 Manfaat Hire dari Platform Gig Halal</h2>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Jaminan kandungan yang selamat</h4>
+                <p>Freelancer yang beroperasi dalam ekosistem halal lebih memahami had dan garis panduan konten yang sesuai untuk jenama Muslim. Mereka tidak akan menghasilkan kandungan yang bertentangan dengan nilai anda.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Konsistensi nilai jenama</h4>
+                <p>Apabila perniagaan anda dan freelancer anda berkongsi nilai yang sama, kualiti dan nada kerja lebih konsisten. Freelancer Muslim yang bekerja dalam ekosistem halal lebih memahami audiens dan sensitiviti budaya anda.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Kepercayaan pelanggan anda</h4>
+                <p>Pelanggan Muslim semakin sedar dan prihatin dengan siapa dan bagaimana perniagaan beroperasi. Dapat dikatakan bahawa anda "outsource kepada ekosistem halal" boleh menjadi titik nilai tambah kepada jenama anda.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h4>Transaksi yang bersih dari unsur riba</h4>
+                <p>Platform gig halal seperti GigHala memastikan sistem bayaran menggunakan escrow yang adil — tanpa caj faedah, tanpa penalti riba, dan dengan struktur yang telus untuk kedua-dua pihak.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h4>Sokongan kepada komuniti Muslim</h4>
+                <p>Setiap projek yang anda beri kepada freelancer Muslim melalui GigHala adalah sumbangan kepada ekonomi umat. Anda membantu seseorang mendapat rezeki halal — dan itu sendiri adalah amal yang bernilai.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🏆</span> GigHala: Platform Gig Halal untuk Perniagaan Malaysia</h2>
+    <p>GigHala bukan sekadar platform gig dengan label "halal". Kami mempunyai sistem kepatuhan halal yang menyeluruh:</p>
+    <ul>
+        <li>29 kategori perkhidmatan yang telah disemak dan diluluskan</li>
+        <li>Pengesahan AI automatik untuk setiap gig yang dipostkan</li>
+        <li>Semakan pentadbir manusia untuk gig yang mencurigakan</li>
+        <li>Sistem laporan komuniti yang aktif</li>
+        <li>Pengesahan identiti (IC/MyKad) untuk semua pengguna</li>
+    </ul>
+    <p>Apabila anda hire melalui GigHala, anda tahu bahawa perkhidmatan yang anda terima datang dari ekosistem yang telah ditapis dan dipantau untuk mematuhi prinsip halal.</p>
+    <div class="highlight-box">
+        <p><strong>Daftar sebagai majikan di GigHala hari ini</strong> — percuma, selamat, dan halal. Post gig pertama anda dalam masa 5 minit.</p>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Daftar sebagai Majikan di GigHala →</a>
+    </div>
+</div>
+"""
+    },
+
+    {
+        "slug": "hire-freelancer-vs-pekerja-tetap-malaysia",
+        "title": "Hire Freelancer vs Pekerja Tetap: Mana Lebih Bijak untuk Perniagaan Anda?",
+        "subtitle": "Perbandingan jujur antara dua pilihan pengambilan pekerja — termasuk kos sebenar yang ramai majikan tidak sedar.",
+        "meta_description": "Perbandingan hire freelancer vs pekerja tetap Malaysia. Kos sebenar, risiko, fleksibiliti, dan bila anda patut pilih freelancer atau pekerja tetap.",
+        "meta_keywords": "freelancer vs pekerja tetap Malaysia, hire freelancer atau pekerja tetap, kos pekerja tetap vs freelancer Malaysia, bila perlu hire freelancer Malaysia",
+        "category": "Untuk Klien",
+        "category_en": "For Clients",
+        "read_time": 6,
+        "published_date": "2025-04-22",
+        "icon": "⚖️",
+        "excerpt": "Nak kembangkan perniagaan tapi tak pasti sama ada perlu hire pekerja tetap atau freelancer? Perbandingan jujur ini akan bantu anda buat keputusan yang tepat.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">💰</span> Kos Sebenar Pekerja Tetap yang Ramai Majikan Terlepas Pandang</h2>
+    <p>Ramai majikan hanya tengok gaji apabila kira kos pekerja tetap. Tapi kos sebenar jauh lebih tinggi dari itu:</p>
+    <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Komponen Kos</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Anggaran (pekerja gaji RM2,500/bln)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Gaji pokok</td><td style="padding: 10px; border: 1px solid var(--border);">RM 2,500</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Caruman KWSP majikan (12%)</td><td style="padding: 10px; border: 1px solid var(--border);">RM 300</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">SOCSO + EIS majikan</td><td style="padding: 10px; border: 1px solid var(--border);">~RM 60</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Cuti tahunan (12 hari setahun)</td><td style="padding: 10px; border: 1px solid var(--border);">~RM 115/bln</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Cuti sakit & MC</td><td style="padding: 10px; border: 1px solid var(--border);">~RM 50/bln (anggaran)</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Bonus tahunan (1 bulan)</td><td style="padding: 10px; border: 1px solid var(--border);">~RM 208/bln</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Perbelanjaan onboarding & latihan</td><td style="padding: 10px; border: 1px solid var(--border);">~RM 100/bln (tahun pertama)</td></tr>
+            <tr style="background: var(--bg-light); font-weight: 700;"><td style="padding: 10px; border: 1px solid var(--border);">JUMLAH KOS SEBENAR</td><td style="padding: 10px; border: 1px solid var(--border);">~RM 3,333/bln</td></tr>
+        </tbody>
+    </table>
+    <p>Kos sebenar pekerja tetap dengan gaji RM2,500 sebenarnya hampir <strong>RM3,333 sebulan</strong> — hampir 33% lebih tinggi dari gaji pokok.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">⚖️</span> Perbandingan Lengkap: Freelancer vs Pekerja Tetap</h2>
+    <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Aspek</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Freelancer</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pekerja Tetap</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Kos tetap bulanan</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Tiada (bayar ikut projek)</td><td style="padding: 10px; border: 1px solid var(--border);">❌ Tinggi (gaji + caruman)</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Fleksibiliti</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Sangat fleksibel</td><td style="padding: 10px; border: 1px solid var(--border);">❌ Terikat kontrak</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Kepakaran khusus</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Akses pelbagai pakar</td><td style="padding: 10px; border: 1px solid var(--border);">⚠️ Terhad kepada satu individu</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Kesinambungan kerja</td><td style="padding: 10px; border: 1px solid var(--border);">⚠️ Perlu pelbagai freelancer</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Konsisten dan stabil</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Kesesuaian (onboarding)</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Pantas (projek terus mula)</td><td style="padding: 10px; border: 1px solid var(--border);">❌ Perlahan (latihan, orientasi)</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Risiko undang-undang pekerja</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Rendah</td><td style="padding: 10px; border: 1px solid var(--border);">❌ Tinggi (prosedur penamatan)</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Sesuai untuk kerja berulang</td><td style="padding: 10px; border: 1px solid var(--border);">⚠️ Boleh, tapi perlukan koordinasi</td><td style="padding: 10px; border: 1px solid var(--border);">✅ Sangat sesuai</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🎯</span> Bila Pilih Freelancer, Bila Pilih Pekerja Tetap?</h2>
+    <p><strong>Pilih freelancer apabila:</strong></p>
+    <ul>
+        <li>Projek bersifat satu masa atau bermusim</li>
+        <li>Anda perlukan kemahiran khusus yang tidak perlu sepanjang masa</li>
+        <li>Perniagaan anda masih kecil dan bajet terhad</li>
+        <li>Anda ingin uji idea baru tanpa komitmen jangka panjang</li>
+        <li>Kerja boleh dilakukan dari jauh tanpa penyeliaan langsung</li>
+    </ul>
+    <p><strong>Pilih pekerja tetap apabila:</strong></p>
+    <ul>
+        <li>Peranan tersebut kritikal dan perlukan komitmen penuh masa</li>
+        <li>Kerja melibatkan maklumat sulit dan akses dalaman</li>
+        <li>Anda perlukan seseorang yang "selalu ada" dan boleh dihubungi segera</li>
+        <li>Fungsi kerja memerlukan pembangunan kemahiran jangka panjang</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>Strategi bijak:</strong> Ramai PKS Malaysia menggunakan kombinasi kedua-duanya — pekerja tetap untuk fungsi teras (operasi, jualan, akaun) dan freelancer untuk semua kerja sokongan (design, kandungan, IT, pemasaran).</p>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Mula Hire Freelancer di GigHala →</a>
+    </div>
+</div>
+"""
+    },
 ]
 
 def get_all_articles():
