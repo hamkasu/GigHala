@@ -3757,6 +3757,10 @@ def index():
         })
     
     user_count = User.query.count()
+
+    from blog_data import get_all_articles
+    blog_articles = get_all_articles()[:3]  # Show only the 3 most recent
+
     return render_template('index.html',
                          visitor_count=stats.value,
                          freelancer_count=freelancer_count,
@@ -3767,7 +3771,8 @@ def index():
                          t=t,
                          today_gregorian=today_dual['gregorian'],
                          today_hijri=today_dual['hijri'],
-                         latest_gigs=gigs_with_applicants)
+                         latest_gigs=gigs_with_applicants,
+                         blog_articles=blog_articles)
 
 @app.route('/gigs')
 @page_login_required
