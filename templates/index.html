@@ -885,6 +885,65 @@
         </div>
     </div>
 
+    <!-- ══════════════════════════════════════════════
+         BLOG SECTION — SEO Content Hub
+    ══════════════════════════════════════════════ -->
+    <div style="background: #f7f7f7; padding: 72px 0;">
+        <div style="max-width: 1100px; margin: 0 auto; padding: 0 24px;">
+
+            <!-- Section Header -->
+            <div style="text-align: center; margin-bottom: 48px;">
+                <span style="display: inline-block; background: rgba(0,200,83,0.12); color: #00C853; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 20px; margin-bottom: 14px; letter-spacing: 0.6px; text-transform: uppercase;">
+                    📚 Panduan & Artikel
+                </span>
+                <h2 style="font-size: 2rem; font-weight: 800; color: #222; margin-bottom: 12px; line-height: 1.25;">
+                    {% if lang == 'ms' %}Belajar & Jana Lebih Banyak{% else %}Learn & Earn More{% endif %}
+                </h2>
+                <p style="font-size: 1rem; color: #74767E; max-width: 520px; margin: 0 auto; line-height: 1.7;">
+                    {% if lang == 'ms' %}Panduan terkini tentang kerja freelance, hak pekerja gig, dan cara jana pendapatan halal di Malaysia.{% else %}Latest guides on freelance work, gig worker rights, and earning halal income in Malaysia.{% endif %}
+                </p>
+            </div>
+
+            <!-- Article Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
+                {% for article in blog_articles %}
+                <a href="/blog/{{ article.slug }}" style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border: 1px solid #E4E5E7; text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;"
+                   onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 12px 32px rgba(0,0,0,0.12)'; this.style.borderColor='#00C853';"
+                   onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 12px rgba(0,0,0,0.07)'; this.style.borderColor='#E4E5E7';">
+                    <!-- Banner -->
+                    <div style="height: 140px; background: linear-gradient(135deg, #00C853 0%, #00A844 100%); display: flex; align-items: center; justify-content: center; font-size: 56px;">
+                        {{ article.icon }}
+                    </div>
+                    <!-- Body -->
+                    <div style="padding: 22px; flex: 1; display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <span style="background: rgba(0,200,83,0.1); color: #00C853; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.4px;">{{ article.category }}</span>
+                            <span style="font-size: 12px; color: #95979D;">{{ article.read_time }} min baca</span>
+                        </div>
+                        <div style="font-size: 1rem; font-weight: 700; color: #222325; margin-bottom: 8px; line-height: 1.4;">{{ article.title }}</div>
+                        <div style="font-size: 13px; color: #74767E; line-height: 1.65; flex: 1; margin-bottom: 18px;">{{ article.excerpt[:120] }}...</div>
+                        <div style="padding-top: 14px; border-top: 1px solid #E4E5E7; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; color: #95979D;">{{ article.published_date }}</span>
+                            <span style="font-size: 13px; font-weight: 600; color: #00C853;">Baca →</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- View All -->
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="/blog" style="display: inline-block; border: 2px solid #00C853; color: #00C853; padding: 12px 32px; border-radius: 8px; font-weight: 700; font-size: 15px; text-decoration: none; transition: all 0.2s;"
+                   onmouseover="this.style.background='#00C853'; this.style.color='white';"
+                   onmouseout="this.style.background=''; this.style.color='#00C853';">
+                    {% if lang == 'ms' %}Lihat Semua Artikel →{% else %}View All Articles →{% endif %}
+                </a>
+            </div>
+
+        </div>
+    </div>
+    <!-- ══════════════════════════════════════════════ -->
+
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
