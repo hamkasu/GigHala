@@ -460,6 +460,161 @@ def send_new_gigs_digest(app, db, User, Gig, NotificationPreference, EmailDigest
                 logger.error(f"Failed to log error: {str(log_error)}")
 
 
+def send_worker_updates_digest(app, db, User, WorkerSpecialization, EmailDigestLog, EmailSendLog, email_service):
+    """
+    Send a daily email digest to all users listing workers who updated their profiles
+    in the past 24 hours. Runs every day at 7:00 AM (Asia/Kuala_Lumpur).
+    """
+    with app.app_context():
+        try:
+            logger.info("Starting worker updates digest job...")
+
+            # Workers updated in the last 24 hours
+            since = datetime.utcnow() - timedelta(hours=24)
+
+            # Fetch distinct workers who have at least one updated specialization
+            updated_specs = db.session.query(WorkerSpecialization).filter(
+                WorkerSpecialization.updated_at >= since
+            ).order_by(WorkerSpecialization.updated_at.desc()).all()
+
+            # Build a deduplicated list: one entry per worker (latest spec per worker)
+            seen_users = set()
+            worker_rows = []
+            for spec in updated_specs:
+                if spec.user_id in seen_users:
+                    continue
+                seen_users.add(spec.user_id)
+                import json as _json
+                try:
+                    skills = _json.loads(spec.skills) if spec.skills else []
+                except Exception:
+                    skills = []
+                category_name = spec.category.name if spec.category else ""
+                worker_rows.append({
+                    'full_name': spec.user.full_name if spec.user else None,
+                    'username': spec.user.username if spec.user else "",
+                    'specialization_title': spec.specialization_title,
+                    'category_name': category_name,
+                    'skills': skills,
+                    'base_fixed_rate': spec.base_fixed_rate,
+                })
+
+            logger.info(f"Found {len(worker_rows)} workers with updated profiles")
+
+            # Fetch all users with an email address
+            all_users = db.session.query(User).filter(User.email.isnot(None)).all()
+            logger.info(f"Sending digest to {len(all_users)} users")
+
+            if not all_users:
+                logger.info("No users to send emails to")
+                return
+
+            base_url = os.getenv('BASE_URL', 'https://gighala.my')
+
+            # Format display date in Malaysia locale
+            from datetime import timezone
+            import pytz
+            try:
+                kl_tz = pytz.timezone('Asia/Kuala_Lumpur')
+                local_now = datetime.now(kl_tz)
+            except Exception:
+                local_now = datetime.utcnow()
+            date_str = local_now.strftime("%-d %B %Y")
+
+            successful_sends = 0
+            failed_sends = 0
+
+            for user in all_users:
+                user_name = user.full_name or user.username or "Pengguna"
+
+                with app.test_request_context():
+                    html_content = render_template(
+                        'email_worker_updates_digest.html',
+                        user_name=user_name,
+                        workers=worker_rows,
+                        base_url=base_url,
+                        date_str=date_str,
+                    )
+
+                if user.language == 'ms':
+                    subject = f"GigHala - {len(worker_rows)} Pekerja Kemaskini Profil Hari Ini" if worker_rows else "GigHala - Tiada Kemaskini Pekerja Hari Ini"
+                else:
+                    subject = f"GigHala - {len(worker_rows)} Workers Updated Their Profiles Today" if worker_rows else "GigHala - No Worker Updates Today"
+
+                try:
+                    success, message, status_code, details = email_service.send_single_email(
+                        to_email=user.email,
+                        to_name=user_name,
+                        subject=subject,
+                        html_content=html_content,
+                    )
+
+                    try:
+                        import json
+                        email_log = EmailSendLog(
+                            email_type='worker_updates_digest',
+                            subject=subject,
+                            html_content=html_content,
+                            recipient_emails=json.dumps([user.email]),
+                            recipient_user_id=user.id,
+                            recipient_count=1,
+                            successful_count=1 if success else 0,
+                            failed_count=0 if success else 1,
+                            recipient_type='all_users',
+                            success=success,
+                            error_message=message if not success else None,
+                            brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                            failed_recipients=json.dumps(details.get('failed_recipients', []))
+                        )
+                        db.session.add(email_log)
+                        db.session.commit()
+                    except Exception as log_error:
+                        logger.error(f"Failed to log email: {str(log_error)}")
+
+                    if success:
+                        successful_sends += 1
+                    else:
+                        failed_sends += 1
+                        logger.error(f"Failed to send to {user.email}: {message}")
+
+                except Exception as e:
+                    failed_sends += 1
+                    logger.error(f"Error sending to {user.email}: {str(e)}")
+
+            logger.info(f"Worker updates digest complete: {successful_sends} sent, {failed_sends} failed")
+
+            # Log the digest run
+            try:
+                digest_log = EmailDigestLog(
+                    digest_type='worker_updates',
+                    sent_at=datetime.utcnow(),
+                    recipient_count=successful_sends,
+                    gig_count=len(worker_rows),
+                    success=successful_sends > 0,
+                    error_message=f"Failed: {failed_sends}" if failed_sends > 0 else None
+                )
+                db.session.add(digest_log)
+                db.session.commit()
+            except Exception as log_error:
+                logger.error(f"Failed to log digest: {str(log_error)}")
+
+        except Exception as e:
+            logger.error(f"Error in send_worker_updates_digest: {str(e)}", exc_info=True)
+            try:
+                digest_log = EmailDigestLog(
+                    digest_type='worker_updates',
+                    sent_at=datetime.utcnow(),
+                    recipient_count=0,
+                    gig_count=0,
+                    success=False,
+                    error_message=str(e)
+                )
+                db.session.add(digest_log)
+                db.session.commit()
+            except Exception as log_error:
+                logger.error(f"Failed to log error: {str(log_error)}")
+
+
 def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance):
     """
     Initialize APScheduler with all scheduled jobs
@@ -507,6 +662,15 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         replace_existing=True
     )
 
+    # Schedule worker updates digest at 7 AM daily
+    scheduler.add_job(
+        func=lambda: send_worker_updates_digest(app, db, User, WorkerSpecialization, EmailDigestLog, EmailSendLog, email_service),
+        trigger=CronTrigger(hour=7, minute=0, timezone=timezone),
+        id='worker_updates_digest_morning',
+        name='Send worker updates digest (7 AM)',
+        replace_existing=True
+    )
+
     # Schedule AI-matched gigs at 9 AM daily (1 hour after general digest)
     scheduler.add_job(
         func=lambda: send_matched_gigs_email(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance),
@@ -529,6 +693,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
     scheduler.start()
     logger.info(f"Scheduler started with timezone: {timezone}")
     logger.info("Scheduled jobs:")
+    logger.info("  - Worker updates digest at 7:00 AM")
     logger.info("  - New gigs email digest at 8:00 AM")
     logger.info("  - New gigs email digest at 8:00 PM")
     logger.info("  - AI-matched gigs email at 9:00 AM")

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kemaskini Pekerja Hari Ini - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d7c66 0%, #00C853 100%);
+            padding: 32px 24px;
+            text-align: center;
+        }
+        .header-logo {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .header p {
+            color: rgba(255,255,255,0.88);
+            margin: 8px 0 0 0;
+            font-size: 14px;
+        }
+        .content {
+            padding: 28px 24px;
+        }
+        .greeting {
+            font-size: 15px;
+            color: #333333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .summary-box {
+            background-color: #e8f5e9;
+            border-left: 4px solid #00C853;
+            padding: 14px 16px;
+            margin-bottom: 24px;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+            color: #1b5e20;
+            font-weight: 500;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0d7c66;
+            margin: 0 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0f2f1;
+        }
+        .worker-card {
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 16px;
+            background-color: #ffffff;
+        }
+        .worker-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .worker-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 2px 0;
+        }
+        .worker-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0d7c66;
+            margin: 0 0 8px 0;
+        }
+        .worker-category {
+            font-size: 12px;
+            color: #666666;
+            margin: 0 0 8px 0;
+        }
+        .skills-row {
+            margin-bottom: 10px;
+        }
+        .skill-tag {
+            display: inline-block;
+            background-color: #f0f9f6;
+            color: #0d7c66;
+            border: 1px solid #b2dfdb;
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 12px;
+            margin: 2px 3px 2px 0;
+        }
+        .worker-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .rate-label {
+            font-size: 11px;
+            color: #999999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .rate-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .updated-badge {
+            display: inline-block;
+            background-color: #00C853;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cta-section {
+            text-align: center;
+            padding: 24px 20px;
+            background-color: #f9fffe;
+            border-top: 1px solid #e0f2f1;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #0d7c66, #00C853);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .cta-text {
+            font-size: 13px;
+            color: #666666;
+            margin-top: 10px;
+        }
+        .footer {
+            background-color: #1a1a1a;
+            padding: 24px;
+            text-align: center;
+        }
+        .footer p {
+            color: #888888;
+            font-size: 12px;
+            margin: 4px 0;
+        }
+        .footer a {
+            color: #00C853;
+            text-decoration: none;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 32px 20px;
+            color: #888888;
+            font-size: 14px;
+        }
+        .date-line {
+            font-size: 12px;
+            color: #aaaaaa;
+            text-align: right;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-logo">GigHala</div>
+        <h1>&#x1F504; Kemaskini Pekerja Hari Ini</h1>
+        <p>Senarai pekerja yang telah mengemas kini profil mereka</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <p class="date-line">{{ date_str }}</p>
+
+        <p class="greeting">
+            Assalamualaikum <strong>{{ user_name }}</strong>,<br><br>
+            Berikut adalah senarai pekerja yang telah mengemas kini kemahiran dan harga mereka hari ini.
+            Semak profil terbaru mereka untuk tawaran kerja terkini.
+        </p>
+
+        {% if workers %}
+        <div class="summary-box">
+            &#x2705; <strong>{{ workers|length }} pekerja</strong> telah mengemas kini profil mereka hari ini.
+        </div>
+
+        <p class="section-title">Profil Terkini</p>
+
+        {% for worker in workers %}
+        <div class="worker-card">
+            <p class="worker-name">{{ worker.full_name or worker.username }}</p>
+            {% if worker.specialization_title %}
+            <p class="worker-title">{{ worker.specialization_title }}</p>
+            {% endif %}
+            <p class="worker-category">{{ worker.category_name }}</p>
+
+            {% if worker.skills %}
+            <div class="skills-row">
+                {% for skill in worker.skills[:5] %}
+                <span class="skill-tag">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="worker-footer">
+                <div>
+                    <div class="rate-label">Harga Tetap</div>
+                    <div class="rate-value">
+                        {% if worker.base_fixed_rate %}
+                            RM {{ "%.2f"|format(worker.base_fixed_rate) }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+                <span class="updated-badge">&#x2B06; Kemaskini</span>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% else %}
+        <div class="empty-state">
+            <p>Tiada pekerja yang mengemas kini profil mereka hari ini.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <a href="{{ base_url }}/worker-updates" class="cta-button">Lihat Semua Kemaskini</a>
+        <p class="cta-text">Klik untuk melihat semua pekerja terkini di platform GigHala</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong style="color: #ffffff;">GigHala</strong> &mdash; Platform Gig Halal #1 Malaysia</p>
+        <p><a href="{{ base_url }}">gighala.my</a></p>
+        <p style="margin-top: 12px;">E-mel ini dihantar secara automatik setiap hari pada 7:00 pagi.</p>
+    </div>
+
+</div>
+</body>
+</html>
