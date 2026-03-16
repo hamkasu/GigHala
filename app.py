@@ -275,6 +275,22 @@ if os.environ.get('X_CLIENT_ID') and os.environ.get('X_CLIENT_SECRET'):
 else:
     x_twitter = None
 
+# Facebook OAuth - only register if credentials are provided
+if os.environ.get('FACEBOOK_APP_ID') and os.environ.get('FACEBOOK_APP_SECRET'):
+    facebook = oauth.register(
+        name='facebook',
+        client_id=os.environ.get('FACEBOOK_APP_ID'),
+        client_secret=os.environ.get('FACEBOOK_APP_SECRET'),
+        authorize_url='https://www.facebook.com/v18.0/dialog/oauth',
+        access_token_url='https://graph.facebook.com/v18.0/oauth/access_token',
+        api_base_url='https://graph.facebook.com/v18.0/',
+        client_kwargs={
+            'scope': 'email public_profile',
+        }
+    )
+else:
+    facebook = None
+
 # File upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx'}
@@ -6430,6 +6446,85 @@ def x_callback():
     except Exception as e:
         app.logger.error(f"X OAuth error: {str(e)}")
         return redirect('/?error=x_auth_failed')
+
+@app.route('/api/auth/facebook')
+def facebook_login():
+    redirect_uri = request.host_url.rstrip('/') + '/api/auth/facebook/callback'
+    return facebook.authorize_redirect(redirect_uri)
+
+@app.route('/api/auth/facebook/callback')
+def facebook_callback():
+    try:
+        token = facebook.authorize_access_token()
+
+        # Fetch user info from Facebook Graph API
+        resp = facebook.get('me', params={'fields': 'id,name,email'}, token=token)
+        user_info = resp.json()
+
+        if not user_info:
+            return redirect('/?error=facebook_auth_failed')
+
+        oauth_id = user_info.get('id')
+        email = user_info.get('email')
+        full_name = user_info.get('name')
+
+        if not oauth_id:
+            return redirect('/?error=missing_facebook_data')
+
+        # Check if user exists with this OAuth provider
+        user = User.query.filter_by(oauth_provider='facebook', oauth_id=oauth_id).first()
+
+        if not user:
+            if email:
+                # Check if email already exists (link accounts)
+                user = User.query.filter_by(email=email).first()
+                if user:
+                    user.oauth_provider = 'facebook'
+                    user.oauth_id = oauth_id
+                    db.session.commit()
+                else:
+                    # Create new user
+                    username = email.split('@')[0] + '_' + secrets.token_hex(4)
+                    new_user = User(
+                        username=username,
+                        email=email,
+                        full_name=full_name or 'Facebook User',
+                        oauth_provider='facebook',
+                        oauth_id=oauth_id,
+                        user_type='both',
+                        is_verified=True  # Email is verified by Facebook
+                    )
+                    db.session.add(new_user)
+                    db.session.commit()
+                    user = new_user
+            else:
+                # Facebook didn't provide email - create with placeholder
+                username = 'fb_user_' + secrets.token_hex(4)
+                new_user = User(
+                    username=username,
+                    email=f'{oauth_id}@facebook.placeholder',
+                    full_name=full_name or 'Facebook User',
+                    oauth_provider='facebook',
+                    oauth_id=oauth_id,
+                    user_type='both',
+                    is_verified=False  # No email verified
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                user = new_user
+
+        # Log user in
+        session['user_id'] = user.id
+        session.permanent = True
+
+        # Prompt for phone setup or email if placeholder
+        if not user.phone or not user.phone_verified or user.email.endswith('@facebook.placeholder'):
+            return redirect('/dashboard?show_phone_prompt=true')
+
+        return redirect('/dashboard')
+    except Exception as e:
+        app.logger.error(f"Facebook OAuth error: {str(e)}")
+        return redirect('/?error=facebook_auth_failed')
 
 @app.route('/api/billing/stats')
 @login_required

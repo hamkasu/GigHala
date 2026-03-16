@@ -179,6 +179,15 @@
             border-color: #000;
             transform: translateY(-1px);
         }
+        .facebook-icon {
+            width: 20px;
+            height: 20px;
+        }
+        .btn-social-facebook:hover {
+            background: #F0F2FF;
+            border-color: #1877F2;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -207,6 +216,14 @@
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="#000"/>
             </svg>
             {% if lang == 'ms' %}Teruskan dengan X{% else %}Continue with X{% endif %}
+        </a>
+
+        <!-- Facebook Login Button -->
+        <a href="/api/auth/facebook" class="btn-social btn-social-facebook">
+            <svg class="facebook-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" fill="#1877F2"/>
+            </svg>
+            {% if lang == 'ms' %}Teruskan dengan Facebook{% else %}Continue with Facebook{% endif %}
         </a>
 
         <div class="divider">
