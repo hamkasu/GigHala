@@ -6449,7 +6449,8 @@ def x_callback():
 
 @app.route('/api/auth/facebook')
 def facebook_login():
-    redirect_uri = request.host_url.rstrip('/') + '/api/auth/facebook/callback'
+    base_url = os.environ.get('BASE_URL', request.host_url.rstrip('/'))
+    redirect_uri = base_url.rstrip('/') + '/api/auth/facebook/callback'
     return facebook.authorize_redirect(redirect_uri)
 
 @app.route('/api/auth/facebook/callback')
