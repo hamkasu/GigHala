@@ -14331,14 +14331,17 @@ def admin_delete_user(user_id):
         user = User.query.get_or_404(user_id)
 
         # Delete associated data
+        # Delete GigWorker assignments (worker side)
+        GigWorker.query.filter_by(worker_id=user_id).delete()
         Application.query.filter_by(freelancer_id=user_id).delete()
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
         ).delete()
 
-        # Delete user's gigs and related applications
+        # Delete user's gigs and related assignments/applications
         user_gigs = Gig.query.filter_by(client_id=user_id).all()
         for gig in user_gigs:
+            GigWorker.query.filter_by(gig_id=gig.id).delete()
             Application.query.filter_by(gig_id=gig.id).delete()
             db.session.delete(gig)
 
