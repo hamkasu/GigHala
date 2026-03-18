@@ -14346,6 +14346,7 @@ def _try_grant_table(table_name):
 @admin_required
 def admin_delete_user(user_id):
     """Delete a user (use with caution)"""
+    from sqlalchemy import text as _t
     try:
         # Prevent deleting yourself
         if session['user_id'] == user_id:
@@ -14353,12 +14354,33 @@ def admin_delete_user(user_id):
 
         user = User.query.get_or_404(user_id)
 
-        # Ensure we have DELETE permission on gig_worker (self-heal via SET ROLE)
-        _try_grant_table('gig_worker')
+        # Try to delete GigWorker rows; if permission denied, check if any exist
+        try:
+            GigWorker.query.filter_by(worker_id=user_id).delete(synchronize_session=False)
+            db.session.flush()
+        except Exception as gw_err:
+            db.session.rollback()
+            # Check if there are blocking rows we can't delete
+            try:
+                blocking = db.session.execute(
+                    _t('SELECT COUNT(*) FROM gig_worker WHERE worker_id = :uid'),
+                    {'uid': user_id}
+                ).scalar()
+            except Exception:
+                blocking = 1  # assume blocking if we can't even SELECT
+            if blocking:
+                return jsonify({
+                    'error': (
+                        f'Cannot delete: {blocking} gig_worker row(s) block this. '
+                        'Run in Railway psql: '
+                        'GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE gig_worker TO CURRENT_USER; '
+                        'then retry.'
+                    )
+                }), 500
+            # No blocking rows — safe to continue
+            app.logger.warning(f'gig_worker permission denied but no rows block deletion for user {user_id}')
 
         # Delete associated data
-        # Delete GigWorker assignments (worker side)
-        GigWorker.query.filter_by(worker_id=user_id).delete(synchronize_session=False)
         Application.query.filter_by(freelancer_id=user_id).delete(synchronize_session=False)
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
@@ -14367,7 +14389,11 @@ def admin_delete_user(user_id):
         # Delete user's gigs and related assignments/applications
         user_gigs = Gig.query.filter_by(client_id=user_id).all()
         for gig in user_gigs:
-            GigWorker.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
+            try:
+                GigWorker.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
+                db.session.flush()
+            except Exception:
+                db.session.rollback()
             Application.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
             db.session.delete(gig)
 
