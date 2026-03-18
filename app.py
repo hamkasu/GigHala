@@ -14387,6 +14387,9 @@ def admin_delete_user(user_id):
         Payout.query.filter_by(ready_for_release_by=user_id).update(
             {'ready_for_release_by': None}, synchronize_session=False
         )
+        Payout.query.filter_by(external_payment_confirmed_by=user_id).update(
+            {'external_payment_confirmed_by': None}, synchronize_session=False
+        )
         Application.query.filter_by(freelancer_id=user_id).delete(synchronize_session=False)
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
