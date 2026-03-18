@@ -20,9 +20,9 @@ import requests
 from hijri_converter import Hijri, Gregorian
 from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
-from twilio.rest import Client
 from email_service import email_service
 from sms_service import send_notification_sms
+import whatsapp_service
 from scheduled_jobs import init_scheduler
 import pyotp
 from halal_compliance import (
@@ -110,13 +110,7 @@ MAIN_CATEGORY_SLUGS = [
     'micro-tasks', 'caregiving', 'creative-other'
 ]
 
-# Twilio WhatsApp Configuration
-twilio_account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-twilio_auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-twilio_phone_number = os.environ.get('TWILIO_WHATSAPP_NUMBER', os.environ.get('TWILIO_PHONE_NUMBER'))
-twilio_client = None
-if twilio_account_sid and twilio_auth_token:
-    twilio_client = Client(twilio_account_sid, twilio_auth_token)
+# WhatsApp configuration is handled by whatsapp_service (Meta Cloud API)
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 
@@ -1564,28 +1558,13 @@ def send_phone_verification_sms(phone, otp_code):
     Send verification code via WhatsApp to phone number
     Returns (success, message) tuple
     """
-    if not twilio_client or not twilio_phone_number:
+    if not whatsapp_service.is_configured():
         return False, "WhatsApp service is not configured"
 
-    try:
-        # Format phone number to E.164 format if needed
-        if phone.startswith('01'):
-            phone = '+6' + phone  # Convert 01X to +601X
-        elif not phone.startswith('+'):
-            phone = '+' + phone
-
-        # Send WhatsApp message with OTP code
-        message = twilio_client.messages.create(
-            body=f"Your GigHala verification code is: {otp_code}. This code will expire in 10 minutes. Do not share this code with anyone.",
-            from_=f"whatsapp:{twilio_phone_number}",
-            to=f"whatsapp:{phone}"
-        )
-
-        app.logger.info(f"Verification WhatsApp sent to {phone}: {message.sid}")
+    result = whatsapp_service.send_verification_whatsapp(phone, otp_code)
+    if result['status'] == 'success':
         return True, "Verification code sent successfully via WhatsApp"
-    except Exception as e:
-        app.logger.error(f"Failed to send verification WhatsApp to {phone}: {str(e)}")
-        return False, f"Failed to send WhatsApp: {str(e)}"
+    return False, f"Failed to send WhatsApp: {result['error']}"
 
 def verify_phone_otp(user, submitted_code):
     """
@@ -1906,30 +1885,16 @@ def send_transaction_sms_notification(phone, message_text):
     Send WhatsApp notification for transaction events
     Returns (success, message) tuple
     """
-    if not twilio_client or not twilio_phone_number:
+    if not whatsapp_service.is_configured():
         return False, "WhatsApp service is not configured"
 
     if not phone:
         return False, "No phone number provided"
 
-    try:
-        # Format phone number to E.164 format if needed
-        if phone.startswith('01'):
-            phone = '+6' + phone  # Convert 01X to +601X
-        elif not phone.startswith('+'):
-            phone = '+' + phone
-
-        message = twilio_client.messages.create(
-            body=message_text,
-            from_=f"whatsapp:{twilio_phone_number}",
-            to=f"whatsapp:{phone}"
-        )
-
-        app.logger.info(f"Transaction WhatsApp sent to {phone}: {message.sid}")
+    result = whatsapp_service.send_whatsapp_text(phone, message_text)
+    if result['status'] == 'success':
         return True, "Notification sent successfully"
-    except Exception as e:
-        app.logger.error(f"Failed to send transaction WhatsApp to {phone}: {str(e)}")
-        return False, f"Failed to send WhatsApp: {str(e)}"
+    return False, f"Failed to send WhatsApp: {result['error']}"
 
 def send_interaction_notification(user, subject, message, html_content=None, text_content=None, sms_message=None):
     """
@@ -14721,48 +14686,40 @@ def admin_email_log_detail(log_id):
 def admin_send_whatsapp():
     """Send WhatsApp message to all users"""
     try:
-        if not twilio_client or not twilio_phone_number:
+        if not whatsapp_service.is_configured():
             return jsonify({'error': 'WhatsApp service not configured'}), 500
-        
+
         data = request.get_json()
         message = data.get('message', '').strip()
-        
+
         if not message:
             return jsonify({'error': 'Message cannot be empty'}), 400
-        
+
         if len(message) > 1024:
             return jsonify({'error': 'Message must be 1024 characters or less'}), 400
-        
+
         # Get all users with phone numbers
         users = User.query.filter(User.phone != None).filter(User.phone != '').all()
-        
+
         if not users:
             return jsonify({'error': 'No users with phone numbers found'}), 400
-        
+
         sent_count = 0
         failed_count = 0
         failed_users = []
-        
-        # WhatsApp format: whatsapp:+[phone number]
-        whatsapp_from = f"whatsapp:{twilio_phone_number}"
-        
+
         for user in users:
-            try:
-                whatsapp_to = f"whatsapp:{user.phone}"
-                twilio_client.messages.create(
-                    body=message,
-                    from_=whatsapp_from,
-                    to=whatsapp_to
-                )
+            result = whatsapp_service.send_whatsapp_text(user.phone, message)
+            if result['status'] == 'success':
                 sent_count += 1
-            except Exception as e:
+            else:
                 failed_count += 1
                 failed_users.append({
                     'username': user.username,
                     'phone': user.phone,
-                    'error': str(e)
+                    'error': result['error'],
                 })
-                app.logger.warning(f"Failed to send WhatsApp to {user.username} ({user.phone}): {str(e)}")
+                app.logger.warning(f"Failed to send WhatsApp to {user.username} ({user.phone}): {result['error']}")
         
         return jsonify({
             'message': 'WhatsApp broadcast completed',
