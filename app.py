@@ -14382,6 +14382,11 @@ def admin_delete_user(user_id):
 
         # Delete associated data
         EmailSendLog.query.filter_by(recipient_user_id=user_id).delete(synchronize_session=False)
+        EmailSendLog.query.filter_by(sender_user_id=user_id).delete(synchronize_session=False)
+        # Null out admin references in payout (don't delete the payout records)
+        Payout.query.filter_by(ready_for_release_by=user_id).update(
+            {'ready_for_release_by': None}, synchronize_session=False
+        )
         Application.query.filter_by(freelancer_id=user_id).delete(synchronize_session=False)
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
