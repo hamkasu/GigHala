@@ -570,7 +570,7 @@ function buildCard(item) {
     const username   = esc(w.username || '');
     const name       = esc(w.name || w.username || '');
     const avatarSrc  = w.profile_photo
-        ? `/uploads/profile_photos/${esc(w.profile_photo)}`
+        ? esc(w.profile_photo)
         : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(w.username || '')}`;
     const fallback   = avatarInitials(w.username, w.name);
     const verified   = w.is_verified    ? `<span class="v-icon">✓</span>` : '';

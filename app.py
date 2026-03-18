@@ -8225,7 +8225,7 @@ def get_gig_workers(gig_id):
                     'worker_id': gw.worker_id,
                     'worker_name': worker.full_name or worker.username,
                     'worker_username': worker.username,
-                    'worker_avatar': worker.profile_picture,
+                    'worker_avatar': f'/uploads/profile_photos/{worker.profile_photo}' if worker.profile_photo else None,
                     'worker_rating': worker.rating,
                     'worker_verified': worker.is_verified,
                     'agreed_amount': gw.agreed_amount,
@@ -13205,6 +13205,7 @@ def browse_skills_api():
                     'completed_gigs': user.completed_gigs or 0,
                     'is_verified': user.is_verified,
                     'halal_verified': user.halal_verified,
+                    'profile_photo': f'/uploads/profile_photos/{user.profile_photo}' if user.profile_photo else None,
                 }
             })
 
@@ -13291,7 +13292,7 @@ def get_worker_updates():
                     'completed_gigs': user.completed_gigs or 0,
                     'is_verified': user.is_verified,
                     'halal_verified': user.halal_verified,
-                    'profile_photo': user.profile_photo,
+                    'profile_photo': f'/uploads/profile_photos/{user.profile_photo}' if user.profile_photo else None,
                 }
             })
 

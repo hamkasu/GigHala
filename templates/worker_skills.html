@@ -263,6 +263,14 @@
         font-weight: 600;
         color: var(--text-gray);
         flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .service-worker-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
     }
 
     .service-worker-name {
@@ -722,6 +730,9 @@
     function renderServiceCard(svc) {
         const w = svc.worker;
         const initials = (w.name || 'U').charAt(0).toUpperCase();
+        const avatarHtml = w.profile_photo
+            ? `<img src="${escapeHtml(w.profile_photo)}" alt="${escapeHtml(w.name || '')}" onerror="this.onerror=null;this.parentElement.textContent='${initials}';">`
+            : initials;
 
         // Rating display
         const rating = w.rating || 0;
@@ -767,7 +778,7 @@
             </div>
             <div class="service-card-body">
                 <div class="service-worker-row">
-                    <div class="service-worker-avatar">${initials}</div>
+                    <div class="service-worker-avatar">${avatarHtml}</div>
                     <div>
                         <div class="service-worker-name">
                             ${escapeHtml(w.name)}
