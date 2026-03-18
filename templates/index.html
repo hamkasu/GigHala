@@ -656,6 +656,132 @@
             </div>
         </div>
 
+        <!-- Featured Freelancers Section (rotates hourly) -->
+        <div id="featured-freelancers-section" style="background: #f0fdf8; padding: 60px 20px; margin-top: 0;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <span style="display: inline-block; background: #e6f7f1; color: #0D7C66; font-weight: 700; font-size: 0.85rem; padding: 6px 18px; border-radius: 999px; letter-spacing: 0.3px; border: 1px solid rgba(13,124,102,0.25);">
+                        {% if lang == 'ms' %}Pilihan Staf — Dikemaskini Setiap Jam{% else %}Staff Picks — Updated Every Hour{% endif %}
+                    </span>
+                </div>
+                <h2 style="font-size: 2rem; font-weight: 800; color: black; text-align: center; margin-bottom: 8px;">
+                    {% if lang == 'ms' %}Freelancer Pilihan Hari Ini{% else %}Featured Freelancers Today{% endif %}
+                </h2>
+                <p style="text-align: center; color: rgba(0,0,0,0.55); font-size: 1rem; margin-bottom: 12px; max-width: 560px; margin-left: auto; margin-right: auto;">
+                    {% if lang == 'ms' %}Bertemu dengan bakat halal terbaik kami — dipilih secara rawak setiap jam.{% else %}Meet some of our top halal talent — randomly selected every hour.{% endif %}
+                </p>
+                <!-- Rotation countdown -->
+                <p style="text-align: center; color: rgba(13,124,102,0.8); font-size: 0.85rem; margin-bottom: 36px;">
+                    <span id="rotation-label">{% if lang == 'ms' %}Giliran seterusnya dalam:{% else %}Next rotation in:{% endif %}</span>
+                    <strong id="rotation-countdown" style="font-variant-numeric: tabular-nums;"> --:--</strong>
+                </p>
+
+                {% if featured_freelancers %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 860px; margin: 0 auto;">
+                    {% for freelancer in featured_freelancers %}
+                    <a href="/profile/{{ freelancer.username }}" style="text-decoration: none; color: inherit;">
+                        <div style="background: white; border-radius: 20px; padding: 28px; border: 2px solid rgba(13,124,102,0.18); box-shadow: 0 4px 20px rgba(13,124,102,0.08); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(13,124,102,0.18)';" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(13,124,102,0.08)';">
+                            <!-- Header: Avatar + Name -->
+                            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+                                <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #0D7C66, #41B3A2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; flex-shrink: 0; overflow: hidden;">
+                                    {% if freelancer.profile_photo %}
+                                        <img src="/uploads/profile_photos/{{ freelancer.profile_photo }}" alt="{{ freelancer.full_name or freelancer.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                    {% else %}
+                                        {{ (freelancer.full_name or freelancer.username)[0].upper() }}
+                                    {% endif %}
+                                </div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                        <span style="font-size: 1.05rem; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ freelancer.full_name or freelancer.username }}</span>
+                                        {% if freelancer.is_verified %}
+                                        <span title="Verified" style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #0D7C66; color: white; border-radius: 50%; font-size: 10px; flex-shrink: 0;">✓</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if freelancer.location %}
+                                    <div style="font-size: 0.82rem; color: rgba(0,0,0,0.5); display: flex; align-items: center; gap: 3px;">
+                                        <span>📍</span><span>{{ freelancer.location }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if freelancer.rating and freelancer.rating > 0 %}
+                                    <div style="font-size: 0.82rem; color: rgba(0,0,0,0.6); margin-top: 2px;">
+                                        <span style="color: #f59e0b;">★</span> {{ "%.1f"|format(freelancer.rating) }}
+                                        {% if freelancer.review_count %}<span style="color: rgba(0,0,0,0.4);"> ({{ freelancer.review_count }})</span>{% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Bio -->
+                            {% if freelancer.bio %}
+                            <p style="font-size: 0.9rem; color: rgba(0,0,0,0.65); line-height: 1.55; margin-bottom: 16px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{{ freelancer.bio }}</p>
+                            {% endif %}
+
+                            <!-- Specialization badge -->
+                            {% if freelancer._featured_spec %}
+                            <div style="margin-bottom: 16px;">
+                                <span style="display: inline-block; background: #e6f7f1; color: #0D7C66; font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(13,124,102,0.2);">
+                                    {{ freelancer._featured_spec.specialization_title or freelancer._featured_spec.category.name }}
+                                </span>
+                                {% if freelancer._featured_spec.base_hourly_rate %}
+                                <span style="display: inline-block; background: #e3f2fd; color: #1565c0; font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(21,101,192,0.2); margin-left: 6px;">
+                                    RM{{ "%.0f"|format(freelancer._featured_spec.base_hourly_rate) }}/hr
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Footer stats -->
+                            <div style="display: flex; gap: 0; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.07);">
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="font-size: 1.25rem; font-weight: 800; color: #111;">{{ freelancer.completed_gigs or 0 }}</div>
+                                    <div style="font-size: 0.72rem; color: rgba(0,0,0,0.45); text-transform: uppercase; letter-spacing: 0.5px;">{% if lang == 'ms' %}Gig Siap{% else %}Gigs Done{% endif %}</div>
+                                </div>
+                                <div style="flex: 1; text-align: center; border-left: 1px solid rgba(0,0,0,0.07);">
+                                    <div style="font-size: 1.25rem; font-weight: 800; color: #0D7C66;">{{ "%.1f"|format(freelancer.rating or 0) }}</div>
+                                    <div style="font-size: 0.72rem; color: rgba(0,0,0,0.45); text-transform: uppercase; letter-spacing: 0.5px;">{% if lang == 'ms' %}Rating{% else %}Rating{% endif %}</div>
+                                </div>
+                                <div style="flex: 1; text-align: center; border-left: 1px solid rgba(0,0,0,0.07);">
+                                    <div style="font-size: 1.25rem; font-weight: 800; color: #111;">{{ freelancer.review_count or 0 }}</div>
+                                    <div style="font-size: 0.72rem; color: rgba(0,0,0,0.45); text-transform: uppercase; letter-spacing: 0.5px;">{% if lang == 'ms' %}Ulasan{% else %}Reviews{% endif %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                <div style="text-align: center; margin-top: 32px;">
+                    <a href="/workers" style="display: inline-block; background: #0D7C66; color: white; font-weight: 700; font-size: 1rem; padding: 14px 36px; border-radius: 12px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#0a6355'" onmouseout="this.style.background='#0D7C66'">
+                        {% if lang == 'ms' %}Lihat Semua Freelancer →{% else %}Browse All Freelancers →{% endif %}
+                    </a>
+                </div>
+                {% else %}
+                <p style="text-align: center; color: rgba(0,0,0,0.4); font-style: italic;">
+                    {% if lang == 'ms' %}Tiada freelancer untuk dipaparkan buat masa ini.{% else %}No featured freelancers at this time.{% endif %}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <script>
+        (function() {
+            // Countdown to next hourly rotation (top of next UTC hour)
+            function updateCountdown() {
+                var now = new Date();
+                var msUntilNextHour = (60 - now.getUTCMinutes()) * 60000 - now.getUTCSeconds() * 1000 - now.getUTCMilliseconds();
+                var totalSecs = Math.floor(msUntilNextHour / 1000);
+                var mins = Math.floor(totalSecs / 60);
+                var secs = totalSecs % 60;
+                var el = document.getElementById('rotation-countdown');
+                if (el) {
+                    el.textContent = ' ' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                }
+            }
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        })();
+        </script>
+
         <!-- Footer Section -->
         <footer style="background: #000000; color: white; padding: 60px 20px 20px;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
