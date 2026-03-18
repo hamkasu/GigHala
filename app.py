@@ -14381,6 +14381,7 @@ def admin_delete_user(user_id):
             app.logger.warning(f'gig_worker permission denied but no rows block deletion for user {user_id}')
 
         # Delete associated data
+        EmailSendLog.query.filter_by(recipient_user_id=user_id).delete(synchronize_session=False)
         Application.query.filter_by(freelancer_id=user_id).delete(synchronize_session=False)
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
