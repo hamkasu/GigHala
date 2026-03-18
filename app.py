@@ -14319,6 +14319,29 @@ def admin_update_user(user_id):
         app.logger.error(f"Admin update user error: {str(e)}")
         return jsonify({'error': 'Failed to update user'}), 500
 
+def _try_grant_table(table_name):
+    """Attempt to GRANT ALL on table to the current DB user via SET ROLE to owner.
+    Returns True if the app user now has access, False otherwise."""
+    from sqlalchemy import text as _t
+    try:
+        with db.engine.connect() as c:
+            cur_user = c.execute(_t('SELECT current_user')).scalar()
+            owner_row = c.execute(_t(
+                "SELECT tableowner FROM pg_tables WHERE tablename=:t"
+            ), {'t': table_name}).fetchone()
+            if owner_row and owner_row[0] != cur_user:
+                c.execute(_t(f'SET ROLE "{owner_row[0]}"'))
+                c.execute(_t(f'GRANT ALL ON TABLE {table_name} TO "{cur_user}"'))
+                c.execute(_t('RESET ROLE'))
+                c.commit()
+                return True
+            elif owner_row and owner_row[0] == cur_user:
+                return True  # already owner
+    except Exception as _e:
+        app.logger.warning(f'_try_grant_table({table_name}) failed: {_e}')
+    return False
+
+
 @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_user(user_id):
@@ -14330,19 +14353,22 @@ def admin_delete_user(user_id):
 
         user = User.query.get_or_404(user_id)
 
+        # Ensure we have DELETE permission on gig_worker (self-heal via SET ROLE)
+        _try_grant_table('gig_worker')
+
         # Delete associated data
         # Delete GigWorker assignments (worker side)
-        GigWorker.query.filter_by(worker_id=user_id).delete()
-        Application.query.filter_by(freelancer_id=user_id).delete()
+        GigWorker.query.filter_by(worker_id=user_id).delete(synchronize_session=False)
+        Application.query.filter_by(freelancer_id=user_id).delete(synchronize_session=False)
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
-        ).delete()
+        ).delete(synchronize_session=False)
 
         # Delete user's gigs and related assignments/applications
         user_gigs = Gig.query.filter_by(client_id=user_id).all()
         for gig in user_gigs:
-            GigWorker.query.filter_by(gig_id=gig.id).delete()
-            Application.query.filter_by(gig_id=gig.id).delete()
+            GigWorker.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
+            Application.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
             db.session.delete(gig)
 
         db.session.delete(user)
@@ -22898,8 +22924,8 @@ def fix_db_permissions_cmd():
         sys.exit(0)
 
     _app_user = _up(database_url).username or ''
-    _fix_tables = ('worker_specialization', 'worker_rate_audit')
-    _fix_seqs   = ('worker_specialization_id_seq', 'worker_rate_audit_id_seq')
+    _fix_tables = ('worker_specialization', 'worker_rate_audit', 'gig_worker')
+    _fix_seqs   = ('worker_specialization_id_seq', 'worker_rate_audit_id_seq', 'gig_worker_id_seq')
 
     def _norm(u):
         return u.replace('postgres://', 'postgresql://', 1) if u.startswith('postgres://') else u
