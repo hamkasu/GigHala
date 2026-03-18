@@ -110,10 +110,10 @@ MAIN_CATEGORY_SLUGS = [
     'micro-tasks', 'caregiving', 'creative-other'
 ]
 
-# Twilio SMS Configuration
+# Twilio WhatsApp Configuration
 twilio_account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
 twilio_auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-twilio_phone_number = os.environ.get('TWILIO_PHONE_NUMBER')
+twilio_phone_number = os.environ.get('TWILIO_WHATSAPP_NUMBER', os.environ.get('TWILIO_PHONE_NUMBER'))
 twilio_client = None
 if twilio_account_sid and twilio_auth_token:
     twilio_client = Client(twilio_account_sid, twilio_auth_token)
@@ -1561,11 +1561,11 @@ def generate_phone_otp():
 
 def send_phone_verification_sms(phone, otp_code):
     """
-    Send verification SMS with OTP code to phone number
+    Send verification code via WhatsApp to phone number
     Returns (success, message) tuple
     """
     if not twilio_client or not twilio_phone_number:
-        return False, "SMS service is not configured"
+        return False, "WhatsApp service is not configured"
 
     try:
         # Format phone number to E.164 format if needed
@@ -1574,18 +1574,18 @@ def send_phone_verification_sms(phone, otp_code):
         elif not phone.startswith('+'):
             phone = '+' + phone
 
-        # Send SMS with OTP code
+        # Send WhatsApp message with OTP code
         message = twilio_client.messages.create(
             body=f"Your GigHala verification code is: {otp_code}. This code will expire in 10 minutes. Do not share this code with anyone.",
-            from_=twilio_phone_number,
-            to=phone
+            from_=f"whatsapp:{twilio_phone_number}",
+            to=f"whatsapp:{phone}"
         )
 
-        app.logger.info(f"Verification SMS sent to {phone}: {message.sid}")
-        return True, "Verification code sent successfully"
+        app.logger.info(f"Verification WhatsApp sent to {phone}: {message.sid}")
+        return True, "Verification code sent successfully via WhatsApp"
     except Exception as e:
-        app.logger.error(f"Failed to send verification SMS to {phone}: {str(e)}")
-        return False, f"Failed to send SMS: {str(e)}"
+        app.logger.error(f"Failed to send verification WhatsApp to {phone}: {str(e)}")
+        return False, f"Failed to send WhatsApp: {str(e)}"
 
 def verify_phone_otp(user, submitted_code):
     """
@@ -1903,11 +1903,11 @@ def log_email_to_database(
 
 def send_transaction_sms_notification(phone, message_text):
     """
-    Send SMS notification for transaction events
+    Send WhatsApp notification for transaction events
     Returns (success, message) tuple
     """
     if not twilio_client or not twilio_phone_number:
-        return False, "SMS service is not configured"
+        return False, "WhatsApp service is not configured"
 
     if not phone:
         return False, "No phone number provided"
@@ -1921,15 +1921,15 @@ def send_transaction_sms_notification(phone, message_text):
 
         message = twilio_client.messages.create(
             body=message_text,
-            from_=twilio_phone_number,
-            to=phone
+            from_=f"whatsapp:{twilio_phone_number}",
+            to=f"whatsapp:{phone}"
         )
 
-        app.logger.info(f"Transaction SMS sent to {phone}: {message.sid}")
+        app.logger.info(f"Transaction WhatsApp sent to {phone}: {message.sid}")
         return True, "Notification sent successfully"
     except Exception as e:
-        app.logger.error(f"Failed to send transaction SMS to {phone}: {str(e)}")
-        return False, f"Failed to send SMS: {str(e)}"
+        app.logger.error(f"Failed to send transaction WhatsApp to {phone}: {str(e)}")
+        return False, f"Failed to send WhatsApp: {str(e)}"
 
 def send_interaction_notification(user, subject, message, html_content=None, text_content=None, sms_message=None):
     """
