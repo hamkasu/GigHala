@@ -3777,6 +3777,25 @@ def index():
     from blog_data import get_all_articles
     blog_articles = get_all_articles()[:3]  # Show only the 3 most recent
 
+    # Select 2 random featured freelancers, rotating hourly
+    import random as _random
+    _hour_seed = int(datetime.utcnow().timestamp() // 3600)
+    _rng = _random.Random(_hour_seed)
+    _freelancer_pool = User.query.filter(
+        (User.user_type == 'freelancer') | (User.user_type == 'both'),
+        User.is_verified == True
+    ).all()
+    if len(_freelancer_pool) < 2:
+        # Fall back to any freelancers if not enough verified ones
+        _freelancer_pool = User.query.filter(
+            (User.user_type == 'freelancer') | (User.user_type == 'both')
+        ).all()
+    featured_freelancers = _rng.sample(_freelancer_pool, min(2, len(_freelancer_pool)))
+    # Attach top specialization to each featured freelancer
+    for _u in featured_freelancers:
+        _spec = WorkerSpecialization.query.filter_by(user_id=_u.id).first()
+        _u._featured_spec = _spec
+
     return render_template('index.html',
                          visitor_count=stats.value,
                          freelancer_count=freelancer_count,
@@ -3788,7 +3807,8 @@ def index():
                          today_gregorian=today_dual['gregorian'],
                          today_hijri=today_dual['hijri'],
                          latest_gigs=gigs_with_applicants,
-                         blog_articles=blog_articles)
+                         blog_articles=blog_articles,
+                         featured_freelancers=featured_freelancers)
 
 @app.route('/gigs')
 @page_login_required
