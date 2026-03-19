@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}Urgent Help – Bantuan Segera Premium{% endblock %}
+
+{% block meta_description %}Perlukan pakar segera? GigHala Urgent Help menghubungkan anda dengan pakar terpilih dalam masa 1–48 jam. Hantar permintaan mendesak atau minta Managed Solution premium.{% endblock %}
+
+{% block extra_styles %}
+<style>
+    /* ── Hero ────────────────────────────────────────────────── */
+    .uh-hero {
+        background: linear-gradient(135deg, #0d7c66 0%, #00C853 100%);
+        color: #fff;
+        padding: 64px 24px 56px;
+        text-align: center;
+    }
+    .uh-hero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.18);
+        border: 1px solid rgba(255,255,255,0.35);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 20px;
+        margin-bottom: 18px;
+    }
+    .uh-hero h1 {
+        font-size: clamp(28px, 5vw, 44px);
+        font-weight: 800;
+        margin: 0 0 16px;
+        line-height: 1.15;
+    }
+    .uh-hero p {
+        font-size: clamp(15px, 2.5vw, 18px);
+        max-width: 620px;
+        margin: 0 auto 36px;
+        opacity: .92;
+        line-height: 1.6;
+    }
+    .uh-hero-ctas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: center;
+    }
+    .btn-urgent-primary {
+        background: #fff;
+        color: #0d7c66;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all .2s;
+        border: 2px solid #fff;
+    }
+    .btn-urgent-primary:hover { background: #e8f8f0; color: #0d7c66; }
+    .btn-urgent-secondary {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 2px solid rgba(255,255,255,0.55);
+        transition: all .2s;
+    }
+    .btn-urgent-secondary:hover { background: rgba(255,255,255,0.22); color: #fff; }
+    .btn-wa {
+        background: #25D366;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 14px 28px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 2px solid #25D366;
+        transition: all .2s;
+    }
+    .btn-wa:hover { background: #1ebe5b; color: #fff; }
+
+    /* ── Page container ──────────────────────────────────────── */
+    .uh-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* ── What is section ─────────────────────────────────────── */
+    .uh-section {
+        padding: 56px 24px;
+    }
+    .uh-section-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        text-align: center;
+    }
+    .uh-section-subtitle {
+        color: var(--text-gray);
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 15px;
+    }
+
+    /* ── Feature cards ───────────────────────────────────────── */
+    .uh-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+    }
+    .uh-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 24px;
+        box-shadow: 0 1px 6px rgba(0,0,0,.05);
+        transition: box-shadow .2s;
+    }
+    .uh-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.09); }
+    .uh-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 22px;
+    }
+    .uh-card-icon.green  { background: #e6f9f1; }
+    .uh-card-icon.orange { background: #fff3e8; }
+    .uh-card-icon.blue   { background: #e8f3ff; }
+    .uh-card-icon.purple { background: #f3e8ff; }
+    .uh-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text-dark); }
+    .uh-card p  { font-size: 14px; color: var(--text-gray); line-height: 1.55; margin: 0; }
+
+    /* ── Urgency levels ──────────────────────────────────────── */
+    .urgency-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    .urgency-pill {
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 16px;
+        text-align: center;
+    }
+    .urgency-pill .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+    }
+    .badge-red    { background: #ffe8e8; color: #c0392b; }
+    .badge-orange { background: #fff3e0; color: #e65100; }
+    .badge-blue   { background: #e3f2fd; color: #1565c0; }
+    .badge-green  { background: #e6f9f1; color: #0d7c66; }
+    .urgency-pill .label { font-weight: 700; font-size: 15px; color: var(--text-dark); }
+
+    /* ── Add-ons ─────────────────────────────────────────────── */
+    .addons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+    .addon-card {
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 24px;
+        position: relative;
+        background: #fff;
+    }
+    .addon-card.featured { border-color: #00C853; }
+    .addon-tag {
+        position: absolute;
+        top: -12px;
+        left: 20px;
+        background: #00C853;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 12px;
+        border-radius: 20px;
+        letter-spacing: .04em;
+    }
+    .addon-price {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin: 10px 0 4px;
+    }
+    .addon-price span { font-size: 16px; font-weight: 500; color: var(--text-gray); }
+    .addon-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .addon-card p  { font-size: 14px; color: var(--text-gray); line-height: 1.55; }
+    .addon-list { list-style: none; padding: 0; margin: 12px 0 0; }
+    .addon-list li { font-size: 13px; color: var(--text-gray); padding: 4px 0; display: flex; gap: 8px; }
+    .addon-list li::before { content: "✓"; color: #00C853; font-weight: 700; }
+
+    /* ── CTA bottom ──────────────────────────────────────────── */
+    .uh-cta-strip {
+        background: #0d7c66;
+        color: #fff;
+        text-align: center;
+        padding: 48px 24px;
+    }
+    .uh-cta-strip h2 { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
+    .uh-cta-strip p  { font-size: 15px; opacity: .9; margin-bottom: 28px; }
+    .uh-cta-strip .ctas { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+
+    /* ── Who is it for ───────────────────────────────────────── */
+    .for-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+    }
+    .for-item {
+        background: var(--bg-light);
+        border-radius: 10px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+    .for-item .icon { font-size: 22px; flex-shrink: 0; }
+
+    @media (max-width: 600px) {
+        .uh-hero { padding: 44px 16px 40px; }
+        .uh-section { padding: 40px 16px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<div class="uh-hero">
+    <span class="uh-hero-badge">⚡ Urgent Help Premium</span>
+    <h1>Perlukan Pakar Segera?<br>Kami Boleh Bantu.</h1>
+    <p>GigHala Urgent Help menghubungkan perniagaan dan individu dengan pakar terpilih yang boleh bertindak balas dalam masa 1 jam hingga 48 jam.</p>
+    <div class="uh-hero-ctas">
+        <a href="/urgent-request" class="btn-urgent-primary">
+            <i data-feather="zap" style="width:18px;height:18px;"></i> Hantar Permintaan Segera
+        </a>
+        <a href="/managed-solution" class="btn-urgent-secondary">
+            <i data-feather="briefcase" style="width:18px;height:18px;"></i> Managed Solution
+        </a>
+        <a href="https://wa.me/{{ admin_whatsapp }}?text=Saya%20perlukan%20bantuan%20segera%20melalui%20GigHala%20Urgent%20Help" target="_blank" rel="noopener" class="btn-wa">
+            <svg style="width:18px;height:18px;fill:#fff;" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            WhatsApp Kami
+        </a>
+    </div>
+</div>
+
+<!-- ── What is Urgent Help ─────────────────────────────────── -->
+<div class="uh-section" style="background: #fff;">
+    <div class="uh-container">
+        <div class="uh-section-title">Apa itu GigHala Urgent Help?</div>
+        <div class="uh-section-subtitle">Lapisan premium di atas marketplace GigHala untuk situasi mendesak</div>
+        <div class="uh-cards">
+            <div class="uh-card">
+                <div class="uh-card-icon green">⚡</div>
+                <h3>Respons Pantas</h3>
+                <p>Post permintaan anda dan dapatkan pakar yang bertindak balas dalam 1 jam hingga 48 jam mengikut pilihan anda.</p>
+            </div>
+            <div class="uh-card">
+                <div class="uh-card-icon orange">🎯</div>
+                <h3>Padanan Tepat</h3>
+                <p>Pakar GigHala disaring mengikut kepakaran, ketersediaan, dan rekod prestasi untuk padanan terbaik.</p>
+            </div>
+            <div class="uh-card">
+                <div class="uh-card-icon blue">🛡️</div>
+                <h3>Managed Solution</h3>
+                <p>Nak pasukan kami uruskan segalanya? Pilih Managed Solution dan kami yang akan cari, saringan, dan koordinasi pakar untuk anda.</p>
+            </div>
+            <div class="uh-card">
+                <div class="uh-card-icon purple">📱</div>
+                <h3>WhatsApp Cepat</h3>
+                <p>Malaysia adalah negara WhatsApp. Hubungi pasukan kami terus atau terima kemas kini via WhatsApp untuk penyelesaian lebih pantas.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Who is it for ───────────────────────────────────────── -->
+<div class="uh-section" style="background: var(--bg-light);">
+    <div class="uh-container">
+        <div class="uh-section-title">Untuk Siapa?</div>
+        <div class="uh-section-subtitle">Urgent Help sesuai untuk pelbagai situasi mendesak</div>
+        <div class="for-grid">
+            <div class="for-item"><span class="icon">🏢</span> Perniagaan yang sistem web rosak</div>
+            <div class="for-item"><span class="icon">🎨</span> Projek kreatif deadline esok</div>
+            <div class="for-item"><span class="icon">📊</span> Laporan perakaunan urgent</div>
+            <div class="for-item"><span class="icon">🔧</span> IT support dan troubleshooting</div>
+            <div class="for-item"><span class="icon">📱</span> Kempen media sosial segera</div>
+            <div class="for-item"><span class="icon">🎤</span> MC / emcee last minute</div>
+            <div class="for-item"><span class="icon">🌐</span> Terjemahan dokumen penting</div>
+            <div class="for-item"><span class="icon">📸</span> Fotografi event esok</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Urgency levels ──────────────────────────────────────── -->
+<div class="uh-section" style="background: #fff;">
+    <div class="uh-container">
+        <div class="uh-section-title">Pilih Tahap Keterdesakan</div>
+        <div class="uh-section-subtitle">Pilih masa respons yang anda perlukan</div>
+        <div class="urgency-grid">
+            <div class="urgency-pill">
+                <div class="badge badge-red">🔴 Paling Mendesak</div>
+                <div class="label">Dalam 1 Jam</div>
+                <p style="font-size:13px;color:var(--text-gray);margin-top:8px;">Situasi kritikal yang perlu diselesaikan sekarang.</p>
+            </div>
+            <div class="urgency-pill">
+                <div class="badge badge-orange">🟠 Sangat Urgent</div>
+                <div class="label">Hari Yang Sama</div>
+                <p style="font-size:13px;color:var(--text-gray);margin-top:8px;">Perlu diselesaikan sebelum hari berakhir.</p>
+            </div>
+            <div class="urgency-pill">
+                <div class="badge badge-blue">🔵 Urgent</div>
+                <div class="label">Dalam 24 Jam</div>
+                <p style="font-size:13px;color:var(--text-gray);margin-top:8px;">Masa sedikit tapi masih perlu cepat.</p>
+            </div>
+            <div class="urgency-pill">
+                <div class="badge badge-green">🟢 Segera</div>
+                <div class="label">Dalam 48 Jam</div>
+                <p style="font-size:13px;color:var(--text-gray);margin-top:8px;">Perlu dalam dua hari bekerja.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Add-ons ─────────────────────────────────────────────── -->
+<div class="uh-section" style="background: var(--bg-light);">
+    <div class="uh-container">
+        <div class="uh-section-title">Tingkatkan Peluang Anda</div>
+        <div class="uh-section-subtitle">Add-on premium untuk padanan lebih pantas dan keterlihatan lebih tinggi</div>
+        <div class="addons-grid">
+            <div class="addon-card featured">
+                <div class="addon-tag">Paling Popular</div>
+                <h3>⚡ Priority Match</h3>
+                <div class="addon-price">RM {{ "%.0f"|format(pm_price) }}<span>/sekali</span></div>
+                <p>Permintaan anda diutamakan dan dipadankan dengan pakar terpilih secara manual oleh pasukan GigHala.</p>
+                <ul class="addon-list">
+                    <li>Padanan manual oleh pasukan GigHala</li>
+                    <li>Pakar disaring lebih ketat</li>
+                    <li>Pemberitahuan diutamakan</li>
+                    <li>Pengesahan dalam 2 jam</li>
+                </ul>
+            </div>
+            <div class="addon-card">
+                <h3>🚀 Urgent Boost</h3>
+                <div class="addon-price">RM {{ "%.0f"|format(ub_price) }}<span>/sekali</span></div>
+                <p>Permintaan anda dipaparkan lebih menonjol dan disebarkan kepada lebih ramai pakar yang aktif.</p>
+                <ul class="addon-list">
+                    <li>Pengedaran lebih agresif</li>
+                    <li>Kelihatan lebih tinggi dalam senarai</li>
+                    <li>Notifikasi kepada pakar aktif</li>
+                    <li>Lebih banyak cadangan diterima</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── CTA bottom ──────────────────────────────────────────── -->
+<div class="uh-cta-strip">
+    <h2>Siap untuk Dapatkan Bantuan Sekarang?</h2>
+    <p>Isi borang urgent request dalam masa 2 minit atau hubungi kami terus via WhatsApp.</p>
+    <div class="ctas">
+        <a href="/urgent-request" class="btn-urgent-primary">
+            <i data-feather="zap" style="width:18px;height:18px;"></i> Hantar Permintaan Segera
+        </a>
+        <a href="/managed-solution" style="background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.55);color:#fff;font-weight:600;font-size:15px;padding:14px 28px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+            <i data-feather="briefcase" style="width:18px;height:18px;"></i> Managed Solution
+        </a>
+        <a href="https://wa.me/{{ admin_whatsapp }}?text=Saya%20perlukan%20bantuan%20segera%20melalui%20GigHala%20Urgent%20Help" target="_blank" rel="noopener" class="btn-wa">
+            <svg style="width:18px;height:18px;fill:#fff;" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            WhatsApp Sekarang
+        </a>
+    </div>
+</div>
+{% endblock %}

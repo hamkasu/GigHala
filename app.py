@@ -3667,6 +3667,77 @@ class AuditLog(db.Model):
 
         return f"CEF:0|GigHala|GigHala Platform|1.0|{self.event_type}|{self.action}|{cef_severity}|{extension_str}"
 
+class UrgentRequest(db.Model):
+    """Urgent Help requests submitted by clients needing fast expert matching."""
+    __tablename__ = 'urgent_request'
+    id = db.Column(db.Integer, primary_key=True)
+    request_code = db.Column(db.String(20), unique=True, nullable=True)  # e.g. URG-00001
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    urgency_level = db.Column(db.String(20), nullable=False)  # 1hour, same_day, 24hours, 48hours
+    budget_min = db.Column(db.Float)
+    budget_max = db.Column(db.Float)
+    is_remote = db.Column(db.Boolean, default=True)
+    location = db.Column(db.String(100))
+    preferred_language = db.Column(db.String(50))
+    whatsapp_number = db.Column(db.String(20))
+    attachment_filename = db.Column(db.String(255))
+    vetted_experts_only = db.Column(db.Boolean, default=False)
+    priority_match = db.Column(db.Boolean, default=False)   # paid add-on
+    urgent_boost = db.Column(db.Boolean, default=False)     # paid add-on
+    priority_match_price = db.Column(db.Float, default=0.0)
+    urgent_boost_price = db.Column(db.Float, default=0.0)
+    total_addons_price = db.Column(db.Float, default=0.0)
+    status = db.Column(db.String(20), default='new')  # new, reviewing, matched, closed
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    contact_name = db.Column(db.String(120))
+    contact_email = db.Column(db.String(120))
+    admin_notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('urgent_requests', lazy='dynamic'), foreign_keys=[user_id])
+
+    def generate_code(self):
+        count = UrgentRequest.query.count()
+        self.request_code = f'URG-{count + 1:05d}'
+
+
+class ManagedSolutionRequest(db.Model):
+    """Premium managed solution requests where GigHala manually coordinates expert matching."""
+    __tablename__ = 'managed_solution_request'
+    id = db.Column(db.Integer, primary_key=True)
+    request_code = db.Column(db.String(20), unique=True, nullable=True)  # e.g. MGD-00001
+    company_name = db.Column(db.String(200))
+    industry = db.Column(db.String(100))
+    business_problem = db.Column(db.Text, nullable=False)
+    timeline = db.Column(db.String(50))
+    budget_min = db.Column(db.Float)
+    budget_max = db.Column(db.Float)
+    is_remote = db.Column(db.Boolean, default=True)
+    location = db.Column(db.String(100))
+    experts_needed = db.Column(db.Integer, default=1)
+    requires_nda = db.Column(db.Boolean, default=False)
+    callback_number = db.Column(db.String(20))
+    whatsapp_number = db.Column(db.String(20))
+    notes = db.Column(db.Text)
+    attachment_filename = db.Column(db.String(255))
+    contact_name = db.Column(db.String(120))
+    contact_email = db.Column(db.String(120))
+    status = db.Column(db.String(20), default='new')  # new, reviewing, matched, closed
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    admin_notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('managed_solution_requests', lazy='dynamic'), foreign_keys=[user_id])
+
+    def generate_code(self):
+        count = ManagedSolutionRequest.query.count()
+        self.request_code = f'MGD-{count + 1:05d}'
+
+
 # Initialize Security Logger after all models are defined
 from security_logger import init_security_logger
 security_logger = init_security_logger(app, db)
@@ -13477,6 +13548,476 @@ def get_admin_analytics():
         return jsonify({'error': 'Failed to fetch analytics'}), 500
 
 # Admin Routes
+# ─────────────────────────────────────────────────────────────────────────────
+# URGENT HELP MODULE
+# ─────────────────────────────────────────────────────────────────────────────
+
+URGENT_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'urgent')
+os.makedirs(URGENT_UPLOAD_FOLDER, exist_ok=True)
+
+# Default add-on prices (overridable via SiteSettings)
+_DEFAULT_PRIORITY_MATCH_PRICE = 69.0
+_DEFAULT_URGENT_BOOST_PRICE   = 49.0
+
+def _get_urgent_prices():
+    pm = get_site_setting('urgent_priority_match_price', str(_DEFAULT_PRIORITY_MATCH_PRICE))
+    ub = get_site_setting('urgent_boost_price', str(_DEFAULT_URGENT_BOOST_PRICE))
+    try:
+        pm = float(pm)
+    except (TypeError, ValueError):
+        pm = _DEFAULT_PRIORITY_MATCH_PRICE
+    try:
+        ub = float(ub)
+    except (TypeError, ValueError):
+        ub = _DEFAULT_URGENT_BOOST_PRICE
+    return pm, ub
+
+def _get_admin_whatsapp():
+    return get_site_setting('urgent_admin_whatsapp', os.environ.get('URGENT_ADMIN_WHATSAPP', '601147804528'))
+
+
+@app.route('/urgent-help')
+def urgent_help_page():
+    """Urgent Help landing page – explains the premium service and offers entry points."""
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+    pm_price, ub_price = _get_urgent_prices()
+    admin_whatsapp = _get_admin_whatsapp()
+    return render_template(
+        'urgent_help.html',
+        user=user,
+        lang=get_user_language(),
+        t=t,
+        active_page='urgent-help',
+        pm_price=pm_price,
+        ub_price=ub_price,
+        admin_whatsapp=admin_whatsapp,
+    )
+
+
+@app.route('/urgent-request', methods=['GET', 'POST'])
+def urgent_request_page():
+    """Urgent request submission form."""
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+    pm_price, ub_price = _get_urgent_prices()
+    admin_whatsapp = _get_admin_whatsapp()
+    categories = get_categories_for_dropdown()
+
+    if request.method == 'POST':
+        try:
+            title       = request.form.get('title', '').strip()
+            description = request.form.get('description', '').strip()
+            category    = request.form.get('category', '').strip()
+            urgency     = request.form.get('urgency_level', 'same_day').strip()
+            budget_min  = float(request.form.get('budget_min') or 0)
+            budget_max  = float(request.form.get('budget_max') or 0)
+            is_remote   = request.form.get('work_mode') != 'onsite'
+            location    = request.form.get('location', '').strip()
+            pref_lang   = request.form.get('preferred_language', '').strip()
+            wa_number   = request.form.get('whatsapp_number', '').strip()
+            contact_name  = request.form.get('contact_name', '').strip()
+            contact_email = request.form.get('contact_email', '').strip()
+            vetted_only   = request.form.get('vetted_experts_only') == 'on'
+            use_pm        = request.form.get('priority_match') == 'on'
+            use_ub        = request.form.get('urgent_boost') == 'on'
+
+            if not title or not description or not category:
+                flash('Sila lengkapkan semua maklumat wajib.', 'error')
+                return render_template(
+                    'urgent_request.html', user=user, lang=get_user_language(), t=t,
+                    active_page='urgent-help', categories=categories,
+                    pm_price=pm_price, ub_price=ub_price, admin_whatsapp=admin_whatsapp)
+
+            # Handle file upload
+            attachment_filename = None
+            if 'attachment' in request.files:
+                f = request.files['attachment']
+                if f and f.filename and allowed_file(f.filename):
+                    safe_name = secure_filename(f.filename)
+                    unique_name = f'{uuid.uuid4().hex}_{safe_name}'
+                    save_path = os.path.join(URGENT_UPLOAD_FOLDER, unique_name)
+                    if os.path.abspath(save_path).startswith(os.path.abspath(URGENT_UPLOAD_FOLDER)):
+                        f.save(save_path)
+                        attachment_filename = unique_name
+
+            pm_applied_price = pm_price if use_pm else 0.0
+            ub_applied_price = ub_price if use_ub else 0.0
+            total_addons     = pm_applied_price + ub_applied_price
+
+            req = UrgentRequest(
+                title=title,
+                description=description,
+                category=category,
+                urgency_level=urgency,
+                budget_min=budget_min,
+                budget_max=budget_max,
+                is_remote=is_remote,
+                location=location,
+                preferred_language=pref_lang,
+                whatsapp_number=wa_number,
+                attachment_filename=attachment_filename,
+                vetted_experts_only=vetted_only,
+                priority_match=use_pm,
+                urgent_boost=use_ub,
+                priority_match_price=pm_applied_price,
+                urgent_boost_price=ub_applied_price,
+                total_addons_price=total_addons,
+                user_id=user.id if user else None,
+                contact_name=contact_name or (user.full_name if user else ''),
+                contact_email=contact_email or (user.email if user else ''),
+                status='new',
+            )
+            db.session.add(req)
+            db.session.flush()  # get id before commit
+            req.generate_code()
+            db.session.commit()
+
+            # Send WhatsApp confirmation to client if number provided
+            if wa_number:
+                try:
+                    import whatsapp_service
+                    msg = (
+                        f"✅ Permintaan Urgent Help anda ({req.request_code}) telah diterima!\n\n"
+                        f"Tajuk: {title}\n"
+                        f"Keterdesakan: {urgency}\n\n"
+                        "Pasukan GigHala akan menghubungi anda tidak lama lagi.\n\nGigHala.my"
+                    )
+                    whatsapp_service.send_whatsapp_text(wa_number, msg)
+                except Exception:
+                    pass  # WhatsApp failure should not block form submission
+
+            return redirect(url_for('urgent_request_success', code=req.request_code))
+
+        except Exception as e:
+            app.logger.error(f'Urgent request submission error: {e}')
+            flash('Terdapat ralat. Sila cuba lagi.', 'error')
+
+    return render_template(
+        'urgent_request.html',
+        user=user, lang=get_user_language(), t=t,
+        active_page='urgent-help', categories=categories,
+        pm_price=pm_price, ub_price=ub_price, admin_whatsapp=admin_whatsapp)
+
+
+@app.route('/urgent-request/success')
+def urgent_request_success():
+    code = request.args.get('code', '')
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+    req = UrgentRequest.query.filter_by(request_code=code).first() if code else None
+    admin_whatsapp = _get_admin_whatsapp()
+    return render_template(
+        'urgent_request_success.html',
+        user=user, lang=get_user_language(), t=t,
+        active_page='urgent-help', req=req, admin_whatsapp=admin_whatsapp)
+
+
+@app.route('/managed-solution', methods=['GET', 'POST'])
+def managed_solution_page():
+    """Managed Solution – premium white-glove service form."""
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+    admin_whatsapp = _get_admin_whatsapp()
+
+    if request.method == 'POST':
+        try:
+            company_name    = request.form.get('company_name', '').strip()
+            industry        = request.form.get('industry', '').strip()
+            business_problem= request.form.get('business_problem', '').strip()
+            timeline        = request.form.get('timeline', '').strip()
+            budget_min      = float(request.form.get('budget_min') or 0)
+            budget_max      = float(request.form.get('budget_max') or 0)
+            is_remote       = request.form.get('work_mode') != 'onsite'
+            location        = request.form.get('location', '').strip()
+            experts_needed  = int(request.form.get('experts_needed') or 1)
+            requires_nda    = request.form.get('requires_nda') == 'on'
+            callback_number = request.form.get('callback_number', '').strip()
+            wa_number       = request.form.get('whatsapp_number', '').strip()
+            notes           = request.form.get('notes', '').strip()
+            contact_name    = request.form.get('contact_name', '').strip()
+            contact_email   = request.form.get('contact_email', '').strip()
+
+            if not business_problem:
+                flash('Sila huraikan masalah perniagaan anda.', 'error')
+                return render_template(
+                    'managed_solution.html', user=user, lang=get_user_language(), t=t,
+                    active_page='urgent-help', admin_whatsapp=admin_whatsapp)
+
+            # File upload
+            attachment_filename = None
+            if 'attachment' in request.files:
+                f = request.files['attachment']
+                if f and f.filename and allowed_file(f.filename):
+                    safe_name   = secure_filename(f.filename)
+                    unique_name = f'{uuid.uuid4().hex}_{safe_name}'
+                    save_path   = os.path.join(URGENT_UPLOAD_FOLDER, unique_name)
+                    if os.path.abspath(save_path).startswith(os.path.abspath(URGENT_UPLOAD_FOLDER)):
+                        f.save(save_path)
+                        attachment_filename = unique_name
+
+            mgd = ManagedSolutionRequest(
+                company_name=company_name,
+                industry=industry,
+                business_problem=business_problem,
+                timeline=timeline,
+                budget_min=budget_min,
+                budget_max=budget_max,
+                is_remote=is_remote,
+                location=location,
+                experts_needed=experts_needed,
+                requires_nda=requires_nda,
+                callback_number=callback_number,
+                whatsapp_number=wa_number,
+                notes=notes,
+                attachment_filename=attachment_filename,
+                contact_name=contact_name or (user.full_name if user else ''),
+                contact_email=contact_email or (user.email if user else ''),
+                user_id=user.id if user else None,
+                status='new',
+            )
+            db.session.add(mgd)
+            db.session.flush()
+            mgd.generate_code()
+            db.session.commit()
+
+            # WhatsApp confirmation
+            if wa_number:
+                try:
+                    import whatsapp_service
+                    msg = (
+                        f"✅ Permintaan Managed Solution anda ({mgd.request_code}) telah diterima!\n\n"
+                        f"Syarikat: {company_name or contact_name}\n\n"
+                        "Pasukan GigHala akan menghubungi anda dalam tempoh 24 jam.\n\nGigHala.my"
+                    )
+                    whatsapp_service.send_whatsapp_text(wa_number, msg)
+                except Exception:
+                    pass
+
+            return redirect(url_for('managed_solution_success', code=mgd.request_code))
+
+        except Exception as e:
+            app.logger.error(f'Managed solution submission error: {e}')
+            flash('Terdapat ralat. Sila cuba lagi.', 'error')
+
+    return render_template(
+        'managed_solution.html',
+        user=user, lang=get_user_language(), t=t,
+        active_page='urgent-help', admin_whatsapp=admin_whatsapp)
+
+
+@app.route('/managed-solution/success')
+def managed_solution_success():
+    code = request.args.get('code', '')
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+    mgd = ManagedSolutionRequest.query.filter_by(request_code=code).first() if code else None
+    admin_whatsapp = _get_admin_whatsapp()
+    return render_template(
+        'managed_solution_success.html',
+        user=user, lang=get_user_language(), t=t,
+        active_page='urgent-help', mgd=mgd, admin_whatsapp=admin_whatsapp)
+
+
+# ── Admin: Urgent Requests Dashboard ─────────────────────────────────────────
+
+@app.route('/admin/urgent-requests')
+def admin_urgent_requests_page():
+    """Admin page for managing urgent and managed solution requests."""
+    if 'user_id' not in session:
+        return redirect('/')
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return redirect('/')
+    return render_template('admin_urgent.html', user=user, lang=get_user_language(), t=t, active_page='admin')
+
+
+# ── Admin API: Urgent Requests ────────────────────────────────────────────────
+
+@app.route('/api/admin/urgent-requests', methods=['GET'])
+@login_required
+def api_admin_urgent_requests():
+    """List urgent requests with optional filtering."""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    req_type  = request.args.get('type', 'urgent')   # urgent | managed
+    status_f  = request.args.get('status', '')
+    urgency_f = request.args.get('urgency', '')
+    page      = int(request.args.get('page', 1))
+    per_page  = 20
+
+    if req_type == 'managed':
+        q = ManagedSolutionRequest.query
+        if status_f:
+            q = q.filter(ManagedSolutionRequest.status == status_f)
+        q = q.order_by(ManagedSolutionRequest.created_at.desc())
+        total  = q.count()
+        items  = q.offset((page - 1) * per_page).limit(per_page).all()
+        data   = [{
+            'id': r.id,
+            'request_code': r.request_code,
+            'company_name': r.company_name,
+            'contact_name': r.contact_name,
+            'contact_email': r.contact_email,
+            'whatsapp_number': r.whatsapp_number,
+            'business_problem': r.business_problem[:120] + '…' if r.business_problem and len(r.business_problem) > 120 else r.business_problem,
+            'timeline': r.timeline,
+            'budget_min': r.budget_min,
+            'budget_max': r.budget_max,
+            'experts_needed': r.experts_needed,
+            'requires_nda': r.requires_nda,
+            'status': r.status,
+            'admin_notes': r.admin_notes,
+            'created_at': r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '',
+        } for r in items]
+    else:
+        q = UrgentRequest.query
+        if status_f:
+            q = q.filter(UrgentRequest.status == status_f)
+        if urgency_f:
+            q = q.filter(UrgentRequest.urgency_level == urgency_f)
+        q = q.order_by(UrgentRequest.created_at.desc())
+        total  = q.count()
+        items  = q.offset((page - 1) * per_page).limit(per_page).all()
+        data   = [{
+            'id': r.id,
+            'request_code': r.request_code,
+            'title': r.title,
+            'category': r.category,
+            'urgency_level': r.urgency_level,
+            'budget_min': r.budget_min,
+            'budget_max': r.budget_max,
+            'is_remote': r.is_remote,
+            'location': r.location,
+            'whatsapp_number': r.whatsapp_number,
+            'contact_name': r.contact_name,
+            'contact_email': r.contact_email,
+            'priority_match': r.priority_match,
+            'urgent_boost': r.urgent_boost,
+            'total_addons_price': r.total_addons_price,
+            'vetted_experts_only': r.vetted_experts_only,
+            'status': r.status,
+            'admin_notes': r.admin_notes,
+            'created_at': r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '',
+        } for r in items]
+
+    return jsonify({'items': data, 'total': total, 'page': page, 'per_page': per_page})
+
+
+@app.route('/api/admin/urgent-requests/<int:req_id>/status', methods=['PUT'])
+@login_required
+def api_admin_urgent_request_status(req_id):
+    """Update status of an urgent request."""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    data       = request.get_json() or {}
+    req_type   = data.get('type', 'urgent')
+    new_status = data.get('status', '').strip()
+    admin_notes= data.get('admin_notes', None)
+
+    valid_statuses = ['new', 'reviewing', 'matched', 'closed']
+    if new_status not in valid_statuses:
+        return jsonify({'error': 'Invalid status'}), 400
+
+    if req_type == 'managed':
+        rec = ManagedSolutionRequest.query.get(req_id)
+    else:
+        rec = UrgentRequest.query.get(req_id)
+
+    if not rec:
+        return jsonify({'error': 'Not found'}), 404
+
+    rec.status = new_status
+    if admin_notes is not None:
+        rec.admin_notes = admin_notes
+    db.session.commit()
+    return jsonify({'success': True, 'status': new_status})
+
+
+@app.route('/api/admin/urgent-analytics', methods=['GET'])
+@login_required
+def api_admin_urgent_analytics():
+    """Basic analytics for the Urgent Help module."""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    total_urgent   = UrgentRequest.query.count()
+    total_managed  = ManagedSolutionRequest.query.count()
+    total_pm       = UrgentRequest.query.filter_by(priority_match=True).count()
+    total_ub       = UrgentRequest.query.filter_by(urgent_boost=True).count()
+
+    pm_revenue = db.session.query(db.func.sum(UrgentRequest.priority_match_price)).scalar() or 0
+    ub_revenue = db.session.query(db.func.sum(UrgentRequest.urgent_boost_price)).scalar() or 0
+
+    status_breakdown = {}
+    for row in db.session.query(UrgentRequest.status, db.func.count(UrgentRequest.id)).group_by(UrgentRequest.status).all():
+        status_breakdown[row[0]] = row[1]
+
+    recent = UrgentRequest.query.order_by(UrgentRequest.created_at.desc()).limit(5).all()
+    recent_list = [{
+        'request_code': r.request_code,
+        'title': r.title,
+        'urgency_level': r.urgency_level,
+        'status': r.status,
+        'created_at': r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '',
+    } for r in recent]
+
+    return jsonify({
+        'total_urgent': total_urgent,
+        'total_managed': total_managed,
+        'total_priority_match': total_pm,
+        'total_urgent_boost': total_ub,
+        'priority_match_revenue': round(pm_revenue, 2),
+        'urgent_boost_revenue': round(ub_revenue, 2),
+        'total_addon_revenue': round(pm_revenue + ub_revenue, 2),
+        'status_breakdown': status_breakdown,
+        'recent_urgent': recent_list,
+    })
+
+
+@app.route('/api/admin/urgent-settings', methods=['GET', 'POST'])
+@login_required
+def api_admin_urgent_settings():
+    """Get or update Urgent Help module pricing settings."""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return jsonify({'error': 'Forbidden'}), 403
+
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        if 'priority_match_price' in data:
+            set_site_setting('urgent_priority_match_price', str(float(data['priority_match_price'])),
+                             'Priority Match add-on price (RM)', user.id)
+        if 'urgent_boost_price' in data:
+            set_site_setting('urgent_boost_price', str(float(data['urgent_boost_price'])),
+                             'Urgent Boost add-on price (RM)', user.id)
+        if 'admin_whatsapp' in data:
+            set_site_setting('urgent_admin_whatsapp', data['admin_whatsapp'],
+                             'Admin WhatsApp for urgent requests', user.id)
+        return jsonify({'success': True})
+
+    pm, ub = _get_urgent_prices()
+    return jsonify({
+        'priority_match_price': pm,
+        'urgent_boost_price': ub,
+        'admin_whatsapp': _get_admin_whatsapp(),
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# END URGENT HELP MODULE
+# ─────────────────────────────────────────────────────────────────────────────
+
 @app.route('/admin')
 def admin_page():
     """Serve admin dashboard page"""
