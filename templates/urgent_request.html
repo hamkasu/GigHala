@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}Urgent Request – Hantar Permintaan Segera{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-container { max-width: 820px; margin: 0 auto; }
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-size: 26px; font-weight: 800; color: var(--text-dark); margin-bottom: 6px; }
+    .page-subtitle { color: var(--text-gray); font-size: 15px; }
+    .urgency-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #fff3e0; color: #e65100;
+        font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+        margin-bottom: 12px;
+    }
+    .form-card {
+        background: #fff; border-radius: 14px; padding: 32px;
+        box-shadow: 0 1px 6px rgba(0,0,0,.06); border: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+    .form-section-title {
+        font-size: 15px; font-weight: 700; color: var(--text-dark);
+        margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+        padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-label {
+        display: block; font-weight: 600; color: var(--text-dark);
+        margin-bottom: 7px; font-size: 14px;
+    }
+    .form-label .req { color: var(--error); }
+    .form-input, .form-textarea, .form-select {
+        width: 100%; padding: 11px 14px; border: 1px solid var(--border);
+        border-radius: 9px; font-size: 14px; font-family: inherit; transition: all .2s;
+        background: #fff;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,200,83,.1);
+    }
+    .form-textarea { min-height: 120px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-hint { color: var(--text-light); font-size: 12px; margin-top: 5px; }
+
+    /* Urgency selector */
+    .urgency-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .urgency-option { display: none; }
+    .urgency-label {
+        display: flex; align-items: center; gap: 10px;
+        padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px;
+        cursor: pointer; transition: all .2s; font-size: 14px; font-weight: 500;
+    }
+    .urgency-option:checked + .urgency-label {
+        border-color: var(--primary); background: rgba(0,200,83,.06);
+    }
+    .urgency-icon { font-size: 20px; }
+
+    /* Toggle switch */
+    .toggle-group {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        gap: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 10px;
+        margin-bottom: 12px;
+    }
+    .toggle-group.premium { border-color: #00C853; background: rgba(0,200,83,.03); }
+    .toggle-info h4 { font-size: 14px; font-weight: 700; margin: 0 0 4px; }
+    .toggle-info p  { font-size: 13px; color: var(--text-gray); margin: 0; }
+    .toggle-price { font-size: 13px; color: #0d7c66; font-weight: 700; margin-top: 4px; }
+    .toggle-switch {
+        position: relative; display: inline-block;
+        width: 46px; height: 26px; flex-shrink: 0;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-slider {
+        position: absolute; inset: 0; border-radius: 26px;
+        background: #ccc; cursor: pointer; transition: .2s;
+    }
+    .toggle-slider::before {
+        content: ""; position: absolute; left: 3px; top: 3px;
+        width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: .2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #00C853; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Order summary */
+    .order-summary {
+        background: var(--bg-light); border-radius: 10px; padding: 18px;
+        margin-bottom: 20px; display: none;
+    }
+    .order-summary.visible { display: block; }
+    .order-row {
+        display: flex; justify-content: space-between;
+        font-size: 14px; padding: 5px 0;
+    }
+    .order-row.total {
+        border-top: 1px solid var(--border); margin-top: 8px;
+        padding-top: 10px; font-weight: 700; font-size: 15px;
+    }
+
+    /* Work mode */
+    .work-mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .work-mode-option { display: none; }
+    .work-mode-label {
+        display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+        border: 2px solid var(--border); border-radius: 10px; cursor: pointer;
+        transition: all .2s; font-size: 14px; font-weight: 500;
+    }
+    .work-mode-option:checked + .work-mode-label {
+        border-color: var(--primary); background: rgba(0,200,83,.06);
+    }
+
+    .btn-submit {
+        width: 100%; padding: 15px; background: var(--primary);
+        color: #fff; border: none; border-radius: 10px;
+        font-size: 16px; font-weight: 700; cursor: pointer; transition: all .2s;
+    }
+    .btn-submit:hover { background: #0d7c66; }
+
+    .flash-msg { padding: 12px 16px; border-radius: 9px; margin-bottom: 16px; font-size: 14px; }
+    .flash-error { background: #fee; color: #c0392b; border: 1px solid #f5c6cb; }
+
+    @media (max-width: 600px) {
+        .form-row, .urgency-options, .work-mode-grid { grid-template-columns: 1fr; }
+        .form-card { padding: 20px 16px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+<div class="page-container">
+    <div class="page-header">
+        <a href="/urgent-help" style="color:var(--text-gray);font-size:14px;text-decoration:none;">← Kembali ke Urgent Help</a>
+        <div class="urgency-badge" style="margin-top:12px;">⚡ Premium Service</div>
+        <h1 class="page-title">Hantar Permintaan Segera</h1>
+        <p class="page-subtitle">Isi borang di bawah dan pasukan kami akan memadankan anda dengan pakar yang sesuai dengan segera.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" id="urgentForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- ── Section 1: Basic Info ────────────────────────── -->
+        <div class="form-card">
+            <div class="form-section-title">📋 Maklumat Permintaan</div>
+
+            <div class="form-group">
+                <label class="form-label">Tajuk Permintaan <span class="req">*</span></label>
+                <input type="text" name="title" class="form-input"
+                    placeholder="contoh: Perlukan web developer segera untuk fix bug checkout"
+                    maxlength="200" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Penerangan Masalah <span class="req">*</span></label>
+                <textarea name="description" class="form-textarea"
+                    placeholder="Huraikan masalah anda dengan terperinci: apa yang berlaku, apa yang diperlukan, dan apa yang anda jangkakan..." required></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Kategori <span class="req">*</span></label>
+                    <select name="category" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.slug }}">{{ cat.name_ms or cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bahasa Pilihan</label>
+                    <select name="preferred_language" class="form-select">
+                        <option value="">Mana-mana</option>
+                        <option value="Bahasa Melayu">Bahasa Melayu</option>
+                        <option value="English">English</option>
+                        <option value="Mandarin">Mandarin</option>
+                        <option value="Tamil">Tamil</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 2: Urgency ──────────────────────────── -->
+        <div class="form-card">
+            <div class="form-section-title">🕐 Tahap Keterdesakan</div>
+            <div class="urgency-options">
+                <div>
+                    <input type="radio" name="urgency_level" id="urg_1h" value="1hour" class="urgency-option">
+                    <label for="urg_1h" class="urgency-label"><span class="urgency-icon">🔴</span>Dalam 1 Jam</label>
+                </div>
+                <div>
+                    <input type="radio" name="urgency_level" id="urg_sd" value="same_day" class="urgency-option" checked>
+                    <label for="urg_sd" class="urgency-label"><span class="urgency-icon">🟠</span>Hari Yang Sama</label>
+                </div>
+                <div>
+                    <input type="radio" name="urgency_level" id="urg_24" value="24hours" class="urgency-option">
+                    <label for="urg_24" class="urgency-label"><span class="urgency-icon">🔵</span>Dalam 24 Jam</label>
+                </div>
+                <div>
+                    <input type="radio" name="urgency_level" id="urg_48" value="48hours" class="urgency-option">
+                    <label for="urg_48" class="urgency-label"><span class="urgency-icon">🟢</span>Dalam 48 Jam</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 3: Budget & Work Mode ──────────────── -->
+        <div class="form-card">
+            <div class="form-section-title">💰 Bajet & Mod Kerja</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Bajet Minimum (RM)</label>
+                    <input type="number" name="budget_min" class="form-input" placeholder="0" min="0" step="10">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bajet Maksimum (RM)</label>
+                    <input type="number" name="budget_max" class="form-input" placeholder="0" min="0" step="10">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mod Kerja</label>
+                <div class="work-mode-grid">
+                    <div>
+                        <input type="radio" name="work_mode" id="remote" value="remote" class="work-mode-option" checked>
+                        <label for="remote" class="work-mode-label">🏠 Kerja Dari Jauh</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="work_mode" id="onsite" value="onsite" class="work-mode-option">
+                        <label for="onsite" class="work-mode-label">📍 Di Lokasi (On-Site)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" id="locationGroup">
+                <label class="form-label">Lokasi</label>
+                <input type="text" name="location" class="form-input" placeholder="contoh: Kuala Lumpur, Petaling Jaya">
+            </div>
+        </div>
+
+        <!-- ── Section 4: Contact ──────────────────────────── -->
+        <div class="form-card">
+            <div class="form-section-title">📞 Maklumat Hubungan</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nama <span class="req">*</span></label>
+                    <input type="text" name="contact_name" class="form-input"
+                        value="{{ user.full_name if user else '' }}"
+                        placeholder="Nama anda" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Emel <span class="req">*</span></label>
+                    <input type="email" name="contact_email" class="form-input"
+                        value="{{ user.email if user else '' }}"
+                        placeholder="emel@anda.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nombor WhatsApp</label>
+                <input type="tel" name="whatsapp_number" class="form-input"
+                    value="{{ user.phone if user else '' }}"
+                    placeholder="contoh: 0147804528">
+                <div class="form-hint">Untuk pemberitahuan segera via WhatsApp</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Lampiran (Pilihan)</label>
+                <input type="file" name="attachment" class="form-input"
+                    accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx">
+                <div class="form-hint">Muat naik brief, wireframe, atau dokumen berkaitan (max 16MB)</div>
+            </div>
+        </div>
+
+        <!-- ── Section 5: Options & Add-ons ───────────────── -->
+        <div class="form-card">
+            <div class="form-section-title">⚙️ Pilihan Tambahan</div>
+
+            <div class="toggle-group">
+                <div class="toggle-info">
+                    <h4>Pakar Tersaring Sahaja</h4>
+                    <p>Hanya pakar yang telah disahkan oleh GigHala akan dicadangkan</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="vetted_experts_only" id="vettedToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-group premium">
+                <div class="toggle-info">
+                    <h4>⚡ Priority Match Add-on</h4>
+                    <p>Permintaan anda diutamakan dan dipadankan secara manual</p>
+                    <div class="toggle-price">+RM {{ "%.0f"|format(pm_price) }}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="priority_match" id="pmToggle" onchange="updateSummary()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-group premium">
+                <div class="toggle-info">
+                    <h4>🚀 Urgent Boost Add-on</h4>
+                    <p>Permintaan anda disebarkan kepada lebih ramai pakar aktif</p>
+                    <div class="toggle-price">+RM {{ "%.0f"|format(ub_price) }}</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="urgent_boost" id="ubToggle" onchange="updateSummary()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary" id="orderSummary">
+                <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Ringkasan Tambahan</div>
+                <div class="order-row" id="pmRow" style="display:none;">
+                    <span>⚡ Priority Match</span><span>RM {{ "%.0f"|format(pm_price) }}</span>
+                </div>
+                <div class="order-row" id="ubRow" style="display:none;">
+                    <span>🚀 Urgent Boost</span><span>RM {{ "%.0f"|format(ub_price) }}</span>
+                </div>
+                <div class="order-row total">
+                    <span>Jumlah Add-on</span><span id="totalPrice">RM 0</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-light);margin-top:8px;">
+                    * Harga add-on akan ditambah kepada bajet projek anda. Admin akan menghubungi untuk pengesahan pembayaran.
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i data-feather="zap" style="width:18px;height:18px;vertical-align:middle;margin-right:6px;"></i>
+            Hantar Permintaan Segera
+        </button>
+
+        <p style="text-align:center;font-size:13px;color:var(--text-light);margin-top:12px;">
+            Atau hubungi kami terus:
+            <a href="https://wa.me/{{ admin_whatsapp }}?text=Saya%20perlukan%20bantuan%20segera%20GigHala" target="_blank" rel="noopener" style="color:#25D366;font-weight:600;">
+                WhatsApp Sekarang
+            </a>
+        </p>
+    </form>
+</div>
+</div>
+
+<script>
+const PM_PRICE = {{ pm_price }};
+const UB_PRICE = {{ ub_price }};
+
+function updateSummary() {
+    const pm = document.getElementById('pmToggle').checked;
+    const ub = document.getElementById('ubToggle').checked;
+    const pmRow = document.getElementById('pmRow');
+    const ubRow = document.getElementById('ubRow');
+    const summary = document.getElementById('orderSummary');
+    const totalEl = document.getElementById('totalPrice');
+
+    pmRow.style.display = pm ? 'flex' : 'none';
+    ubRow.style.display = ub ? 'flex' : 'none';
+
+    const total = (pm ? PM_PRICE : 0) + (ub ? UB_PRICE : 0);
+    totalEl.textContent = 'RM ' + total.toFixed(0);
+    summary.classList.toggle('visible', pm || ub);
+}
+
+// Show/hide location based on work mode
+document.querySelectorAll('input[name="work_mode"]').forEach(r => {
+    r.addEventListener('change', function() {
+        const locGroup = document.getElementById('locationGroup');
+        if (locGroup) {
+            locGroup.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1619,6 +1619,9 @@
                     <a href="/workers" class="nav-link {% if active_page == 'workers' %}active{% endif %}">{{ t('nav_workers') }}</a>
                     <a href="/services" class="nav-link {% if active_page == 'services' %}active{% endif %}">{% if lang == 'ms' %}Perkhidmatan{% else %}Services{% endif %}</a>
                     <a href="/worker-updates" class="nav-link {% if active_page == 'worker-updates' %}active{% endif %}">{{ t('nav_worker_updates') }}</a>
+                    <a href="/urgent-help" class="nav-link {% if active_page == 'urgent-help' %}active{% endif %}" style="{% if active_page != 'urgent-help' %}color:#e65100;{% endif %}display:flex;align-items:center;gap:4px;" title="Urgent Help – Bantuan Segera Premium">
+                        <span style="font-size:12px;">⚡</span> {% if lang == 'ms' %}Urgent Help{% else %}Urgent Help{% endif %}
+                    </a>
                     {% if user.user_type in ['client', 'both'] %}
                     <a href="/post-gig" class="nav-link {% if active_page == 'post-gig' %}active{% endif %}">{{ t('nav_submit') }}</a>
                     {% endif %}
@@ -1735,6 +1738,7 @@
                     <h4 class="footer-heading">Platform</h4>
                     <ul class="footer-links">
                         <li><a href="/gigs">Cari Gig</a></li>
+                        <li><a href="/urgent-help">⚡ Urgent Help</a></li>
                             <div class="nav-item dropdown category-dropdown" style="position: relative; list-style: none;">
                                 <a href="#" class="nav-link category-trigger" style="cursor: pointer;">Kategori</a>
                                 <div class="dropdown-menu category-menu" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 10000; min-width: 280px; padding: 12px 0; border: 1px solid rgba(0,0,0,0.05);">
@@ -1786,6 +1790,10 @@
             </a>
             <a href="/worker-updates" class="mobile-nav-item {% if active_page == 'worker-updates' %}active{% endif %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <i data-feather="refresh-cw" style="width: 30px; height: 30px;"></i>
+            </a>
+            <a href="/urgent-help" class="mobile-nav-item {% if active_page == 'urgent-help' %}active{% endif %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;" title="Urgent Help">
+                <span style="font-size: 22px; line-height: 1;">⚡</span>
+                <span style="font-size: 9px; color: #e65100; font-weight: 700;">Urgent</span>
             </a>
             {% if user.user_type in ['client', 'both'] %}
             <a href="/post-gig" class="mobile-nav-item {% if active_page == 'post-gig' %}active{% endif %}">

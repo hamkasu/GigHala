@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Admin – Urgent Help Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .aud-container { max-width: 1200px; margin: 0 auto; }
+    .aud-header { margin-bottom: 28px; }
+    .aud-title { font-size: 24px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+    .aud-subtitle { color: var(--text-gray); font-size: 14px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+        background: #fff; border: 1px solid var(--border); border-radius: 12px;
+        padding: 18px 16px; text-align: center;
+    }
+    .stat-card .val { font-size: 28px; font-weight: 800; color: var(--text-dark); }
+    .stat-card .lbl { font-size: 12px; color: var(--text-gray); margin-top: 4px; }
+    .stat-card.green .val { color: #0d7c66; }
+    .stat-card.orange .val { color: #e65100; }
+    .stat-card.purple .val { color: #7c3aed; }
+
+    /* Tabs */
+    .tab-bar { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+    .tab-btn {
+        padding: 10px 20px; font-size: 14px; font-weight: 600;
+        border: none; background: none; cursor: pointer; color: var(--text-gray);
+        border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s;
+    }
+    .tab-btn.active { color: var(--primary); border-color: var(--primary); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Filters */
+    .filter-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; align-items: center; }
+    .filter-select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: var(--bg-light); padding: 10px 12px; text-align: left; font-weight: 700; color: var(--text-dark); white-space: nowrap; }
+    td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:hover td { background: rgba(0,200,83,.03); }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-new      { background: #e3f2fd; color: #1565c0; }
+    .badge-reviewing{ background: #fff3e0; color: #e65100; }
+    .badge-matched  { background: #e6f9f1; color: #0d7c66; }
+    .badge-closed   { background: #f3f4f6; color: #6b7280; }
+    .badge-urg-1h   { background: #ffe8e8; color: #c0392b; }
+    .badge-urg-sd   { background: #fff3e0; color: #e65100; }
+    .badge-urg-24   { background: #e3f2fd; color: #1565c0; }
+    .badge-urg-48   { background: #e6f9f1; color: #0d7c66; }
+    .addon-chip { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; margin: 1px; }
+    .chip-pm { background: #fef3c7; color: #92400e; }
+    .chip-ub { background: #dbeafe; color: #1e40af; }
+
+    /* Action buttons */
+    .btn-sm { padding: 5px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: all .2s; }
+    .btn-status { background: var(--bg-light); color: var(--text-dark); }
+    .btn-status:hover { background: var(--border); }
+    .btn-wa-small { background: #25D366; color: #fff; text-decoration: none; }
+    .btn-wa-small:hover { background: #1ebe5b; }
+
+    /* Settings card */
+    .settings-card {
+        background: #fff; border: 1px solid var(--border); border-radius: 12px;
+        padding: 24px; margin-bottom: 24px;
+    }
+    .settings-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .settings-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 16px; }
+    .settings-field { flex: 1; min-width: 180px; }
+    .settings-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block; }
+    .settings-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+    .btn-save { background: var(--primary); color: #fff; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+    /* Status modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: #fff; border-radius: 14px; padding: 28px; width: 90%; max-width: 440px; }
+    .modal-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .modal-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
+    .modal-textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; min-height: 80px; resize: vertical; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel { background: var(--bg-light); color: var(--text-dark); padding: 9px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-confirm { background: var(--primary); color: #fff; padding: 9px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+    .loading { text-align: center; padding: 40px; color: var(--text-gray); }
+    .empty-state { text-align: center; padding: 48px; color: var(--text-gray); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+
+    @media (max-width: 768px) { .filter-row { flex-direction: column; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+<div class="aud-container">
+    <div style="margin-bottom:16px;">
+        <a href="/admin" style="color:var(--text-gray);font-size:14px;text-decoration:none;">← Admin Dashboard</a>
+    </div>
+
+    <div class="aud-header">
+        <h1 class="aud-title">⚡ Urgent Help Dashboard</h1>
+        <p class="aud-subtitle">Urus permintaan urgent dan managed solution pelanggan</p>
+    </div>
+
+    <!-- Analytics Stats -->
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="val" id="sTotal">–</div><div class="lbl">Urgent Requests</div></div>
+        <div class="stat-card purple"><div class="val" id="sManaged">–</div><div class="lbl">Managed Solutions</div></div>
+        <div class="stat-card orange"><div class="val" id="sPM">–</div><div class="lbl">Priority Match</div></div>
+        <div class="stat-card"><div class="val" id="sUB">–</div><div class="lbl">Urgent Boosts</div></div>
+        <div class="stat-card green"><div class="val" id="sRevenue">–</div><div class="lbl">Add-on Revenue (RM)</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('urgent', this)">⚡ Urgent Requests</button>
+        <button class="tab-btn" onclick="switchTab('managed', this)">🛡️ Managed Solutions</button>
+        <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ Tetapan</button>
+    </div>
+
+    <!-- Tab: Urgent Requests -->
+    <div class="tab-pane active" id="tab-urgent">
+        <div class="filter-row">
+            <select class="filter-select" id="urgStatusFilter" onchange="loadUrgent()">
+                <option value="">Semua Status</option>
+                <option value="new">New</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="matched">Matched</option>
+                <option value="closed">Closed</option>
+            </select>
+            <select class="filter-select" id="urgUrgencyFilter" onchange="loadUrgent()">
+                <option value="">Semua Keterdesakan</option>
+                <option value="1hour">Dalam 1 Jam</option>
+                <option value="same_day">Hari Yang Sama</option>
+                <option value="24hours">Dalam 24 Jam</option>
+                <option value="48hours">Dalam 48 Jam</option>
+            </select>
+            <button onclick="loadUrgent()" class="btn-sm btn-status">🔄 Muat Semula</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kod</th>
+                        <th>Tajuk</th>
+                        <th>Kategori</th>
+                        <th>Keterdesakan</th>
+                        <th>Bajet</th>
+                        <th>Add-ons</th>
+                        <th>Hubungi</th>
+                        <th>Status</th>
+                        <th>Tarikh</th>
+                        <th>Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody id="urgentTableBody">
+                    <tr><td colspan="10" class="loading">Memuatkan...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="urgentPagination" style="margin-top:16px;text-align:right;font-size:13px;color:var(--text-gray);"></div>
+    </div>
+
+    <!-- Tab: Managed Solutions -->
+    <div class="tab-pane" id="tab-managed">
+        <div class="filter-row">
+            <select class="filter-select" id="mgdStatusFilter" onchange="loadManaged()">
+                <option value="">Semua Status</option>
+                <option value="new">New</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="matched">Matched</option>
+                <option value="closed">Closed</option>
+            </select>
+            <button onclick="loadManaged()" class="btn-sm btn-status">🔄 Muat Semula</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kod</th>
+                        <th>Syarikat</th>
+                        <th>Masalah</th>
+                        <th>Jangka Masa</th>
+                        <th>Bajet</th>
+                        <th>Pakar</th>
+                        <th>NDA</th>
+                        <th>Hubungi</th>
+                        <th>Status</th>
+                        <th>Tarikh</th>
+                        <th>Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody id="managedTableBody">
+                    <tr><td colspan="11" class="loading">Memuatkan...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="managedPagination" style="margin-top:16px;text-align:right;font-size:13px;color:var(--text-gray);"></div>
+    </div>
+
+    <!-- Tab: Settings -->
+    <div class="tab-pane" id="tab-settings">
+        <div class="settings-card">
+            <h3>⚙️ Tetapan Harga Add-on</h3>
+            <div class="settings-row">
+                <div class="settings-field">
+                    <label class="settings-label">Priority Match Price (RM)</label>
+                    <input type="number" class="settings-input" id="settingPM" min="0" step="1">
+                </div>
+                <div class="settings-field">
+                    <label class="settings-label">Urgent Boost Price (RM)</label>
+                    <input type="number" class="settings-input" id="settingUB" min="0" step="1">
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="settings-field">
+                    <label class="settings-label">WhatsApp Admin (untuk CTA pelanggan)</label>
+                    <input type="text" class="settings-input" id="settingWA" placeholder="601XXXXXXXXX">
+                </div>
+            </div>
+            <button class="btn-save" onclick="saveSettings()">💾 Simpan Tetapan</button>
+            <span id="settingMsg" style="font-size:13px;margin-left:12px;"></span>
+        </div>
+
+        <div class="settings-card">
+            <h3>📊 Pautan Berguna</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                <a href="/urgent-help" target="_blank" class="btn-sm btn-status" style="text-decoration:none;">🔗 Landing Page</a>
+                <a href="/urgent-request" target="_blank" class="btn-sm btn-status" style="text-decoration:none;">📝 Urgent Form</a>
+                <a href="/managed-solution" target="_blank" class="btn-sm btn-status" style="text-decoration:none;">🛡️ Managed Form</a>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal-overlay" id="statusModal">
+    <div class="modal-box">
+        <h3>Kemaskini Status</h3>
+        <select class="modal-select" id="modalStatus">
+            <option value="new">New</option>
+            <option value="reviewing">Reviewing</option>
+            <option value="matched">Matched</option>
+            <option value="closed">Closed</option>
+        </select>
+        <textarea class="modal-textarea" id="modalNotes" placeholder="Nota admin (pilihan)..."></textarea>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Batal</button>
+            <button class="btn-confirm" onclick="confirmStatusUpdate()">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentEditId = null;
+let currentEditType = 'urgent';
+const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+function urgencyLabel(u) {
+    const m = {
+        '1hour': '<span class="badge badge-urg-1h">🔴 1 Jam</span>',
+        'same_day': '<span class="badge badge-urg-sd">🟠 Hari Sama</span>',
+        '24hours': '<span class="badge badge-urg-24">🔵 24 Jam</span>',
+        '48hours': '<span class="badge badge-urg-48">🟢 48 Jam</span>',
+    };
+    return m[u] || u;
+}
+
+function statusBadge(s) {
+    const m = {
+        'new': 'badge-new', 'reviewing': 'badge-reviewing',
+        'matched': 'badge-matched', 'closed': 'badge-closed'
+    };
+    const labels = { 'new': 'New', 'reviewing': 'Reviewing', 'matched': 'Matched', 'closed': 'Closed' };
+    return `<span class="badge ${m[s] || ''}">${labels[s] || s}</span>`;
+}
+
+function fmtBudget(mn, mx) {
+    if (!mn && !mx) return '–';
+    if (mn && mx) return `RM${mn}–${mx}`;
+    return `RM${mn || mx}`;
+}
+
+function waLink(num, msg) {
+    if (!num) return '–';
+    const clean = num.replace(/\D/g, '');
+    const wa = clean.startsWith('0') ? '6' + clean : clean;
+    return `<a href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}" target="_blank" class="btn-sm btn-wa-small" style="text-decoration:none;">WhatsApp</a>`;
+}
+
+async function loadAnalytics() {
+    try {
+        const r = await fetch('/api/admin/urgent-analytics', { credentials: 'same-origin' });
+        const d = await r.json();
+        document.getElementById('sTotal').textContent   = d.total_urgent;
+        document.getElementById('sManaged').textContent = d.total_managed;
+        document.getElementById('sPM').textContent      = d.total_priority_match;
+        document.getElementById('sUB').textContent      = d.total_urgent_boost;
+        document.getElementById('sRevenue').textContent = d.total_addon_revenue.toFixed(0);
+    } catch(e) { console.error(e); }
+}
+
+async function loadUrgent(page = 1) {
+    const status  = document.getElementById('urgStatusFilter').value;
+    const urgency = document.getElementById('urgUrgencyFilter').value;
+    const params  = new URLSearchParams({ type: 'urgent', page });
+    if (status)  params.set('status', status);
+    if (urgency) params.set('urgency', urgency);
+
+    const tbody = document.getElementById('urgentTableBody');
+    tbody.innerHTML = '<tr><td colspan="10" class="loading">Memuatkan...</td></tr>';
+    try {
+        const r = await fetch('/api/admin/urgent-requests?' + params, { credentials: 'same-origin' });
+        const d = await r.json();
+        if (!d.items || d.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="icon">📭</div>Tiada permintaan lagi</div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = d.items.map(row => `
+            <tr>
+                <td><strong>${row.request_code || '–'}</strong></td>
+                <td style="max-width:180px;">${row.title}</td>
+                <td>${row.category}</td>
+                <td>${urgencyLabel(row.urgency_level)}</td>
+                <td>${fmtBudget(row.budget_min, row.budget_max)}</td>
+                <td>
+                    ${row.priority_match ? '<span class="addon-chip chip-pm">⚡ PM</span>' : ''}
+                    ${row.urgent_boost   ? '<span class="addon-chip chip-ub">🚀 UB</span>' : ''}
+                    ${row.total_addons_price > 0 ? `<br><small style="color:#0d7c66;font-weight:600;">+RM${row.total_addons_price}</small>` : ''}
+                </td>
+                <td>
+                    <div style="font-size:12px;">${row.contact_name || ''}</div>
+                    <div style="font-size:12px;color:var(--text-light);">${row.contact_email || ''}</div>
+                    ${waLink(row.whatsapp_number, `Salam, saya dari GigHala. Mengenai urgent request ${row.request_code}:`)}
+                </td>
+                <td>${statusBadge(row.status)}</td>
+                <td style="white-space:nowrap;font-size:12px;">${row.created_at}</td>
+                <td>
+                    <button class="btn-sm btn-status" onclick="openModal(${row.id}, 'urgent', '${row.status}', ${JSON.stringify(row.admin_notes || '').replace(/'/g, "\\'")})">
+                        Kemaskini
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        document.getElementById('urgentPagination').textContent = `Menunjukkan ${d.items.length} dari ${d.total}`;
+    } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="10" style="color:red;padding:20px;">Gagal memuatkan data.</td></tr>';
+        console.error(e);
+    }
+}
+
+async function loadManaged(page = 1) {
+    const status = document.getElementById('mgdStatusFilter').value;
+    const params = new URLSearchParams({ type: 'managed', page });
+    if (status) params.set('status', status);
+
+    const tbody = document.getElementById('managedTableBody');
+    tbody.innerHTML = '<tr><td colspan="11" class="loading">Memuatkan...</td></tr>';
+    try {
+        const r = await fetch('/api/admin/urgent-requests?' + params, { credentials: 'same-origin' });
+        const d = await r.json();
+        if (!d.items || d.items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="icon">📭</div>Tiada permintaan lagi</div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = d.items.map(row => `
+            <tr>
+                <td><strong>${row.request_code || '–'}</strong></td>
+                <td>${row.company_name || row.contact_name || '–'}</td>
+                <td style="max-width:200px;font-size:12px;">${(row.business_problem || '').substring(0, 100)}...</td>
+                <td>${row.timeline || '–'}</td>
+                <td>${fmtBudget(row.budget_min, row.budget_max)}</td>
+                <td>${row.experts_needed || 1}</td>
+                <td>${row.requires_nda ? '✅ NDA' : '–'}</td>
+                <td>
+                    <div style="font-size:12px;">${row.contact_name || ''}</div>
+                    ${waLink(row.whatsapp_number, `Salam, saya dari GigHala. Mengenai Managed Solution request ${row.request_code}:`)}
+                </td>
+                <td>${statusBadge(row.status)}</td>
+                <td style="white-space:nowrap;font-size:12px;">${row.created_at}</td>
+                <td>
+                    <button class="btn-sm btn-status" onclick="openModal(${row.id}, 'managed', '${row.status}', ${JSON.stringify(row.admin_notes || '').replace(/'/g, "\\'")})">
+                        Kemaskini
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        document.getElementById('managedPagination').textContent = `Menunjukkan ${d.items.length} dari ${d.total}`;
+    } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="11" style="color:red;padding:20px;">Gagal memuatkan data.</td></tr>';
+        console.error(e);
+    }
+}
+
+async function loadSettings() {
+    try {
+        const r = await fetch('/api/admin/urgent-settings', { credentials: 'same-origin' });
+        const d = await r.json();
+        document.getElementById('settingPM').value = d.priority_match_price;
+        document.getElementById('settingUB').value = d.urgent_boost_price;
+        document.getElementById('settingWA').value = d.admin_whatsapp;
+    } catch(e) { console.error(e); }
+}
+
+async function saveSettings() {
+    const pm = parseFloat(document.getElementById('settingPM').value);
+    const ub = parseFloat(document.getElementById('settingUB').value);
+    const wa = document.getElementById('settingWA').value.trim();
+    const msg = document.getElementById('settingMsg');
+    try {
+        const r = await fetch('/api/admin/urgent-settings', {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ priority_match_price: pm, urgent_boost_price: ub, admin_whatsapp: wa })
+        });
+        const d = await r.json();
+        msg.textContent = d.success ? '✅ Tetapan disimpan!' : '❌ Gagal simpan';
+        msg.style.color = d.success ? '#0d7c66' : 'red';
+        setTimeout(() => msg.textContent = '', 3000);
+    } catch(e) {
+        msg.textContent = '❌ Ralat rangkaian'; msg.style.color = 'red';
+    }
+}
+
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    if (name === 'urgent')   loadUrgent();
+    if (name === 'managed')  loadManaged();
+    if (name === 'settings') loadSettings();
+}
+
+function openModal(id, type, status, notes) {
+    currentEditId = id;
+    currentEditType = type;
+    document.getElementById('modalStatus').value = status;
+    document.getElementById('modalNotes').value  = notes || '';
+    document.getElementById('statusModal').classList.add('open');
+}
+function closeModal() { document.getElementById('statusModal').classList.remove('open'); }
+
+async function confirmStatusUpdate() {
+    const status = document.getElementById('modalStatus').value;
+    const notes  = document.getElementById('modalNotes').value.trim();
+    try {
+        const r = await fetch(`/api/admin/urgent-requests/${currentEditId}/status`, {
+            method: 'PUT', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ type: currentEditType, status, admin_notes: notes })
+        });
+        const d = await r.json();
+        if (d.success) {
+            closeModal();
+            currentEditType === 'urgent' ? loadUrgent() : loadManaged();
+        } else { alert('Gagal kemaskini: ' + (d.error || 'Unknown error')); }
+    } catch(e) { alert('Ralat rangkaian'); }
+}
+
+// Close modal on overlay click
+document.getElementById('statusModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// Init
+loadAnalytics();
+loadUrgent();
+</script>
+{% endblock %}
