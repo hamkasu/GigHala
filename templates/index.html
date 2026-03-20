@@ -184,7 +184,39 @@
         </div>
     </div>
 
-    {% if is_ramadan %}
+    {% if is_raya %}
+    <!-- ===== RAYA FESTIVE BANNER ===== -->
+    <div id="raya-banner" style="background: linear-gradient(135deg, #0a3d20 0%, #1a6b3c 30%, #c8960c 60%, #f5c518 80%, #1a6b3c 100%); background-size: 300% 100%; color: white; padding: 16px 20px; text-align: center; position: relative; overflow: hidden; animation: rayaBannerSlide 6s ease infinite;">
+        <!-- Sparkle decorations -->
+        <span style="position:absolute;left:5%;top:50%;transform:translateY(-50%);font-size:22px;animation:rayaFloat 2s ease-in-out infinite alternate;">✨</span>
+        <span style="position:absolute;left:12%;top:50%;transform:translateY(-50%);font-size:18px;animation:rayaFloat 2.5s ease-in-out infinite alternate-reverse;">🌟</span>
+        <span style="position:absolute;right:12%;top:50%;transform:translateY(-50%);font-size:18px;animation:rayaFloat 2.2s ease-in-out infinite alternate;">🌟</span>
+        <span style="position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:22px;animation:rayaFloat 1.8s ease-in-out infinite alternate-reverse;">✨</span>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+            <span style="font-size:26px;animation:rayaSwing 1.5s ease-in-out infinite alternate;">🪔</span>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <span style="font-weight:900;font-size:18px;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,0.4);">{{ t('selamat_raya') }}</span>
+                <span style="font-size:12px;opacity:0.92;text-shadow:0 1px 4px rgba(0,0,0,0.3);">{{ t('raya_greeting_subtitle') }}</span>
+            </div>
+            <span style="font-size:26px;animation:rayaSwing 1.5s ease-in-out infinite alternate-reverse;">🌙</span>
+        </div>
+    </div>
+    <style>
+        @keyframes rayaBannerSlide {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes rayaFloat {
+            0%   { transform: translateY(-60%) scale(1); }
+            100% { transform: translateY(-40%) scale(1.2); }
+        }
+        @keyframes rayaSwing {
+            0%   { transform: rotate(-15deg); }
+            100% { transform: rotate(15deg); }
+        }
+    </style>
+    {% elif is_ramadan %}
     <div style="background: linear-gradient(135deg, #1a5c3a 0%, #0d7c66 50%, #2d9b7b 100%); color: white; padding: 14px 20px; text-align: center; position: relative; overflow: hidden;">
         <div style="position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
             <span style="font-size: 20px;">&#9790;</span>
@@ -228,9 +260,174 @@
         </script>
 
         <!-- Hero Section -->
-        <div style="background: url('/static/images/hero-bg.jpg') center/cover no-repeat; padding: 100px 20px; position: relative; color: white; text-align: left;">
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);"></div>
+        <div style="background: url('/static/images/hero-bg.jpg') center/cover no-repeat; padding: 100px 20px; position: relative; color: white; text-align: left;{% if is_raya %} border-bottom: 3px solid #f5c518;{% endif %}">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: {% if is_raya %}linear-gradient(135deg, rgba(10,61,32,0.72) 0%, rgba(0,0,0,0.55) 50%, rgba(26,107,60,0.68) 100%){% else %}rgba(0,0,0,0.6){% endif %};"></div>
+
+            {% if is_raya %}
+            <!-- ===== RAYA FESTIVE OVERLAY DECORATIONS ===== -->
+            <div id="raya-hero-deco" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:2;">
+                <!-- Animated lanterns & ketupat -->
+                <span class="raya-deco" style="left:3%;top:10%;animation-delay:0s;">🏮</span>
+                <span class="raya-deco" style="left:8%;top:55%;animation-delay:0.7s;font-size:28px;">🎋</span>
+                <span class="raya-deco" style="left:15%;top:25%;animation-delay:1.2s;">✨</span>
+                <span class="raya-deco" style="left:22%;top:70%;animation-delay:0.3s;font-size:20px;">🌟</span>
+                <span class="raya-deco" style="right:3%;top:8%;animation-delay:0.5s;">🏮</span>
+                <span class="raya-deco" style="right:9%;top:60%;animation-delay:1s;font-size:28px;">🎋</span>
+                <span class="raya-deco" style="right:16%;top:22%;animation-delay:1.5s;">✨</span>
+                <span class="raya-deco" style="right:23%;top:75%;animation-delay:0.8s;font-size:20px;">🌟</span>
+                <!-- Ketupat shapes via CSS -->
+                <div class="raya-ketupat" style="left:5%;top:40%;animation-delay:0.2s;"></div>
+                <div class="raya-ketupat" style="left:18%;top:15%;animation-delay:1.1s;width:18px;height:18px;"></div>
+                <div class="raya-ketupat" style="right:6%;top:35%;animation-delay:0.6s;"></div>
+                <div class="raya-ketupat" style="right:20%;top:65%;animation-delay:1.4s;width:18px;height:18px;"></div>
+                <!-- Stars rain -->
+                <div class="raya-star" style="left:10%;animation-delay:0s;animation-duration:4s;"></div>
+                <div class="raya-star" style="left:25%;animation-delay:1s;animation-duration:5s;"></div>
+                <div class="raya-star" style="left:45%;animation-delay:2s;animation-duration:3.5s;"></div>
+                <div class="raya-star" style="left:65%;animation-delay:0.5s;animation-duration:4.5s;"></div>
+                <div class="raya-star" style="left:80%;animation-delay:1.5s;animation-duration:4s;"></div>
+                <div class="raya-star" style="left:92%;animation-delay:2.5s;animation-duration:3s;"></div>
+            </div>
+
+            <!-- Raya greeting overlay in hero -->
+            <div style="position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;white-space:nowrap;pointer-events:none;">
+                <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,0.45);border:1px solid rgba(245,197,24,0.5);backdrop-filter:blur(6px);border-radius:50px;padding:6px 18px;">
+                    <span style="font-size:18px;">🌙</span>
+                    <span style="font-weight:800;font-size:15px;background:linear-gradient(90deg,#f5c518,#fff,#f5c518);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rayaShimmer 2.5s linear infinite;background-size:200% auto;">Selamat Hari Raya Aidilfitri 1447H</span>
+                    <span style="font-size:18px;">🌙</span>
+                </div>
+            </div>
+
+            <!-- Canvas for fireworks -->
+            <canvas id="raya-fireworks" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+
+            <style>
+                .raya-deco {
+                    position: absolute;
+                    font-size: 32px;
+                    animation: rayaDrift 4s ease-in-out infinite alternate;
+                    filter: drop-shadow(0 0 6px rgba(245,197,24,0.7));
+                }
+                .raya-ketupat {
+                    position: absolute;
+                    width: 22px;
+                    height: 22px;
+                    background: linear-gradient(135deg, #f5c518, #c8960c);
+                    transform: rotate(45deg);
+                    border-radius: 3px;
+                    box-shadow: 0 0 10px rgba(245,197,24,0.6);
+                    animation: rayaSpin 6s linear infinite;
+                }
+                .raya-star {
+                    position: absolute;
+                    top: -10px;
+                    width: 5px;
+                    height: 5px;
+                    border-radius: 50%;
+                    background: #f5c518;
+                    box-shadow: 0 0 6px #f5c518;
+                    animation: rayaFall linear infinite;
+                }
+                @keyframes rayaDrift {
+                    0%   { transform: translateY(0) scale(1); opacity: 0.8; }
+                    100% { transform: translateY(-18px) scale(1.1); opacity: 1; }
+                }
+                @keyframes rayaSpin {
+                    0%   { transform: rotate(45deg) scale(1); }
+                    50%  { transform: rotate(225deg) scale(1.15); }
+                    100% { transform: rotate(405deg) scale(1); }
+                }
+                @keyframes rayaFall {
+                    0%   { top: -10px; opacity: 1; }
+                    100% { top: 110%; opacity: 0; }
+                }
+                @keyframes rayaShimmer {
+                    0%   { background-position: 0% center; }
+                    100% { background-position: 200% center; }
+                }
+            </style>
+
+            <script>
+            // Raya fireworks
+            (function() {
+                var canvas = document.getElementById('raya-fireworks');
+                if (!canvas) return;
+                var ctx = canvas.getContext('2d');
+                var particles = [];
+                var colors = ['#f5c518','#ffd700','#ff6b6b','#4ecdc4','#45b7d1','#96ceb4','#ff9ff3','#a8e6cf'];
+
+                function resizeCanvas() {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                }
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                function Particle(x, y, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.color = color;
+                    this.vx = (Math.random() - 0.5) * 6;
+                    this.vy = (Math.random() - 0.5) * 6 - 2;
+                    this.life = 1;
+                    this.decay = 0.015 + Math.random() * 0.01;
+                    this.size = 2 + Math.random() * 3;
+                }
+
+                function launchFirework() {
+                    var x = Math.random() * canvas.width;
+                    var y = Math.random() * canvas.height * 0.6;
+                    var color = colors[Math.floor(Math.random() * colors.length)];
+                    for (var i = 0; i < 40; i++) {
+                        particles.push(new Particle(x, y, color));
+                    }
+                }
+
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (var i = particles.length - 1; i >= 0; i--) {
+                        var p = particles[i];
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.08;
+                        p.life -= p.decay;
+                        if (p.life <= 0) { particles.splice(i, 1); continue; }
+                        ctx.globalAlpha = p.life;
+                        ctx.fillStyle = p.color;
+                        ctx.shadowBlur = 6;
+                        ctx.shadowColor = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1;
+                    ctx.shadowBlur = 0;
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+                setInterval(launchFirework, 1800);
+                // Initial burst
+                setTimeout(launchFirework, 300);
+                setTimeout(launchFirework, 700);
+            })();
+            </script>
+            {% endif %}
             <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+                {% if is_raya %}
+                <!-- Raya Festive Heading -->
+                <div style="margin-bottom:18px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(10,61,32,0.85),rgba(26,107,60,0.85));border:2px solid rgba(245,197,24,0.7);border-radius:16px;padding:12px 24px;backdrop-filter:blur(8px);box-shadow:0 4px 24px rgba(245,197,24,0.3);">
+                        <span style="font-size:32px;animation:rayaSwing 2s ease-in-out infinite alternate;">🌙</span>
+                        <div>
+                            <div style="font-weight:900;font-size:22px;background:linear-gradient(90deg,#f5c518,#fffde7,#f5c518);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;background-size:200% auto;animation:rayaShimmer 3s linear infinite;letter-spacing:1px;">Selamat Hari Raya Aidilfitri 🎉</div>
+                            <div style="font-size:13px;color:rgba(255,255,255,0.9);font-weight:600;">Maaf Zahir &amp; Batin — Daripada Pasukan GigHala 🏮</div>
+                        </div>
+                        <span style="font-size:32px;animation:rayaSwing 2s ease-in-out infinite alternate-reverse;">🏮</span>
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Malaysia Pride Badge -->
                 <div class="malaysia-badge" style="background: linear-gradient(135deg, #CC0001, #003899); color: #FFD700; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
                     🇲🇾 100% Buatan Malaysia
@@ -798,6 +995,58 @@
             </div>
         </footer>
     </div>
+
+    {% if is_raya %}
+    <!-- ===== RAYA FLOATING MUSIC PLAYER ===== -->
+    <div id="raya-music-player" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <!-- Expanded player card -->
+        <div id="raya-player-card" style="display:none;background:linear-gradient(135deg,#0a3d20,#1a6b3c);border:2px solid rgba(245,197,24,0.6);border-radius:16px;padding:14px 16px;color:white;box-shadow:0 8px 32px rgba(0,0,0,0.4);min-width:240px;animation:rayaPlayerFadeIn 0.3s ease;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <span style="font-size:24px;animation:rayaSwing 1.5s ease-in-out infinite alternate;">🏮</span>
+                <div>
+                    <div style="font-weight:800;font-size:14px;color:#f5c518;">Lagu Raya 🎵</div>
+                    <div style="font-size:11px;opacity:0.8;">Selamat Hari Raya Aidilfitri</div>
+                </div>
+                <button onclick="toggleRayaPlayer()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0;">✕</button>
+            </div>
+            <!-- YouTube embed for Raya song — replace VIDEO_ID with your preferred Raya song -->
+            <iframe id="raya-yt"
+                src="https://www.youtube.com/embed/mRBSCvEMr-E?autoplay=1&loop=1&playlist=mRBSCvEMr-E&controls=1&rel=0&modestbranding=1"
+                width="100%" height="70"
+                style="border-radius:8px;border:none;"
+                allow="autoplay; encrypted-media"
+                allowfullscreen>
+            </iframe>
+            <div style="margin-top:8px;font-size:10px;opacity:0.6;text-align:center;">Maaf Zahir &amp; Batin 🌙✨</div>
+        </div>
+
+        <!-- Floating toggle button -->
+        <button onclick="toggleRayaPlayer()" id="raya-music-btn"
+            style="background:linear-gradient(135deg,#c8960c,#f5c518);border:none;border-radius:50%;width:58px;height:58px;font-size:26px;cursor:pointer;box-shadow:0 4px 20px rgba(245,197,24,0.6);animation:rayaMusicPulse 2s ease-in-out infinite;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;"
+            title="Lagu Raya">
+            🎵
+        </button>
+    </div>
+    <style>
+        @keyframes rayaMusicPulse {
+            0%   { box-shadow: 0 4px 20px rgba(245,197,24,0.6); }
+            50%  { box-shadow: 0 4px 40px rgba(245,197,24,0.9), 0 0 0 10px rgba(245,197,24,0.15); }
+            100% { box-shadow: 0 4px 20px rgba(245,197,24,0.6); }
+        }
+        @keyframes rayaPlayerFadeIn {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+    </style>
+    <script>
+    var rayaPlayerOpen = false;
+    function toggleRayaPlayer() {
+        var card = document.getElementById('raya-player-card');
+        rayaPlayerOpen = !rayaPlayerOpen;
+        card.style.display = rayaPlayerOpen ? 'block' : 'none';
+    }
+    </script>
+    {% endif %}
 
     <!-- Installation Instructions Modal -->
     <div id="installModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px);">
