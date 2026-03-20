@@ -732,7 +732,37 @@
 {% endblock %}
 
 {% block content %}
-{% if is_ramadan %}
+{% if is_raya %}
+<style>
+    @keyframes rayaBannerSlide {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes rayaFloat {
+        0%   { transform: translateY(-60%) scale(1); }
+        100% { transform: translateY(-40%) scale(1.2); }
+    }
+    @keyframes rayaSwing {
+        0%   { transform: rotate(-15deg); }
+        100% { transform: rotate(15deg); }
+    }
+</style>
+<div id="raya-banner" style="background: linear-gradient(135deg, #0a3d20 0%, #1a6b3c 30%, #c8960c 60%, #f5c518 80%, #1a6b3c 100%); background-size: 300% 100%; color: white; padding: 18px 21px; border-radius: var(--radius-lg); margin-bottom: 24px; text-align: center; border: 1px solid rgba(245,197,24,0.3); box-shadow: 0 4px 16px rgba(200,150,12,0.4); position: relative; overflow: hidden; animation: rayaBannerSlide 6s ease infinite;">
+    <span style="position:absolute;left:5%;top:50%;transform:translateY(-50%);font-size:22px;animation:rayaFloat 2s ease-in-out infinite alternate;">✨</span>
+    <span style="position:absolute;left:13%;top:50%;transform:translateY(-50%);font-size:18px;animation:rayaFloat 2.5s ease-in-out infinite alternate-reverse;">🌟</span>
+    <span style="position:absolute;right:13%;top:50%;transform:translateY(-50%);font-size:18px;animation:rayaFloat 2.2s ease-in-out infinite alternate;">🌟</span>
+    <span style="position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:22px;animation:rayaFloat 1.8s ease-in-out infinite alternate-reverse;">✨</span>
+    <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <span style="font-size:28px;animation:rayaSwing 1.5s ease-in-out infinite alternate;">🪔</span>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+            <span style="font-weight:900;font-size:19px;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,0.4);">{{ t('selamat_raya') }}</span>
+            <span style="font-size:11px;opacity:0.92;text-shadow:0 1px 4px rgba(0,0,0,0.3);">{{ t('raya_greeting_subtitle') }}</span>
+        </div>
+        <span style="font-size:28px;animation:rayaSwing 1.5s ease-in-out infinite alternate-reverse;">🌙</span>
+    </div>
+</div>
+{% elif is_ramadan %}
 <div class="ramadan-banner" style="background: linear-gradient(135deg, #1a5c3a 0%, #0d7c66 50%, #2d9b7b 100%); color: white; padding: 18px 21px; border-radius: var(--radius-lg); margin-bottom: 24px; text-align: center; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 4px 16px rgba(13,124,102,0.3); position: relative; overflow: hidden;">
     <div style="position: relative; z-index: 1;">
         <div style="font-size: 21px; margin-bottom: 4px;">&#9790;</div>
