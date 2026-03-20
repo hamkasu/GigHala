@@ -959,6 +959,11 @@ TRANSLATIONS = {
         'selamat_berpuasa': 'Selamat Berpuasa',
         'ramadan_greeting_subtitle': 'Semoga Ramadan ini membawa keberkatan dan ketenangan kepada anda dan keluarga.',
         'ramadan_kareem': 'Ramadan Kareem',
+
+        # Raya Greeting
+        'selamat_raya': 'Selamat Hari Raya Aidilfitri',
+        'raya_greeting_subtitle': 'Maaf Zahir & Batin daripada seluruh pasukan GigHala. Semoga Raya ini membawa kebahagiaan kepada anda dan keluarga!',
+        'raya_takbir': 'Allahu Akbar! Allahu Akbar! Allahu Akbar!',
     },
     'en': {
         # Dashboard
@@ -1321,6 +1326,11 @@ TRANSLATIONS = {
         'selamat_berpuasa': 'Selamat Berpuasa',
         'ramadan_greeting_subtitle': 'May this Ramadan bring blessings and peace to you and your family.',
         'ramadan_kareem': 'Ramadan Kareem',
+
+        # Raya Greeting
+        'selamat_raya': 'Selamat Hari Raya Aidilfitri',
+        'raya_greeting_subtitle': 'Maaf Zahir & Batin from the entire GigHala team. May this Eid bring joy to you and your family!',
+        'raya_takbir': 'Allahu Akbar! Allahu Akbar! Allahu Akbar!',
     }
 }
 
@@ -1395,6 +1405,15 @@ def is_ramadan():
     hijri = Gregorian(adjusted.year, adjusted.month, adjusted.day).to_hijri()
     return hijri.month == 9
 
+def is_raya():
+    """Check if current date falls in the Raya Aidilfitri festive period (20–27 March 2026)"""
+    timezone_str = os.getenv('TIMEZONE', 'Asia/Kuala_Lumpur')
+    tz = ZoneInfo(timezone_str)
+    now = datetime.now(tz)
+    raya_start = datetime(2026, 3, 20, 0, 0, 0, tzinfo=tz)
+    raya_end   = datetime(2026, 3, 27, 23, 59, 59, tzinfo=tz)
+    return raya_start <= now <= raya_end
+
 # Make translation function and dates available in templates
 @app.context_processor
 def inject_translations():
@@ -1454,6 +1473,7 @@ def inject_translations():
         today_dual=today_dual['full'],
         format_date_dual=format_date_dual,
         is_ramadan=is_ramadan(),
+        is_raya=is_raya(),
         unread_message_count=unread_message_count,
         csrf_token=generate_csrf,
         user=user,
