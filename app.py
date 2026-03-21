@@ -3771,6 +3771,10 @@ def login_page():
 def register_page():
     return render_template('index.html', lang=session.get('lang', 'ms'))
 
+@app.route('/google6f56f32869e7b010.html')
+def google_verification():
+    return send_from_directory('static', 'google6f56f32869e7b010.html')
+
 @app.route('/')
 def index():
     # If user is logged in, redirect to their personalized dashboard
