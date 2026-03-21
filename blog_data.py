@@ -1500,6 +1500,138 @@ BLOG_ARTICLES = [
 </div>
 """
     },
+    {
+        "slug": "cara-tetapkan-harga-kerja-freelance-malaysia",
+        "title": "Berapa Patut Saya Charge? Cara Tetapkan Harga Kerja Freelance di Malaysia",
+        "subtitle": "Ramai freelancer letak harga terlalu rendah sebab takut klien lari. Tapi itu sebenarnya buat anda rugi. Ini cara kira harga yang betul.",
+        "meta_description": "Panduan tetapkan harga kerja freelance Malaysia. Cara kira kadar bayaran, bila patut naikkan harga, dan kenapa jangan undercharge diri sendiri.",
+        "meta_keywords": "cara tetapkan harga freelance Malaysia, berapa charge freelancer Malaysia, kadar bayaran freelancer, harga kerja freelance, cara kira rate freelancer Malaysia",
+        "category": "Panduan",
+        "category_en": "Guide",
+        "read_time": 7,
+        "published_date": "2025-05-10",
+        "icon": "💸",
+        "excerpt": "Susah nak jawab soalan 'berapa you charge?' — takut terlalu mahal, takut terlalu murah. Panduan ini bantu anda cari nombor yang sesuai dan berani charge dengan yakin.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">😬</span> Situasi Yang Ramai Freelancer Pernah Rasa</h2>
+    <p>Klien tanya: <em>"Berapa you charge untuk design logo?"</em></p>
+    <p>Dalam kepala terus berperang — RM150? Terlalu murah ke? RM500? Dia lari tak nanti? Lepas tu akhirnya sebut nombor random yang sebenarnya sendiri pun tak yakin.</p>
+    <p>Kalau anda pernah rasa macam ni, anda bukan sorang. Ini antara cabaran paling besar untuk freelancer baru — dan ramai yang akhirnya undercharge diri sendiri tanpa sedar.</p>
+    <div class="highlight-box">
+        <p><strong>Hakikatnya:</strong> Freelancer yang charge terlalu murah bukan sahaja rugi dari segi duit — mereka juga cenderung dapat klien yang susah, harapan tinggi, dan kurang menghargai kerja. Harga yang betul bukan sekadar angka. Ia tentang nilai diri.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🧮</span> Langkah 1: Kira Berapa Anda Sebenarnya Perlu Sebulan</h2>
+    <p>Sebelum tetapkan harga, anda perlu tahu <em>nombor hidup</em> anda — berapa minimum pendapatan yang anda perlukan untuk tanggung semua perbelanjaan.</p>
+    <p>Tulis semua kos bulanan anda:</p>
+    <ul>
+        <li>Sewa / ansuran rumah</li>
+        <li>Makanan &amp; keperluan harian</li>
+        <li>Bil utiliti, internet, telefon</li>
+        <li>Ansuran kereta / transport</li>
+        <li>Simpanan / pelaburan (jangan skip ini!)</li>
+        <li>Kos perniagaan — software, langganan, peralatan</li>
+        <li>KWSP diri sendiri (freelancer tak ada caruman majikan)</li>
+    </ul>
+    <p>Katakan jumlahnya RM3,500. Itu <strong>nombor minimum</strong> anda. Tapi ini bukan harga kerja anda lagi — ini cuma titik mula.</p>
+    <div class="highlight-box">
+        <p><strong>Ingat:</strong> Sebagai freelancer, anda tidak dapat gaji 22 hari sebulan. Ada hari projek kosong, ada masa sakit, ada cuti. Bahagikan target pendapatan anda dengan hanya 15–18 hari kerja produktif sebulan, bukan 22.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">📐</span> Langkah 2: Kira Kadar Jam Anda</h2>
+    <p>Formula mudah untuk kira kadar jam:</p>
+    <div style="background: var(--bg-light); border-left: 4px solid var(--primary); padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="font-size: 18px; font-weight: 700; margin: 0;">Kadar Jam = (Pendapatan sasaran bulanan × 1.3) ÷ Jam kerja sebulan</p>
+        <p style="margin: 8px 0 0; color: var(--text-muted);">× 1.3 untuk ambil kira cukai, overhead, dan risiko projek tak jadi</p>
+    </div>
+    <p><strong>Contoh:</strong> Sasaran RM4,500/bulan, kerja 120 jam/bulan (6 jam × 20 hari)</p>
+    <p>→ (RM4,500 × 1.3) ÷ 120 = <strong>RM48.75/jam</strong></p>
+    <p>Jadi untuk projek yang ambil 10 jam, minimum charge anda patut RM487. Bukan RM150.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🔍</span> Langkah 3: Semak Harga Pasaran</h2>
+    <p>Kadar jam anda adalah asas — tapi anda juga perlu tahu harga semasa di pasaran supaya tidak terlalu tersasar.</p>
+    <p>Kadar purata freelancer Malaysia mengikut bidang (2025):</p>
+    <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Bidang</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pemula</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Pertengahan</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Berpengalaman</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Reka bentuk grafik</td><td style="padding: 10px; border: 1px solid var(--border);">RM150–300/projek</td><td style="padding: 10px; border: 1px solid var(--border);">RM400–800</td><td style="padding: 10px; border: 1px solid var(--border);">RM1,000+</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Penulisan kandungan</td><td style="padding: 10px; border: 1px solid var(--border);">RM0.05–0.10/patah perkataan</td><td style="padding: 10px; border: 1px solid var(--border);">RM0.15–0.25</td><td style="padding: 10px; border: 1px solid var(--border);">RM0.30+</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Pembangunan web</td><td style="padding: 10px; border: 1px solid var(--border);">RM500–1,500</td><td style="padding: 10px; border: 1px solid var(--border);">RM2,000–5,000</td><td style="padding: 10px; border: 1px solid var(--border);">RM6,000+</td></tr>
+            <tr style="background: var(--bg-light);"><td style="padding: 10px; border: 1px solid var(--border);">Pengurusan media sosial</td><td style="padding: 10px; border: 1px solid var(--border);">RM300–500/bulan</td><td style="padding: 10px; border: 1px solid var(--border);">RM600–1,200</td><td style="padding: 10px; border: 1px solid var(--border);">RM1,500+</td></tr>
+            <tr><td style="padding: 10px; border: 1px solid var(--border);">Edit video</td><td style="padding: 10px; border: 1px solid var(--border);">RM100–250/video</td><td style="padding: 10px; border: 1px solid var(--border);">RM300–600</td><td style="padding: 10px; border: 1px solid var(--border);">RM800+</td></tr>
+        </tbody>
+    </table>
+    <p>Kalau harga anda jauh di bawah kolum "pemula" — itu petanda anda undercharge. Kalau jauh di atas tanpa portfolio yang kukuh — mungkin perlu kaji semula dulu.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🗣️</span> Cara Jawab Bila Klien Tanya "Berapa?"</h2>
+    <p>Ramai freelancer panik bila soalan ni keluar. Tip paling berkesan: <strong>jangan sebut nombor dulu.</strong></p>
+    <p>Tanya balik dulu:</p>
+    <ul>
+        <li>"Boleh cerita lebih lanjut tentang projek ni? Scope dia macam mana?"</li>
+        <li>"Ada deadline tertentu tak?"</li>
+        <li>"Ada contoh atau referensi yang you suka?"</li>
+    </ul>
+    <p>Bila anda dah faham skop dengan jelas, baru bagi sebut harga atau hantar quotation bertulis. Ini buat anda nampak lebih profesional dan elak kena tambah kerja tanpa tambah bayar.</p>
+    <div class="highlight-box">
+        <p><strong>Penting:</strong> Bila anda sebut harga, sebut dengan yakin. Jangan tambah "...rasanya lah" atau "...ok tak?". Klien yang serius akan hormati keyakinan anda. Klien yang lari sebab harga — kemungkinan besar memang bukan klien yang anda nak.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">📈</span> Bila Masa Nak Naikkan Harga?</h2>
+    <p>Ramai freelancer stuck dengan harga sama bertahun-tahun. Tanda-tanda anda dah patut naikkan harga:</p>
+    <ul>
+        <li>Anda selalu penuh tempahan — klien yang mahu anda terpaksa tunggu lama</li>
+        <li>Lebih 80% klien terus setuju tanpa tawar-menawar langsung</li>
+        <li>Portfolio dan kemahiran anda dah jauh lebih baik dari masa mula dulu</li>
+        <li>Anda rasa "penat" tapi pendapatan tak mencukupi untuk nilai usaha yang dikeluarkan</li>
+    </ul>
+    <p>Cara naikkan harga tanpa hilang klien lama:</p>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Beritahu awal</h4>
+                <p>Maklumkan klien sedia ada sebulan atau dua sebelum kenaikan harga berkuat kuasa. Ini bagi mereka masa untuk adjust bajet dan menunjukkan anda menghormati hubungan kerja.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Naik secara berperingkat</h4>
+                <p>Naikkan 15–25% bukan terus dua kali ganda. Perubahan mendadak boleh kejutkan klien walaupun anda memang layak dapat lebih.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Tunjukkan nilai tambah</h4>
+                <p>Seiring dengan kenaikan harga, tawarkan sesuatu yang lebih — turnaround lebih laju, satu revisi tambahan, atau 15 minit konsultasi percuma selepas projek siap.</p>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Mula Cari Projek di GigHala →</a>
+    </div>
+</div>
+"""
+    },
 ]
 
 def get_all_articles():
