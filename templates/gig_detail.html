@@ -23,7 +23,7 @@
 {% block twitter_description %}{{ gig.description[:150] }}... RM{{ gig.budget_min }}-{{ gig.budget_max }}{% endblock %}
 {% block twitter_image %}{% if gig.gig_photos and gig.gig_photos|length > 0 %}https://gighala.my{{ gig.gig_photos[0].photo_url }}{% else %}https://gighala.my/static/images/logo.png{% endif %}{% endblock %}
 
-{# Structured Data: JobPosting Schema for SEO #}
+{# Structured Data: Enhanced JobPosting Schema for SEO + AI engines #}
 {% block structured_data %}
 <script type="application/ld+json">
 {
@@ -31,14 +31,19 @@
     "@type": "JobPosting",
     "title": "{{ gig.title | replace('"', '\\"') }}",
     "description": "{{ gig.description | replace('"', '\\"') | replace('\n', ' ') }}",
-    "datePosted": "{{ gig.created_at.strftime('%Y-%m-%d') }}",
-    "validThrough": "{{ (gig.created_at + timedelta(days=30)).strftime('%Y-%m-%d') }}",
+    "datePosted": "{{ gig.created_at.strftime('%Y-%m-%dT%H:%M:%S+08:00') }}",
+    "validThrough": "{{ (gig.created_at + timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%S+08:00') }}",
     "employmentType": "CONTRACTOR",
+    "identifier": {
+        "@type": "PropertyValue",
+        "name": "GigHala",
+        "value": "{{ gig.id }}"
+    },
     "hiringOrganization": {
         "@type": "Organization",
         "name": "GigHala",
         "sameAs": "https://gighala.my",
-        "logo": "https://gighala.my/static/images/logo.png"
+        "logo": "https://gighala.my/static/logo.png"
     },
     "jobLocation": {
         "@type": "Place",
@@ -60,10 +65,12 @@
     },
     "applicantLocationRequirements": {
         "@type": "Country",
-        "name": "MY"
+        "name": "Malaysia"
     },
-    "jobLocationType": "{% if gig.is_remote %}TELECOMMUTE{% else %}ON_SITE{% endif %}"{% if gig.category %},
-    "industry": "{{ gig.category.name | replace('"', '\\"') }}"{% endif %}
+    "jobLocationType": "{% if gig.is_remote %}TELECOMMUTE{% else %}ON_SITE{% endif %}",
+    "directApply": true{% if gig.category %},
+    "industry": "{{ gig.category.name | replace('"', '\\"') }}"{% endif %}{% if gig.halal_verified %},
+    "specialCommitments": "Halal Verified — Shariah-compliant gig listing"{% endif %}
 }
 </script>
 

@@ -11,6 +11,73 @@
 
 {% block canonical_url %}https://gighala.my/blog/{{ article.slug }}{% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "{{ article.title | replace('"', '\\"') }}",
+    "description": "{{ article.meta_description | replace('"', '\\"') if article.meta_description else '' }}",
+    "url": "https://gighala.my/blog/{{ article.slug }}",
+    "datePublished": "{{ article.created_at.strftime('%Y-%m-%dT%H:%M:%S+08:00') if article.created_at else '' }}",
+    "dateModified": "{{ article.updated_at.strftime('%Y-%m-%dT%H:%M:%S+08:00') if article.updated_at else (article.created_at.strftime('%Y-%m-%dT%H:%M:%S+08:00') if article.created_at else '') }}",
+    "author": {
+        "@type": "Organization",
+        "name": "GigHala",
+        "url": "https://gighala.my"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "GigHala",
+        "legalName": "Calmic Sdn Bhd",
+        "url": "https://gighala.my",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://gighala.my/static/logo.png"
+        }
+    },
+    "inLanguage": "ms",
+    "isPartOf": {
+        "@type": "Blog",
+        "name": "Blog GigHala",
+        "url": "https://gighala.my/blog"
+    },
+    "about": {
+        "@type": "Thing",
+        "name": "Halal gig economy Malaysia"
+    },
+    "keywords": "{{ article.meta_keywords | replace('"', '\\"') if article.meta_keywords else 'gig halal, freelance malaysia, kerja sambilan halal' }}"
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://gighala.my/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Blog",
+            "item": "https://gighala.my/blog"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ article.title | replace('"', '\\"') }}",
+            "item": "https://gighala.my/blog/{{ article.slug }}"
+        }
+    ]
+}
+</script>
+{% endblock %}
+
 {% block extra_styles %}
 <style>
     .article-layout {
