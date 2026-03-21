@@ -1,0 +1,711 @@
+{% extends "base.html" %}
+
+{% block title %}Hire Freelancer Malaysia - Cari Pekerja Bebas Halal | GigHala{% endblock %}
+
+{% block meta_description %}Hire freelancer Malaysia terbaik di GigHala. Pekerja bebas halal, terverifikasi IC, bayaran escrow selamat. Post gig percuma — terima permohonan dalam masa 24 jam. Platform #1 untuk hire freelancer halal di Malaysia.{% endblock %}
+
+{% block meta_description_en %}Hire the best Malaysian freelancers on GigHala. Halal-verified, IC-checked professionals, secure escrow payments. Post your gig free — receive applications within 24 hours. Malaysia's #1 halal freelancer hiring platform.{% endblock %}
+
+{% block meta_keywords %}hire freelancer malaysia, cari pekerja freelance, cari pekerja malaysia, upah freelancer, outsource kerja malaysia, hire freelancer halal, pekerja bebas malaysia, cara hire freelancer{% endblock %}
+
+{% block canonical_url %}https://gighala.my/hire-freelancer{% endblock %}
+
+{% block og_type %}website{% endblock %}
+{% block og_title %}Hire Freelancer Malaysia | GigHala — Platform #1 Halal{% endblock %}
+{% block og_description %}Post gig percuma dan hire freelancer Malaysia terbaik. Bayaran escrow selamat, pekerja halal terverifikasi, SOCSO dilindungi. Mulakan dalam masa 2 minit.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Hire Freelancer Malaysia | GigHala",
+    "description": "How to hire freelancers in Malaysia through GigHala — the halal gig economy platform with verified workers, escrow payments, and SOCSO protection.",
+    "url": "https://gighala.my/hire-freelancer",
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gighala.my/"},
+            {"@type": "ListItem", "position": 2, "name": "Hire Freelancer Malaysia", "item": "https://gighala.my/hire-freelancer"}
+        ]
+    }
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cara Hire Freelancer di Malaysia melalui GigHala",
+    "description": "Panduan langkah demi langkah untuk hire freelancer halal di Malaysia menggunakan platform GigHala.",
+    "totalTime": "PT2M",
+    "tool": [
+        {"@type": "HowToTool", "name": "GigHala account (percuma)"},
+        {"@type": "HowToTool", "name": "Butiran gig / kerja anda"}
+    ],
+    "step": [
+        {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Daftar akaun percuma",
+            "text": "Daftar di GigHala.my secara percuma sebagai Majikan (employer). Gunakan Google, Apple, atau email.",
+            "url": "https://gighala.my/register"
+        },
+        {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Post gig anda",
+            "text": "Isi butiran gig: tajuk kerja, deskripsi, bajet (RM), tarikh akhir, dan kategori. AI kami akan sahkan kepatuhan halal dalam masa 1 minit.",
+            "url": "https://gighala.my/post-gig"
+        },
+        {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Terima & pilih freelancer",
+            "text": "Semak permohonan dari freelancer halal terverifikasi. Lihat profil, rating, ulasan, dan kemahiran. Pilih yang paling sesuai."
+        },
+        {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Bayar melalui escrow selamat",
+            "text": "Deposit bayaran ke escrow GigHala. Wang anda selamat — hanya dilepaskan kepada freelancer setelah anda luluskan kerja yang siap."
+        }
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Berapa kos untuk post gig di GigHala?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Post gig di GigHala adalah PERCUMA. GigHala hanya mengenakan yuran platform kecil pada transaksi yang berjaya — majikan tidak perlu bayar apa-apa sehingga kerja selesai dan diluluskan."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Berapa lama untuk dapat freelancer selepas post gig?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Kebanyakan gig menerima permohonan pertama dalam masa 2-24 jam. GigHala juga menghantar notifikasi kepada freelancer yang sesuai melalui algoritma padanan AI kami."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Bagaimana jika saya tidak berpuas hati dengan kerja freelancer?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Wang anda selamat dalam escrow. Jika anda tidak berpuas hati, anda boleh meminta semakan kerja atau membuka aduan melalui sistem penyelesaian pertikaian GigHala. Wang hanya dilepaskan apabila anda luluskan kerja."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Adakah semua freelancer di GigHala Muslim / halal?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala terbuka untuk semua freelancer Malaysia, tetapi setiap gig mesti mematuhi prinsip halal. Pekerja tidak halal (contoh: penjual alkohol, penghibur haram) tidak dibenarkan post gig. Ini memastikan anda mendapat pekerja yang beretika dan boleh dipercayai."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Apa beza GigHala dengan Freelancer.com atau Upwork?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala fokus pada pasaran Malaysia dengan: (1) Matawang MYR, (2) Kepatuhan halal AI-disahkan, (3) Perlindungan SOCSO untuk pekerja, (4) Sokongan dalam Bahasa Malaysia, (5) Freelancer tempatan terverifikasi IC Malaysia. Freelancer.com dan Upwork adalah platform global tanpa kepatuhan halal atau perlindungan SOCSO Malaysia."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .hire-page { background: #f7f7f7; min-height: 100vh; }
+
+    /* Hero */
+    .hire-hero {
+        background: linear-gradient(135deg, #0d2818 0%, #1a3a2a 60%, #0d2818 100%);
+        color: white;
+        padding: 64px 24px 56px;
+        text-align: center;
+    }
+
+    .hire-hero h1 {
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 16px;
+    }
+
+    .hire-hero h1 span { color: #00C853; }
+
+    .hire-hero-sub {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        max-width: 580px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+    }
+
+    .hire-hero-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-green-lg {
+        background: #00C853;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 14px 32px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .btn-green-lg:hover { background: #00a844; color: white; }
+
+    .btn-ghost-lg {
+        border: 2px solid rgba(255,255,255,0.4);
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 14px 32px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: border-color 0.2s;
+    }
+
+    .btn-ghost-lg:hover { border-color: white; color: white; }
+
+    /* Stats bar */
+    .stats-bar {
+        background: white;
+        border-bottom: 1px solid #e4e5e7;
+        display: flex;
+        justify-content: center;
+        gap: 0;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        padding: 20px 32px;
+        text-align: center;
+        border-right: 1px solid #e4e5e7;
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+        display: block;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #00C853;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #74767e;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Content */
+    .hire-content {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 24px 80px;
+    }
+
+    /* How it works */
+    .steps-section { margin-bottom: 48px; }
+
+    .section-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #222;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .section-sub {
+        text-align: center;
+        color: #74767e;
+        margin-bottom: 32px;
+        font-size: 0.95rem;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .step-card {
+        background: white;
+        border-radius: 16px;
+        padding: 28px 24px;
+        border: 1px solid #e4e5e7;
+        position: relative;
+    }
+
+    .step-num {
+        width: 36px;
+        height: 36px;
+        background: #00C853;
+        color: white;
+        border-radius: 50%;
+        font-weight: 800;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .step-card h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 8px;
+    }
+
+    .step-card p {
+        font-size: 0.9rem;
+        color: #74767e;
+        line-height: 1.6;
+    }
+
+    /* Why GigHala */
+    .why-section {
+        background: white;
+        border-radius: 16px;
+        padding: 36px;
+        border: 1px solid #e4e5e7;
+        margin-bottom: 32px;
+    }
+
+    .why-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .why-item {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+    }
+
+    .why-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(0,200,83,0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .why-text h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 4px;
+    }
+
+    .why-text p {
+        font-size: 0.85rem;
+        color: #74767e;
+        line-height: 1.5;
+    }
+
+    /* Category cards */
+    .categories-section { margin-bottom: 48px; }
+
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .category-card {
+        background: white;
+        border: 1px solid #e4e5e7;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+        text-decoration: none;
+        color: #404145;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.15s;
+    }
+
+    .category-card:hover {
+        border-color: #00C853;
+        color: #00C853;
+        background: rgba(0,200,83,0.04);
+    }
+
+    /* Comparison table */
+    .comparison-section {
+        background: white;
+        border-radius: 16px;
+        padding: 36px;
+        border: 1px solid #e4e5e7;
+        margin-bottom: 32px;
+        overflow-x: auto;
+    }
+
+    .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        min-width: 500px;
+    }
+
+    .comparison-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 700;
+        color: #222;
+        border-bottom: 2px solid #e4e5e7;
+    }
+
+    .comparison-table th.highlight {
+        color: #00C853;
+        background: rgba(0,200,83,0.06);
+    }
+
+    .comparison-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        color: #74767e;
+    }
+
+    .comparison-table td.highlight {
+        background: rgba(0,200,83,0.04);
+        color: #222;
+        font-weight: 600;
+    }
+
+    .check { color: #00C853; font-weight: 700; }
+    .cross { color: #e53e3e; }
+
+    /* FAQ */
+    .faq-section {
+        background: white;
+        border-radius: 16px;
+        padding: 36px;
+        border: 1px solid #e4e5e7;
+        margin-bottom: 32px;
+    }
+
+    .faq-item {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 20px 0;
+    }
+
+    .faq-item:last-child { border-bottom: none; }
+
+    .faq-q {
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .faq-a {
+        color: #74767e;
+        line-height: 1.7;
+        font-size: 0.9rem;
+    }
+
+    /* Final CTA */
+    .final-cta {
+        background: linear-gradient(135deg, #00C853, #0d7c66);
+        border-radius: 20px;
+        padding: 48px 32px;
+        text-align: center;
+        color: white;
+    }
+
+    .final-cta h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; }
+    .final-cta p { opacity: 0.9; margin-bottom: 24px; font-size: 1rem; }
+
+    .btn-white-lg {
+        background: white;
+        color: #00C853;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 14px 36px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+
+    .btn-white-lg:hover { opacity: 0.9; color: #00C853; }
+
+    @media (max-width: 640px) {
+        .stats-bar { flex-direction: column; }
+        .stat-item { border-right: none; border-bottom: 1px solid #e4e5e7; }
+        .stat-item:last-child { border-bottom: none; }
+        .hire-hero h1 { font-size: 1.9rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hire-page">
+
+    <!-- HERO -->
+    <div class="hire-hero">
+        <h1>Hire <span>Freelancer Malaysia</span><br>Yang Halal & Terverifikasi</h1>
+        <p class="hire-hero-sub">
+            Post gig percuma. Terima permohonan dalam 24 jam. Bayar hanya setelah berpuas hati.
+            <br>Platform #1 untuk hire freelancer halal di Malaysia.
+        </p>
+        <div class="hire-hero-btns">
+            <a href="/register" class="btn-green-lg">Post Gig Percuma Sekarang</a>
+            <a href="/freelancers" class="btn-ghost-lg">Layari Freelancer →</a>
+        </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-num">{{ total_freelancers or '500' }}+</span>
+            <span class="stat-label">Freelancer Terverifikasi</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num">{{ active_gigs or '100' }}+</span>
+            <span class="stat-label">Gig Aktif Sekarang</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num">29</span>
+            <span class="stat-label">Kategori Kemahiran</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Halal Verified</span>
+        </div>
+    </div>
+
+    <div class="hire-content">
+
+        <!-- HOW IT WORKS -->
+        <div class="steps-section">
+            <h2 class="section-title">Cara Hire Freelancer di GigHala</h2>
+            <p class="section-sub">Mudah, selamat, dan siap dalam 4 langkah</p>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <h3>Daftar Percuma</h3>
+                    <p>Buat akaun Majikan di GigHala dalam masa 1 minit. Gunakan Google, Apple, atau email anda.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <h3>Post Gig Anda</h3>
+                    <p>Isi butiran kerja, bajet dalam RM, dan tarikh akhir. AI kami semak kepatuhan halal dalam masa 1 minit.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <h3>Pilih Freelancer</h3>
+                    <p>Terima permohonan dari freelancer terverifikasi. Semak profil, rating, dan ulasan. Pilih yang sesuai.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">4</div>
+                    <h3>Bayar Setelah Berpuas Hati</h3>
+                    <p>Deposit ke escrow selamat. Wang hanya dilepaskan apabila anda luluskan kerja yang disiapkan.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- WHY GIGHALA -->
+        <div class="why-section">
+            <h2 class="section-title" style="text-align: left;">Mengapa Hire Freelancer di GigHala?</h2>
+            <div class="why-grid">
+                <div class="why-item">
+                    <div class="why-icon">✓</div>
+                    <div class="why-text">
+                        <h3>100% Halal Verified</h3>
+                        <p>Setiap freelancer dan gig disemak AI untuk kepatuhan Shariah. Tiada kerja haram dibenarkan.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">🔒</div>
+                    <div class="why-text">
+                        <h3>Bayaran Escrow Selamat</h3>
+                        <p>Wang anda dilindungi — hanya dilepaskan setelah anda berpuas hati. Tiada riba (bebas faedah).</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">🇲🇾</div>
+                    <div class="why-text">
+                        <h3>Freelancer Tempatan Malaysia</h3>
+                        <p>Pekerja Malaysia yang faham konteks tempatan, bahasa, dan budaya kerja Malaysia.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">🆔</div>
+                    <div class="why-text">
+                        <h3>Identiti Terverifikasi</h3>
+                        <p>Semua freelancer melalui semakan IC Malaysia. Anda tahu siapa yang anda hire.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">📋</div>
+                    <div class="why-text">
+                        <h3>SOCSO Dilindungi</h3>
+                        <p>Pekerja freelance dilindungi SOCSO automatik — platform pertama di Malaysia yang buat ini.</p>
+                    </div>
+                </div>
+                <div class="why-item">
+                    <div class="why-icon">💬</div>
+                    <div class="why-text">
+                        <h3>Sokongan Bahasa Malaysia</h3>
+                        <p>Platform, sokongan pelanggan, dan komuniti penuh dalam Bahasa Malaysia dan Inggeris.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div class="categories-section">
+            <h2 class="section-title">Cari Freelancer Mengikut Kepakaran</h2>
+            <p class="section-sub">29 kategori halal tersedia</p>
+            <div class="categories-grid">
+                {% for cat in categories %}
+                <a href="/freelancers/{{ cat.slug }}" class="category-card">
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- COMPARISON TABLE -->
+        <div class="comparison-section">
+            <h2 class="section-title" style="text-align: left; margin-bottom: 8px;">GigHala vs Platform Lain</h2>
+            <p style="color: #74767e; font-size: 0.9rem; margin-bottom: 20px;">Kenapa GigHala pilihan terbaik untuk hire freelancer di Malaysia?</p>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Ciri-ciri</th>
+                        <th class="highlight">GigHala ✓</th>
+                        <th>Freelancer.com</th>
+                        <th>Upwork</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Halal AI Verified</td>
+                        <td class="highlight"><span class="check">✓ 100%</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>Matawang MYR</td>
+                        <td class="highlight"><span class="check">✓ Native MYR</span></td>
+                        <td>USD (conversion)</td>
+                        <td>USD (conversion)</td>
+                    </tr>
+                    <tr>
+                        <td>Freelancer Tempatan Malaysia</td>
+                        <td class="highlight"><span class="check">✓ Malaysia-only</span></td>
+                        <td>Global</td>
+                        <td>Global</td>
+                    </tr>
+                    <tr>
+                        <td>SOCSO Worker Protection</td>
+                        <td class="highlight"><span class="check">✓ Automatik</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>Bayaran Escrow Selamat</td>
+                        <td class="highlight"><span class="check">✓ Riba-free</span></td>
+                        <td><span class="check">✓</span></td>
+                        <td><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Sokongan Bahasa Malaysia</td>
+                        <td class="highlight"><span class="check">✓ Penuh</span></td>
+                        <td><span class="cross">✗</span></td>
+                        <td><span class="cross">✗</span></td>
+                    </tr>
+                    <tr>
+                        <td>Post Gig Percuma</td>
+                        <td class="highlight"><span class="check">✓</span></td>
+                        <td>Had percuma</td>
+                        <td><span class="cross">Berbayar</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h2 class="section-title" style="text-align: left;">Soalan Lazim — Hire Freelancer Malaysia</h2>
+
+            <div class="faq-item">
+                <p class="faq-q">Berapa kos untuk hire freelancer di GigHala?</p>
+                <p class="faq-a">Post gig di GigHala adalah <strong>percuma sepenuhnya</strong>. GigHala hanya mengenakan yuran platform kecil pada transaksi yang berjaya. Tiada bayaran pendaftaran, tiada langganan bulanan.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-q">Berapa kadar freelancer di Malaysia?</p>
+                <p class="faq-a">Kadar bergantung pada kepakaran: Rekaan grafik RM50–RM500 per projek, Pembangunan web RM200–RM5,000, Penulisan kandungan RM30–RM200 per artikel, Pemasaran digital RM100–RM2,000 sebulan, Tuisyen RM30–RM100 per jam.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-q">Berapa lama untuk dapat freelancer selepas post gig?</p>
+                <p class="faq-a">Kebanyakan gig menerima permohonan pertama dalam masa <strong>2–24 jam</strong>. GigHala menghantar notifikasi automatik kepada freelancer bersesuaian melalui algoritma padanan AI kami.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-q">Apa beza GigHala dengan Freelancer.my atau Upwork untuk majikan Malaysia?</p>
+                <p class="faq-a">GigHala adalah satu-satunya platform yang menawarkan: (1) Pengesahan halal AI untuk semua gig, (2) Perlindungan SOCSO automatik untuk pekerja, (3) Bayaran dalam MYR tanpa yuran penukaran matawang, (4) Freelancer Malaysia yang disahkan IC, (5) Sokongan penuh dalam Bahasa Malaysia.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-q">Bagaimana jika ada masalah dengan kerja yang disiapkan?</p>
+                <p class="faq-a">Wang anda selamat dalam escrow. Jika tidak berpuas hati, minta semakan kerja atau buka aduan melalui sistem penyelesaian pertikaian GigHala. Pasukan kami akan bantu selesaikan sebarang isu secara adil.</p>
+            </div>
+        </div>
+
+        <!-- SEO PARAGRAPH CONTENT -->
+        <div style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e4e5e7; margin-bottom: 32px;">
+            <h2 style="font-size: 1.2rem; font-weight: 700; color: #222; margin-bottom: 16px;">Hire Freelancer Malaysia — Panduan Lengkap 2025</h2>
+            <p style="color: #74767e; line-height: 1.8; margin-bottom: 12px; font-size: 0.95rem;">
+                Ekonomi gig Malaysia berkembang pesat — lebih 4 juta pekerja gig aktif pada 2025. Hire freelancer Malaysia kini lebih mudah dari sebelumnya melalui GigHala, platform gig halal #1 di Malaysia.
+            </p>
+            <p style="color: #74767e; line-height: 1.8; margin-bottom: 12px; font-size: 0.95rem;">
+                Sama ada anda PKS, syarikat besar, atau individu yang memerlukan bantuan projek — GigHala mempunyai freelancer Malaysia berpengalaman dalam lebih 29 kategori: dari rekaan grafik, pembangunan web, penulisan kandungan, pemasaran digital, hingga khidmat rumah dan penjagaan.
+            </p>
+            <p style="color: #74767e; line-height: 1.8; font-size: 0.95rem;">
+                Semua freelancer di GigHala melalui pengesahan identiti, dan setiap gig disemak oleh AI untuk kepatuhan halal. Dengan sistem escrow selamat, anda hanya bayar apabila berpuas hati — menjadikan GigHala pilihan paling selamat untuk hire freelancer di Malaysia.
+            </p>
+        </div>
+
+        <!-- FINAL CTA -->
+        <div class="final-cta">
+            <h2>Mula Hire Freelancer Halal Hari Ini</h2>
+            <p>Post gig percuma. Lebih {{ total_freelancers or 500 }}+ freelancer Malaysia sedia menerima kerja anda.</p>
+            <a href="/register" class="btn-white-lg">Post Gig Percuma →</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
