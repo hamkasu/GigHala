@@ -3876,6 +3876,121 @@ def browse_gigs():
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
+
+@app.route('/freelancers')
+@app.route('/freelancers/<category_slug>')
+def public_freelancers(category_slug=None):
+    """
+    Public-facing freelancer directory page.
+    No login required — optimized for SEO to rank for 'freelancer malaysia',
+    'cari pekerja freelance', 'hire freelancer malaysia'.
+    """
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+
+    # Get categories for display
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).order_by(Category.name).all()
+
+    # Find the active category
+    active_category = None
+    if category_slug:
+        active_category = Category.query.filter_by(slug=category_slug).first()
+
+    # Query top public freelancers
+    freelancer_query = User.query.filter(
+        User.user_type.in_(['freelancer', 'both']),
+        User.is_verified == True
+    )
+
+    if active_category:
+        # Filter by category via skills JSON
+        freelancer_query = freelancer_query.filter(
+            User.skills.contains(active_category.name)
+        )
+
+    top_freelancers = freelancer_query.order_by(
+        User.rating.desc(),
+        User.completed_gigs.desc()
+    ).limit(24).all()
+
+    # Build public-safe profile data (no PII)
+    public_profiles = []
+    for f in top_freelancers:
+        skills_list = []
+        if f.skills:
+            try:
+                import json
+                skills_data = json.loads(f.skills)
+                if isinstance(skills_data, list):
+                    skills_list = skills_data[:5]
+                elif isinstance(skills_data, dict):
+                    skills_list = list(skills_data.keys())[:5]
+            except Exception:
+                skills_list = []
+
+        public_profiles.append({
+            'username': f.username,
+            'display_name': f.full_name or f.username,
+            'location': f.location or 'Malaysia',
+            'bio': (f.bio[:120] + '...') if f.bio and len(f.bio) > 120 else (f.bio or ''),
+            'rating': f.rating or 0.0,
+            'review_count': f.review_count or 0,
+            'completed_gigs': f.completed_gigs or 0,
+            'skills': skills_list,
+            'is_verified': f.is_verified,
+            'halal_verified': f.halal_verified,
+        })
+
+    # Stats for social proof
+    total_freelancers = User.query.filter(
+        User.user_type.in_(['freelancer', 'both'])
+    ).count()
+
+    return render_template('freelancers.html',
+                           user=user,
+                           categories=categories,
+                           active_category=active_category,
+                           top_freelancers=public_profiles,
+                           total_freelancers=total_freelancers,
+                           category_slug=category_slug,
+                           lang=get_user_language(), t=t)
+
+
+@app.route('/hire-freelancer')
+def hire_freelancer():
+    """
+    Public-facing hire-a-freelancer landing page.
+    Targets: 'hire freelancer malaysia', 'cari pekerja freelance malaysia'.
+    No login required.
+    """
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).order_by(Category.name).all()
+
+    # Stats for social proof
+    try:
+        total_gigs_done = db.session.query(db.func.sum(User.completed_gigs)).scalar() or 0
+        total_freelancers = User.query.filter(
+            User.user_type.in_(['freelancer', 'both']),
+            User.is_verified == True
+        ).count()
+        active_gigs = Gig.query.filter_by(status='active').count()
+    except Exception:
+        total_gigs_done = 0
+        total_freelancers = 0
+        active_gigs = 0
+
+    return render_template('hire_freelancer.html',
+                           user=user,
+                           categories=categories,
+                           total_freelancers=total_freelancers,
+                           total_gigs_done=total_gigs_done,
+                           active_gigs=active_gigs,
+                           lang=get_user_language(), t=t)
+
 @app.route('/workers')
 @page_login_required
 def browse_workers():
@@ -23281,12 +23396,40 @@ def sitemap():
         # Static pages
         static_pages = [
             {'url': '/gigs', 'priority': '0.9', 'changefreq': 'hourly'},
+            {'url': '/freelancers', 'priority': '0.9', 'changefreq': 'daily'},
+            {'url': '/hire-freelancer', 'priority': '0.9', 'changefreq': 'monthly'},
             {'url': '/about', 'priority': '0.7', 'changefreq': 'monthly'},
+            {'url': '/blog', 'priority': '0.8', 'changefreq': 'weekly'},
             {'url': '/contact', 'priority': '0.6', 'changefreq': 'monthly'},
             {'url': '/privacy', 'priority': '0.5', 'changefreq': 'yearly'},
             {'url': '/halal-compliance', 'priority': '0.8', 'changefreq': 'monthly'},
             {'url': '/gig-workers-bill', 'priority': '0.7', 'changefreq': 'monthly'},
+            {'url': '/llms.txt', 'priority': '0.3', 'changefreq': 'monthly'},
         ]
+
+        # Category freelancer pages
+        try:
+            main_cats = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+            for cat in main_cats:
+                static_pages.append({
+                    'url': f'/freelancers/{cat.slug}',
+                    'priority': '0.8',
+                    'changefreq': 'weekly'
+                })
+        except Exception:
+            pass
+
+        # Blog articles
+        try:
+            from blog_data import blog_articles as blog_posts_data
+            for article in blog_posts_data:
+                static_pages.append({
+                    'url': f"/blog/{article.get('slug', '')}",
+                    'priority': '0.7',
+                    'changefreq': 'monthly'
+                })
+        except Exception:
+            pass
 
         for page in static_pages:
             pages.append({

@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+
+{% block title %}{% if active_category %}Freelancer {{ active_category.name }} Malaysia{% else %}Freelancer Malaysia - Cari Pekerja Freelance Terbaik{% endif %}{% endblock %}
+
+{% block meta_description %}{% if active_category %}Cari freelancer {{ active_category.name }} terbaik di Malaysia. Pekerja bebas halal, berpengalaman & disahkan. Bayar melalui escrow selamat — GigHala.{% else %}Cari freelancer Malaysia terbaik untuk projek anda. 1000+ pekerja bebas halal, terverifikasi, SOCSO dilindungi. Bayaran escrow selamat di GigHala — Platform Freelancer #1 Malaysia.{% endif %}{% endblock %}
+
+{% block meta_description_en %}{% if active_category %}Find top {{ active_category.name }} freelancers in Malaysia. Halal-verified, experienced professionals. Safe escrow payments — GigHala.{% else %}Find the best freelancers in Malaysia for your projects. 1000+ halal-verified professionals with SOCSO protection and secure escrow payments at GigHala — Malaysia's #1 freelancer platform.{% endif %}{% endblock %}
+
+{% block meta_keywords %}freelancer malaysia, cari freelancer, pekerja bebas malaysia, hire freelancer malaysia, cari pekerja freelance, freelancer halal malaysia{% if active_category %}, freelancer {{ active_category.name }} malaysia, {{ active_category.name }} freelance malaysia{% endif %}{% endblock %}
+
+{% block canonical_url %}https://gighala.my/freelancers{% if category_slug %}/{{ category_slug }}{% endif %}{% endblock %}
+
+{% block og_type %}website{% endblock %}
+{% block og_title %}{% if active_category %}Freelancer {{ active_category.name }} Malaysia | GigHala{% else %}Cari Freelancer Malaysia Terbaik | GigHala{% endif %}{% endblock %}
+{% block og_description %}Cari freelancer halal terbaik di Malaysia. Pekerja terverifikasi, bayaran escrow selamat, perlindungan SOCSO. Mulakan sekarang di GigHala.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "{% if active_category %}Freelancer {{ active_category.name }} Malaysia{% else %}Freelancer Malaysia - GigHala{% endif %}",
+    "description": "Directory of verified halal freelancers in Malaysia. Find skilled professionals for your projects with secure escrow payments and SOCSO protection.",
+    "url": "https://gighala.my/freelancers{% if category_slug %}/{{ category_slug }}{% endif %}",
+    "isPartOf": {
+        "@type": "WebSite",
+        "name": "GigHala",
+        "url": "https://gighala.my"
+    },
+    "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gighala.my/"},
+            {"@type": "ListItem", "position": 2, "name": "Freelancers Malaysia", "item": "https://gighala.my/freelancers"}{% if active_category %},
+            {"@type": "ListItem", "position": 3, "name": "{{ active_category.name }}", "item": "https://gighala.my/freelancers/{{ category_slug }}"}{% endif %}
+        ]
+    }
+}
+</script>
+
+{% if top_freelancers %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Top Freelancers in Malaysia",
+    "itemListElement": [
+        {% for f in top_freelancers[:10] %}
+        {
+            "@type": "ListItem",
+            "position": {{ loop.index }},
+            "item": {
+                "@type": "Person",
+                "name": "{{ f.display_name | replace('"', '\\"') }}",
+                "jobTitle": "Freelancer",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "{{ f.location | replace('"', '\\"') }}",
+                    "addressCountry": "MY"
+                }{% if f.rating > 0 %},
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "{{ '%.1f' % f.rating }}",
+                    "reviewCount": "{{ f.review_count }}"
+                }{% endif %}
+            }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+{% endif %}
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Bagaimana cara mencari freelancer di Malaysia? / How to find freelancers in Malaysia?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Di GigHala, anda boleh cari freelancer Malaysia dengan mudah: (1) Layari direktori freelancer ini, (2) Tapis mengikut kemahiran atau lokasi, (3) Semak profil, rating, dan ulasan, (4) Hantar tawaran atau post gig. Semua freelancer di GigHala telah disahkan dan gig mereka mematuhi prinsip halal. / On GigHala, find Malaysian freelancers easily: (1) Browse this directory, (2) Filter by skill or location, (3) Check profiles, ratings, and reviews, (4) Send an offer or post a gig. All GigHala freelancers are verified and work within halal principles."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Berapa kos hire freelancer di Malaysia? / How much does it cost to hire a freelancer in Malaysia?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Kadar freelancer di Malaysia berbeza-beza: Rekaan grafik RM50-RM500, Pembangunan web RM200-RM5,000, Penulisan kandungan RM30-RM200 per artikel, Pemasaran digital RM100-RM2,000. GigHala menawarkan kad harga tetap dengan pembayaran escrow selamat. / Freelancer rates in Malaysia vary: Graphic design RM50-RM500, Web development RM200-RM5,000, Content writing RM30-RM200 per article, Digital marketing RM100-RM2,000. GigHala offers fixed pricing with secure escrow payments."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Adakah freelancer di GigHala dipercayai? / Are GigHala freelancers trustworthy?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ya. Semua freelancer di GigHala melalui proses pengesahan identiti (IC Malaysia), dan kerja mereka disemak untuk kepatuhan halal. Sistem escrow kami memastikan wang anda selamat — hanya dilepaskan setelah anda berpuas hati dengan kerja yang dilakukan. / Yes. All GigHala freelancers go through identity verification (Malaysian IC), and their work is screened for halal compliance. Our escrow system ensures your money is safe — only released once you're satisfied with the completed work."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .freelancers-page {
+        background: #f7f7f7;
+        min-height: 100vh;
+    }
+
+    .freelancers-hero {
+        background: linear-gradient(135deg, #0d2818 0%, #1a3a2a 60%, #0d2818 100%);
+        color: white;
+        padding: 60px 24px 48px;
+        text-align: center;
+    }
+
+    .freelancers-hero h1 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 800;
+        margin-bottom: 14px;
+        line-height: 1.2;
+    }
+
+    .freelancers-hero h1 span { color: #00C853; }
+
+    .freelancers-hero p {
+        font-size: 1.05rem;
+        opacity: 0.85;
+        max-width: 600px;
+        margin: 0 auto 28px;
+        line-height: 1.6;
+    }
+
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+    }
+
+    .hero-stat {
+        text-align: center;
+    }
+
+    .hero-stat-num {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #00C853;
+        display: block;
+    }
+
+    .hero-stat-label {
+        font-size: 0.8rem;
+        opacity: 0.75;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .hero-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #00C853;
+        color: white;
+        font-weight: 700;
+        padding: 14px 32px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: background 0.2s;
+    }
+
+    .hero-cta:hover { background: #00a844; color: white; }
+
+    /* Category filter bar */
+    .category-filter-bar {
+        background: white;
+        border-bottom: 1px solid #e4e5e7;
+        padding: 12px 24px;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+
+    .category-filter-bar::-webkit-scrollbar { display: none; }
+
+    .category-filter-inner {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .cat-pill {
+        display: inline-block;
+        padding: 7px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid #e4e5e7;
+        color: #404145;
+        background: white;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+
+    .cat-pill:hover, .cat-pill.active {
+        border-color: #00C853;
+        color: #00C853;
+        background: rgba(0,200,83,0.06);
+    }
+
+    .cat-pill.active {
+        background: rgba(0,200,83,0.12);
+    }
+
+    /* Main content */
+    .freelancers-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 24px 80px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .section-header h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .section-header-sub {
+        font-size: 0.85rem;
+        color: #74767e;
+        margin-top: 3px;
+    }
+
+    /* Freelancer card grid */
+    .freelancers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        margin-bottom: 48px;
+    }
+
+    .freelancer-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid #e4e5e7;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+    }
+
+    .freelancer-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        border-color: #00C853;
+    }
+
+    .freelancer-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00C853, #0d7c66);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+    }
+
+    .freelancer-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 4px;
+    }
+
+    .freelancer-location {
+        font-size: 12px;
+        color: #74767e;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+
+    .freelancer-bio {
+        font-size: 13px;
+        color: #74767e;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .freelancer-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 14px;
+    }
+
+    .skill-chip {
+        background: #f0fdf4;
+        color: #15803d;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid #bbf7d0;
+    }
+
+    .freelancer-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .rating-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #f59e0b;
+    }
+
+    .rating-badge span { color: #74767e; font-weight: 400; font-size: 11px; }
+
+    .gigs-done {
+        font-size: 12px;
+        color: #74767e;
+    }
+
+    .gigs-done strong { color: #222; }
+
+    .verified-badge {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: #00C853;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .hire-cta-card {
+        background: linear-gradient(135deg, #0d2818 0%, #1a3a2a 100%);
+        border-radius: 16px;
+        padding: 32px;
+        text-align: center;
+        color: white;
+        margin-bottom: 48px;
+    }
+
+    .hire-cta-card h3 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .hire-cta-card h3 span { color: #00C853; }
+
+    .hire-cta-card p {
+        opacity: 0.8;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cta-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary-green {
+        background: #00C853;
+        color: white;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .btn-primary-green:hover { background: #00a844; color: white; }
+
+    .btn-outline-white {
+        border: 2px solid rgba(255,255,255,0.4);
+        color: white;
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: border-color 0.2s;
+    }
+
+    .btn-outline-white:hover { border-color: white; color: white; }
+
+    /* Info sections for SEO content */
+    .seo-content-section {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        border: 1px solid #e4e5e7;
+        margin-bottom: 24px;
+    }
+
+    .seo-content-section h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 16px;
+    }
+
+    .seo-content-section p {
+        color: #74767e;
+        line-height: 1.7;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+
+    .seo-content-section ul {
+        padding-left: 20px;
+        color: #74767e;
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    @media (max-width: 640px) {
+        .two-col { grid-template-columns: 1fr; }
+        .hero-stats { gap: 24px; }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 24px;
+        color: #74767e;
+    }
+
+    .empty-state h3 { color: #222; margin-bottom: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="freelancers-page">
+
+    <!-- HERO -->
+    <div class="freelancers-hero">
+        <h1>
+            {% if active_category %}
+                Freelancer <span>{{ active_category.name }}</span> Malaysia
+            {% else %}
+                Cari <span>Freelancer Malaysia</span> Terbaik
+            {% endif %}
+        </h1>
+        <p>
+            {% if active_category %}
+                Temui pakar {{ active_category.name }} tempatan yang terverifikasi, halal, dan berpengalaman. Bayaran selamat melalui escrow.
+            {% else %}
+                Platform freelancer halal #1 Malaysia. Lebih {{ total_freelancers or 500 }}+ pekerja bebas terverifikasi, SOCSO dilindungi, bayaran escrow selamat.
+            {% endif %}
+        </p>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="hero-stat-num">{{ total_freelancers or '500' }}+</span>
+                <span class="hero-stat-label">Freelancer Aktif</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">29</span>
+                <span class="hero-stat-label">Kategori Kemahiran</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">100%</span>
+                <span class="hero-stat-label">Halal Verified</span>
+            </div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">SOCSO</span>
+                <span class="hero-stat-label">Perlindungan Automatik</span>
+            </div>
+        </div>
+
+        <a href="/register" class="hero-cta">
+            Daftar Percuma & Cari Freelancer
+        </a>
+    </div>
+
+    <!-- CATEGORY FILTER -->
+    <div class="category-filter-bar">
+        <div class="category-filter-inner">
+            <a href="/freelancers" class="cat-pill {% if not active_category %}active{% endif %}">
+                Semua Kategori
+            </a>
+            {% for cat in categories %}
+            <a href="/freelancers/{{ cat.slug }}" class="cat-pill {% if active_category and active_category.id == cat.id %}active{% endif %}">
+                {{ cat.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="freelancers-content">
+
+        <!-- TOP FREELANCERS GRID -->
+        <div class="section-header">
+            <div>
+                <h2>
+                    {% if active_category %}
+                        Top Freelancer {{ active_category.name }} di Malaysia
+                    {% else %}
+                        Top Freelancer Malaysia
+                    {% endif %}
+                </h2>
+                <p class="section-header-sub">Disusun mengikut rating tertinggi & kerja selesai</p>
+            </div>
+        </div>
+
+        {% if top_freelancers %}
+        <div class="freelancers-grid">
+            {% for f in top_freelancers %}
+            <article class="freelancer-card" itemscope itemtype="https://schema.org/Person">
+                {% if f.is_verified %}
+                <div class="verified-badge">✓ Disahkan</div>
+                {% endif %}
+
+                <div class="freelancer-avatar">
+                    {{ f.display_name[0].upper() if f.display_name else '?' }}
+                </div>
+
+                <h3 class="freelancer-name" itemprop="name">{{ f.display_name }}</h3>
+                <div class="freelancer-location" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span itemprop="addressLocality">{{ f.location }}</span>
+                </div>
+
+                {% if f.bio %}
+                <p class="freelancer-bio" itemprop="description">{{ f.bio }}</p>
+                {% endif %}
+
+                {% if f.skills %}
+                <div class="freelancer-skills">
+                    {% for skill in f.skills %}
+                    <span class="skill-chip">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="freelancer-footer">
+                    <div class="rating-badge">
+                        ★ {{ '%.1f' % f.rating if f.rating else '—' }}
+                        <span>({{ f.review_count }} ulasan)</span>
+                    </div>
+                    <div class="gigs-done">
+                        <strong>{{ f.completed_gigs }}</strong> gig selesai
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="empty-state">
+            <h3>Belum ada freelancer dalam kategori ini</h3>
+            <p>Cuba kategori lain atau daftar sebagai freelancer pertama!</p>
+            <a href="/register" class="hero-cta" style="margin-top: 16px; display: inline-flex;">Daftar Sebagai Freelancer</a>
+        </div>
+        {% endif %}
+
+        <!-- HIRE CTA -->
+        <div class="hire-cta-card">
+            <h3>Nak Hire <span>Freelancer Malaysia</span>?</h3>
+            <p>Post gig anda dalam masa 2 minit. Terima permohonan dari freelancer halal terverifikasi. Bayar hanya setelah berpuas hati.</p>
+            <div class="cta-btns">
+                <a href="/register" class="btn-primary-green">Daftar & Post Gig Percuma</a>
+                <a href="/hire-freelancer" class="btn-outline-white">Ketahui Lebih Lanjut</a>
+            </div>
+        </div>
+
+        <!-- SEO CONTENT: Why GigHala for finding freelancers -->
+        <div class="two-col">
+            <div class="seo-content-section">
+                <h2>Mengapa Cari Freelancer di GigHala?</h2>
+                <p>GigHala adalah platform freelancer Malaysia yang unik kerana menggabungkan nilai-nilai Islam dengan teknologi moden:</p>
+                <ul>
+                    <li><strong>100% Halal Verified</strong> — Setiap gig disemak oleh AI untuk kepatuhan halal</li>
+                    <li><strong>Pekerja Terverifikasi</strong> — Semua freelancer melalui semakan identiti IC Malaysia</li>
+                    <li><strong>Bayaran Escrow Selamat</strong> — Wang anda dilindungi sehingga kerja siap</li>
+                    <li><strong>SOCSO Dilindungi</strong> — Pekerja freelance dilindungi kemalangan secara automatik</li>
+                    <li><strong>Syarikat Malaysia Tulen</strong> — Sokongan dalam Bahasa Malaysia</li>
+                </ul>
+            </div>
+
+            <div class="seo-content-section">
+                <h2>Kategori Freelancer Popular di Malaysia</h2>
+                <p>Cari freelancer mengikut kepakaran:</p>
+                <ul>
+                    {% for cat in categories[:10] %}
+                    <li><a href="/freelancers/{{ cat.slug }}" style="color: #00C853; font-weight: 600;">Freelancer {{ cat.name }}</a> Malaysia</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- SEO CONTENT: How to hire -->
+        <div class="seo-content-section">
+            <h2>Cara Hire Freelancer di Malaysia melalui GigHala</h2>
+            <p>Proses hire freelancer di GigHala mudah dan selamat dalam 4 langkah:</p>
+            <ol style="padding-left: 20px; color: #74767e; font-size: 0.95rem; line-height: 2;">
+                <li><strong>Daftar percuma</strong> di GigHala sebagai majikan (Majikan)</li>
+                <li><strong>Post gig</strong> dengan butiran kerja, bajet, dan tarikh akhir</li>
+                <li><strong>Terima permohonan</strong> dari freelancer halal terverifikasi dan pilih yang terbaik</li>
+                <li><strong>Bayar melalui escrow</strong> — wang dilepaskan hanya setelah anda berpuas hati</li>
+            </ol>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
