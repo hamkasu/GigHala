@@ -1,6 +1,89 @@
 {% extends "base.html" %}
 
-{% block title %}About Us - GigHala{% endblock %}
+{% block title %}About GigHala - Malaysia's #1 Halal Gig Platform | Calmic Sdn Bhd{% endblock %}
+
+{% block meta_description %}Learn about GigHala, Malaysia's leading halal gig economy platform by Calmic Sdn Bhd. Founded 2022 in Kuala Lumpur. AI-verified halal compliance, SOCSO protection, escrow payments for Muslim freelancers.{% endblock %}
+
+{% block meta_description_en %}GigHala is operated by Calmic Sdn Bhd (est. 2022, Kuala Lumpur). Malaysia's first halal gig platform with AI moderation, SOCSO worker protection, and interest-free escrow payments.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "About GigHala",
+    "url": "https://gighala.my/about",
+    "description": "GigHala is Malaysia's #1 halal gig economy platform, operated by Calmic Sdn Bhd. Founded in 2022, headquartered in Kuala Lumpur.",
+    "mainEntity": {
+        "@type": "Organization",
+        "name": "GigHala",
+        "legalName": "Calmic Sdn Bhd",
+        "url": "https://gighala.my",
+        "logo": "https://gighala.my/static/logo.png",
+        "foundingDate": "2022",
+        "foundingLocation": "Kuala Lumpur, Malaysia",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Kuala Lumpur",
+            "addressCountry": "MY"
+        },
+        "description": "GigHala is Malaysia's leading halal-certified gig economy platform connecting Muslim freelancers with clients. All gigs are AI-verified for halal compliance. Workers receive automatic SOCSO protection and escrow-secured payments.",
+        "areaServed": "Malaysia",
+        "knowsAbout": [
+            "Halal gig economy",
+            "Freelance marketplace",
+            "Islamic finance",
+            "SOCSO compliance",
+            "Escrow payment systems",
+            "AI moderation",
+            "Shariah-compliant digital services"
+        ],
+        "sameAs": ["https://calmic.com.my"]
+    }
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Who owns and operates GigHala?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala is owned and operated by Calmic Sdn Bhd, a Malaysian engineering consultancy and digital solutions company established in 2022, headquartered in Kuala Lumpur, Malaysia."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "When was GigHala founded?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala was founded in 2022 by Calmic Sdn Bhd in Kuala Lumpur, Malaysia."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is GigHala's mission?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala's mission is to empower Malaysian Muslims through dignified, halal-certified gig work — providing flexible income opportunities with Islamic values, social protection via SOCSO, and secure escrow-based payments."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What other platforms does Calmic Sdn Bhd operate?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Calmic Sdn Bhd operates multiple digital platforms including: GigHala (halal gig economy), MyParliament (Malaysian MP performance tracking), and StoryKeep (AI-powered family memory preservation)."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
 
 {% block extra_styles %}
 <style>

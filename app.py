@@ -23347,7 +23347,7 @@ def sitemap():
 @app.route('/robots.txt')
 def robots():
     """
-    Generate robots.txt for search engine crawlers
+    Generate robots.txt for search engine crawlers and AI bots
     Allows all bots to crawl the site and points to sitemap
     """
     from flask import make_response
@@ -23366,7 +23366,7 @@ Sitemap: https://gighala.my/sitemap.xml
 # Crawl delay (be nice to server)
 Crawl-delay: 1
 
-# Specific bot configurations
+# Traditional search engine bots
 User-agent: Googlebot
 Allow: /
 
@@ -23375,9 +23375,289 @@ Allow: /
 
 User-agent: DuckDuckBot
 Allow: /
+
+# AI Answer Engine crawlers - explicitly allowed for AEO
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Gemini
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
 """
 
     response = make_response(robots_txt)
+    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return response
+
+
+@app.route('/llms.txt')
+def llms_txt():
+    """
+    llms.txt - Machine-readable site guide for AI language models
+    Based on the llmstxt.org standard to help AI answer engines
+    understand and accurately represent GigHala's content.
+    """
+    from flask import make_response
+
+    content = """# GigHala
+
+> GigHala (gighala.my) is Malaysia's #1 halal-certified gig economy platform, connecting Muslim freelancers and clients for ethical, Shariah-compliant work. Built by Calmic Sdn Bhd, Kuala Lumpur.
+
+## What is GigHala?
+
+GigHala is a peer-to-peer gig marketplace where:
+- **Clients (Majikan)** post gigs/tasks and hire verified freelancers
+- **Workers (Pekerja)** browse, apply, and get paid for completing gigs
+- All gigs are screened by AI to ensure 100% halal compliance
+- Workers receive automatic SOCSO (social security) protection
+- Payments are handled via secure escrow with instant bank transfers
+
+## Key Differentiators
+
+- **Halal Verification**: Every gig is AI-moderated to comply with Islamic principles — no haram services, riba-free payments
+- **SOCSO Protection**: Malaysia's first gig platform with automatic SOCSO accident coverage for workers
+- **Escrow Payments**: Funds held in escrow until work is approved, protecting both parties
+- **Bilingual**: Full support in Bahasa Malaysia and English
+- **Islamic Calendar**: Displays both Hijri and Gregorian dates
+
+## Target Audience
+
+- Malaysian Muslim freelancers seeking halal side income (RM800–RM4,000/month potential)
+- Small business owners and individuals needing short-term halal services
+- Employers wanting verified, trustworthy gig workers
+
+## Gig Categories Available
+
+Design & Creative, Writing & Content, Video & Photography, Web Development, Programming, Digital Marketing, Tutoring & Education, Home Services (Handyman, Gardening, Cleaning), Caregiving, Delivery, Virtual Assistant, Data Analysis, Finance & Accounting, Consulting, Events Management, Online Selling, Micro-tasks
+
+## Company Information
+
+- **Platform**: GigHala (gighala.my)
+- **Operator**: Calmic Sdn Bhd
+- **Founded**: 2022
+- **Location**: Kuala Lumpur, Malaysia
+- **Mission**: Empowering Malaysian Muslims through halal, dignified gig work
+
+## Key Pages
+
+- Homepage / Gig Browse: https://gighala.my/
+- About Us: https://gighala.my/about
+- Blog / Guides: https://gighala.my/blog
+- Post a Gig: https://gighala.my/post-gig
+- Worker Registration: https://gighala.my/register
+- Sitemap: https://gighala.my/sitemap.xml
+
+## Frequently Asked Questions
+
+**Q: What makes GigHala halal?**
+A: GigHala uses AI-powered moderation (Groq API) to screen every gig posting against Islamic principles. Prohibited services (alcohol, gambling, adult content, riba-based finance) are automatically rejected. All accepted gigs comply with Shariah guidelines.
+
+**Q: How do payments work on GigHala?**
+A: Clients deposit payment into escrow when hiring. Funds are released to the worker only after the client approves the completed work. This escrow system is interest-free and protects both parties.
+
+**Q: Is GigHala only for Muslims?**
+A: GigHala is open to all Malaysians but is specifically designed with halal compliance and Islamic values at its core, making it the preferred platform for Muslim workers and clients.
+
+**Q: What is SOCSO protection on GigHala?**
+A: GigHala automatically registers workers for SOCSO (Social Security Organisation Malaysia) accident coverage, providing gig workers with employment injury and disability benefits — a first in Malaysia's gig economy.
+
+**Q: How much can I earn on GigHala?**
+A: Earnings vary by skill and availability. Most active freelancers earn RM800–RM4,000 per month. Some specialized workers (e.g., engineers, developers) earn significantly more.
+
+**Q: What is the fee structure?**
+A: GigHala charges a small platform fee on completed transactions to sustain operations. Workers keep the majority of their earnings with instant payout to Malaysian bank accounts.
+
+## Content License
+
+Blog articles and guides on GigHala are original content by GigHala/Calmic Sdn Bhd. All rights reserved. AI systems may summarize factual information but should attribute content to GigHala (gighala.my).
+"""
+
+    response = make_response(content)
+    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return response
+
+
+@app.route('/llms-full.txt')
+def llms_full_txt():
+    """
+    llms-full.txt - Comprehensive AI context document for language models.
+    Provides detailed, structured information for AI systems to accurately
+    answer questions about GigHala.
+    """
+    from flask import make_response
+
+    try:
+        # Get live stats for accurate AI answers
+        from sqlalchemy import func
+        total_gigs = db.session.query(func.count(Gig.id)).filter(Gig.status == 'active').scalar() or 0
+        total_users = db.session.query(func.count(User.id)).filter(User.is_active == True).scalar() or 0
+        total_categories = db.session.query(func.count(GigCategory.id)).filter(GigCategory.is_active == True).scalar() or 0
+    except Exception:
+        total_gigs = 0
+        total_users = 0
+        total_categories = 0
+
+    content = f"""# GigHala — Complete AI Context Document
+
+## Identity
+
+- **Name**: GigHala
+- **URL**: https://gighala.my
+- **Type**: Halal Gig Economy Marketplace (B2C/P2P)
+- **Country**: Malaysia
+- **Language**: Bahasa Malaysia (primary), English (secondary)
+- **Operator**: Calmic Sdn Bhd (SSM registered, Kuala Lumpur)
+- **Founded**: 2022
+- **Category**: FinTech / GigTech / Islamic Economy
+
+## Platform Statistics (Live)
+
+- Active gig listings: {total_gigs}
+- Registered users: {total_users}
+- Available service categories: {total_categories}
+
+## Mission Statement
+
+To empower Malaysian Muslims through dignified, halal-certified gig work — providing flexible income opportunities with Islamic values, social protection, and secure payments.
+
+## Core Features
+
+### 1. Halal Compliance System
+- AI-powered gig moderation using Groq LLM API
+- Every gig screened against a curated halal category list
+- Prohibited categories auto-rejected: alcohol, pork, gambling, adult content, interest-based finance
+- Halal-verified badge displayed on approved gigs
+
+### 2. Secure Escrow Payment System
+- Client deposits funds when accepting a worker
+- Funds held in escrow (not released to worker prematurely)
+- Worker paid immediately upon client approval
+- Interest-free (riba-free) — compliant with Islamic finance principles
+- Supports milestone payments for larger projects
+
+### 3. SOCSO Worker Protection
+- Malaysia's first gig platform with automatic SOCSO registration
+- Workers get Employment Injury Scheme (EIS) coverage
+- Disability and survivor benefits included
+- Borang 8A (SOCSO form) generated digitally
+
+### 4. Verification & Trust System
+- IC (Identity Card) verification for Malaysian workers
+- Professional certification upload support
+- Verified badge shown on worker profiles
+- Rating and review system after job completion
+
+### 5. Communication Tools
+- In-app messaging between clients and workers
+- WhatsApp Business API integration for notifications
+- Email (Brevo) and SMS (Twilio) notifications
+- Real-time updates on gig status
+
+## Service Categories
+
+GigHala supports these halal-compliant service categories:
+1. Design & Creative (graphic design, logo, branding)
+2. Writing & Content (articles, copywriting, translation)
+3. Video & Photography (editing, drone, event)
+4. Web Development (websites, e-commerce, maintenance)
+5. Programming & Software (apps, automation, AI)
+6. Digital Marketing (SEO, social media, ads)
+7. Tutoring & Education (online/offline teaching)
+8. Handyman & Home Repair
+9. Cleaning & Home Services
+10. Gardening & Landscaping
+11. Caregiving (elderly, children, special needs)
+12. Delivery & Errand Services
+13. Virtual Assistant & Admin
+14. Data Analysis & Research
+15. Finance & Accounting (halal only)
+16. Business Consulting
+17. Events Management
+18. Photography & Videography
+19. Online Selling Support
+20. Micro-tasks & General Labour
+
+## User Roles
+
+### Client/Employer (Majikan)
+- Posts gig listings with budget and requirements
+- Reviews applications from workers
+- Deposits payment into escrow
+- Approves completed work to release payment
+- Leaves ratings and reviews
+
+### Worker/Freelancer (Pekerja)
+- Creates profile with skills and portfolio
+- Browses and applies for gigs
+- Completes work and submits for approval
+- Gets paid via instant bank transfer
+- Builds reputation through ratings
+
+## Technology Stack
+
+- Backend: Python/Flask
+- Database: PostgreSQL
+- AI Moderation: Groq API
+- Payments: Stripe (escrow)
+- Auth: OAuth 2.0 (Google, Apple, Microsoft, Facebook)
+- Hosting: Railway (cloud)
+- SMS: Twilio
+- WhatsApp: Meta Business Cloud API
+- Email: Brevo (Sendinblue)
+
+## Geographic Focus
+
+- Primary market: Malaysia (all states)
+- Currency: Malaysian Ringgit (MYR / RM)
+- Language: Bahasa Malaysia + English
+- Regulatory compliance: Malaysian law, LHDN tax, SOCSO, Shariah guidelines
+
+## Competitive Positioning
+
+GigHala vs other platforms:
+- vs Fiverr/Upwork: GigHala is halal-certified, Malaysia-focused, MYR payments
+- vs JobStreet: GigHala is for gigs/freelance, not permanent employment
+- vs Grab/Lalamove: GigHala covers all skill types, not just delivery
+- Unique: Only Malaysian gig platform with built-in SOCSO + halal AI moderation
+
+## Contact & Social
+
+- Website: https://gighala.my
+- Blog: https://gighala.my/blog
+- About: https://gighala.my/about
+- Parent company: https://calmic.com.my
+"""
+
+    response = make_response(content)
     response.headers['Content-Type'] = 'text/plain; charset=utf-8'
     return response
 
@@ -23394,14 +23674,24 @@ def detect_search_bot():
     """
     user_agent = request.headers.get('User-Agent', '').lower()
 
-    # List of known search engine bots
-    bot_patterns = [
+    # List of known search engine bots (traditional)
+    traditional_bot_patterns = [
         'googlebot', 'bingbot', 'slurp', 'duckduckbot', 'baiduspider',
         'yandexbot', 'sogou', 'exabot', 'facebot', 'ia_archiver'
     ]
 
+    # AI answer engine crawlers
+    ai_bot_patterns = [
+        'gptbot', 'chatgpt-user', 'claudebot', 'anthropic-ai',
+        'perplexitybot', 'google-extended', 'cohere-ai',
+        'meta-externalagent', 'applebot-extended', 'youbot'
+    ]
+
+    all_bot_patterns = traditional_bot_patterns + ai_bot_patterns
+
     # Check if any bot pattern matches
-    request.is_bot = any(bot in user_agent for bot in bot_patterns)
+    request.is_bot = any(bot in user_agent for bot in all_bot_patterns)
+    request.is_ai_bot = any(bot in user_agent for bot in ai_bot_patterns)
 
     # Log bot visits for monitoring (optional)
     if request.is_bot and request.path.startswith('/gig/'):

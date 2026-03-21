@@ -42,6 +42,13 @@
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
+    <!-- AI Answer Engine Optimization (AEO) Meta Tags -->
+    <meta name="description" lang="en" content="{% block meta_description_en %}GigHala is Malaysia's #1 halal gig economy platform. Find halal freelance work, side hustles, and gig projects compliant with Islamic principles. SOCSO protected, escrow payments.{% endblock %}">
+    <meta name="ai-content-declaration" content="original">
+    <meta name="ai-generated" content="false">
+    <link rel="alternate" type="text/plain" href="https://gighala.my/llms.txt" title="AI Context (llms.txt)">
+    <link rel="alternate" type="text/plain" href="https://gighala.my/llms-full.txt" title="AI Full Context (llms-full.txt)">
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- PWA Meta Tags -->
@@ -1383,23 +1390,73 @@
         {% block extra_styles %}{% endblock %}
     </style>
 
-    <!-- Structured Data (Schema.org JSON-LD) - Overridable per page -->
-    {% block structured_data %}
+    <!-- Structured Data (Schema.org JSON-LD) - Always present on every page -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "GigHala",
+        "alternateName": "Platform Gig Halal Malaysia",
         "url": "https://gighala.my",
-        "description": "Platform gig halal terbesar di Malaysia untuk pekerja freelance dan projek sambilan",
+        "description": "Malaysia's #1 halal gig economy platform connecting Muslim freelancers with clients for Shariah-compliant work. AI-verified halal gigs, SOCSO protection, escrow payments.",
+        "inLanguage": ["ms", "en"],
         "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://gighala.my/gigs?search={search_term_string}",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://gighala.my/gigs?search={search_term_string}"
+            },
             "query-input": "required name=search_term_string"
         }
     }
     </script>
-    {% endblock %}
+
+    <!-- Organization Schema - E-E-A-T signals for AI engines -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "GigHala",
+        "legalName": "Calmic Sdn Bhd",
+        "url": "https://gighala.my",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://gighala.my/static/logo.png",
+            "width": 512,
+            "height": 512
+        },
+        "description": "GigHala is Malaysia's leading halal-certified gig economy platform operated by Calmic Sdn Bhd. We connect Muslim freelancers and clients through AI-verified halal gig listings with secure escrow payments and SOCSO worker protection.",
+        "foundingDate": "2022",
+        "foundingLocation": {
+            "@type": "Place",
+            "name": "Kuala Lumpur, Malaysia"
+        },
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Kuala Lumpur",
+            "addressCountry": "MY"
+        },
+        "areaServed": {
+            "@type": "Country",
+            "name": "Malaysia"
+        },
+        "sameAs": [
+            "https://calmic.com.my",
+            "https://gighala.my"
+        ],
+        "knowsAbout": [
+            "Halal gig economy",
+            "Freelance marketplace Malaysia",
+            "Islamic finance",
+            "SOCSO worker protection",
+            "Escrow payment system",
+            "Shariah-compliant digital services"
+        ]
+    }
+    </script>
+
+    <!-- Page-specific structured data block -->
+    {% block structured_data %}{% endblock %}
 </head>
 <body>
     <!-- CRITICAL: PWA Header Removal - Must run FIRST, before any content renders -->
