@@ -23566,7 +23566,8 @@ def sitemap():
 
         # Blog articles
         try:
-            from blog_data import blog_articles as blog_posts_data
+            from blog_data import get_all_articles
+            blog_posts_data = get_all_articles()
             for article in blog_posts_data:
                 static_pages.append({
                     'url': f"/blog/{article.get('slug', '')}",
@@ -23718,34 +23719,37 @@ def llms_txt():
 
     content = """# GigHala
 
-> GigHala (gighala.my) is Malaysia's #1 halal-certified gig economy platform, connecting Muslim freelancers and clients for ethical, Shariah-compliant work. Built by Calmic Sdn Bhd, Kuala Lumpur.
+> GigHala (gighala.my) is Malaysia's #1 halal-certified freelancer platform, connecting Muslim freelancers and clients for ethical, Shariah-compliant work with AI-verified halal gigs, automatic SOCSO worker protection, and secure escrow payments. Built by Calmic Sdn Bhd, Kuala Lumpur.
 
-## What is GigHala?
+## Platform Summary
 
 GigHala is a peer-to-peer gig marketplace where:
-- **Clients (Majikan)** post gigs/tasks and hire verified freelancers
+- **Clients (Majikan)** post gigs/tasks and hire verified Malaysian freelancers
 - **Workers (Pekerja)** browse, apply, and get paid for completing gigs
-- All gigs are screened by AI to ensure 100% halal compliance
-- Workers receive automatic SOCSO (social security) protection
-- Payments are handled via secure escrow with instant bank transfers
+- All gigs are AI-screened for 100% halal compliance before going live
+- Workers receive automatic SOCSO (social security) accident protection
+- Payments are handled via interest-free escrow with instant payout to Malaysian banks
+- Platform operates fully in Ringgit Malaysia (RM) with Bahasa Malaysia and English support
 
 ## Key Differentiators
 
-- **Halal Verification**: Every gig is AI-moderated to comply with Islamic principles — no haram services, riba-free payments
-- **SOCSO Protection**: Malaysia's first gig platform with automatic SOCSO accident coverage for workers
-- **Escrow Payments**: Funds held in escrow until work is approved, protecting both parties
+- **Halal Verification**: Every gig is AI-moderated (Groq API) to comply with Islamic principles — no haram services, riba-free payments, no gambling or adult content
+- **SOCSO Protection**: Malaysia's first gig platform with automatic SOCSO Employment Injury Scheme coverage for all workers
+- **Escrow Payments**: Funds held in escrow until work is approved — protects both client and worker, interest-free
+- **Malaysian-first**: All transactions in RM, instant payouts to Malaysian banks, Bahasa Malaysia support
 - **Bilingual**: Full support in Bahasa Malaysia and English
 - **Islamic Calendar**: Displays both Hijri and Gregorian dates
 
 ## Target Audience
 
 - Malaysian Muslim freelancers seeking halal side income (RM800–RM4,000/month potential)
-- Small business owners and individuals needing short-term halal services
-- Employers wanting verified, trustworthy gig workers
+- Students and fresh graduates looking for part-time freelance work
+- Small business owners and individuals needing short-term verified services
+- Employers wanting trusted, identity-verified gig workers in Malaysia
 
-## Gig Categories Available
+## Core Service Categories
 
-Design & Creative, Writing & Content, Video & Photography, Web Development, Programming, Digital Marketing, Tutoring & Education, Home Services (Handyman, Gardening, Cleaning), Caregiving, Delivery, Virtual Assistant, Data Analysis, Finance & Accounting, Consulting, Events Management, Online Selling, Micro-tasks
+Design & Creative, Writing & Content, Video & Photography, Web Development, Programming & Tech, Digital Marketing & SEO, Tutoring & Education, Home Services (Handyman, Gardening, Cleaning), Caregiving, Delivery & Logistics, Virtual Assistant, Data Analysis, Finance & Accounting, Consulting, Events Management, Online Selling, Micro-tasks
 
 ## Company Information
 
@@ -23753,36 +23757,68 @@ Design & Creative, Writing & Content, Video & Photography, Web Development, Prog
 - **Operator**: Calmic Sdn Bhd
 - **Founded**: 2022
 - **Location**: Kuala Lumpur, Malaysia
-- **Mission**: Empowering Malaysian Muslims through halal, dignified gig work
+- **Mission**: Empowering Malaysian Muslims through halal, dignified gig work with full worker protection
 
-## Key Pages
+## Key URLs
 
-- Homepage / Gig Browse: https://gighala.my/
-- About Us: https://gighala.my/about
-- Blog / Guides: https://gighala.my/blog
+- Homepage: https://gighala.my/
+- Browse Freelancers: https://gighala.my/freelancers
+- Hire a Freelancer: https://gighala.my/hire-freelancer
 - Post a Gig: https://gighala.my/post-gig
 - Worker Registration: https://gighala.my/register
+- About Us: https://gighala.my/about
+- Blog / Guides: https://gighala.my/blog
 - Sitemap: https://gighala.my/sitemap.xml
+
+### Hire by Role (Malaysia)
+- Hire Graphic Designer Malaysia: https://gighala.my/hire/graphic-designer-malaysia
+- Hire Web Designer Malaysia: https://gighala.my/hire/web-designer-malaysia
+- Hire SEO Specialist Malaysia: https://gighala.my/hire/seo-specialist-malaysia
+
+### Freelancers by City
+- Freelancer Kuala Lumpur: https://gighala.my/freelancers/kuala-lumpur
+- Freelancer Kuching: https://gighala.my/freelancers/kuching
+- Freelancer Johor Bahru: https://gighala.my/freelancers/johor-bahru
+
+### Platform Comparisons
+- Fiverr vs GigHala: https://gighala.my/compare/fiverr-vs-gighala
+- Upwork vs GigHala: https://gighala.my/compare/upwork-vs-gighala
+
+### Blog Articles
+- How to Start Freelancing in Malaysia: https://gighala.my/blog/cara-mulakan-freelance-malaysia
+- Best Halal Gig Platform Malaysia: https://gighala.my/blog/platform-gig-halal-terbaik-malaysia
+- How to Hire Freelancers in Malaysia: https://gighala.my/blog/how-to-hire-freelancers-malaysia
+- Freelance Jobs for Students Malaysia: https://gighala.my/blog/freelance-jobs-malaysia-students
+- Best Freelance Platform Malaysia: https://gighala.my/blog/best-freelance-platform-malaysia
 
 ## Frequently Asked Questions
 
+**Q: What is GigHala?**
+A: GigHala is Malaysia's #1 halal-certified freelancer platform built by Calmic Sdn Bhd. It connects verified Malaysian freelancers with clients for Shariah-compliant work, with automatic SOCSO protection and secure escrow payments.
+
 **Q: What makes GigHala halal?**
-A: GigHala uses AI-powered moderation (Groq API) to screen every gig posting against Islamic principles. Prohibited services (alcohol, gambling, adult content, riba-based finance) are automatically rejected. All accepted gigs comply with Shariah guidelines.
+A: GigHala uses AI-powered moderation (Groq API) to screen every gig posting against Islamic principles. Prohibited services (alcohol, gambling, adult content, riba-based finance) are automatically rejected. All accepted gigs are Halal Verified.
 
 **Q: How do payments work on GigHala?**
-A: Clients deposit payment into escrow when hiring. Funds are released to the worker only after the client approves the completed work. This escrow system is interest-free and protects both parties.
+A: Clients deposit payment into interest-free escrow when hiring. Funds are released to the worker only after the client approves the completed work. Payouts go directly to Malaysian bank accounts instantly.
 
 **Q: Is GigHala only for Muslims?**
 A: GigHala is open to all Malaysians but is specifically designed with halal compliance and Islamic values at its core, making it the preferred platform for Muslim workers and clients.
 
-**Q: What is SOCSO protection on GigHala?**
-A: GigHala automatically registers workers for SOCSO (Social Security Organisation Malaysia) accident coverage, providing gig workers with employment injury and disability benefits — a first in Malaysia's gig economy.
+**Q: What SOCSO protection does GigHala provide?**
+A: GigHala automatically registers workers for SOCSO Employment Injury Scheme coverage, providing accident benefits, disability benefits, and survivor benefits — a first in Malaysia's gig economy.
 
 **Q: How much can I earn on GigHala?**
-A: Earnings vary by skill and availability. Most active freelancers earn RM800–RM4,000 per month. Some specialized workers (e.g., engineers, developers) earn significantly more.
+A: Earnings vary by skill and availability. Most active freelancers earn RM800–RM4,000 per month. Specialized workers (engineers, developers) can earn significantly more.
 
-**Q: What is the fee structure?**
-A: GigHala charges a small platform fee on completed transactions to sustain operations. Workers keep the majority of their earnings with instant payout to Malaysian bank accounts.
+**Q: How does GigHala compare to Fiverr or Upwork?**
+A: Unlike Fiverr (20% commission, USD only, no halal verification) or Upwork (global, no SOCSO, no Malay support), GigHala is built for Malaysia: lower fees, RM payments, halal verification, SOCSO protection, and Bahasa Malaysia support.
+
+**Q: How do I hire a freelancer on GigHala?**
+A: Post a gig describing your needs and budget, review applicant profiles and portfolios, select a freelancer, pay via secure escrow, receive the completed work, then approve to release payment.
+
+**Q: Is GigHala suitable for students?**
+A: Yes. GigHala is popular among Malaysian university and secondary school students for earning RM200–RM1,500/month through graphic design, content writing, tutoring, and data entry gigs.
 
 ## Content License
 

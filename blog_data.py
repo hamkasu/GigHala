@@ -1632,6 +1632,362 @@ BLOG_ARTICLES = [
 </div>
 """
     },
+    {
+        "slug": "how-to-hire-freelancers-malaysia",
+        "title": "How to Hire Freelancers in Malaysia (2025 Complete Guide)",
+        "subtitle": "Everything Malaysian employers need to know — finding, vetting, paying, and managing freelancers safely.",
+        "meta_description": "Step-by-step guide on how to hire freelancers in Malaysia. Learn where to find verified freelancers, set budgets, use escrow payments, and protect your business.",
+        "meta_keywords": "hire freelancer malaysia, cara hire freelancer malaysia, cari freelancer malaysia, platform hire freelancer, hire freelancer online malaysia",
+        "category": "Panduan",
+        "category_en": "Guide",
+        "read_time": 7,
+        "published_date": "2025-02-05",
+        "icon": "🤝",
+        "excerpt": "Hiring a freelancer in Malaysia doesn't have to be complicated. This guide walks you through every step — from defining your project to making a safe payment.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">📋</span> Why Hire a Freelancer in Malaysia?</h2>
+    <p>The Malaysian freelance market has grown rapidly, with over 4 million gig workers available across every skill category. Hiring a freelancer gives your business:</p>
+    <ul>
+        <li><strong>Flexibility</strong> — hire for one task, one project, or ongoing work</li>
+        <li><strong>Cost savings</strong> — no EPF, SOCSO, or full-time salary commitments</li>
+        <li><strong>Speed</strong> — most freelancers can start within 24–48 hours</li>
+        <li><strong>Access to specialists</strong> — find niche skills unavailable in-house</li>
+    </ul>
+    <p>Whether you need a logo, a website, social media content, or a virtual assistant, there is a verified freelancer in Malaysia ready for the job.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🪜</span> Step 1: Define Your Project Clearly</h2>
+    <p>Before posting a gig or contacting a freelancer, write down:</p>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>What you need done</h4>
+                <p>Be specific. "Design a logo" is better than "I need a designer." Include dimensions, colour preferences, and file formats required.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Your budget range</h4>
+                <p>Malaysian freelancer rates vary widely. Graphic design: RM50–RM500. Web development: RM200–RM5,000. Content writing: RM30–RM200 per article. Set a realistic range.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Your deadline</h4>
+                <p>Be honest about urgency. Rush jobs typically cost 20–30% more.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🔍</span> Step 2: Find and Vet Freelancers</h2>
+    <p>The safest way to hire a freelancer in Malaysia is through a verified platform. Key things to check on any freelancer's profile:</p>
+    <ul>
+        <li><strong>Verified identity</strong> — IC-verified profiles reduce fraud risk</li>
+        <li><strong>Portfolio</strong> — check past work quality, not just descriptions</li>
+        <li><strong>Reviews &amp; ratings</strong> — look for consistent positive feedback</li>
+        <li><strong>Response time</strong> — active freelancers respond within hours</li>
+        <li><strong>Completed jobs</strong> — more completed gigs = more reliable</li>
+    </ul>
+    <p>On <strong>GigHala</strong>, every freelancer is identity-verified (Malaysian IC) and their services are screened for halal compliance, giving you an added layer of trust unavailable on global platforms.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">💬</span> Step 3: Communicate Expectations</h2>
+    <p>Before the work starts, confirm these in writing:</p>
+    <ul>
+        <li>Exact deliverables (what you will receive)</li>
+        <li>Number of revisions included</li>
+        <li>Delivery date and milestones for longer projects</li>
+        <li>Payment terms and method</li>
+        <li>Who owns the final work (copyright)</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>Tip:</strong> All messages and agreements on GigHala are recorded within the platform — protecting both you and the freelancer if any dispute arises.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">💰</span> Step 4: Pay Safely Using Escrow</h2>
+    <p>Never pay a freelancer 100% upfront to someone you have not worked with before. The safest payment method is <strong>escrow</strong>:</p>
+    <ol>
+        <li>You deposit payment into a secure escrow account</li>
+        <li>The freelancer completes the work</li>
+        <li>You review and approve the deliverables</li>
+        <li>Payment is released to the freelancer automatically</li>
+    </ol>
+    <p>GigHala's built-in escrow system is interest-free and handles this entire process, so your money is always protected until you are satisfied with the work.</p>
+    <div style="text-align: center; margin: 24px 0;">
+        <a href="/freelancers" style="display: inline-block; background: var(--primary); color: white; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Browse Verified Freelancers →</a>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">✅</span> Step 5: Review, Approve, and Build the Relationship</h2>
+    <p>Once you receive the work:</p>
+    <ul>
+        <li>Review against your original brief</li>
+        <li>Request revisions if needed (within the agreed scope)</li>
+        <li>Leave an honest review — it helps other employers and rewards good freelancers</li>
+        <li>If the work is excellent, save the freelancer to your favourites for future projects</li>
+    </ul>
+    <p>Building a long-term relationship with reliable freelancers saves significant time and money compared to searching for new ones for every project.</p>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/post-gig" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Post Your Gig on GigHala →</a>
+    </div>
+</div>
+"""
+    },
+    {
+        "slug": "freelance-jobs-malaysia-students",
+        "title": "Kerja Freelance untuk Pelajar Malaysia 2025 — Jana Pendapatan Sambil Belajar",
+        "subtitle": "Panduan lengkap kerja sambilan freelance untuk pelajar universiti dan sekolah menengah di Malaysia.",
+        "meta_description": "Cari kerja freelance untuk pelajar Malaysia? Panduan lengkap kerja sambilan halal yang boleh dilakukan dari rumah — jana RM200–RM1,500 sebulan sambil belajar.",
+        "meta_keywords": "kerja freelance pelajar malaysia, freelance jobs malaysia students, kerja sambilan pelajar, kerja part time pelajar malaysia, pendapatan sampingan pelajar",
+        "category": "Panduan",
+        "category_en": "Guide",
+        "read_time": 6,
+        "published_date": "2025-02-18",
+        "icon": "🎓",
+        "excerpt": "Pelajar universiti dan sekolah menengah di Malaysia boleh jana pendapatan RM200–RM1,500 sebulan melalui kerja freelance. Ini kemahiran yang paling mudah untuk bermula.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">🎓</span> Kenapa Kerja Freelance Sesuai untuk Pelajar?</h2>
+    <p>Sebagai pelajar, anda mempunyai kelebihan besar: masa yang fleksibel dan kemahiran digital yang relevan. Kerja freelance membolehkan anda:</p>
+    <ul>
+        <li><strong>Atur waktu kerja sendiri</strong> — kerja selepas kelas atau hujung minggu</li>
+        <li><strong>Jana pendapatan sebenar</strong> — bukan sekadar elaun atau biasiswa</li>
+        <li><strong>Bina portfolio awal</strong> — pengalaman kerja sebelum graduat</li>
+        <li><strong>Belajar kemahiran industri</strong> — lebih bernilai daripada teori semata</li>
+        <li><strong>Kerja dari mana-mana</strong> — asrama, rumah, atau kafe</li>
+    </ul>
+    <p>Ramai graduan Malaysia kini memulakan kerjaya mereka dengan portfolio freelance yang kukuh — jauh mendahului rakan sekuliah yang tiada pengalaman kerja sebenar.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">💡</span> Kemahiran Freelance Terbaik untuk Pelajar</h2>
+    <p>Anda tidak perlu ijazah atau sijil untuk bermula. Kemahiran berikut boleh dipelajari dalam masa 2–4 minggu dan mula mendapat klien pertama:</p>
+    <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Kemahiran</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Kadar Permulaan</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Masa Belajar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 12px; border: 1px solid var(--border);">Reka bentuk grafik (Canva/Figma)</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">RM50–RM200/projek</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">1–2 minggu</td>
+            </tr>
+            <tr style="background: var(--bg-light);">
+                <td style="padding: 12px; border: 1px solid var(--border);">Penulisan kandungan / copywriting</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">RM30–RM100/artikel</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">1 minggu</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid var(--border);">Pengurusan media sosial</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">RM200–RM600/bulan</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">2 minggu</td>
+            </tr>
+            <tr style="background: var(--bg-light);">
+                <td style="padding: 12px; border: 1px solid var(--border);">Tuisyen online (subjek universiti/sekolah)</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">RM30–RM80/jam</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Terus mulakan</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid var(--border);">Terjemahan BM–Inggeris</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">RM0.05–RM0.15/patah perkataan</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Terus mulakan</td>
+            </tr>
+            <tr style="background: var(--bg-light);">
+                <td style="padding: 12px; border: 1px solid var(--border);">Kemasukan data &amp; sokongan pentadbiran</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">RM50–RM150/tugasan</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Terus mulakan</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">📱</span> Platform Freelance Terbaik untuk Pelajar Malaysia</h2>
+    <p>Untuk pelajar Malaysia, <strong>GigHala</strong> adalah pilihan terbaik kerana:</p>
+    <ul>
+        <li>Antara muka dalam Bahasa Malaysia — lebih mudah difahami</li>
+        <li>Bayaran dalam Ringgit Malaysia — terus ke akaun bank anda</li>
+        <li>Gig yang disahkan halal — sesuai untuk pelajar Muslim</li>
+        <li>Tiada komisen tinggi — anda simpan lebih banyak pendapatan</li>
+        <li>Perlindungan SOCSO — selamat walaupun masih belajar</li>
+    </ul>
+    <div class="highlight-box">
+        <p><strong>Kisah nyata:</strong> Ramai pelajar GigHala telah memperoleh RM500–RM1,500 sebulan melalui kerja reka bentuk grafik dan penulisan kandungan sambil menuntut di universiti. Pendapatan ini membantu mengurangkan beban pinjaman PTPTN mereka.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🪜</span> Cara Bermula dalam 3 Langkah</h2>
+    <div class="step-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Daftar akaun percuma</h4>
+                <p>Daftar di GigHala dalam masa 5 minit. Anda hanya perlukan e-mel dan nombor telefon. Tiada bayaran daftar, tiada komisen pendaftaran.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Bina profil yang kuat</h4>
+                <p>Tambah foto, tulis bio ringkas tentang kemahiran anda, dan muat naik 2–3 contoh kerja (boleh projek kelas atau projek peribadi). Klien menilai profil sebelum menghubungi.</p>
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Mohon gig pertama anda</h4>
+                <p>Layari senarai gig yang tersedia dan mohon yang bersesuaian. Untuk gig pertama, tetapkan harga kompetitif untuk bina ulasan awal — ia pelaburan jangka panjang.</p>
+            </div>
+        </div>
+    </div>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Daftar GigHala Percuma →</a>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">⚠️</span> Perkara Penting yang Perlu Pelajar Tahu</h2>
+    <ul>
+        <li><strong>Urus masa dengan bijak</strong> — jangan biarkan kerja freelance mengganggu pelajaran. Tetapkan had jam kerja mingguan.</li>
+        <li><strong>Rekod pendapatan</strong> — walaupun pelajar, pendapatan freelance perlu dilaporkan jika melebihi had cukai. Simpan rekod semua bayaran.</li>
+        <li><strong>Jangan terima bayaran tunai langsung</strong> — gunakan platform dengan escrow untuk keselamatan. Ini melindungi anda daripada klien yang tidak membayar.</li>
+        <li><strong>Mulakan kecil</strong> — ambil 2–3 projek kecil dahulu untuk bina keyakinan dan reputasi sebelum projek yang lebih besar.</li>
+    </ul>
+</div>
+"""
+    },
+    {
+        "slug": "best-freelance-platform-malaysia",
+        "title": "Platform Freelance Terbaik di Malaysia 2025 — Perbandingan Lengkap",
+        "subtitle": "Bandingkan platform freelance terbaik di Malaysia untuk pekerja dan majikan — ciri, komisen, dan keselamatan.",
+        "meta_description": "Platform freelance terbaik di Malaysia 2025. Bandingkan GigHala, Fiverr, Upwork, dan platform lain dari segi ciri, komisen, keselamatan, dan kesesuaian untuk pasaran Malaysia.",
+        "meta_keywords": "platform freelance terbaik malaysia, best freelance platform malaysia, platform gig malaysia, platform kerja freelance malaysia, senarai platform freelance",
+        "category": "Perbandingan",
+        "category_en": "Comparison",
+        "read_time": 7,
+        "published_date": "2025-03-01",
+        "icon": "🏆",
+        "excerpt": "Ada banyak platform freelance di Malaysia — tetapi mana satu terbaik untuk anda? Artikel ini membandingkan platform utama dari segi ciri, fi, keselamatan, dan kesesuaian untuk pengguna Malaysia.",
+        "content": """
+<div class="content-section">
+    <h2><span class="section-icon">🏆</span> Kenapa Pilihan Platform Penting?</h2>
+    <p>Platform yang anda pilih menentukan:</p>
+    <ul>
+        <li>Berapa banyak pendapatan yang anda simpan (selepas komisen)</li>
+        <li>Keselamatan wang anda (adakah ada sistem escrow?)</li>
+        <li>Jenis klien yang anda akan jumpa</li>
+        <li>Kemudahan bayaran ke bank Malaysia</li>
+        <li>Sokongan dalam Bahasa Malaysia</li>
+    </ul>
+    <p>Tidak semua platform dicipta sama — terutama untuk pengguna Malaysia. Berikut perbandingan jujur platform freelance utama pada 2025.</p>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">📊</span> Perbandingan Platform Freelance Malaysia 2025</h2>
+    <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+            <tr style="background: var(--bg-light);">
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Platform</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Komisen</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Bayaran (RM)</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Halal</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">SOCSO</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">BM Support</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 12px; border: 1px solid var(--border);"><strong>GigHala</strong></td>
+                <td style="padding: 12px; border: 1px solid var(--border);">15%</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✓ Instant</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✓ AI-verified</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✓ Automatik</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✓ Penuh</td>
+            </tr>
+            <tr style="background: var(--bg-light);">
+                <td style="padding: 12px; border: 1px solid var(--border);">Fiverr</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">20%</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Fi pengeluaran</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border: 1px solid var(--border);">Upwork</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">10–20%</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Fi pengeluaran</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+            </tr>
+            <tr style="background: var(--bg-light);">
+                <td style="padding: 12px; border: 1px solid var(--border);">Freelancer.com</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">10%+</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Fi pengeluaran</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">✗</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🇲🇾</span> Untuk Freelancer Malaysia: GigHala vs Platform Global</h2>
+    <p>Platform global seperti Fiverr dan Upwork menawarkan pasaran yang lebih besar — tetapi dengan kos yang tersembunyi:</p>
+    <ul>
+        <li><strong>Fi pengeluaran wang</strong> — menukar USD ke RM melalui Payoneer atau PayPal mengenakan fi 2–4%</li>
+        <li><strong>Tiada sokongan SOCSO</strong> — anda sendiri perlu urus perlindungan sosial</li>
+        <li><strong>Tiada pengesahan halal</strong> — anda mungkin terlibat dalam projek yang tidak halal tanpa sedar</li>
+        <li><strong>Sokongan pelanggan dalam English sahaja</strong> — sukar untuk pengguna BM yang tidak fasih</li>
+    </ul>
+    <p>GigHala menyelesaikan semua masalah ini — ia dibina khusus untuk pasaran Malaysia.</p>
+    <div class="highlight-box">
+        <p><strong>Cadangan:</strong> Untuk freelancer Malaysia yang baru bermula, mulakan dengan GigHala untuk bina reputasi tempatan dan pendapatan RM yang konsisten. Setelah stabil, anda boleh cuba platform global sebagai sumber pendapatan tambahan.</p>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">🏅</span> Platform Terbaik Mengikut Keperluan</h2>
+    <ul>
+        <li><strong>Terbaik untuk freelancer baru Malaysia:</strong> GigHala — mudah, bayaran cepat, sokongan BM</li>
+        <li><strong>Terbaik untuk klien global dalam USD:</strong> Fiverr atau Upwork</li>
+        <li><strong>Terbaik untuk Muslim Malaysia:</strong> GigHala — satu-satunya platform dengan pengesahan halal</li>
+        <li><strong>Terbaik untuk pelajar:</strong> GigHala — tiada fi daftar, gig kecil tersedia</li>
+        <li><strong>Terbaik untuk perlindungan pekerja:</strong> GigHala — SOCSO automatik, escrow selamat</li>
+    </ul>
+    <div style="text-align: center; margin: 32px 0;">
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Cuba GigHala Percuma →</a>
+    </div>
+</div>
+
+<div class="content-section">
+    <h2><span class="section-icon">❓</span> Soalan Lazim — Platform Freelance Malaysia</h2>
+    <p><strong>Adakah GigHala selamat?</strong><br>
+    Ya. GigHala menggunakan sistem escrow yang memastikan wang anda selamat sehingga kerja selesai dan diluluskan. Semua freelancer disahkan identiti menggunakan IC Malaysia.</p>
+    <p><strong>Bolehkah saya guna lebih daripada satu platform?</strong><br>
+    Boleh. Ramai freelancer Malaysia menggunakan GigHala untuk klien tempatan dan Fiverr/Upwork untuk klien antarabangsa. Ini strategi yang bijak untuk memaksimumkan pendapatan.</p>
+    <p><strong>Berapa lama untuk mula dapat projek pertama?</strong><br>
+    Di GigHala, kebanyakan freelancer baharu mendapat gig pertama mereka dalam masa 1–2 minggu setelah melengkapkan profil mereka sepenuhnya.</p>
+</div>
+"""
+    },
 ]
 
 def get_all_articles():
