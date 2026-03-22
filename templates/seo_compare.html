@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}{{ compare.competitor }} vs GigHala — Perbandingan Platform Freelancer Malaysia{% endblock %}
+
+{% block meta_description %}Bandingkan {{ compare.competitor }} dengan GigHala untuk freelancer Malaysia. GigHala menawarkan halal verification, perlindungan SOCSO, escrow selamat, dan harga lebih rendah. Pilihan terbaik untuk freelancer &amp; majikan Muslim Malaysia.{% endblock %}
+
+{% block meta_keywords %}{{ compare.competitor | lower }} vs gighala, alternatif {{ compare.competitor | lower }} malaysia, platform freelancer malaysia, gighala vs {{ compare.competitor | lower }}, freelancer halal malaysia{% endblock %}
+
+{% block canonical_url %}https://gighala.my/compare/{{ slug }}{% endblock %}
+
+{% block og_type %}website{% endblock %}
+{% block og_title %}{{ compare.competitor }} vs GigHala | Platform Freelancer Malaysia{% endblock %}
+{% block og_description %}Bandingkan {{ compare.competitor }} dan GigHala. Ketahui kenapa GigHala lebih baik untuk freelancer Muslim Malaysia — halal, SOCSO, escrow selamat.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gighala.my/"},
+        {"@type": "ListItem", "position": 2, "name": "Perbandingan Platform", "item": "https://gighala.my/compare/{{ slug }}"},
+        {"@type": "ListItem", "position": 3, "name": "{{ compare.competitor }} vs GigHala", "item": "https://gighala.my/compare/{{ slug }}"}
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Apakah perbezaan utama antara {{ compare.competitor }} dan GigHala? / What are the main differences between {{ compare.competitor }} and GigHala?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala direka khusus untuk pasaran Malaysia dengan ciri unik: (1) Semua gig disahkan Halal menggunakan AI, (2) Perlindungan SOCSO automatik untuk freelancer, (3) Bayaran escrow selamat tanpa riba, (4) Sokongan Bahasa Melayu &amp; Inggeris, (5) Bayaran terus ke bank Malaysia. {{ compare.competitor }} adalah platform global dari {{ compare.competitor_origin_en }} tanpa ciri-ciri ini. / GigHala is built specifically for Malaysia with unique features: (1) AI-verified Halal compliance for all gigs, (2) Automatic SOCSO protection for freelancers, (3) Interest-free secure escrow payments, (4) Malay and English support, (5) Direct payout to Malaysian banks. {{ compare.competitor }} is a global platform from {{ compare.competitor_origin_en }} without these features."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Adakah GigHala lebih murah daripada {{ compare.competitor }}? / Is GigHala cheaper than {{ compare.competitor }}?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ya. GigHala mengenakan fi platform yang lebih rendah berbanding {{ compare.competitor }}, tanpa caj tersembunyi. Tambahan pula, GigHala tidak mengenakan fi pengeluaran yang tinggi untuk pemindahan wang ke bank Malaysia. / Yes. GigHala charges lower platform fees compared to {{ compare.competitor }}, with no hidden charges. Additionally, GigHala does not impose high withdrawal fees for transfers to Malaysian banks."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Kenapa pilih GigHala berbanding {{ compare.competitor }} untuk freelancer Malaysia? / Why choose GigHala over {{ compare.competitor }} for Malaysian freelancers?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala dibina untuk freelancer Malaysia: (1) Semua transaksi dalam Ringgit Malaysia (RM), (2) Bayaran instant ke semua bank Malaysia, (3) Perlindungan SOCSO tanpa kos tambahan, (4) Gig halal yang diberkati, (5) Sokongan pelanggan dalam Bahasa Melayu. {{ compare.competitor }} tidak menyediakan ciri-ciri ini. / GigHala is built for Malaysian freelancers: (1) All transactions in Malaysian Ringgit (RM), (2) Instant payout to all Malaysian banks, (3) SOCSO protection at no extra cost, (4) Halal-certified gigs, (5) Customer support in Malay. {{ compare.competitor }} does not offer these features."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Adakah {{ compare.competitor }} tersedia di Malaysia? / Is {{ compare.competitor }} available in Malaysia?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "{{ compare.competitor }} boleh diakses dari Malaysia tetapi ia adalah platform global dari {{ compare.competitor_origin_en }} yang tidak dioptimumkan untuk pasaran Malaysia. Tiada sokongan Bahasa Melayu, tiada perlindungan SOCSO, tiada pengesahan halal, dan bayaran ke bank Malaysia mungkin dikenakan fi tambahan. GigHala adalah alternatif tempatan yang lebih sesuai. / {{ compare.competitor }} can be accessed from Malaysia but it is a global platform from {{ compare.competitor_origin_en }} not optimized for the Malaysian market. No Malay language support, no SOCSO protection, no halal verification, and payouts to Malaysian banks may incur extra fees. GigHala is a better local alternative."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 960px; margin: 0 auto; padding: 2rem 1rem;">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--text-gray);">
+        <a href="/" style="color: var(--text-gray); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.5rem;">›</span>
+        <span style="color: var(--text-dark);">{{ compare.competitor }} vs GigHala</span>
+    </nav>
+
+    <!-- H1 & Intro -->
+    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1rem;">
+        {{ compare.competitor }} vs GigHala — Platform Freelancer Mana Lebih Baik untuk Malaysia?
+    </h1>
+    <p style="font-size: 1.1rem; color: var(--text-gray); margin-bottom: 2.5rem; max-width: 750px; line-height: 1.7;">
+        Membandingkan <strong>{{ compare.competitor }}</strong> (platform global dari {{ compare.competitor_origin }}) dengan
+        <strong>GigHala</strong> (platform freelancer halal #1 Malaysia). Ketahui mana yang lebih sesuai untuk keperluan
+        majikan dan freelancer Muslim di Malaysia.
+    </p>
+
+    <!-- Comparison Table -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1.25rem;">
+            Perbandingan {{ compare.competitor }} vs GigHala
+        </h2>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background: var(--primary); color: #fff;">
+                        <th style="padding: 0.875rem 1rem; text-align: left; border-radius: 8px 0 0 0;">Ciri / Feature</th>
+                        <th style="padding: 0.875rem 1rem; text-align: center;">{{ compare.competitor }}</th>
+                        <th style="padding: 0.875rem 1rem; text-align: center; border-radius: 0 8px 0 0;">GigHala</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set rows = [
+                        ('Halal Verification', '✗ Tiada', '✓ AI-verified'),
+                        ('Perlindungan SOCSO', '✗ Tiada', '✓ Automatik'),
+                        ('Mata Wang', 'USD / Multi-currency', 'RM (Ringgit Malaysia)'),
+                        ('Bayaran ke Bank Malaysia', 'Fi pertukaran wang asing', '✓ Instant, tanpa fi'),
+                        ('Sokongan Bahasa Melayu', '✗ English sahaja', '✓ Melayu & Inggeris'),
+                        ('Escrow Selamat', 'Ada (bayaran global)', '✓ Ada (tanpa riba)'),
+                        ('Pasaran Utama', compare.competitor_origin, 'Malaysia'),
+                        ('Daftar Percuma', '✓ Ya', '✓ Ya'),
+                        ('Fi Platform', 'Tinggi (20%+)', 'Lebih rendah'),
+                    ] %}
+                    {% for row in rows %}
+                    <tr style="border-bottom: 1px solid var(--border); {% if loop.even %}background: #fafafa;{% endif %}">
+                        <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--text-dark);">{{ row[0] }}</td>
+                        <td style="padding: 0.75rem 1rem; text-align: center; color: {% if '✗' in row[1] %}#F74040{% else %}var(--text-gray){% endif %};">{{ row[1] }}</td>
+                        <td style="padding: 0.75rem 1rem; text-align: center; color: {% if '✓' in row[2] %}var(--primary){% else %}var(--text-gray){% endif %}; font-weight: {% if '✓' in row[2] %}600{% else %}400{% endif %};">{{ row[2] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- GigHala Advantages -->
+    <section style="margin-bottom: 3rem; background: #f8fdf9; border-radius: 12px; padding: 2rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1rem;">
+            Kenapa GigHala Menang untuk Pasaran Malaysia
+        </h2>
+        <div style="display: grid; gap: 1rem;">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <div>
+                    <strong>100% Halal Verified</strong>
+                    <p style="margin: 0.25rem 0 0; color: var(--text-gray); font-size: 0.9rem;">Setiap gig disaring AI untuk kepatuhan syariah. {{ compare.competitor }} tidak mempunyai ciri ini langsung.</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <div>
+                    <strong>Perlindungan SOCSO Automatik</strong>
+                    <p style="margin: 0.25rem 0 0; color: var(--text-gray); font-size: 0.9rem;">Freelancer GigHala dilindungi SOCSO tanpa kos tambahan — pertama dalam industri gig Malaysia.</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <div>
+                    <strong>Bayaran Instant dalam RM</strong>
+                    <p style="margin: 0.25rem 0 0; color: var(--text-gray); font-size: 0.9rem;">Tiada fi pertukaran mata wang. Bayaran terus ke akaun bank Malaysia dalam Ringgit.</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <div>
+                    <strong>Dibina untuk Malaysia</strong>
+                    <p style="margin: 0.25rem 0 0; color: var(--text-gray); font-size: 0.9rem;">Sokongan Bahasa Melayu, perkhidmatan pelanggan tempatan, dan pemahaman budaya Malaysia.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1.25rem;">
+            Soalan Lazim (FAQ)
+        </h2>
+        <div style="border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+            <details style="border-bottom: 1px solid var(--border);">
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Apakah perbezaan utama antara {{ compare.competitor }} dan GigHala?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    GigHala direka khusus untuk pasaran Malaysia dengan ciri unik: (1) Semua gig disahkan Halal menggunakan AI, (2) Perlindungan SOCSO automatik untuk freelancer, (3) Bayaran escrow selamat tanpa riba, (4) Sokongan Bahasa Melayu &amp; Inggeris, (5) Bayaran terus ke bank Malaysia. {{ compare.competitor }} adalah platform global dari {{ compare.competitor_origin }} tanpa ciri-ciri ini.
+                </div>
+            </details>
+            <details style="border-bottom: 1px solid var(--border);">
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Adakah GigHala lebih murah daripada {{ compare.competitor }}?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    Ya. GigHala mengenakan fi platform yang lebih rendah berbanding {{ compare.competitor }}, tanpa caj tersembunyi. Tambahan pula, GigHala tidak mengenakan fi pengeluaran yang tinggi untuk pemindahan wang ke bank Malaysia.
+                </div>
+            </details>
+            <details style="border-bottom: 1px solid var(--border);">
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Kenapa pilih GigHala berbanding {{ compare.competitor }} untuk freelancer Malaysia?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    GigHala dibina untuk freelancer Malaysia: (1) Semua transaksi dalam Ringgit Malaysia (RM), (2) Bayaran instant ke semua bank Malaysia, (3) Perlindungan SOCSO tanpa kos tambahan, (4) Gig halal yang diberkati, (5) Sokongan pelanggan dalam Bahasa Melayu.
+                </div>
+            </details>
+            <details>
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Adakah {{ compare.competitor }} tersedia di Malaysia?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    {{ compare.competitor }} boleh diakses dari Malaysia tetapi ia adalah platform global dari {{ compare.competitor_origin }} yang tidak dioptimumkan untuk pasaran Malaysia. Tiada sokongan Bahasa Melayu, tiada perlindungan SOCSO, tiada pengesahan halal, dan bayaran ke bank Malaysia mungkin dikenakan fi tambahan. GigHala adalah alternatif tempatan yang lebih sesuai.
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <div style="text-align: center; padding: 2rem; background: var(--primary); border-radius: 12px; color: #fff;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.75rem; color: #fff;">
+            Cuba GigHala — Platform Freelancer Halal #1 Malaysia
+        </h2>
+        <p style="margin-bottom: 1.25rem; opacity: 0.9;">Daftar percuma. Tiada fi tersembunyi. Dilindungi SOCSO.</p>
+        <a href="/register" style="display: inline-block; background: #fff; color: var(--primary); padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1rem; margin-right: 0.75rem;">
+            Daftar Percuma
+        </a>
+        <a href="/freelancers" style="display: inline-block; border: 2px solid #fff; color: #fff; padding: 0.73rem 2rem; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1rem;">
+            Cari Freelancer
+        </a>
+    </div>
+
+</div>
+{% endblock %}

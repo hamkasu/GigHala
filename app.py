@@ -4042,6 +4042,42 @@ def seo_hire_category(slug):
                            lang=get_user_language(), t=t)
 
 
+# SEO: Comparison pages data for /compare/<slug>
+SEO_COMPARE_SLUGS = {
+    'fiverr-vs-gighala': {
+        'competitor': 'Fiverr',
+        'competitor_origin': 'Amerika Syarikat',
+        'competitor_origin_en': 'United States',
+    },
+    'upwork-vs-gighala': {
+        'competitor': 'Upwork',
+        'competitor_origin': 'Amerika Syarikat',
+        'competitor_origin_en': 'United States',
+    },
+}
+
+
+@app.route('/compare/<slug>')
+def seo_compare(slug):
+    """
+    SEO comparison landing pages (e.g. Fiverr vs GigHala).
+    Supports: fiverr-vs-gighala, upwork-vs-gighala
+    """
+    if slug not in SEO_COMPARE_SLUGS:
+        abort(404)
+
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+
+    compare_data = SEO_COMPARE_SLUGS[slug]
+    return render_template('seo_compare.html',
+                           user=user,
+                           slug=slug,
+                           compare=compare_data,
+                           lang=get_user_language(), t=t)
+
+
 @app.route('/hire-freelancer')
 def hire_freelancer():
     """
@@ -23518,6 +23554,14 @@ def sitemap():
                 'url': f'/freelancers/{city_slug}',
                 'priority': '0.8',
                 'changefreq': 'weekly'
+            })
+
+        # SEO comparison pages
+        for compare_slug in SEO_COMPARE_SLUGS:
+            static_pages.append({
+                'url': f'/compare/{compare_slug}',
+                'priority': '0.7',
+                'changefreq': 'monthly'
             })
 
         # Blog articles
