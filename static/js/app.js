@@ -732,8 +732,8 @@ const app = {
         const formData = new FormData(form);
 
         // Combine first and last name for backend compatibility
-        const firstName = formData.get('first_name');
-        const lastName = formData.get('last_name');
+        const firstName = formData.get('first_name') || '';
+        const lastName = formData.get('last_name') || '';
         const fullName = `${firstName} ${lastName}`.trim();
 
         const data = {

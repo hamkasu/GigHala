@@ -323,8 +323,8 @@
             const errorMessage = document.getElementById('errorMessage');
 
             // Combine first and last name
-            const firstName = formData.get('first_name');
-            const lastName = formData.get('last_name');
+            const firstName = formData.get('first_name') || '';
+            const lastName = formData.get('last_name') || '';
             const fullName = `${firstName} ${lastName}`.trim();
 
             const data = {

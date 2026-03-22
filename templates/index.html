@@ -787,15 +787,15 @@
                                     <!-- Avatar -->
                                     <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D7C66, #41B3A2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: white; flex-shrink: 0; overflow: hidden;">
                                         {% if freelancer.profile_photo %}
-                                            <img src="/uploads/profile_photos/{{ freelancer.profile_photo }}" alt="{{ freelancer.full_name or freelancer.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                                            <img src="/uploads/profile_photos/{{ freelancer.profile_photo }}" alt="{{ freelancer.display_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
                                         {% else %}
-                                            {{ (freelancer.full_name or freelancer.username)[0].upper() }}
+                                            {{ freelancer.display_name[0].upper() }}
                                         {% endif %}
                                     </div>
                                     <!-- Info -->
                                     <div style="flex: 1; min-width: 0;">
                                         <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 2px;">
-                                            <span style="font-size: 0.9rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ freelancer.full_name or freelancer.username }}</span>
+                                            <span style="font-size: 0.9rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ freelancer.display_name }}</span>
                                             {% if freelancer.is_verified %}<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#1DBF73;color:white;border-radius:50%;font-size:8px;flex-shrink:0;">✓</span>{% endif %}
                                         </div>
                                         <div style="font-size: 0.75rem; color: rgba(255,255,255,0.45);">

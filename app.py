@@ -2520,7 +2520,7 @@ class User(UserMixin, db.Model):
     def fallback_avatar_url(self):
         """Base64 SVG data URI – used as onerror fallback when DiceBear is unreachable."""
         import hashlib, base64 as _b64
-        initials = ((self.full_name or self.username or 'U')[:2]).upper()
+        initials = ((self.display_name or 'U')[:2]).upper()
         palette = ['#00C853','#2196F3','#FF5722','#9C27B0','#FF9800','#00BCD4','#E91E63','#607D8B']
         idx = int(hashlib.md5((self.username or 'user').encode()).hexdigest(), 16) % len(palette)
         color = palette[idx]
@@ -2532,6 +2532,14 @@ class User(UserMixin, db.Model):
         )
         encoded = _b64.b64encode(svg.encode('utf-8')).decode('ascii')
         return f'data:image/svg+xml;base64,{encoded}'
+
+    @property
+    def display_name(self):
+        """Return full_name if valid, otherwise username. Handles 'null null' DB artefacts."""
+        name = self.full_name
+        if name and name.strip().lower() not in ('null null', 'null', ''):
+            return name
+        return self.username
 
 class EmailHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -3995,7 +4003,7 @@ def public_freelancers(category_slug=None):
 
         public_profiles.append({
             'username': f.username,
-            'display_name': f.full_name or f.username,
+            'display_name': f.display_name,
             'location': f.location or 'Malaysia',
             'bio': (f.bio[:120] + '...') if f.bio and len(f.bio) > 120 else (f.bio or ''),
             'rating': f.rating or 0.0,
