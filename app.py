@@ -3881,6 +3881,54 @@ def browse_gigs():
     return render_template('gigs.html', user=user, categories=categories, active_page='gigs', lang=get_user_language(), t=t)
 
 
+# SEO: Supported city slugs for /freelancers/<slug> city pages
+SEO_CITY_SLUGS = {
+    'kuala-lumpur': {
+        'name': 'Kuala Lumpur',
+        'name_ms': 'Kuala Lumpur',
+        'state': 'Wilayah Persekutuan',
+    },
+    'kuching': {
+        'name': 'Kuching',
+        'name_ms': 'Kuching',
+        'state': 'Sarawak',
+    },
+    'johor-bahru': {
+        'name': 'Johor Bahru',
+        'name_ms': 'Johor Bahru',
+        'state': 'Johor',
+    },
+}
+
+# SEO: Supported hire category slugs for /hire/<slug>
+SEO_HIRE_SLUGS = {
+    'graphic-designer-malaysia': {
+        'title': 'Graphic Designer Malaysia',
+        'title_ms': 'Rekaan Grafik Malaysia',
+        'role': 'Graphic Designer',
+        'role_ms': 'Pereka Grafik',
+        'keyword': 'graphic designer',
+        'keyword_ms': 'pereka grafik',
+    },
+    'web-designer-malaysia': {
+        'title': 'Web Designer Malaysia',
+        'title_ms': 'Web Designer Malaysia',
+        'role': 'Web Designer',
+        'role_ms': 'Pereka Web',
+        'keyword': 'web designer',
+        'keyword_ms': 'pereka web',
+    },
+    'seo-specialist-malaysia': {
+        'title': 'SEO Specialist Malaysia',
+        'title_ms': 'Pakar SEO Malaysia',
+        'role': 'SEO Specialist',
+        'role_ms': 'Pakar SEO',
+        'keyword': 'SEO specialist',
+        'keyword_ms': 'pakar SEO',
+    },
+}
+
+
 @app.route('/freelancers')
 @app.route('/freelancers/<category_slug>')
 def public_freelancers(category_slug=None):
@@ -3888,10 +3936,20 @@ def public_freelancers(category_slug=None):
     Public-facing freelancer directory page.
     No login required — optimized for SEO to rank for 'freelancer malaysia',
     'cari pekerja freelance', 'hire freelancer malaysia'.
+    Also handles SEO city landing pages via known city slugs.
     """
     user = None
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
+
+    # Check if slug matches a known city — render city SEO page
+    if category_slug and category_slug in SEO_CITY_SLUGS:
+        city = SEO_CITY_SLUGS[category_slug]
+        return render_template('seo_location.html',
+                               user=user,
+                               slug=category_slug,
+                               city=city,
+                               lang=get_user_language(), t=t)
 
     # Get categories for display
     categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).order_by(Category.name).all()
@@ -3900,6 +3958,8 @@ def public_freelancers(category_slug=None):
     active_category = None
     if category_slug:
         active_category = Category.query.filter_by(slug=category_slug).first()
+        if not active_category:
+            abort(404)
 
     # Query top public freelancers
     freelancer_query = User.query.filter(
@@ -3958,6 +4018,27 @@ def public_freelancers(category_slug=None):
                            top_freelancers=public_profiles,
                            total_freelancers=total_freelancers,
                            category_slug=category_slug,
+                           lang=get_user_language(), t=t)
+
+
+@app.route('/hire/<slug>')
+def seo_hire_category(slug):
+    """
+    SEO landing pages for hiring specific freelancer types in Malaysia.
+    Supports: graphic-designer-malaysia, web-designer-malaysia, seo-specialist-malaysia
+    """
+    if slug not in SEO_HIRE_SLUGS:
+        abort(404)
+
+    user = None
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+
+    hire_data = SEO_HIRE_SLUGS[slug]
+    return render_template('seo_hire_category.html',
+                           user=user,
+                           slug=slug,
+                           hire=hire_data,
                            lang=get_user_language(), t=t)
 
 
@@ -23422,6 +23503,22 @@ def sitemap():
                 })
         except Exception:
             pass
+
+        # SEO hire category pages
+        for hire_slug in SEO_HIRE_SLUGS:
+            static_pages.append({
+                'url': f'/hire/{hire_slug}',
+                'priority': '0.8',
+                'changefreq': 'monthly'
+            })
+
+        # SEO freelancer city pages
+        for city_slug in SEO_CITY_SLUGS:
+            static_pages.append({
+                'url': f'/freelancers/{city_slug}',
+                'priority': '0.8',
+                'changefreq': 'weekly'
+            })
 
         # Blog articles
         try:
