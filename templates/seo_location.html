@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Freelancer {{ city.name }} | Cari Pekerja Bebas di {{ city.name }} — GigHala{% endblock %}
+
+{% block meta_description %}Cari freelancer terbaik di {{ city.name }}, {{ city.state }}. Pekerja bebas halal, terverifikasi, bayaran escrow selamat. Platform freelancer #1 Malaysia — GigHala.{% endblock %}
+
+{% block meta_keywords %}freelancer {{ city.name | lower }}, pekerja bebas {{ city.name | lower }}, hire freelancer {{ city.name | lower }}, cari freelancer {{ city.name | lower }} malaysia, freelancer halal {{ city.name | lower }}{% endblock %}
+
+{% block canonical_url %}https://gighala.my/freelancers/{{ slug }}{% endblock %}
+
+{% block og_type %}website{% endblock %}
+{% block og_title %}Freelancer {{ city.name }} Malaysia | GigHala{% endblock %}
+{% block og_description %}Cari freelancer terbaik di {{ city.name }}. Terverifikasi, halal, bayaran escrow selamat. Mulakan sekarang di GigHala.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gighala.my/"},
+        {"@type": "ListItem", "position": 2, "name": "Freelancers Malaysia", "item": "https://gighala.my/freelancers"},
+        {"@type": "ListItem", "position": 3, "name": "Freelancer {{ city.name }}", "item": "https://gighala.my/freelancers/{{ slug }}"}
+    ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Di mana saya boleh cari freelancer di {{ city.name }}? / Where can I find freelancers in {{ city.name }}?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "GigHala adalah platform terbaik untuk mencari freelancer di {{ city.name }}, {{ city.state }}. Layari direktori kami, tapis mengikut kemahiran, dan pilih freelancer yang telah disahkan identiti dan mematuhi prinsip halal. / GigHala is the best platform to find freelancers in {{ city.name }}, {{ city.state }}. Browse our directory, filter by skill, and choose freelancers who are identity-verified and halal-compliant."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Berapa kadar freelancer di {{ city.name }}? / What are freelancer rates in {{ city.name }}?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Kadar freelancer di {{ city.name }} berbeza mengikut perkhidmatan: Rekaan grafik RM50–RM500, Pembangunan web RM200–RM5,000, Penulisan kandungan RM30–RM200 per artikel, Pemasaran digital RM100–RM2,000. GigHala menawarkan harga tetap dengan pembayaran escrow selamat. / Freelancer rates in {{ city.name }} vary by service: Graphic design RM50–RM500, Web development RM200–RM5,000, Content writing RM30–RM200 per article, Digital marketing RM100–RM2,000. GigHala offers fixed pricing with secure escrow."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Adakah freelancer GigHala di {{ city.name }} dipercayai? / Are GigHala freelancers in {{ city.name }} trustworthy?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ya. Semua freelancer GigHala melalui pengesahan identiti (IC Malaysia) dan kerja mereka disemak untuk kepatuhan halal. Sistem escrow kami memastikan wang anda selamat — hanya dilepaskan setelah anda berpuas hati dengan hasil kerja. / Yes. All GigHala freelancers undergo identity verification (Malaysian IC) and their work is screened for halal compliance. Our escrow system ensures your money is safe — only released once you are satisfied with the delivered work."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Apakah perkhidmatan freelancer yang ada di {{ city.name }}? / What freelancer services are available in {{ city.name }}?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Freelancer di {{ city.name }} melalui GigHala menawarkan pelbagai perkhidmatan: rekaan grafik, pembangunan web, penulisan kandungan, pemasaran digital, fotografi, terjemahan, pembangunan aplikasi mudah alih, dan banyak lagi. / Freelancers in {{ city.name }} via GigHala offer a wide range of services: graphic design, web development, content writing, digital marketing, photography, translation, mobile app development, and more."
+            }
+        }
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 2rem 1rem;">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" style="margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--text-gray);">
+        <a href="/" style="color: var(--text-gray); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.5rem;">›</span>
+        <a href="/freelancers" style="color: var(--text-gray); text-decoration: none;">Freelancers Malaysia</a>
+        <span style="margin: 0 0.5rem;">›</span>
+        <span style="color: var(--text-dark);">Freelancer {{ city.name }}</span>
+    </nav>
+
+    <!-- H1 & Intro -->
+    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1rem;">
+        Freelancer {{ city.name }}, {{ city.state }}
+    </h1>
+    <p style="font-size: 1.1rem; color: var(--text-gray); margin-bottom: 2rem; max-width: 700px; line-height: 1.7;">
+        Cari <strong>freelancer terbaik di {{ city.name }}</strong> melalui GigHala — platform freelancer halal #1 Malaysia.
+        Semua pekerja bebas telah disahkan identiti, bekerja mengikut prinsip halal, dan dilindungi oleh sistem escrow selamat kami.
+        Dari rekaan grafik hingga pembangunan web — ratusan freelancer {{ city.name }} bersedia membantu projek anda.
+    </p>
+
+    <!-- CTA -->
+    <div style="margin-bottom: 3rem;">
+        <a href="/freelancers" class="btn btn-primary" style="display: inline-block; background: var(--primary); color: #fff; padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1rem; margin-right: 1rem;">
+            Cari Freelancer Sekarang
+        </a>
+        <a href="/post-gig" style="display: inline-block; color: var(--primary); border: 2px solid var(--primary); padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1rem;">
+            Post Gig Percuma
+        </a>
+    </div>
+
+    <!-- Services Section -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1.25rem;">
+            Perkhidmatan Freelancer di {{ city.name }}
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎨</div>
+                <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem;">Rekaan Grafik</div>
+                <div style="font-size: 0.875rem; color: var(--text-gray);">Logo, poster, banner, branding &amp; lebih lagi</div>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💻</div>
+                <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem;">Pembangunan Web</div>
+                <div style="font-size: 0.875rem; color: var(--text-gray);">Laman web, e-dagang, aplikasi web &amp; lebih lagi</div>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📝</div>
+                <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem;">Penulisan Kandungan</div>
+                <div style="font-size: 0.875rem; color: var(--text-gray);">Artikel, blog, copywriting, terjemahan</div>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📣</div>
+                <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem;">Pemasaran Digital</div>
+                <div style="font-size: 0.875rem; color: var(--text-gray);">SEO, media sosial, iklan &amp; pengurusan akaun</div>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📱</div>
+                <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem;">Aplikasi Mudah Alih</div>
+                <div style="font-size: 0.875rem; color: var(--text-gray);">iOS, Android, Flutter, React Native</div>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📸</div>
+                <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem;">Fotografi &amp; Video</div>
+                <div style="font-size: 0.875rem; color: var(--text-gray);">Fotografi produk, video promosi &amp; pengeditan</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why GigHala -->
+    <section style="margin-bottom: 3rem; background: #f8fdf9; border-radius: 12px; padding: 2rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1rem;">
+            Kenapa GigHala untuk Freelancer {{ city.name }}?
+        </h2>
+        <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem;">
+            <li style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <span><strong>Halal Verified</strong> — Semua kerja mematuhi prinsip halal Islam</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <span><strong>Escrow Selamat</strong> — Wang anda terlindung, hanya dibayar setelah kerja siap &amp; disahkan</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <span><strong>Freelancer Tempatan</strong> — Ramai freelancer dari {{ city.name }} dan seluruh Malaysia</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0;">✓</span>
+                <span><strong>Perlindungan SOCSO</strong> — Freelancer dilindungi insurans SOCSO</span>
+            </li>
+        </ul>
+    </section>
+
+    <!-- FAQ Section -->
+    <section style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1.25rem;">
+            Soalan Lazim (FAQ)
+        </h2>
+
+        <div style="border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+            <details style="border-bottom: 1px solid var(--border);">
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Di mana saya boleh cari freelancer di {{ city.name }}?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    GigHala adalah platform terbaik untuk mencari freelancer di {{ city.name }}, {{ city.state }}. Layari direktori kami, tapis mengikut kemahiran, dan pilih freelancer yang telah disahkan identiti dan mematuhi prinsip halal.
+                </div>
+            </details>
+            <details style="border-bottom: 1px solid var(--border);">
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Berapa kadar freelancer di {{ city.name }}?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    Kadar freelancer di {{ city.name }} berbeza mengikut perkhidmatan: Rekaan grafik RM50–RM500, Pembangunan web RM200–RM5,000, Penulisan kandungan RM30–RM200 per artikel, Pemasaran digital RM100–RM2,000. GigHala menawarkan harga tetap dengan pembayaran escrow selamat.
+                </div>
+            </details>
+            <details style="border-bottom: 1px solid var(--border);">
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Adakah freelancer GigHala di {{ city.name }} dipercayai?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    Ya. Semua freelancer GigHala melalui pengesahan identiti (IC Malaysia) dan kerja mereka disemak untuk kepatuhan halal. Sistem escrow kami memastikan wang anda selamat — hanya dilepaskan setelah anda berpuas hati dengan hasil kerja.
+                </div>
+            </details>
+            <details>
+                <summary style="padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; color: var(--text-dark);">
+                    Apakah perkhidmatan freelancer yang ada di {{ city.name }}?
+                </summary>
+                <div style="padding: 0 1.25rem 1rem; color: var(--text-gray); line-height: 1.7;">
+                    Freelancer di {{ city.name }} melalui GigHala menawarkan pelbagai perkhidmatan: rekaan grafik, pembangunan web, penulisan kandungan, pemasaran digital, fotografi, terjemahan, pembangunan aplikasi mudah alih, dan banyak lagi.
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <div style="text-align: center; padding: 2rem; background: var(--primary); border-radius: 12px; color: #fff;">
+        <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 0.75rem; color: #fff;">
+            Bersedia untuk cari freelancer di {{ city.name }}?
+        </h2>
+        <p style="margin-bottom: 1.25rem; opacity: 0.9;">Bergabung dengan ribuan majikan yang telah mempercayai GigHala.</p>
+        <a href="/freelancers" style="display: inline-block; background: #fff; color: var(--primary); padding: 0.75rem 2rem; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 1rem;">
+            Cari Freelancer {{ city.name }} Sekarang
+        </a>
+    </div>
+
+</div>
+{% endblock %}

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GigHala - {% if lang == 'ms' %}Platform GigHala #1 Malaysia{% else %}Malaysia's #1 Halal Gig Platform{% endif %}</title>
-    <meta name="description" content="{% if lang == 'ms' %}Platform gig halal #1 Malaysia — 100% Halal Verified, dilindungi SOCSO automatik, bayaran instant ke bank anda. Jana RM800–RM4,000 sebulan dengan kerja freelance yang diberkati.{% else %}Malaysia's #1 halal gig platform — 100% Halal Verified, automatic SOCSO protection, instant payouts to your bank. Earn RM800–RM4,000/month with blessed freelance work.{% endif %}">
+    <title>{% if lang == 'ms' %}GigHala — Hire Freelancer Halal Malaysia | SOCSO, Escrow Selamat{% else %}GigHala — Hire Halal Freelancers in Malaysia | SOCSO Protected, Secure Escrow{% endif %}</title>
+    <meta name="description" content="{% if lang == 'ms' %}Platform freelancer halal #1 Malaysia. Hire freelancer terverifikasi atau cari kerja gig — 100% Halal Verified, dilindungi SOCSO, bayaran escrow selamat, instant ke bank anda. Daftar percuma.{% else %}Malaysia's #1 halal freelancer platform. Hire verified freelancers or find gig work — 100% Halal Verified, SOCSO protected, secure escrow payments, instant bank payouts. Free to register.{% endif %}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Preload critical resources -->
     <link rel="preload" href="/static/css/style.css" as="style">
@@ -22,7 +22,7 @@
     <!-- Open Graph -->
     <meta property="og:site_name" content="GigHala">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="GigHala - Malaysia's #1 Halal Gig Platform">
+    <meta property="og:title" content="GigHala — Hire Halal Freelancers in Malaysia | SOCSO Protected">
     <meta property="og:description" content="Malaysia's #1 halal gig platform — 100% Halal Verified, automatic SOCSO protection, instant payouts. Earn RM800–RM4,000/month with blessed freelance work.">
     <meta property="og:url" content="https://gighala.my/">
     <meta property="og:image" content="https://gighala.my/static/logo.png">
@@ -86,6 +86,52 @@
                 }
             }
         ]
+    }
+    </script>
+
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "GigHala",
+        "legalName": "Calmic Sdn Bhd",
+        "url": "https://gighala.my",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://gighala.my/static/logo.png",
+            "width": 512,
+            "height": 512
+        },
+        "description": "GigHala is Malaysia's #1 halal-certified freelancer platform connecting Muslim freelancers and clients with AI-verified halal gigs, SOCSO worker protection, and secure escrow payments.",
+        "foundingDate": "2022",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Kuala Lumpur",
+            "addressCountry": "MY"
+        },
+        "areaServed": {"@type": "Country", "name": "Malaysia"},
+        "sameAs": ["https://calmic.com.my", "https://gighala.my"]
+    }
+    </script>
+
+    <!-- WebSite + SiteLinksSearchBox Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "GigHala",
+        "alternateName": "Platform Freelancer Halal Malaysia",
+        "url": "https://gighala.my",
+        "inLanguage": ["ms", "en"],
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://gighala.my/gigs?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
     }
     </script>
 
@@ -534,7 +580,7 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
                     <h1 style="font-size: 3rem; font-weight: 800; line-height: 1.2; margin: 0;">
-                        {% if lang == 'ms' %}Kerja Gig Halal, Dilindungi SOCSO, Bayaran Instant — Platform #1 Malaysia{% else %}Halal Gigs, SOCSO Protection, Instant Payouts — Malaysia's #1 Platform{% endif %}
+                        {% if lang == 'ms' %}Hire Freelancer Halal Malaysia — Dilindungi SOCSO, Bayaran Escrow Selamat{% else %}Hire Halal Freelancers in Malaysia — SOCSO Protected, Secure Escrow Payments{% endif %}
                     </h1>
                     <div style="background: rgba(29, 191, 115, 0.15); border: 1px solid #1DBF73; color: white; padding: 6px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 15px rgba(29, 191, 115, 0.3); animation: pulseBadge 2s infinite;">
                         <span style="width: 8px; height: 8px; background: #1DBF73; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #1DBF73;"></span>
