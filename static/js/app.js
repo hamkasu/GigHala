@@ -518,20 +518,28 @@ const app = {
         this.scrollTo('cari-gig');
     },
     
-    // Show login modal
+    // Show login modal (redirects to dedicated login page)
     showLogin() {
         const modal = document.getElementById('loginModal');
-        modal.classList.add('active');
-        document.body.classList.add('modal-open');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+        } else {
+            window.location.href = '/login';
+        }
     },
 
-    // Show register modal
+    // Show register modal (redirects to dedicated register page)
     showRegister() {
         const modal = document.getElementById('registerModal');
-        modal.classList.add('active');
-        document.body.classList.add('modal-open');
-        // Setup SOCSO consent field visibility based on user type
-        this.setupSOCSOConsentListener();
+        if (modal) {
+            modal.classList.add('active');
+            document.body.classList.add('modal-open');
+            // Setup SOCSO consent field visibility based on user type
+            this.setupSOCSOConsentListener();
+        } else {
+            window.location.href = '/register';
+        }
     },
 
     // Setup SOCSO consent field visibility listener
