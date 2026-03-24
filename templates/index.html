@@ -408,7 +408,7 @@
         </script>
 
         <!-- Hero Section -->
-        <div style="background: url('/static/images/hero-bg.jpg') center/cover no-repeat; padding: 100px 20px; position: relative; color: white; text-align: left;{% if is_raya %} border-bottom: 3px solid #f5c518;{% endif %}">
+        <div style="background: url('/static/images/hero-bg.jpg') center/cover no-repeat; padding: 100px 20px; position: relative; color: white; text-align: center;{% if is_raya %} border-bottom: 3px solid #f5c518;{% endif %}">
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: {% if is_raya %}linear-gradient(135deg, rgba(10,61,32,0.72) 0%, rgba(0,0,0,0.55) 50%, rgba(26,107,60,0.68) 100%){% else %}rgba(0,0,0,0.6){% endif %};"></div>
 
             {% if is_raya %}
@@ -562,150 +562,47 @@
             </script>
             {% endif %}
             <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
-                <!-- Malaysia Pride Badge -->
-                <div class="malaysia-badge" style="background: linear-gradient(135deg, #CC0001, #003899); color: #FFD700; font-weight: bold; font-size: 13px; padding: 6px 16px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-                    🇲🇾 100% Buatan Malaysia
-                </div>
-                <!-- 3 Pillars Trust Badges -->
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;">
-                    <div style="background: rgba(13,124,102,0.85); border: 1px solid rgba(29,191,115,0.6); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px);">
-                        <span>🌙</span> 100% Halal Verified
-                    </div>
-                    <div style="background: rgba(13,124,102,0.85); border: 1px solid rgba(29,191,115,0.6); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px);">
-                        <span>🛡️</span> Dilindungi SOCSO
-                    </div>
-                    <div style="background: rgba(13,124,102,0.85); border: 1px solid rgba(29,191,115,0.6); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px);">
-                        <span>⚡</span> Bayaran Instant ke Bank
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <h1 style="font-size: 3rem; font-weight: 800; line-height: 1.2; margin: 0;">
-                        {% if lang == 'ms' %}Hire Freelancer Halal Malaysia — Dilindungi SOCSO, Bayaran Escrow Selamat{% else %}Hire Halal Freelancers in Malaysia — SOCSO Protected, Secure Escrow Payments{% endif %}
-                    </h1>
-                    <div style="background: rgba(29, 191, 115, 0.15); border: 1px solid #1DBF73; color: white; padding: 6px 12px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 15px rgba(29, 191, 115, 0.3); animation: pulseBadge 2s infinite;">
-                        <span style="width: 8px; height: 8px; background: #1DBF73; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #1DBF73;"></span>
-                        Fasa Pelancaran Sebenar + Penstabilan & Pengembangan
-                    </div>
-                </div>
-                <style>
-                    @keyframes pulseBadge {
-                        0% { box-shadow: 0 0 0 0 rgba(29, 191, 115, 0.4); }
-                        70% { box-shadow: 0 0 0 10px rgba(29, 191, 115, 0); }
-                        100% { box-shadow: 0 0 0 0 rgba(29, 191, 115, 0); }
-                    }
-                </style>
+                <!-- Hero Headline -->
+                <h1 style="font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; line-height: 1.2; margin: 0 auto 20px; max-width: 820px;">
+                    {% if lang == 'ms' %}Platform Kerja Halal &amp; Terverifikasi Terpercaya Malaysia{% else %}Malaysia's Trusted Platform for Halal &amp; Verified Work{% endif %}
+                </h1>
+                <p style="font-size: clamp(1rem, 2.5vw, 1.15rem); color: rgba(255,255,255,0.88); line-height: 1.7; max-width: 620px; margin: 0 auto 36px;">
+                    {% if lang == 'ms' %}Siarkan atau terima kerja dengan yakin — pengguna terverifikasi, bayaran escrow selamat, dan perlindungan terbina dalam untuk setiap kerja.{% else %}Hire or work with confidence — verified users, secure escrow payments, and built-in protection for every job.{% endif %}
+                </p>
 
-                <div style="max-width: 900px; position: relative; margin-bottom: 20px;">
-                    <form id="heroSearchForm" action="/search" method="GET" style="display: flex; align-items: center; background: white; border-radius: 8px; overflow: visible; box-shadow: 0 4px 12px rgba(0,0,0,0.2); position: relative;">
-                        <input id="heroSearchInput" type="text" name="q" autocomplete="off" placeholder="Cari apa-apa je..." style="flex: 1; padding: 18px 24px; border: none; font-size: 16px; outline: none; color: #333; border-radius: 8px 0 0 8px;">
-                        <button type="submit" style="background: #0D7C66; color: white; border: none; padding: 18px 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 0 8px 8px 0; flex-shrink: 0;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <!-- Dual CTAs -->
+                <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px;">
+                    <a href="/post-gig" style="text-decoration: none;">
+                        <button style="background: #0D7C66; color: white; border: 2px solid #0D7C66; padding: 15px 32px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 18px rgba(13,124,102,0.45);" onmouseover="this.style.background='#0b6b58';this.style.borderColor='#0b6b58'" onmouseout="this.style.background='#0D7C66';this.style.borderColor='#0D7C66'">
+                            {% if lang == 'ms' %}Siarkan Kerja{% else %}Post a Job{% endif %}
                         </button>
-                    </form>
-                    <!-- Autocomplete dropdown -->
-                    <ul id="heroSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border-radius:0 0 8px 8px; box-shadow:0 8px 24px rgba(0,0,0,0.15); margin:0; padding:4px 0; list-style:none; z-index:999; max-height:320px; overflow-y:auto;"></ul>
+                    </a>
+                    <a href="/register" style="text-decoration: none;">
+                        <button style="background: transparent; color: white; border: 2px solid rgba(255,255,255,0.75); padding: 15px 32px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.25s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='transparent'">
+                            {% if lang == 'ms' %}Mula Jana Pendapatan{% else %}Start Earning{% endif %}
+                        </button>
+                    </a>
                 </div>
 
-                <!-- Category pills removed -->
-
-                <style>
-                    #heroSuggestions li {
-                        padding: 11px 20px;
-                        cursor: pointer;
-                        font-size: 15px;
-                        color: #333;
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        border-bottom: 1px solid #f0f0f0;
-                        transition: background 0.15s;
-                    }
-                    #heroSuggestions li:last-child { border-bottom: none; }
-                    #heroSuggestions li:hover, #heroSuggestions li.active { background: #f0faf6; }
-                    #heroSuggestions li .sug-icon { font-size: 14px; color: #0D7C66; }
-                    #heroSuggestions li .sug-label { flex: 1; }
-                    #heroSuggestions li .sug-type { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
-                </style>
-                <script>
-                (function() {
-                    const input = document.getElementById('heroSearchInput');
-                    const dropdown = document.getElementById('heroSuggestions');
-                    let debounceTimer = null;
-                    let activeIndex = -1;
-                    let currentSuggestions = [];
-
-                    function showDropdown(items) {
-                        currentSuggestions = items;
-                        activeIndex = -1;
-                        if (!items.length) { dropdown.style.display = 'none'; return; }
-                        dropdown.innerHTML = items.map((s, i) => {
-                            const icon = s.type === 'category' ? '🏷️' : '🔍';
-                            const typeLabel = s.type === 'category' ? 'Kategori' : 'Gig';
-                            return `<li data-index="${i}"><span class="sug-icon">${icon}</span><span class="sug-label">${s.label}</span><span class="sug-type">${typeLabel}</span></li>`;
-                        }).join('');
-                        dropdown.style.display = 'block';
-                        dropdown.querySelectorAll('li').forEach(li => {
-                            li.addEventListener('mousedown', function(e) {
-                                e.preventDefault();
-                                const idx = parseInt(this.dataset.index);
-                                selectSuggestion(idx);
-                            });
-                        });
-                    }
-
-                    function selectSuggestion(idx) {
-                        const s = currentSuggestions[idx];
-                        if (!s) return;
-                        if (s.type === 'category' && s.slug) {
-                            window.location.href = '/gigs?category=' + encodeURIComponent(s.slug);
-                        } else {
-                            input.value = s.label;
-                            document.getElementById('heroSearchForm').submit();
-                        }
-                        dropdown.style.display = 'none';
-                    }
-
-                    input.addEventListener('input', function() {
-                        const q = this.value.trim();
-                        clearTimeout(debounceTimer);
-                        if (q.length < 2) { dropdown.style.display = 'none'; return; }
-                        debounceTimer = setTimeout(function() {
-                            fetch('/api/search/suggestions?q=' + encodeURIComponent(q))
-                                .then(r => r.json())
-                                .then(data => showDropdown(data))
-                                .catch(() => dropdown.style.display = 'none');
-                        }, 200);
-                    });
-
-                    input.addEventListener('keydown', function(e) {
-                        const items = dropdown.querySelectorAll('li');
-                        if (!items.length) return;
-                        if (e.key === 'ArrowDown') {
-                            e.preventDefault();
-                            activeIndex = Math.min(activeIndex + 1, items.length - 1);
-                        } else if (e.key === 'ArrowUp') {
-                            e.preventDefault();
-                            activeIndex = Math.max(activeIndex - 1, -1);
-                        } else if (e.key === 'Enter' && activeIndex >= 0) {
-                            e.preventDefault();
-                            selectSuggestion(activeIndex);
-                            return;
-                        } else if (e.key === 'Escape') {
-                            dropdown.style.display = 'none';
-                            activeIndex = -1;
-                            return;
-                        } else { return; }
-                        items.forEach((li, i) => li.classList.toggle('active', i === activeIndex));
-                        if (activeIndex >= 0) input.value = currentSuggestions[activeIndex].label;
-                    });
-
-                    document.addEventListener('click', function(e) {
-                        if (!e.target.closest('#heroSearchForm') && !e.target.closest('#heroSuggestions')) {
-                            dropdown.style.display = 'none';
-                        }
-                    });
-                })();
-                </script>
+                <!-- Trust Badge Strip -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 28px;">
+                    <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);">
+                        ✓ {% if lang == 'ms' %}Pengguna Terverifikasi{% else %}Verified Users{% endif %}
+                    </div>
+                    <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);">
+                        🔒 {% if lang == 'ms' %}Perlindungan Escrow{% else %}Escrow Protection{% endif %}
+                    </div>
+                    <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);">
+                        🛡️ {% if lang == 'ms' %}Perlindungan SOCSO{% else %}SOCSO Coverage{% endif %}
+                    </div>
+                    <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);">
+                        ⚡ {% if lang == 'ms' %}Bayaran Segera{% else %}Instant Payout{% endif %}
+                    </div>
+                </div>
+                <!-- Helper Line -->
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6); font-style: italic; margin: 0;">
+                    {% if lang == 'ms' %}Bukan sekadar platform freelance — cara yang lebih selamat untuk bekerja di Malaysia.{% else %}Not just a freelance platform — a safer way to work in Malaysia.{% endif %}
+                </p>
             </div>
         </div>
 
