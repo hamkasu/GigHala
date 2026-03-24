@@ -6,39 +6,149 @@
 
 {% block extra_styles %}
 <style>
-    .investors-page {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 60px 20px;
+    /* ── Investor Hero ── */
+    .inv-hero {
+        background: linear-gradient(160deg, #071f10 0%, #0a2e18 50%, #0d3d20 100%);
+        padding: 96px 24px 88px;
         text-align: center;
+        position: relative;
+        overflow: hidden;
     }
 
-    .investors-page h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 800;
-        color: var(--text-dark);
-        margin-bottom: 16px;
+    /* Subtle radial glow */
+    .inv-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(13,124,102,0.22) 0%, transparent 70%);
+        pointer-events: none;
     }
 
-    .investors-page p {
-        color: #74767E;
-        font-size: 1.05rem;
-        line-height: 1.7;
-        max-width: 560px;
+    .inv-hero__inner {
+        position: relative;
+        z-index: 1;
+        max-width: 760px;
         margin: 0 auto;
+    }
+
+    .inv-hero__label {
+        display: inline-block;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: rgba(255,255,255,0.82);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 6px 18px;
+        border-radius: 999px;
+        margin-bottom: 28px;
+    }
+
+    .inv-hero__headline {
+        font-size: clamp(1.9rem, 4.5vw, 3rem);
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.18;
+        margin: 0 auto 20px;
+        letter-spacing: -0.5px;
+    }
+
+    .inv-hero__headline span {
+        color: #4ecdc4;
+    }
+
+    .inv-hero__sub {
+        font-size: clamp(0.95rem, 2vw, 1.1rem);
+        color: rgba(255,255,255,0.7);
+        line-height: 1.75;
+        max-width: 620px;
+        margin: 0 auto 40px;
+    }
+
+    .inv-hero__ctas {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .inv-btn-primary {
+        display: inline-block;
+        background: #0D7C66;
+        color: #ffffff;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 14px 28px;
+        border-radius: 10px;
+        border: 2px solid #0D7C66;
+        text-decoration: none;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        box-shadow: 0 4px 20px rgba(13,124,102,0.45);
+    }
+
+    .inv-btn-primary:hover {
+        background: #0b6b58;
+        border-color: #0b6b58;
+        transform: translateY(-1px);
+    }
+
+    .inv-btn-ghost {
+        display: inline-block;
+        background: transparent;
+        color: rgba(255,255,255,0.88);
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 14px 28px;
+        border-radius: 10px;
+        border: 2px solid rgba(255,255,255,0.35);
+        text-decoration: none;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+
+    .inv-btn-ghost:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.6);
+        transform: translateY(-1px);
     }
 
     @media (max-width: 600px) {
-        .investors-page {
-            padding: 40px 16px;
+        .inv-hero {
+            padding: 72px 20px 64px;
+        }
+        .inv-hero__ctas {
+            flex-direction: column;
+            align-items: center;
+        }
+        .inv-btn-primary,
+        .inv-btn-ghost {
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="investors-page">
-    <h1>Investors Page</h1>
-    <p>This page is coming soon. Investor relations content will be available here.</p>
-</div>
+<!-- ══ HERO ══ -->
+<section class="inv-hero">
+    <div class="inv-hero__inner">
+        <div class="inv-hero__label">Raising RM5M – RM20M</div>
+        <h1 class="inv-hero__headline">
+            The Operating System for<br>
+            <span>Halal &amp; Verified Work</span><br>
+            in Southeast Asia
+        </h1>
+        <p class="inv-hero__sub">
+            GigHala is building the trust infrastructure for the gig economy —
+            combining verified hiring, secure payments, and worker protection
+            into one scalable platform.
+        </p>
+        <div class="inv-hero__ctas">
+            <a href="mailto:invest@gighala.my" class="inv-btn-primary">Contact Founder</a>
+            <a href="mailto:invest@gighala.my?subject=Investor Deck Request" class="inv-btn-ghost">Request Investor Deck</a>
+        </div>
+    </div>
+</section>
 {% endblock %}
