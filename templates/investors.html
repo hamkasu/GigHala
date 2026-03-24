@@ -127,6 +127,106 @@
             text-align: center;
         }
     }
+
+    /* ── Problem Section ── */
+    .inv-problem {
+        background: #f0fdf8;
+        padding: 80px 24px;
+    }
+
+    .inv-problem__inner {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .inv-section-label {
+        display: inline-block;
+        background: #e6f7f1;
+        color: #0D7C66;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 6px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(13,124,102,0.25);
+        margin-bottom: 20px;
+    }
+
+    .inv-problem__heading {
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        font-weight: 800;
+        color: #111111;
+        line-height: 1.2;
+        margin: 0 0 12px;
+    }
+
+    .inv-problem__sub {
+        color: rgba(0,0,0,0.5);
+        font-size: 1rem;
+        line-height: 1.7;
+        max-width: 520px;
+        margin: 0 0 52px;
+    }
+
+    .inv-problem__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 20px;
+    }
+
+    .inv-problem__card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 2px solid rgba(13,124,102,0.15);
+        padding: 28px 24px;
+        box-shadow: 0 4px 16px rgba(13,124,102,0.07);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .inv-problem__card::after {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 72px;
+        height: 72px;
+        background: radial-gradient(circle, rgba(13,124,102,0.06) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .inv-problem__icon {
+        width: 44px;
+        height: 44px;
+        background: #fff0f0;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+
+    .inv-problem__card-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #111111;
+        margin-bottom: 8px;
+    }
+
+    .inv-problem__card-body {
+        font-size: 0.88rem;
+        color: rgba(0,0,0,0.55);
+        line-height: 1.65;
+        margin: 0;
+    }
+
+    @media (max-width: 600px) {
+        .inv-problem {
+            padding: 60px 20px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -148,6 +248,52 @@
         <div class="inv-hero__ctas">
             <a href="mailto:invest@gighala.my" class="inv-btn-primary">Contact Founder</a>
             <a href="mailto:invest@gighala.my?subject=Investor Deck Request" class="inv-btn-ghost">Request Investor Deck</a>
+        </div>
+    </div>
+</section>
+
+<!-- ══ PROBLEM ══ -->
+<section class="inv-problem">
+    <div class="inv-problem__inner">
+        <div class="inv-section-label">The Problem</div>
+        <h2 class="inv-problem__heading">The gig economy runs on broken trust.</h2>
+        <p class="inv-problem__sub">
+            Every transaction between a client and a freelancer carries unresolved risk —
+            on both sides. No existing platform in Malaysia solves this end-to-end.
+        </p>
+        <div class="inv-problem__grid">
+            <div class="inv-problem__card">
+                <div class="inv-problem__icon">💸</div>
+                <div class="inv-problem__card-title">Freelancers face payment risk</div>
+                <p class="inv-problem__card-body">
+                    Unpaid invoices and scope creep are endemic. Workers have no legal
+                    recourse and no escrow protection on general platforms.
+                </p>
+            </div>
+            <div class="inv-problem__card">
+                <div class="inv-problem__icon">🎲</div>
+                <div class="inv-problem__card-title">Clients face trust &amp; quality risk</div>
+                <p class="inv-problem__card-body">
+                    Unverified profiles, inconsistent delivery, and no accountability.
+                    Hiring a freelancer is still largely a leap of faith.
+                </p>
+            </div>
+            <div class="inv-problem__card">
+                <div class="inv-problem__icon">🛡️</div>
+                <div class="inv-problem__card-title">No integrated worker protection</div>
+                <p class="inv-problem__card-body">
+                    Gig workers fall outside Malaysia's formal employment safety net —
+                    no SOCSO, no accident coverage, no income continuity.
+                </p>
+            </div>
+            <div class="inv-problem__card">
+                <div class="inv-problem__icon">🇲🇾</div>
+                <div class="inv-problem__card-title">No trusted local platform</div>
+                <p class="inv-problem__card-body">
+                    Global platforms ignore local context — Bahasa Malaysia, Ringgit,
+                    halal compliance, and Malaysia-specific regulations.
+                </p>
+            </div>
         </div>
     </div>
 </section>
