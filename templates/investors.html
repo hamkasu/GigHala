@@ -926,6 +926,93 @@
             grid-template-columns: 1fr 1fr;
         }
     }
+
+    /* ── Investor CTA ── */
+    .inv-cta {
+        background: linear-gradient(160deg, #030f07 0%, #071f10 60%, #0a2e18 100%);
+        padding: 100px 24px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .inv-cta::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 70% at 50% 60%, rgba(13,124,102,0.22) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .inv-cta__inner {
+        max-width: 680px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .inv-cta__heading {
+        font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+        font-weight: 900;
+        color: #ffffff;
+        line-height: 1.2;
+        margin: 0 0 40px;
+        letter-spacing: -0.3px;
+    }
+
+    .inv-cta__actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .inv-cta__btn {
+        display: inline-block;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: 0.2px;
+        transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .inv-cta__btn:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+    }
+
+    .inv-cta__btn--primary {
+        background: #0D7C66;
+        color: #ffffff;
+        border: 2px solid #0D7C66;
+    }
+
+    .inv-cta__btn--secondary {
+        background: transparent;
+        color: #ffffff;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .inv-cta__btn--secondary:hover {
+        border-color: rgba(255,255,255,0.6);
+    }
+
+    @media (max-width: 480px) {
+        .inv-cta {
+            padding: 72px 20px;
+        }
+        .inv-cta__actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        .inv-cta__btn {
+            width: 100%;
+            max-width: 280px;
+            text-align: center;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -1311,6 +1398,17 @@
             <strong>GigHala is building trusted work infrastructure for Malaysia</strong> —
             with expansion potential across Southeast Asia.
         </p>
+    </div>
+</section>
+
+<!-- ══ INVESTOR CTA ══ -->
+<section class="inv-cta">
+    <div class="inv-cta__inner">
+        <h2 class="inv-cta__heading">Interested in the future of trusted work in Malaysia?</h2>
+        <div class="inv-cta__actions">
+            <a href="mailto:hamka@gighala.com" class="inv-cta__btn inv-cta__btn--primary">Contact Founder</a>
+            <a href="mailto:hamka@gighala.com?subject=Investor Deck Request" class="inv-cta__btn inv-cta__btn--secondary">Request Investor Deck</a>
+        </div>
     </div>
 </section>
 {% endblock %}
