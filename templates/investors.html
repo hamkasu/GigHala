@@ -693,6 +693,121 @@
             padding: 60px 20px;
         }
     }
+
+    /* ── Founder Section ── */
+    .inv-founder {
+        background: linear-gradient(160deg, #071f10 0%, #0a2e18 50%, #0d3d20 100%);
+        padding: 80px 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .inv-founder::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 50% 60% at 20% 50%, rgba(13,124,102,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .inv-founder__inner {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .inv-founder__label {
+        display: inline-block;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: rgba(255,255,255,0.82);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 6px 18px;
+        border-radius: 999px;
+        margin-bottom: 40px;
+    }
+
+    .inv-founder__card {
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+    }
+
+    .inv-founder__avatar {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0D7C66 0%, #4ecdc4 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        flex-shrink: 0;
+        border: 3px solid rgba(255,255,255,0.15);
+    }
+
+    .inv-founder__content {
+        flex: 1;
+    }
+
+    .inv-founder__name {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0 0 4px;
+    }
+
+    .inv-founder__role {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #4ecdc4;
+        margin: 0 0 20px;
+        letter-spacing: 0.3px;
+    }
+
+    .inv-founder__bio {
+        font-size: 0.95rem;
+        color: rgba(255,255,255,0.68);
+        line-height: 1.75;
+        margin: 0 0 24px;
+    }
+
+    .inv-founder__pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .inv-founder__pill {
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,0.78);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 5px 14px;
+        border-radius: 999px;
+    }
+
+    @media (max-width: 600px) {
+        .inv-founder {
+            padding: 60px 20px;
+        }
+        .inv-founder__card {
+            flex-direction: column;
+            gap: 24px;
+        }
+        .inv-founder__avatar {
+            width: 72px;
+            height: 72px;
+            font-size: 1.6rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -1010,6 +1125,35 @@
                     cultural context, and community trust are things no foreign entrant
                     can acquire quickly.
                 </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ FOUNDER ══ -->
+<section class="inv-founder">
+    <div class="inv-founder__inner">
+        <div class="inv-founder__label">The Founder</div>
+        <div class="inv-founder__card">
+            <div class="inv-founder__avatar">HS</div>
+            <div class="inv-founder__content">
+                <div class="inv-founder__name">Hamka Suleiman</div>
+                <div class="inv-founder__role">Founder &amp; CEO, GigHala</div>
+                <p class="inv-founder__bio">
+                    Hamka brings over 30 years of engineering and operations leadership,
+                    with deep experience in high-accountability environments including
+                    PETRONAS and QatarEnergy. He has previously scaled a company from
+                    RM1M to RM10M in revenue — and is now applying that operational
+                    discipline to build GigHala as the trust infrastructure layer
+                    for Southeast Asia's gig economy.
+                </p>
+                <div class="inv-founder__pills">
+                    <span class="inv-founder__pill">30+ yrs Engineering &amp; Ops</span>
+                    <span class="inv-founder__pill">PETRONAS</span>
+                    <span class="inv-founder__pill">QatarEnergy</span>
+                    <span class="inv-founder__pill">RM1M → RM10M</span>
+                    <span class="inv-founder__pill">Malaysia</span>
+                </div>
             </div>
         </div>
     </div>
