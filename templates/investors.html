@@ -808,6 +808,124 @@
             font-size: 1.6rem;
         }
     }
+
+    /* ── Funding Ask Section ── */
+    .inv-funding {
+        background: #030f07;
+        padding: 80px 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .inv-funding::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 55% 50% at 80% 50%, rgba(13,124,102,0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .inv-funding__inner {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .inv-funding__label {
+        display: inline-block;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: rgba(255,255,255,0.82);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 6px 18px;
+        border-radius: 999px;
+        margin-bottom: 36px;
+    }
+
+    .inv-funding__raise {
+        font-size: clamp(1.8rem, 5vw, 2.6rem);
+        font-weight: 900;
+        color: #ffffff;
+        margin: 0 0 8px;
+        line-height: 1.1;
+    }
+
+    .inv-funding__raise span {
+        background: linear-gradient(90deg, #0D7C66, #4ecdc4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .inv-funding__subtitle {
+        font-size: 0.95rem;
+        color: rgba(255,255,255,0.5);
+        margin: 0 0 48px;
+    }
+
+    .inv-funding__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 48px;
+    }
+
+    .inv-funding__card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        padding: 24px 20px;
+        transition: border-color 0.2s;
+    }
+
+    .inv-funding__card:hover {
+        border-color: rgba(13,124,102,0.6);
+    }
+
+    .inv-funding__card-icon {
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+    }
+
+    .inv-funding__card-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 6px;
+    }
+
+    .inv-funding__card-desc {
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.5);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    .inv-funding__closing {
+        border-top: 1px solid rgba(255,255,255,0.08);
+        padding-top: 32px;
+        font-size: 1rem;
+        color: rgba(255,255,255,0.65);
+        line-height: 1.7;
+        max-width: 680px;
+    }
+
+    .inv-funding__closing strong {
+        color: #ffffff;
+    }
+
+    @media (max-width: 600px) {
+        .inv-funding {
+            padding: 60px 20px;
+        }
+        .inv-funding__grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -1156,6 +1274,43 @@
                 </div>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- ══ FUNDING ASK ══ -->
+<section class="inv-funding">
+    <div class="inv-funding__inner">
+        <div class="inv-funding__label">Funding Ask</div>
+        <div class="inv-funding__raise">Raising <span>RM5M – RM20M</span></div>
+        <p class="inv-funding__subtitle">Seed to Series A range — flexible structure for the right partners.</p>
+
+        <div class="inv-funding__grid">
+            <div class="inv-funding__card">
+                <div class="inv-funding__card-icon">📈</div>
+                <div class="inv-funding__card-title">Growth</div>
+                <p class="inv-funding__card-desc">Market expansion, partnerships, and customer acquisition across Malaysia.</p>
+            </div>
+            <div class="inv-funding__card">
+                <div class="inv-funding__card-icon">⚙️</div>
+                <div class="inv-funding__card-title">Product</div>
+                <p class="inv-funding__card-desc">Trust infrastructure, escrow rails, verification, and platform depth.</p>
+            </div>
+            <div class="inv-funding__card">
+                <div class="inv-funding__card-icon">👥</div>
+                <div class="inv-funding__card-title">Team</div>
+                <p class="inv-funding__card-desc">Engineering, product, and operations hires to execute at scale.</p>
+            </div>
+            <div class="inv-funding__card">
+                <div class="inv-funding__card-icon">🏗️</div>
+                <div class="inv-funding__card-title">Operations</div>
+                <p class="inv-funding__card-desc">Compliance, legal, support, and the infrastructure to run reliably.</p>
+            </div>
+        </div>
+
+        <p class="inv-funding__closing">
+            <strong>GigHala is building trusted work infrastructure for Malaysia</strong> —
+            with expansion potential across Southeast Asia.
+        </p>
     </div>
 </section>
 {% endblock %}
