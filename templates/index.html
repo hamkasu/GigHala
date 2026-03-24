@@ -882,6 +882,89 @@
             </div>
         </div>
 
+        <!-- ===== HOW IT WORKS SECTION ===== -->
+        <div id="how-it-works" style="background: #f8fafa; padding: 72px 20px;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+
+                <!-- Section label -->
+                <div style="text-align: center; margin-bottom: 14px;">
+                    <span style="display: inline-block; background: #e6f7f1; color: #0D7C66; font-weight: 700; font-size: 0.82rem; padding: 6px 18px; border-radius: 999px; letter-spacing: 0.4px; border: 1px solid rgba(13,124,102,0.25);">
+                        {% if lang == 'ms' %}Proses yang Telus{% else %}A Transparent Process{% endif %}
+                    </span>
+                </div>
+
+                <!-- Heading -->
+                <h2 style="font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 800; color: #111111; text-align: center; margin: 0 auto 12px; max-width: 700px; line-height: 1.2;">
+                    {% if lang == 'ms' %}Bagaimana GigHala Mewujudkan Kerja Terpercaya{% else %}How GigHala Creates Trusted Work{% endif %}
+                </h2>
+                <p style="text-align: center; color: rgba(0,0,0,0.5); font-size: 1rem; margin: 0 auto 56px; max-width: 520px; line-height: 1.7;">
+                    {% if lang == 'ms' %}Setiap langkah direka untuk melindungi kedua-dua pihak — dari permulaan hingga bayaran terakhir.{% else %}Every step is designed to protect both sides — from first contact to final payment.{% endif %}
+                </p>
+
+                <!-- Steps grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; position: relative;">
+
+                    <!-- Step 1 -->
+                    <div style="background: #ffffff; border-radius: 20px; padding: 32px 28px; border: 2px solid rgba(13,124,102,0.15); box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: box-shadow 0.3s ease;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <div style="width: 40px; height: 40px; background: #0D7C66; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">1</div>
+                            <div style="height: 2px; flex: 1; background: rgba(13,124,102,0.15); border-radius: 2px;"></div>
+                        </div>
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Siarkan atau Cari Kerja{% else %}Post or Find Work{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.9rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Klien siarkan kerja dalam minit. Freelancer semak senarai halal terverifikasi — tiada kecoh, hanya kerja sebenar.{% else %}Clients post a job in minutes. Freelancers browse halal-verified listings — no noise, just real work.{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div style="background: #ffffff; border-radius: 20px; padding: 32px 28px; border: 2px solid rgba(13,124,102,0.15); box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: box-shadow 0.3s ease;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <div style="width: 40px; height: 40px; background: #0D7C66; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">2</div>
+                            <div style="height: 2px; flex: 1; background: rgba(13,124,102,0.15); border-radius: 2px;"></div>
+                        </div>
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Hubungi Pengguna Terverifikasi{% else %}Connect with Verified Users{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.9rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Setiap akaun disahkan identiti. Anda tahu siapa yang anda berurusan sebelum sebarang pesan dihantar.{% else %}Every account is identity-verified. You know exactly who you're working with before a single message is sent.{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div style="background: #ffffff; border-radius: 20px; padding: 32px 28px; border: 2px solid rgba(13,124,102,0.15); box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: box-shadow 0.3s ease;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <div style="width: 40px; height: 40px; background: #0D7C66; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">3</div>
+                            <div style="height: 2px; flex: 1; background: rgba(13,124,102,0.15); border-radius: 2px;"></div>
+                        </div>
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Bayaran Disimpan Selamat dalam Escrow{% else %}Payment Held Securely in Escrow{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.9rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Bayaran klien dikunci dalam escrow sebaik kerja diterima. Selamat untuk kedua-dua pihak — tiada risiko, tiada isu kepercayaan.{% else %}The client's payment is locked in escrow the moment a job is accepted. Safe for both sides — no risk, no trust issues.{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div style="background: #ffffff; border-radius: 20px; padding: 32px 28px; border: 2px solid rgba(13,124,102,0.15); box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: box-shadow 0.3s ease;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+                            <div style="width: 40px; height: 40px; background: #0D7C66; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">4</div>
+                            <div style="height: 2px; flex: 1; background: rgba(13,124,102,0.15); border-radius: 2px; opacity: 0;"></div>
+                        </div>
+                        <h3 style="font-size: 1.05rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Kerja Siap, Dibayar dengan Selamat{% else %}Work Completed, Paid Safely{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.9rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Kerja diluluskan? Bayaran dilepaskan serta-merta ke bank freelancer. Perlindungan SOCSO aktif sepanjang masa.{% else %}Job approved? Payment releases instantly to the freelancer's bank. SOCSO coverage active throughout.{% endif %}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- ===== END HOW IT WORKS SECTION ===== -->
+
         <!-- Client Benefits Section -->
         <div id="client-section" style="background: #f8fafa; padding: 60px 20px; margin-top: 0;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
