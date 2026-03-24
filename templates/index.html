@@ -606,6 +606,69 @@
             </div>
         </div>
 
+        <!-- ===== TRUST SECTION ===== -->
+        <div id="trust-section" style="background: #ffffff; padding: 72px 20px;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+
+                <!-- Section label -->
+                <div style="text-align: center; margin-bottom: 14px;">
+                    <span style="display: inline-block; background: #e6f7f1; color: #0D7C66; font-weight: 700; font-size: 0.82rem; padding: 6px 18px; border-radius: 999px; letter-spacing: 0.4px; border: 1px solid rgba(13,124,102,0.25);">
+                        {% if lang == 'ms' %}Kenapa GigHala Berbeza{% else %}Why GigHala is Different{% endif %}
+                    </span>
+                </div>
+
+                <!-- Section heading -->
+                <h2 style="font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 800; color: #111111; text-align: center; margin: 0 auto 12px; max-width: 700px; line-height: 1.2;">
+                    {% if lang == 'ms' %}Dibina untuk Kepercayaan. Direka untuk Malaysia.{% else %}Built for Trust. Designed for Malaysia.{% endif %}
+                </h2>
+                <p style="text-align: center; color: rgba(0,0,0,0.5); font-size: 1rem; margin: 0 auto 52px; max-width: 540px; line-height: 1.7;">
+                    {% if lang == 'ms' %}Tiga ciri teras yang menjadikan GigHala tempat kerja yang lebih selamat — untuk semua pihak.{% else %}Three core features that make GigHala a safer place to work — for everyone.{% endif %}
+                </p>
+
+                <!-- 3-column grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px;">
+
+                    <!-- Card 1: Verified Users -->
+                    <div class="benefit-card" style="background: #f8fffe; padding: 36px 32px; border-radius: 20px; border: 2px solid rgba(13,124,102,0.18); box-shadow: 0 4px 20px rgba(13,124,102,0.07); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; top: -16px; right: -16px; width: 90px; height: 90px; background: radial-gradient(circle, rgba(13,124,102,0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+                        <div style="width: 52px; height: 52px; background: #e6f7f1; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; border: 1px solid rgba(13,124,102,0.15);">✓</div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Pengguna Terverifikasi{% else %}Verified Users{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.95rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Kami mengesahkan identiti freelancer dan klien untuk mengurangkan risiko. Tiada akaun tanpa nama — anda sentiasa tahu siapa yang anda berurusan.{% else %}We verify freelancers and clients to reduce risk. No anonymous accounts — you always know who you're dealing with.{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Card 2: Secure Payments -->
+                    <div class="benefit-card" style="background: #f8fffe; padding: 36px 32px; border-radius: 20px; border: 2px solid rgba(13,124,102,0.18); box-shadow: 0 4px 20px rgba(13,124,102,0.07); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; top: -16px; right: -16px; width: 90px; height: 90px; background: radial-gradient(circle, rgba(13,124,102,0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+                        <div style="width: 52px; height: 52px; background: #e6f7f1; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; border: 1px solid rgba(13,124,102,0.15);">🔒</div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Bayaran Selamat{% else %}Secure Payments{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.95rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Escrow memastikan bayaran hanya dilepaskan apabila kerja siap. Tiada kejar bayaran. Tiada pertikaian tanpa penyelesaian.{% else %}Escrow ensures payment is only released when work is done. No chasing invoices. No disputes left hanging.{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Card 3: Worker Protection -->
+                    <div class="benefit-card" style="background: #f8fffe; padding: 36px 32px; border-radius: 20px; border: 2px solid rgba(13,124,102,0.18); box-shadow: 0 4px 20px rgba(13,124,102,0.07); position: relative; overflow: hidden; transition: all 0.3s ease;">
+                        <div style="position: absolute; top: -16px; right: -16px; width: 90px; height: 90px; background: radial-gradient(circle, rgba(13,124,102,0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+                        <div style="width: 52px; height: 52px; background: #e6f7f1; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; border: 1px solid rgba(13,124,102,0.15);">🛡️</div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
+                            {% if lang == 'ms' %}Perlindungan Pekerja{% else %}Worker Protection{% endif %}
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.95rem; line-height: 1.65; margin: 0;">
+                            {% if lang == 'ms' %}Sistem bersedia SOCSO untuk kerja gig yang lebih selamat — perlindungan yang sama seperti pekerja pejabat, kini untuk pekerja bebas.{% else %}SOCSO-ready system for safer gig work — the same protection as office employees, now for freelancers.{% endif %}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- ===== END TRUST SECTION ===== -->
+
         <nav class="navbar" style="display: none;">
             <div class="container navbar-container">
                 <div class="navbar-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px;">
