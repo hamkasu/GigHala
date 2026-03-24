@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Investors{% endblock %}
+
+{% block meta_description %}GigHala investor relations page.{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .investors-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .investors-page h1 {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+    }
+
+    .investors-page p {
+        color: #74767E;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        max-width: 560px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 600px) {
+        .investors-page {
+            padding: 40px 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="investors-page">
+    <h1>Investors Page</h1>
+    <p>This page is coming soon. Investor relations content will be available here.</p>
+</div>
+{% endblock %}
