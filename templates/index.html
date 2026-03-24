@@ -408,12 +408,64 @@
         </script>
 
         <!-- Hero Section -->
-        <div style="background: url('/static/images/hero-bg.jpg') center/cover no-repeat; padding: 100px 20px; position: relative; color: white; text-align: center;{% if is_raya %} border-bottom: 3px solid #f5c518;{% endif %}">
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: {% if is_raya %}linear-gradient(135deg, rgba(10,61,32,0.72) 0%, rgba(0,0,0,0.55) 50%, rgba(26,107,60,0.68) 100%){% else %}rgba(0,0,0,0.6){% endif %};"></div>
+        <style>
+            /* ── Premium Hero Background ── */
+            #gh-hero {
+                background-color: #071f10; /* deep green fallback */
+            }
+            /* Layer 1: original photo at ~8% — pure texture, not decor */
+            #gh-hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: url('/static/images/hero-bg.jpg') center / cover no-repeat;
+                opacity: 0.08;
+                filter: blur(1px) saturate(0.6);
+                z-index: 0;
+            }
+            /* Layer 2: depth gradient — dark top → mid green → dark bottom */
+            .gh-hero-overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    170deg,
+                    rgba(3, 14, 7, 0.94) 0%,
+                    rgba(9, 48, 24, 0.78) 42%,
+                    rgba(14, 72, 36, 0.72) 65%,
+                    rgba(3, 14, 7, 0.90) 100%
+                );
+                z-index: 1;
+            }
+            /* Layer 3: Islamic geometric lattice — 8-pointed star grid at ~6% */
+            .gh-hero-pattern {
+                position: absolute;
+                inset: 0;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.55'%3E%3Cpolygon points='40,9 46.8,30.4 68,24 52.2,40 68,56 46.8,49.6 40,71 33.2,49.6 12,56 27.8,40 12,24 33.2,30.4'/%3E%3Ccircle cx='40' cy='40' r='13' stroke-width='0.4'/%3E%3Cline x1='0' y1='0' x2='80' y2='80' stroke-width='0.2'/%3E%3Cline x1='80' y1='0' x2='0' y2='80' stroke-width='0.2'/%3E%3C/g%3E%3C/svg%3E");
+                background-size: 80px 80px;
+                opacity: 0.055;
+                z-index: 2;
+                pointer-events: none;
+            }
+            /* Layer 4: soft radial glows — green light, not festive, just "system" warmth */
+            .gh-hero-glow {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(ellipse 55% 50% at 12% 38%, rgba(34, 197, 94, 0.07) 0%, transparent 65%),
+                    radial-gradient(ellipse 45% 55% at 88% 58%, rgba(20, 120, 55, 0.06) 0%, transparent 60%),
+                    radial-gradient(ellipse 70% 35% at 50% 95%, rgba(3, 14, 7, 0.65) 0%, transparent 75%);
+                z-index: 2;
+                pointer-events: none;
+            }
+        </style>
+        <div id="gh-hero" style="padding: 100px 20px; position: relative; color: white; text-align: center;{% if is_raya %} border-bottom: 3px solid #f5c518;{% endif %}">
+            <div class="gh-hero-overlay"></div>
+            <div class="gh-hero-pattern"></div>
+            <div class="gh-hero-glow"></div>
 
             {% if is_raya %}
             <!-- ===== RAYA FESTIVE OVERLAY DECORATIONS ===== -->
-            <div id="raya-hero-deco" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:2;">
+            <div id="raya-hero-deco" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:4;">
                 <!-- Animated lanterns & ketupat -->
                 <span class="raya-deco" style="left:3%;top:10%;animation-delay:0s;">🏮</span>
                 <span class="raya-deco" style="left:8%;top:55%;animation-delay:0.7s;font-size:28px;">🎋</span>
@@ -439,7 +491,7 @@
 
 
             <!-- Canvas for fireworks -->
-            <canvas id="raya-fireworks" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;"></canvas>
+            <canvas id="raya-fireworks" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;"></canvas>
 
             <style>
                 .raya-deco {
@@ -553,7 +605,7 @@
             })();
             </script>
             {% endif %}
-            <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 10;">
                 <!-- Hero Headline -->
                 <h1 style="font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; line-height: 1.2; margin: 0 auto 20px; max-width: 820px; text-shadow: 0 2px 16px rgba(0,0,0,0.45);">
                     {% if lang == 'ms' %}Platform Kerja Halal &amp; Disahkan &amp; Dipercayai Malaysia{% else %}Malaysia's Trusted Platform for Halal &amp; Verified Work{% endif %}
