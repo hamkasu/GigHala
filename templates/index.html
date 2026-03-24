@@ -687,103 +687,8 @@
             </div>
         </nav>
 
-        <div style="background: transparent; width: 100%; padding: 40px 20px; color: black; position: relative; z-index: 10; overflow: hidden; background: rgba(0, 0, 0, 0.02);">
-            <div class="container" style="display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 32px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
-                <!-- Left Column: Latest Gigs -->
-                <div style="flex: 1; min-width: 320px; max-width: 500px;">
-                    <div style="width: 100%; text-align: left; background: #1f2937; padding: 24px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); height: 100%;">
-                        <h2 style="font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 20px; line-height: 1.2; border-bottom: 2px solid rgba(13, 124, 102, 0.3); padding-bottom: 12px;">
-                            {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
-                        </h2>
-                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
-                            {% for gig in latest_gigs %}
-                            <li style="display: flex; justify-content: space-between; align-items: center; color: white; font-size: 1rem; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: all 0.3s ease;">
-                                <div style="display: flex; flex-direction: column; gap: 4px; max-width: 65%;">
-                                    <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ gig.title }}</span>
-                                    <span style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">👁️ {{ gig.views if gig.views is not none else 0 }} {% if lang == 'ms' %}tontonan{% else %}views{% endif %}</span>
-                                </div>
-                                <span style="font-size: 0.85rem; background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 4px 12px; border-radius: 20px; font-weight: 700; white-space: nowrap;">
-                                    {{ gig.applicant_count }} {% if lang == 'ms' %}pemohon{% else %}applicants{% endif %}
-                                </span>
-                            </li>
-                            {% else %}
-                            <li style="color: rgba(0,0,0,0.6); font-size: 1rem; text-align: center; padding: 20px;">
-                                {% if lang == 'ms' %}Tiada gig terkini{% else %}No latest gigs{% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Right Column: Stats and Upah Freelancer Card -->
-                <div style="flex: 1; min-width: 320px; max-width: 500px; display: flex; flex-direction: column; gap: 20px;">
-                    <!-- Stats Rows -->
-                    <div style="display: flex; gap: 16px;">
-                        <div style="flex: 1; background: #1f2937; padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                            <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 700;">{% if lang == 'ms' %}Jumlah Gig{% else %}Number of Gig{% endif %}</div>
-                            <div style="font-size: 2rem; font-weight: 800; color: #1DBF73;">{{ active_gigs_count }}</div>
-                        </div>
-                        <div style="flex: 1; background: #1f2937; padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                            <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 700;">{% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}</div>
-                            <div style="font-size: 2rem; font-weight: 800; color: #1DBF73;">{{ total_paid_year }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Featured Freelancers (rotates hourly) -->
-                    <div style="background: #1f2937; padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                            <span style="font-size: 0.75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700;">
-                                {% if lang == 'ms' %}Freelancer Pilihan{% else %}Featured Freelancers{% endif %}
-                            </span>
-                            <span style="font-size: 0.72rem; color: #1DBF73; font-weight: 600;" title="{% if lang == 'ms' %}Dikemaskini setiap jam{% else %}Updates every hour{% endif %}">
-                                ⟳ <span id="hero-countdown">--:--</span>
-                            </span>
-                        </div>
-                        {% if featured_freelancers %}
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            {% for freelancer in featured_freelancers %}
-                            <a href="/profile/{{ freelancer.username }}" style="text-decoration: none; color: inherit; display: block;">
-                                <div style="background: rgba(255,255,255,0.06); border-radius: 14px; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.11)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-                                    <!-- Avatar -->
-                                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D7C66, #41B3A2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: white; flex-shrink: 0; overflow: hidden;">
-                                        {% if freelancer.profile_photo %}
-                                            <img src="/uploads/profile_photos/{{ freelancer.profile_photo }}" alt="{{ freelancer.display_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-                                        {% else %}
-                                            {{ freelancer.display_name[0].upper() }}
-                                        {% endif %}
-                                    </div>
-                                    <!-- Info -->
-                                    <div style="flex: 1; min-width: 0;">
-                                        <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 2px;">
-                                            <span style="font-size: 0.9rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ freelancer.display_name }}</span>
-                                            {% if freelancer.is_verified %}<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#1DBF73;color:white;border-radius:50%;font-size:8px;flex-shrink:0;">✓</span>{% endif %}
-                                        </div>
-                                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.45);">
-                                            {% if freelancer._featured_spec %}{{ freelancer._featured_spec.specialization_title or freelancer._featured_spec.category.name }}{% elif freelancer.location %}{{ freelancer.location }}{% endif %}
-                                        </div>
-                                    </div>
-                                    <!-- Rating + gigs -->
-                                    <div style="text-align: right; flex-shrink: 0;">
-                                        <div style="font-size: 0.8rem; color: #f59e0b; font-weight: 700;">★ {{ "%.1f"|format(freelancer.rating or 0) }}</div>
-                                        <div style="font-size: 0.7rem; color: rgba(255,255,255,0.35);">{{ freelancer.completed_gigs or 0 }} {% if lang == 'ms' %}gig{% else %}gigs{% endif %}</div>
-                                    </div>
-                                </div>
-                            </a>
-                            {% endfor %}
-                        </div>
-                        <div style="margin-top: 14px; text-align: center;">
-                            <a href="/workers" style="font-size: 0.8rem; color: #1DBF73; font-weight: 700; text-decoration: none;">{% if lang == 'ms' %}Lihat semua freelancer →{% else %}Browse all freelancers →{% endif %}</a>
-                        </div>
-                        {% else %}
-                        <p style="color: rgba(255,255,255,0.35); font-size: 0.85rem; text-align: center; margin: 0;">{% if lang == 'ms' %}Tiada freelancer buat masa ini.{% else %}No freelancers available.{% endif %}</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Benefits Section -->
-        <div id="benefits-section" style="background: #ffffff; padding: 60px 20px; margin-top: 40px;">
+        <div id="benefits-section" style="background: #ffffff; padding: 60px 20px;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
                 <div style="text-align: center; margin-bottom: 16px;">
                     <span style="display: inline-block; background: #e6f7f1; color: #0D7C66; font-weight: 700; font-size: 0.85rem; padding: 6px 18px; border-radius: 999px; letter-spacing: 0.3px; border: 1px solid rgba(13,124,102,0.25);">
@@ -964,6 +869,128 @@
             </div>
         </div>
         <!-- ===== END HOW IT WORKS SECTION ===== -->
+
+        <!-- ===== STATS / SOCIAL PROOF SECTION ===== -->
+        <div id="stats-section" style="background: #111827; padding: 64px 20px;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto; text-align: center;">
+                <h2 style="font-size: clamp(1.4rem, 3.5vw, 1.9rem); font-weight: 800; color: white; margin: 0 0 8px;">
+                    {% if lang == 'ms' %}Platform yang Berkembang{% else %}A Growing Platform{% endif %}
+                </h2>
+                <p style="color: rgba(255,255,255,0.45); font-size: 0.95rem; margin: 0 0 40px;">
+                    {% if lang == 'ms' %}Nombor sebenar dari platform kami{% else %}Real numbers from our platform{% endif %}
+                </p>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px; max-width: 300px; background: #1f2937; padding: 32px 24px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                        <div style="font-size: 0.72rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px; font-weight: 700;">
+                            {% if lang == 'ms' %}Jumlah Gig{% else %}Active Gigs{% endif %}
+                        </div>
+                        <div style="font-size: 2.8rem; font-weight: 800; color: #1DBF73; line-height: 1;">{{ active_gigs_count }}</div>
+                    </div>
+                    <div style="flex: 1; min-width: 200px; max-width: 300px; background: #1f2937; padding: 32px 24px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+                        <div style="font-size: 0.72rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px; font-weight: 700;">
+                            {% if lang == 'ms' %}Jumlah Bayaran{% else %}Total Payout{% endif %}
+                        </div>
+                        <div style="font-size: 2.8rem; font-weight: 800; color: #1DBF73; line-height: 1;">{{ total_paid_year }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ===== END STATS SECTION ===== -->
+
+        <!-- ===== GIG LISTINGS SECTION ===== -->
+        <div id="gig-listings" style="background: #f8fafa; padding: 56px 20px;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+
+                <!-- Section header -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h2 style="font-size: 1.4rem; font-weight: 800; color: #111111; margin: 0 0 4px;">
+                            {% if lang == 'ms' %}Gig Terkini{% else %}Latest Gigs{% endif %}
+                        </h2>
+                        <p style="color: rgba(0,0,0,0.45); font-size: 0.9rem; margin: 0;">
+                            {% if lang == 'ms' %}Kerja halal terbaru di platform{% else %}Freshly posted halal work on the platform{% endif %}
+                        </p>
+                    </div>
+                    <a href="/gigs" style="font-size: 0.9rem; color: #0D7C66; font-weight: 700; text-decoration: none; border: 1.5px solid #0D7C66; padding: 8px 18px; border-radius: 8px; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='#0D7C66';this.style.color='white'" onmouseout="this.style.background='';this.style.color='#0D7C66'">
+                        {% if lang == 'ms' %}Lihat Semua Gig →{% else %}Browse All Gigs →{% endif %}
+                    </a>
+                </div>
+
+                <!-- Two-column layout: gig list + featured freelancers -->
+                <div style="display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;">
+
+                    <!-- Latest Gigs list -->
+                    <div style="flex: 1; min-width: 280px;">
+                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                            {% for gig in latest_gigs %}
+                            <li style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; padding: 14px 16px; background: white; border-radius: 12px; border: 1px solid rgba(0,0,0,0.07); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+                                <div style="display: flex; flex-direction: column; gap: 3px; max-width: 65%;">
+                                    <span style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #111111;">{{ gig.title }}</span>
+                                    <span style="font-size: 0.72rem; color: rgba(0,0,0,0.4);">👁️ {{ gig.views if gig.views is not none else 0 }} {% if lang == 'ms' %}tontonan{% else %}views{% endif %}</span>
+                                </div>
+                                <span style="font-size: 0.8rem; background: #e6f7f1; color: #0D7C66; padding: 4px 10px; border-radius: 20px; font-weight: 700; white-space: nowrap; flex-shrink: 0;">
+                                    {{ gig.applicant_count }} {% if lang == 'ms' %}pemohon{% else %}applicants{% endif %}
+                                </span>
+                            </li>
+                            {% else %}
+                            <li style="color: rgba(0,0,0,0.4); font-size: 0.95rem; text-align: center; padding: 24px; background: white; border-radius: 12px; border: 1px solid rgba(0,0,0,0.07);">
+                                {% if lang == 'ms' %}Tiada gig terkini{% else %}No latest gigs{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Featured Freelancers -->
+                    <div style="flex: 1; min-width: 280px; background: white; border-radius: 16px; padding: 20px; border: 1px solid rgba(0,0,0,0.07); box-shadow: 0 2px 12px rgba(0,0,0,0.04);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                            <span style="font-size: 0.78rem; color: rgba(0,0,0,0.45); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700;">
+                                {% if lang == 'ms' %}Freelancer Pilihan{% else %}Featured Freelancers{% endif %}
+                            </span>
+                            <span style="font-size: 0.72rem; color: #0D7C66; font-weight: 600;" title="{% if lang == 'ms' %}Dikemaskini setiap jam{% else %}Updates every hour{% endif %}">
+                                ⟳ <span id="hero-countdown">--:--</span>
+                            </span>
+                        </div>
+                        {% if featured_freelancers %}
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            {% for freelancer in featured_freelancers %}
+                            <a href="/profile/{{ freelancer.username }}" style="text-decoration: none; color: inherit; display: block;">
+                                <div style="background: #f8fafa; border-radius: 12px; padding: 12px 14px; border: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; transition: background 0.2s;" onmouseover="this.style.background='#e6f7f1'" onmouseout="this.style.background='#f8fafa'">
+                                    <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #0D7C66, #41B3A2); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 800; color: white; flex-shrink: 0; overflow: hidden;">
+                                        {% if freelancer.profile_photo %}
+                                            <img src="/uploads/profile_photos/{{ freelancer.profile_photo }}" alt="{{ freelancer.display_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                                        {% else %}
+                                            {{ freelancer.display_name[0].upper() }}
+                                        {% endif %}
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 1px;">
+                                            <span style="font-size: 0.88rem; font-weight: 700; color: #111111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ freelancer.display_name }}</span>
+                                            {% if freelancer.is_verified %}<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;background:#1DBF73;color:white;border-radius:50%;font-size:7px;flex-shrink:0;">✓</span>{% endif %}
+                                        </div>
+                                        <div style="font-size: 0.72rem; color: rgba(0,0,0,0.4);">
+                                            {% if freelancer._featured_spec %}{{ freelancer._featured_spec.specialization_title or freelancer._featured_spec.category.name }}{% elif freelancer.location %}{{ freelancer.location }}{% endif %}
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right; flex-shrink: 0;">
+                                        <div style="font-size: 0.78rem; color: #f59e0b; font-weight: 700;">★ {{ "%.1f"|format(freelancer.rating or 0) }}</div>
+                                        <div style="font-size: 0.68rem; color: rgba(0,0,0,0.3);">{{ freelancer.completed_gigs or 0 }} {% if lang == 'ms' %}gig{% else %}gigs{% endif %}</div>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        <div style="margin-top: 14px; text-align: center;">
+                            <a href="/workers" style="font-size: 0.82rem; color: #0D7C66; font-weight: 700; text-decoration: none;">{% if lang == 'ms' %}Lihat semua freelancer →{% else %}Browse all freelancers →{% endif %}</a>
+                        </div>
+                        {% else %}
+                        <p style="color: rgba(0,0,0,0.35); font-size: 0.85rem; text-align: center; margin: 0;">{% if lang == 'ms' %}Tiada freelancer buat masa ini.{% else %}No freelancers available.{% endif %}</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- ===== END GIG LISTINGS SECTION ===== -->
 
         <!-- Client Benefits Section -->
         <div id="client-section" style="background: #f8fafa; padding: 60px 20px; margin-top: 0;">
