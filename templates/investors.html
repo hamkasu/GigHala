@@ -413,6 +413,104 @@
             padding: 60px 20px;
         }
     }
+
+    /* ── Market Section ── */
+    .inv-market {
+        background: linear-gradient(160deg, #071f10 0%, #0a2e18 60%, #0d3d20 100%);
+        padding: 80px 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .inv-market::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 60% 50% at 80% 50%, rgba(13,124,102,0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .inv-market__inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .inv-market__label {
+        display: inline-block;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: rgba(255,255,255,0.82);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 6px 18px;
+        border-radius: 999px;
+        margin-bottom: 20px;
+    }
+
+    .inv-market__heading {
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.2;
+        margin: 0 0 12px;
+        max-width: 560px;
+    }
+
+    .inv-market__sub {
+        color: rgba(255,255,255,0.62);
+        font-size: 1rem;
+        line-height: 1.7;
+        max-width: 520px;
+        margin: 0 0 52px;
+    }
+
+    .inv-market__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .inv-market__card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px;
+        padding: 28px 24px;
+        backdrop-filter: blur(4px);
+    }
+
+    .inv-market__card-icon {
+        font-size: 24px;
+        margin-bottom: 14px;
+    }
+
+    .inv-market__card-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 8px;
+    }
+
+    .inv-market__card-body {
+        font-size: 0.86rem;
+        color: rgba(255,255,255,0.58);
+        line-height: 1.65;
+        margin: 0;
+    }
+
+    .inv-market__card-body strong {
+        color: #4ecdc4;
+        font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+        .inv-market {
+            padding: 60px 20px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -575,6 +673,48 @@
                 <p class="inv-product__block-body">
                     Worker accident coverage is activated automatically on every
                     transaction — a first in Malaysia's gig economy.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ MARKET OPPORTUNITY ══ -->
+<section class="inv-market">
+    <div class="inv-market__inner">
+        <div class="inv-market__label">Market Opportunity</div>
+        <h2 class="inv-market__heading">Starting in Malaysia. Built to scale across SEA.</h2>
+        <p class="inv-market__sub">
+            Malaysia is an ideal first market — high smartphone penetration,
+            a majority-Muslim population, growing freelance culture, and clear
+            regulatory frameworks for gig work and payments.
+        </p>
+        <div class="inv-market__grid">
+            <div class="inv-market__card">
+                <div class="inv-market__card-icon">🇲🇾</div>
+                <div class="inv-market__card-title">Malaysia — Home Market</div>
+                <p class="inv-market__card-body">
+                    A fast-growing gig workforce with <strong>no dominant local platform</strong>.
+                    GigHala is purpose-built for the language, currency, compliance
+                    requirements, and cultural context that global players ignore.
+                </p>
+            </div>
+            <div class="inv-market__card">
+                <div class="inv-market__card-icon">🌏</div>
+                <div class="inv-market__card-title">Southeast Asia — Expansion Path</div>
+                <p class="inv-market__card-body">
+                    Indonesia, Bangladesh, Pakistan, and the broader Muslim-majority
+                    SEA belt share the same trust gap. The same platform model
+                    — <strong>verified, protected, halal-ready</strong> — applies directly.
+                </p>
+            </div>
+            <div class="inv-market__card">
+                <div class="inv-market__card-icon">📈</div>
+                <div class="inv-market__card-title">Demand Is Already Here</div>
+                <p class="inv-market__card-body">
+                    SMEs need affordable, flexible talent. Students want legitimate
+                    income. Freelancers need protection and reliable pay.
+                    <strong>All three are underserved</strong> by existing platforms today.
                 </p>
             </div>
         </div>
