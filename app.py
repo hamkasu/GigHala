@@ -13743,6 +13743,11 @@ def about():
     """Serve the About Us page"""
     return render_template('about.html', lang=get_user_language(), t=t)
 
+@app.route('/investors')
+def investors():
+    """Serve the Investors page"""
+    return render_template('investors.html', lang=get_user_language(), t=t)
+
 @app.route('/blog')
 def blog():
     """Blog listing page — SEO-optimised content hub"""
