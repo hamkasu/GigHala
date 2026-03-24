@@ -227,6 +227,112 @@
             padding: 60px 20px;
         }
     }
+
+    /* ── Solution Section ── */
+    .inv-solution {
+        background: #ffffff;
+        padding: 80px 24px;
+    }
+
+    .inv-solution__inner {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .inv-solution__header {
+        max-width: 600px;
+        margin-bottom: 52px;
+    }
+
+    .inv-solution__heading {
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        font-weight: 800;
+        color: #111111;
+        line-height: 1.2;
+        margin: 0 0 12px;
+    }
+
+    .inv-solution__sub {
+        color: rgba(0,0,0,0.5);
+        font-size: 1rem;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .inv-solution__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .inv-solution__card {
+        border-radius: 16px;
+        border: 2px solid rgba(13,124,102,0.2);
+        padding: 32px 28px;
+        box-shadow: 0 4px 16px rgba(13,124,102,0.07);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .inv-solution__card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(13,124,102,0.04) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .inv-solution__num {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #0D7C66;
+        margin-bottom: 20px;
+    }
+
+    .inv-solution__icon {
+        width: 48px;
+        height: 48px;
+        background: #e6f7f1;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        margin-bottom: 18px;
+        border: 1px solid rgba(13,124,102,0.15);
+    }
+
+    .inv-solution__card-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #111111;
+        margin-bottom: 10px;
+    }
+
+    .inv-solution__card-body {
+        font-size: 0.88rem;
+        color: rgba(0,0,0,0.55);
+        line-height: 1.7;
+        margin: 0 0 20px;
+    }
+
+    .inv-solution__tag {
+        display: inline-block;
+        background: #e6f7f1;
+        color: #0D7C66;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+    }
+
+    @media (max-width: 600px) {
+        .inv-solution {
+            padding: 60px 20px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -293,6 +399,55 @@
                     Global platforms ignore local context — Bahasa Malaysia, Ringgit,
                     halal compliance, and Malaysia-specific regulations.
                 </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══ SOLUTION ══ -->
+<section class="inv-solution">
+    <div class="inv-solution__inner">
+        <div class="inv-solution__header">
+            <div class="inv-section-label">The Solution</div>
+            <h2 class="inv-solution__heading">One platform. Three layers of trust.</h2>
+            <p class="inv-solution__sub">
+                GigHala replaces fragmented workarounds with a single, integrated
+                stack — purpose-built for Southeast Asia's gig economy.
+            </p>
+        </div>
+        <div class="inv-solution__grid">
+            <div class="inv-solution__card">
+                <div class="inv-solution__num">01</div>
+                <div class="inv-solution__icon">✅</div>
+                <div class="inv-solution__card-title">Verified Hiring</div>
+                <p class="inv-solution__card-body">
+                    Every freelancer is identity-verified and every gig is
+                    AI-screened for halal compliance before going live.
+                    Clients hire with confidence; workers compete on merit.
+                </p>
+                <span class="inv-solution__tag">Trust layer</span>
+            </div>
+            <div class="inv-solution__card">
+                <div class="inv-solution__num">02</div>
+                <div class="inv-solution__icon">🔒</div>
+                <div class="inv-solution__card-title">Escrow Payments</div>
+                <p class="inv-solution__card-body">
+                    Funds are held in escrow and released only on work approval.
+                    Interest-free, instant bank payout, fully compliant with
+                    Islamic finance principles.
+                </p>
+                <span class="inv-solution__tag">Payment layer</span>
+            </div>
+            <div class="inv-solution__card">
+                <div class="inv-solution__num">03</div>
+                <div class="inv-solution__icon">🛡️</div>
+                <div class="inv-solution__card-title">Worker Protection</div>
+                <p class="inv-solution__card-body">
+                    Automatic SOCSO registration on every transaction —
+                    accident coverage, disability benefits, and survivor
+                    benefits built into the platform, not bolted on.
+                </p>
+                <span class="inv-solution__tag">Protection layer</span>
             </div>
         </div>
     </div>
