@@ -1036,6 +1036,10 @@
             text-align: center;
         }
     }
+
+    /* Hide footer elements not relevant to the investor audience */
+    .payhalal-notice { display: none !important; }
+    .footer-links li:has(a[href="/urgent-help"]) { display: none !important; }
 </style>
 {% endblock %}
 
