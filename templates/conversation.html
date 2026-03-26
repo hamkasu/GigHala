@@ -319,6 +319,43 @@
             min-height: 44px;
             font-size: 16px; /* Prevents zoom on iOS */
         }
+
+        .copy-btn {
+            opacity: 1 !important;
+        }
+    }
+
+    .message-bubble-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .message.sent .message-bubble-wrapper {
+        flex-direction: row-reverse;
+    }
+    .copy-btn {
+        opacity: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px 5px;
+        border-radius: 6px;
+        color: var(--text-gray);
+        line-height: 1;
+        transition: opacity 0.15s, background 0.15s, color 0.15s;
+        flex-shrink: 0;
+    }
+    .message-bubble-wrapper:hover .copy-btn {
+        opacity: 1;
+    }
+    .copy-btn:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+    .copy-btn.copied {
+        color: var(--primary);
+        opacity: 1;
     }
 </style>
 {% endblock %}
@@ -344,7 +381,12 @@
                 {% if msg.sender_id != user.id %}
                 <div class="message-sender">{{ msg.sender.full_name or msg.sender.username }}{% if msg.sender.username == 'support' %}<span class="support-badge">SUPPORT</span>{% endif %}</div>
                 {% endif %}
-                <div class="message-bubble">{{ msg.content }}</div>
+                <div class="message-bubble-wrapper">
+                    <div class="message-bubble">{{ msg.content }}</div>
+                    <button class="copy-btn" onclick="copyMessage(this)" title="Copy message">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
                 <span class="message-time">{{ msg.created_at.strftime('%d %b, %H:%M') }}</span>
             </div>
             {% endfor %}
@@ -428,14 +470,41 @@ function appendMessage(msg, isSent) {
         senderHtml = `<div class="message-sender">${escapeHtml(msg.sender_name)}${supportBadge}</div>`;
     }
     
+    const copyIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
     msgEl.innerHTML = `
         ${senderHtml}
-        <div class="message-bubble">${escapeHtml(msg.content)}</div>
+        <div class="message-bubble-wrapper">
+            <div class="message-bubble">${escapeHtml(msg.content)}</div>
+            <button class="copy-btn" onclick="copyMessage(this)" title="Copy message">${copyIcon}</button>
+        </div>
         <span class="message-time">${timeStr}</span>
     `;
     
     messagesArea.appendChild(msgEl);
     messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+
+function copyMessage(btn) {
+    const bubble = btn.closest('.message-bubble-wrapper').querySelector('.message-bubble');
+    const text = bubble.textContent;
+    const copyIcon = btn.innerHTML;
+
+    navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        setTimeout(() => {
+            btn.innerHTML = copyIcon;
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(() => {
+        const range = document.createRange();
+        range.selectNodeContents(bubble);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('copy');
+        sel.removeAllRanges();
+    });
 }
 
 function escapeHtml(text) {
