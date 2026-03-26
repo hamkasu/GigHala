@@ -22523,6 +22523,48 @@ def view_conversation(conversation_id):
     
     return render_template('conversation.html', user=user, conversation=conv, other_user=other_user, messages=messages_list, gig=gig, active_page='messages', lang=get_user_language(), t=t)
 
+MESSAGE_IMAGE_FOLDER = os.path.join(UPLOAD_FOLDER, 'messages')
+os.makedirs(MESSAGE_IMAGE_FOLDER, exist_ok=True)
+
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+@app.route('/uploads/messages/<filename>')
+@login_required
+def serve_message_image(filename):
+    """Serve message images (authenticated users only)"""
+    safe_path = os.path.abspath(os.path.join(MESSAGE_IMAGE_FOLDER, filename))
+    if not safe_path.startswith(os.path.abspath(MESSAGE_IMAGE_FOLDER)):
+        return jsonify({'error': 'Forbidden'}), 403
+    return send_from_directory(MESSAGE_IMAGE_FOLDER, filename)
+
+@app.route('/api/messages/upload-image', methods=['POST'])
+@login_required
+def upload_message_image():
+    """Upload an image to be attached to a chat message"""
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image provided'}), 400
+        file = request.files['image']
+        if not file or not file.filename:
+            return jsonify({'error': 'No image provided'}), 400
+        ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+        if ext not in ALLOWED_IMAGE_EXTENSIONS:
+            return jsonify({'error': 'File type not allowed'}), 400
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > MAX_FILE_SIZE:
+            return jsonify({'error': 'Image exceeds 5 MB limit'}), 400
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        save_path = os.path.join(MESSAGE_IMAGE_FOLDER, filename)
+        if not os.path.abspath(save_path).startswith(os.path.abspath(MESSAGE_IMAGE_FOLDER)):
+            return jsonify({'error': 'Invalid path'}), 400
+        file.save(save_path)
+        return jsonify({'url': f'/uploads/messages/{filename}'}), 200
+    except Exception as e:
+        app.logger.error(f"Message image upload error: {str(e)}")
+        return jsonify({'error': 'Upload failed'}), 500
+
 @app.route('/api/messages/send', methods=['POST'])
 @login_required
 def send_message():
@@ -22532,14 +22574,17 @@ def send_message():
         data = request.json
         conversation_id = data.get('conversation_id')
         content = data.get('content', '').strip()
+        attachment_url = data.get('attachment_url', '').strip()
+        msg_type = data.get('message_type', 'text')
 
-        if not content:
+        if not content and not attachment_url:
             return jsonify({'error': 'Message cannot be empty'}), 400
 
         # Check for blocked contact information (phone numbers, emails)
-        is_blocked, block_reason = contains_blocked_contact_info(content)
-        if is_blocked:
-            return jsonify({'error': block_reason}), 400
+        if content:
+            is_blocked, block_reason = contains_blocked_contact_info(content)
+            if is_blocked:
+                return jsonify({'error': block_reason}), 400
 
         conv = Conversation.query.get(conversation_id)
         if not conv or (conv.participant_1_id != user_id and conv.participant_2_id != user_id):
@@ -22548,7 +22593,9 @@ def send_message():
         message = Message(
             conversation_id=conversation_id,
             sender_id=user_id,
-            content=content
+            content=content or '[Image]',
+            message_type=msg_type if msg_type in ('text', 'image') else 'text',
+            attachment_url=attachment_url or None
         )
         conv.last_message_at = datetime.utcnow()
         db.session.add(message)
