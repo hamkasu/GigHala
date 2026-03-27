@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if lang == 'ms' %}GigHala — Hire Freelancer Halal Malaysia | SOCSO, Escrow Selamat{% else %}GigHala — Hire Halal Freelancers in Malaysia | SOCSO Protected, Secure Escrow{% endif %}</title>
-    <meta name="description" content="{% if lang == 'ms' %}Platform freelancer halal #1 Malaysia. Hire freelancer terverifikasi atau cari kerja gig — 100% Halal Verified, dilindungi SOCSO, bayaran escrow selamat, instant ke bank anda. Daftar percuma.{% else %}Malaysia's #1 halal freelancer platform. Hire verified freelancers or find gig work — 100% Halal Verified, SOCSO protected, secure escrow payments, instant bank payouts. Free to register.{% endif %}">
+    <meta name="description" content="{% if lang == 'ms' %}Platform freelancer halal #1 Malaysia. Hire freelancer disahkan atau cari kerja gig — 100% Halal Verified, dilindungi SOCSO, bayaran escrow selamat, instant ke bank anda. Daftar percuma.{% else %}Malaysia's #1 halal freelancer platform. Hire verified freelancers or find gig work — 100% Halal Verified, SOCSO protected, secure escrow payments, instant bank payouts. Free to register.{% endif %}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Preload critical resources -->
     <link rel="preload" href="/static/css/style.css" as="style">
@@ -631,7 +631,7 @@
                 <!-- Trust Badge Strip -->
                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 28px;">
                     <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);">
-                        ✓ {% if lang == 'ms' %}Pengguna Terverifikasi{% else %}Verified Users{% endif %}
+                        ✓ {% if lang == 'ms' %}Pengguna Disahkan{% else %}Verified Users{% endif %}
                     </div>
                     <div style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);">
                         🔒 {% if lang == 'ms' %}Perlindungan Escrow{% else %}Escrow Protection{% endif %}
@@ -677,7 +677,7 @@
                         <div style="position: absolute; top: -16px; right: -16px; width: 90px; height: 90px; background: radial-gradient(circle, rgba(13,124,102,0.08) 0%, transparent 70%); border-radius: 50%;"></div>
                         <div style="width: 52px; height: 52px; background: #e6f7f1; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; border: 1px solid rgba(13,124,102,0.15);">✓</div>
                         <h3 style="font-size: 1.15rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
-                            {% if lang == 'ms' %}Pengguna Terverifikasi{% else %}Verified Users{% endif %}
+                            {% if lang == 'ms' %}Pengguna Disahkan{% else %}Verified Users{% endif %}
                         </h3>
                         <p style="color: rgba(0,0,0,0.6); font-size: 0.95rem; line-height: 1.65; margin: 0;">
                             {% if lang == 'ms' %}Kami mengesahkan identiti freelancer dan klien untuk mengurangkan risiko. Tiada akaun tanpa nama — anda sentiasa tahu siapa yang anda berurusan.{% else %}We verify freelancers and clients to reduce risk. No anonymous accounts — you always know who you're dealing with.{% endif %}
@@ -819,7 +819,7 @@
                             {% if lang == 'ms' %}Siarkan atau Cari Kerja{% else %}Post or Find Work{% endif %}
                         </h3>
                         <p style="color: rgba(0,0,0,0.6); font-size: 0.9rem; line-height: 1.65; margin: 0;">
-                            {% if lang == 'ms' %}Klien siarkan kerja dalam minit. Freelancer semak senarai halal terverifikasi — tiada kecoh, hanya kerja sebenar.{% else %}Clients post a job in minutes. Freelancers browse halal-verified listings — no noise, just real work.{% endif %}
+                            {% if lang == 'ms' %}Klien siarkan kerja dalam minit. Freelancer semak senarai halal disahkan — tiada kecoh, hanya kerja sebenar.{% else %}Clients post a job in minutes. Freelancers browse halal-verified listings — no noise, just real work.{% endif %}
                         </p>
                     </div>
 
@@ -830,7 +830,7 @@
                             <div style="height: 2px; flex: 1; background: rgba(13,124,102,0.15); border-radius: 2px;"></div>
                         </div>
                         <h3 style="font-size: 1.05rem; font-weight: 800; color: #111111; margin-bottom: 10px;">
-                            {% if lang == 'ms' %}Hubungi Pengguna Terverifikasi{% else %}Connect with Verified Users{% endif %}
+                            {% if lang == 'ms' %}Hubungi Pengguna Disahkan{% else %}Connect with Verified Users{% endif %}
                         </h3>
                         <p style="color: rgba(0,0,0,0.6); font-size: 0.9rem; line-height: 1.65; margin: 0;">
                             {% if lang == 'ms' %}Setiap akaun disahkan identiti. Anda tahu siapa yang anda berurusan sebelum sebarang pesan dihantar.{% else %}Every account is identity-verified. You know exactly who you're working with before a single message is sent.{% endif %}
@@ -1010,7 +1010,7 @@
                     <div class="benefit-card" style="background: white; padding: 24px; border-radius: 16px; border: 2px solid rgba(13, 124, 102, 0.2); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); transition: all 0.3s ease;">
                         <div style="font-size: 48px; margin-bottom: 12px;">🎓</div>
                         <h3 style="font-size: 1.2rem; font-weight: 700; color: black; margin-bottom: 8px;">
-                            {% if lang == 'ms' %}Akses kepada Pekerja Terverifikasi{% else %}Access to Verified Talent{% endif %}
+                            {% if lang == 'ms' %}Akses kepada Pekerja Disahkan{% else %}Access to Verified Talent{% endif %}
                         </h3>
                         <p style="color: rgba(0, 0, 0, 0.7); font-size: 0.95rem; line-height: 1.5; margin: 0;">
                             {% if lang == 'ms' %}Pekerja mahir yang telah disahkan halal{% else %}Skilled workers verified for halal compliance{% endif %}

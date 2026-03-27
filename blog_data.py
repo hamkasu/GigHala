@@ -1018,7 +1018,7 @@ BLOG_ARTICLES = [
     <div class="highlight-box">
         <p><strong>Contoh:</strong> Jika anda menghabiskan 10 jam seminggu untuk pengurusan media sosial, dan masa anda bernilai RM100/jam — kos anda sebenarnya RM1,000/minggu. Seorang freelancer media sosial berpengalaman boleh dibayar RM800–RM1,500 sebulan. Penjimatan: RM2,500+ sebulan, tambah masa anda bebas untuk fokus pada jualan.</p>
     </div>
-    <p>GigHala mempunyai lebih 500 freelancer terverifikasi merentasi 29 kategori halal — sedia untuk bantu PKS anda berkembang.</p>
+    <p>GigHala mempunyai lebih 500 freelancer disahkan merentasi 29 kategori halal — sedia untuk bantu PKS anda berkembang.</p>
     <div style="text-align: center; margin: 32px 0;">
         <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Cari Freelancer untuk Perniagaan Anda →</a>
     </div>
