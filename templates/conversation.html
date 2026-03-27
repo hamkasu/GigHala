@@ -319,6 +319,118 @@
             min-height: 44px;
             font-size: 16px; /* Prevents zoom on iOS */
         }
+
+        .copy-btn {
+            opacity: 1 !important;
+        }
+    }
+
+    .message-bubble-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .message.sent .message-bubble-wrapper {
+        flex-direction: row-reverse;
+    }
+    .copy-btn {
+        opacity: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px 5px;
+        border-radius: 6px;
+        color: var(--text-gray);
+        line-height: 1;
+        transition: opacity 0.15s, background 0.15s, color 0.15s;
+        flex-shrink: 0;
+    }
+    .message-bubble-wrapper:hover .copy-btn {
+        opacity: 1;
+    }
+    .copy-btn:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+    .copy-btn.copied {
+        color: var(--primary);
+        opacity: 1;
+    }
+    .message-image {
+        max-width: 260px;
+        max-height: 260px;
+        border-radius: 10px;
+        display: block;
+        cursor: zoom-in;
+        object-fit: contain;
+    }
+    .image-caption {
+        margin-top: 6px;
+        font-size: 13px;
+    }
+    .image-paste-preview {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: var(--bg-light);
+        border-radius: 12px;
+        border: 1px dashed var(--primary);
+        margin-bottom: 8px;
+    }
+    .image-paste-preview.visible {
+        display: flex;
+    }
+    .image-paste-preview img {
+        height: 52px;
+        width: 52px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+    .image-paste-preview .preview-label {
+        flex: 1;
+        font-size: 13px;
+        color: var(--text-gray);
+    }
+    .image-paste-preview .remove-preview {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-gray);
+        font-size: 18px;
+        line-height: 1;
+        padding: 0 4px;
+    }
+    /* Lightbox modal */
+    .img-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .img-modal-overlay.open {
+        display: flex;
+    }
+    .img-modal-overlay img {
+        max-width: 90vw;
+        max-height: 90vh;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+    .img-modal-close {
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        line-height: 1;
     }
 </style>
 {% endblock %}
@@ -344,7 +456,19 @@
                 {% if msg.sender_id != user.id %}
                 <div class="message-sender">{{ msg.sender.full_name or msg.sender.username }}{% if msg.sender.username == 'support' %}<span class="support-badge">SUPPORT</span>{% endif %}</div>
                 {% endif %}
-                <div class="message-bubble">{{ msg.content }}</div>
+                <div class="message-bubble-wrapper">
+                    <div class="message-bubble">
+                        {% if msg.message_type == 'image' and msg.attachment_url %}
+                            <img src="{{ msg.attachment_url }}" class="message-image" alt="Image" onclick="openImageModal(this.src)">
+                            {% if msg.content and msg.content != '[Image]' %}<div class="image-caption">{{ msg.content }}</div>{% endif %}
+                        {% else %}
+                            {{ msg.content }}
+                        {% endif %}
+                    </div>
+                    <button class="copy-btn" onclick="copyMessage(this)" title="Copy message">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
                 <span class="message-time">{{ msg.created_at.strftime('%d %b, %H:%M') }}</span>
             </div>
             {% endfor %}
@@ -355,11 +479,21 @@
         {% endif %}
     </div>
 
+    <div class="image-paste-preview" id="imagePastePreview">
+        <img id="pastePreviewImg" src="" alt="Preview">
+        <span class="preview-label">Image ready to send</span>
+        <button class="remove-preview" id="removePasteBtn" title="Remove">&times;</button>
+    </div>
     <form class="chat-input-area" id="messageForm">
         <div id="messageError" class="message-error" style="display: none;"></div>
         <input type="text" class="chat-input" id="messageInput" placeholder="{{ t('type_message') }}" autocomplete="off">
         <button type="submit" class="send-btn" id="sendBtn">{{ t('send_message') }}</button>
     </form>
+</div>
+
+<div class="img-modal-overlay" id="imgModalOverlay" onclick="closeImageModal()">
+    <button class="img-modal-close" onclick="closeImageModal()">&times;</button>
+    <img id="imgModalImg" src="" alt="">
 </div>
 
 <script>
@@ -374,20 +508,77 @@ const sendBtn = document.getElementById('sendBtn');
 
 messagesArea.scrollTop = messagesArea.scrollHeight;
 
+// --- Image paste support ---
+let pendingImageFile = null;
+
+const imagePastePreview = document.getElementById('imagePastePreview');
+const pastePreviewImg = document.getElementById('pastePreviewImg');
+const removePasteBtn = document.getElementById('removePasteBtn');
+
+document.addEventListener('paste', function(e) {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const item of items) {
+        if (item.type.startsWith('image/')) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            if (!file) return;
+            pendingImageFile = file;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                pastePreviewImg.src = ev.target.result;
+                imagePastePreview.classList.add('visible');
+                messageInput.focus();
+            };
+            reader.readAsDataURL(file);
+            break;
+        }
+    }
+});
+
+removePasteBtn.addEventListener('click', function() {
+    pendingImageFile = null;
+    pastePreviewImg.src = '';
+    imagePastePreview.classList.remove('visible');
+});
+
 messageForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const content = messageInput.value.trim();
-    if (!content) return;
+    if (!content && !pendingImageFile) return;
 
     sendBtn.disabled = true;
 
     try {
+        let attachmentUrl = '';
+        let messageType = 'text';
+
+        if (pendingImageFile) {
+            const formData = new FormData();
+            formData.append('image', pendingImageFile);
+            const uploadRes = await fetch('/api/messages/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+            if (!uploadRes.ok) {
+                const err = await uploadRes.json();
+                showError(err.error || 'Image upload failed');
+                sendBtn.disabled = false;
+                return;
+            }
+            const uploadData = await uploadRes.json();
+            attachmentUrl = uploadData.url;
+            messageType = 'image';
+        }
+
         const response = await fetch('/api/messages/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 conversation_id: conversationId,
-                content: content
+                content: content,
+                attachment_url: attachmentUrl,
+                message_type: messageType
             })
         });
 
@@ -395,6 +586,9 @@ messageForm.addEventListener('submit', async function(e) {
             const data = await response.json();
             appendMessage(data.message, true);
             messageInput.value = '';
+            pendingImageFile = null;
+            pastePreviewImg.src = '';
+            imagePastePreview.classList.remove('visible');
             lastMessageId = data.message.id;
             clearError();
         } else {
@@ -428,15 +622,67 @@ function appendMessage(msg, isSent) {
         senderHtml = `<div class="message-sender">${escapeHtml(msg.sender_name)}${supportBadge}</div>`;
     }
     
+    const copyIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+
+    let bubbleContent;
+    if (msg.message_type === 'image' && msg.attachment_url) {
+        const caption = (msg.content && msg.content !== '[Image]')
+            ? `<div class="image-caption">${escapeHtml(msg.content)}</div>`
+            : '';
+        bubbleContent = `<img src="${escapeHtml(msg.attachment_url)}" class="message-image" alt="Image" onclick="openImageModal(this.src)">${caption}`;
+    } else {
+        bubbleContent = escapeHtml(msg.content);
+    }
+
     msgEl.innerHTML = `
         ${senderHtml}
-        <div class="message-bubble">${escapeHtml(msg.content)}</div>
+        <div class="message-bubble-wrapper">
+            <div class="message-bubble">${bubbleContent}</div>
+            <button class="copy-btn" onclick="copyMessage(this)" title="Copy message">${copyIcon}</button>
+        </div>
         <span class="message-time">${timeStr}</span>
     `;
     
     messagesArea.appendChild(msgEl);
     messagesArea.scrollTop = messagesArea.scrollHeight;
 }
+
+function copyMessage(btn) {
+    const bubble = btn.closest('.message-bubble-wrapper').querySelector('.message-bubble');
+    const text = bubble.textContent;
+    const copyIcon = btn.innerHTML;
+
+    navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        setTimeout(() => {
+            btn.innerHTML = copyIcon;
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(() => {
+        const range = document.createRange();
+        range.selectNodeContents(bubble);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('copy');
+        sel.removeAllRanges();
+    });
+}
+
+function openImageModal(src) {
+    document.getElementById('imgModalImg').src = src;
+    document.getElementById('imgModalOverlay').classList.add('open');
+}
+
+function closeImageModal() {
+    document.getElementById('imgModalOverlay').classList.remove('open');
+    document.getElementById('imgModalImg').src = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeImageModal();
+});
 
 function escapeHtml(text) {
     const div = document.createElement('div');
