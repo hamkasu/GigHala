@@ -1614,6 +1614,13 @@ def generate_email_verification_token():
     """Generate a secure random token for email verification"""
     return secrets.token_urlsafe(32)
 
+def generate_referral_code():
+    """Generate a unique 8-character alphanumeric referral code"""
+    while True:
+        code = secrets.token_hex(4).upper()  # 8 hex chars (0-9, A-F)
+        if not User.query.filter_by(referral_code=code).first():
+            return code
+
 def send_verification_email(user_email, token, username):
     """
     Send email verification link to user
@@ -1709,6 +1716,35 @@ def verify_email_token(token):
         user.is_verified = True
         user.email_verification_token = None
         user.email_verification_expires = None
+
+        # Credit referral bonus (RM5) to the referrer if applicable
+        if user.referred_by_id and not user.referral_bonus_credited:
+            try:
+                referral_record = Referral.query.filter_by(
+                    referred_id=user.id, status='pending'
+                ).first()
+                referrer_wallet = Wallet.query.filter_by(user_id=user.referred_by_id).first()
+                if referral_record and referrer_wallet:
+                    bonus = referral_record.bonus_amount
+                    balance_before = referrer_wallet.balance
+                    referrer_wallet.balance += bonus
+                    referrer_wallet.total_earned += bonus
+                    referral_record.status = 'credited'
+                    referral_record.credited_at = datetime.utcnow()
+                    user.referral_bonus_credited = True
+                    history = PaymentHistory(
+                        user_id=user.referred_by_id,
+                        type='referral_bonus',
+                        amount=bonus,
+                        balance_before=balance_before,
+                        balance_after=referrer_wallet.balance,
+                        description=f"Referral bonus for inviting {user.username}",
+                        reference_number=f"REF-{user.id}"
+                    )
+                    db.session.add(history)
+            except Exception as ref_err:
+                app.logger.error(f"Error crediting referral bonus: {ref_err}")
+
         db.session.commit()
 
         app.logger.info(f"Email verified for user {user.username} ({user.email})")
@@ -2510,6 +2546,10 @@ class User(UserMixin, db.Model):
     profile_photo = db.Column(db.String(255))  # Filename of uploaded profile photo
     # External portfolio URL
     portfolio_url = db.Column(db.String(500))  # Link to external portfolio website
+    # Referral system
+    referral_code = db.Column(db.String(10), unique=True)  # Unique referral code for this user
+    referred_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # User who referred this user
+    referral_bonus_credited = db.Column(db.Boolean, default=False)  # Whether referrer received bonus for this user
 
     @property
     def profile_picture(self):
@@ -2583,6 +2623,19 @@ class EmailSendLog(db.Model):
 
     sender = db.relationship('User', foreign_keys=[sender_user_id], backref='sent_emails')
     recipient_user = db.relationship('User', foreign_keys=[recipient_user_id], backref='received_emails')
+
+class Referral(db.Model):
+    """Tracks referrals – one row per referred user"""
+    id = db.Column(db.Integer, primary_key=True)
+    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    referred_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    bonus_amount = db.Column(db.Float, default=5.0)  # RM5 per successful referral
+    status = db.Column(db.String(20), default='pending')  # pending, credited
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    credited_at = db.Column(db.DateTime)
+
+    referrer = db.relationship('User', foreign_keys=[referrer_id], backref='referrals_made')
+    referred = db.relationship('User', foreign_keys=[referred_id], backref='referral_record')
 
 class Gig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -5628,6 +5681,14 @@ def register():
         if User.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username already taken'}), 400
 
+        # Validate referral code if provided
+        referral_code_used = data.get('referral_code', '').strip().upper()
+        referrer = None
+        if referral_code_used:
+            referrer = User.query.filter_by(referral_code=referral_code_used).first()
+            if not referrer:
+                return jsonify({'error': 'Invalid referral code'}), 400
+
         # Sanitize text inputs
         full_name = sanitize_input(data.get('full_name', ''), max_length=120)
         location = sanitize_input(data.get('location', ''), max_length=100)
@@ -5653,10 +5714,24 @@ def register():
             socso_data_complete=bool(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False,
             email_verification_token=verification_token,
             email_verification_expires=verification_expires,
-            is_verified=False  # User needs to verify email
+            is_verified=False,  # User needs to verify email
+            referral_code=generate_referral_code(),
+            referred_by_id=referrer.id if referrer else None
         )
 
         db.session.add(new_user)
+        db.session.flush()  # Get new_user.id before commit
+
+        # Create referral record if referred by someone
+        if referrer:
+            referral_record = Referral(
+                referrer_id=referrer.id,
+                referred_id=new_user.id,
+                bonus_amount=5.0,
+                status='pending'
+            )
+            db.session.add(referral_record)
+
         db.session.commit()
 
         session['user_id'] = new_user.id
@@ -5694,7 +5769,8 @@ def register():
                 'username': new_user.username,
                 'email': new_user.email,
                 'user_type': new_user.user_type,
-                'is_verified': new_user.is_verified
+                'is_verified': new_user.is_verified,
+                'referral_code': new_user.referral_code
             }
         }), 201
     except Exception as e:
@@ -16704,6 +16780,32 @@ def socso_statement():
                          active_page='billing',
                          lang=get_user_language(),
                          t=t)
+
+@app.route('/api/referral/info', methods=['GET'])
+@login_required
+def get_referral_info():
+    """Get current user's referral code and stats"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        referrals = Referral.query.filter_by(referrer_id=user.id).all()
+        credited = [r for r in referrals if r.status == 'credited']
+        total_earned = sum(r.bonus_amount for r in credited)
+
+        return jsonify({
+            'referral_code': user.referral_code,
+            'referral_link': f"{os.getenv('APP_URL', 'https://gighala.my')}/register?ref={user.referral_code}",
+            'total_referrals': len(referrals),
+            'successful_referrals': len(credited),
+            'total_earned': round(total_earned, 2),
+            'bonus_per_referral': 5.0,
+            'currency': 'MYR'
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Get referral info error: {str(e)}")
+        return jsonify({'error': 'Failed to fetch referral info'}), 500
 
 @app.route('/api/billing/wallet', methods=['GET'])
 @login_required
