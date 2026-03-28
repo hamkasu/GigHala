@@ -65,7 +65,7 @@ def run_migration():
             else:
                 print("  - referral_bonus_credited already exists, skipping")
 
-            # 4. Create referral table
+            # 4. Create or update referral table
             if not check_table_exists('referral'):
                 print("Creating referral table...")
                 conn.execute(text("""
@@ -75,6 +75,8 @@ def run_migration():
                         referred_id INTEGER NOT NULL UNIQUE REFERENCES "user"(id),
                         bonus_amount FLOAT DEFAULT 5.0,
                         status VARCHAR(20) DEFAULT 'pending',
+                        registration_ip VARCHAR(45),
+                        credit_after TIMESTAMP,
                         created_at TIMESTAMP DEFAULT NOW(),
                         credited_at TIMESTAMP
                     )
@@ -82,7 +84,17 @@ def run_migration():
                 conn.commit()
                 print("  ✓ referral table created")
             else:
-                print("  - referral table already exists, skipping")
+                print("  - referral table exists; checking for missing columns...")
+                for col, defn in [
+                    ('registration_ip', 'VARCHAR(45)'),
+                    ('credit_after', 'TIMESTAMP'),
+                ]:
+                    if not check_column_exists('referral', col):
+                        conn.execute(text(f"ALTER TABLE referral ADD COLUMN {col} {defn}"))
+                        conn.commit()
+                        print(f"    ✓ referral.{col} added")
+                    else:
+                        print(f"    - referral.{col} already exists")
 
             # 5. Backfill referral_code for existing users who don't have one
             print("Backfilling referral codes for existing users...")

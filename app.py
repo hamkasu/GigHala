@@ -1693,6 +1693,58 @@ def send_verification_email(user_email, token, username):
         app.logger.error(f"Error sending verification email to {user_email}: {str(e)}")
         return False, f"Error sending email: {str(e)}"
 
+def _apply_referral_credit(referral_record, referred_user):
+    """Credit RM5 referral bonus to the referrer's wallet. Call inside an active db.session."""
+    referrer_wallet = Wallet.query.filter_by(user_id=referral_record.referrer_id).first()
+    if not referrer_wallet:
+        return
+    bonus = referral_record.bonus_amount
+    balance_before = referrer_wallet.balance
+    referrer_wallet.balance += bonus
+    referrer_wallet.total_earned += bonus
+    referral_record.status = 'credited'
+    referral_record.credited_at = datetime.utcnow()
+    referred_user.referral_bonus_credited = True
+    history = PaymentHistory(
+        user_id=referral_record.referrer_id,
+        type='referral_bonus',
+        amount=bonus,
+        balance_before=balance_before,
+        balance_after=referrer_wallet.balance,
+        description=f"Referral bonus for inviting {referred_user.username}",
+        reference_number=f"REF-{referred_user.id}"
+    )
+    db.session.add(history)
+
+
+def process_pending_referral_bonuses():
+    """
+    Scheduled job: credit RM5 to referrers for verified users whose 24h fraud delay has passed.
+    Run hourly.
+    """
+    try:
+        now = datetime.utcnow()
+        due = Referral.query.filter(
+            Referral.status == 'pending',
+            Referral.credit_after <= now
+        ).all()
+        credited = 0
+        for record in due:
+            referred_user = User.query.get(record.referred_id)
+            if referred_user and referred_user.is_verified and not referred_user.referral_bonus_credited:
+                try:
+                    _apply_referral_credit(record, referred_user)
+                    credited += 1
+                except Exception as e:
+                    app.logger.error(f"Referral credit error for referral {record.id}: {e}")
+        if credited:
+            db.session.commit()
+            app.logger.info(f"Referral scheduler: credited {credited} bonus(es)")
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"process_pending_referral_bonuses error: {e}")
+
+
 def verify_email_token(token):
     """
     Verify email token and mark user as verified
@@ -1717,31 +1769,18 @@ def verify_email_token(token):
         user.email_verification_token = None
         user.email_verification_expires = None
 
-        # Credit referral bonus (RM5) to the referrer if applicable
+        # Credit referral bonus (RM5) if the 24h fraud-delay has already passed
+        # (normal case: the scheduler handles it; this covers late verifiers)
         if user.referred_by_id and not user.referral_bonus_credited:
             try:
                 referral_record = Referral.query.filter_by(
                     referred_id=user.id, status='pending'
                 ).first()
-                referrer_wallet = Wallet.query.filter_by(user_id=user.referred_by_id).first()
-                if referral_record and referrer_wallet:
-                    bonus = referral_record.bonus_amount
-                    balance_before = referrer_wallet.balance
-                    referrer_wallet.balance += bonus
-                    referrer_wallet.total_earned += bonus
-                    referral_record.status = 'credited'
-                    referral_record.credited_at = datetime.utcnow()
-                    user.referral_bonus_credited = True
-                    history = PaymentHistory(
-                        user_id=user.referred_by_id,
-                        type='referral_bonus',
-                        amount=bonus,
-                        balance_before=balance_before,
-                        balance_after=referrer_wallet.balance,
-                        description=f"Referral bonus for inviting {user.username}",
-                        reference_number=f"REF-{user.id}"
-                    )
-                    db.session.add(history)
+                if referral_record and (
+                    referral_record.credit_after is None or
+                    datetime.utcnow() >= referral_record.credit_after
+                ):
+                    _apply_referral_credit(referral_record, user)
             except Exception as ref_err:
                 app.logger.error(f"Error crediting referral bonus: {ref_err}")
 
@@ -2630,7 +2669,9 @@ class Referral(db.Model):
     referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     referred_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
     bonus_amount = db.Column(db.Float, default=5.0)  # RM5 per successful referral
-    status = db.Column(db.String(20), default='pending')  # pending, credited
+    status = db.Column(db.String(20), default='pending')  # pending, credited, rejected
+    registration_ip = db.Column(db.String(45))  # IP used during referred user's registration
+    credit_after = db.Column(db.DateTime)  # Earliest time the bonus may be credited (fraud delay)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     credited_at = db.Column(db.DateTime)
 
@@ -2784,14 +2825,6 @@ class MicroTask(db.Model):
     reward = db.Column(db.Float, nullable=False)
     task_type = db.Column(db.String(50))  # review, survey, content_creation
     status = db.Column(db.String(20), default='available')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-class Referral(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    referred_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    reward_amount = db.Column(db.Float, default=10.0)
-    status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class VisitorLog(db.Model):
@@ -5684,10 +5717,23 @@ def register():
         # Validate referral code if provided
         referral_code_used = data.get('referral_code', '').strip().upper()
         referrer = None
+        registration_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
         if referral_code_used:
             referrer = User.query.filter_by(referral_code=referral_code_used).first()
             if not referrer:
                 return jsonify({'error': 'Invalid referral code'}), 400
+            # Block self-referral (same email or already-registered IP cap)
+            if referrer.email == email:
+                return jsonify({'error': 'You cannot refer yourself'}), 400
+            # IP-based daily cap: max 3 referral bonuses credited per source IP per 24 hours
+            ip_referral_count = Referral.query.filter(
+                Referral.registration_ip == registration_ip,
+                Referral.status != 'rejected',
+                Referral.created_at >= datetime.utcnow() - timedelta(hours=24)
+            ).count()
+            if ip_referral_count >= 3:
+                # Silently ignore the referral code rather than blocking registration
+                referrer = None
 
         # Sanitize text inputs
         full_name = sanitize_input(data.get('full_name', ''), max_length=120)
@@ -5728,7 +5774,9 @@ def register():
                 referrer_id=referrer.id,
                 referred_id=new_user.id,
                 bonus_amount=5.0,
-                status='pending'
+                status='pending',
+                registration_ip=registration_ip,
+                credit_after=datetime.utcnow() + timedelta(hours=24)  # 24h fraud delay
             )
             db.session.add(referral_record)
 
