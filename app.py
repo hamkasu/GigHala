@@ -21492,6 +21492,35 @@ def _fix_specialization_permissions():
     print('=' * 65)
 
 
+def _apply_column_migrations():
+    """
+    Add new columns to existing tables that db.create_all() skips.
+    Each ALTER is idempotent via IF NOT EXISTS – safe to run on every startup.
+    """
+    stmts = [
+        # Referral system columns on user table
+        'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS referral_code VARCHAR(10)',
+        'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS referred_by_id INTEGER REFERENCES "user"(id)',
+        'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS referral_bonus_credited BOOLEAN DEFAULT FALSE',
+        # Anti-abuse columns on referral table
+        'ALTER TABLE referral ADD COLUMN IF NOT EXISTS registration_ip VARCHAR(45)',
+        'ALTER TABLE referral ADD COLUMN IF NOT EXISTS credit_after TIMESTAMP',
+    ]
+    try:
+        from sqlalchemy import text as _text
+        with db.engine.connect() as _conn:
+            for stmt in stmts:
+                try:
+                    _conn.execute(_text(stmt))
+                except Exception as _e:
+                    # Column may already exist with a slightly different constraint – not fatal
+                    app.logger.debug(f"Column migration skipped: {_e}")
+            _conn.commit()
+        app.logger.info("Column migrations applied successfully")
+    except Exception as e:
+        app.logger.warning(f"Column migrations failed (non-fatal): {e}")
+
+
 def init_database():
     """Initialize database with tables, categories, and sample data (lazy loading)"""
     global _db_initialized
@@ -21775,6 +21804,9 @@ def init_database():
             print("Sample data added successfully!")
         
         _db_initialized = True
+
+        # Apply incremental column migrations that db.create_all() won't handle
+        _apply_column_migrations()
     except Exception as e:
         print(f"Database initialization error: {e}")
         _db_initialized = True  # Mark as done to avoid retry loops
