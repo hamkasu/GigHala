@@ -689,6 +689,15 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         replace_existing=True
     )
 
+    # Schedule referral bonus processing every hour
+    scheduler.add_job(
+        func=lambda: _run_referral_job(app),
+        trigger=CronTrigger(minute=0, timezone=timezone),  # top of every hour
+        id='process_referral_bonuses',
+        name='Process pending referral bonuses (hourly)',
+        replace_existing=True
+    )
+
     # Start the scheduler
     scheduler.start()
     logger.info(f"Scheduler started with timezone: {timezone}")
@@ -698,8 +707,19 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
     logger.info("  - New gigs email digest at 8:00 PM")
     logger.info("  - AI-matched gigs email at 9:00 AM")
     logger.info("  - AI-matched gigs email at 9:00 PM")
+    logger.info("  - Referral bonus processing every hour")
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
 
     return scheduler
+
+
+def _run_referral_job(app):
+    """Wrapper to run process_pending_referral_bonuses inside the app context."""
+    with app.app_context():
+        try:
+            from app import process_pending_referral_bonuses
+            process_pending_referral_bonuses()
+        except Exception as e:
+            logger.error(f"Referral bonus job error: {e}")
