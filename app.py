@@ -2626,6 +2626,8 @@ class GigWorker(db.Model):
     """Track multiple workers assigned to a gig when workers_needed > 1.
 
     Supports specialized rate tracking for analytics and transparent pricing.
+    Each GigWorker entry links to its own Escrow via escrow_id so that
+    payment can be released independently per worker (multiple-jobs support).
     """
     __table_args__ = (
         db.UniqueConstraint('gig_id', 'worker_id', name='unique_worker_per_gig'),
@@ -2634,6 +2636,7 @@ class GigWorker(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     worker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)  # Link to the accepted application
+    escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'), nullable=True)  # Individual escrow for this worker's payment
     agreed_amount = db.Column(db.Float)  # Individual worker's agreed amount
     status = db.Column(db.String(20), default='active')  # active, completed, withdrawn
     work_submitted = db.Column(db.Boolean, default=False)
@@ -2650,6 +2653,7 @@ class GigWorker(db.Model):
     gig = db.relationship('Gig', backref=db.backref('gig_workers', lazy='dynamic'))
     worker = db.relationship('User', backref=db.backref('gig_assignments', lazy='dynamic'))
     application = db.relationship('Application', backref='gig_worker_assignment')
+    escrow = db.relationship('Escrow', backref=db.backref('gig_worker', uselist=False), foreign_keys=[escrow_id])
     specialization = db.relationship('WorkerSpecialization', backref=db.backref('gig_assignments', passive_deletes=True))
 
 class GigReport(db.Model):
@@ -3118,7 +3122,14 @@ def get_active_payment_gateway():
     return get_site_setting('payment_gateway', 'stripe')
 
 class Escrow(db.Model):
-    """Model for tracking escrow payments between clients and freelancers"""
+    """Model for tracking escrow payments between clients and freelancers.
+
+    For multi-worker gigs each worker has their own Escrow row keyed by
+    (gig_id, freelancer_id), allowing independent fund/release/dispute per worker.
+    """
+    __table_args__ = (
+        db.UniqueConstraint('gig_id', 'freelancer_id', name='unique_escrow_per_gig_worker'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     escrow_number = db.Column(db.String(50), unique=True, nullable=False)
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
@@ -10202,47 +10213,69 @@ def report_gig(gig_id):
 
 @app.route('/api/escrow/create', methods=['POST'])
 def create_escrow():
-    """Create an escrow when client funds a gig"""
+    """Create an escrow when client funds a gig.
+
+    Supports per-worker escrows for multi-worker gigs. Pass freelancer_id in
+    the request body to fund a specific worker's escrow independently.
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     try:
         data = request.json
         gig_id = data.get('gig_id')
         amount = float(data.get('amount', 0))
-        
+        # Optional: target a specific worker; defaults to gig.freelancer_id
+        target_freelancer_id = data.get('freelancer_id')
+
         if not gig_id:
             return jsonify({'error': 'Invalid gig_id'}), 400
-        
+
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
-        
+
         # Only client can create escrow
         if gig.client_id != user_id:
             return jsonify({'error': 'Only the client can fund the escrow'}), 403
-        
-        # Gig must have an assigned freelancer
-        if not gig.freelancer_id:
-            return jsonify({'error': 'Gig must have an assigned freelancer'}), 400
-        
-        # If no amount provided, use the agreed amount from the accepted application
+
+        # Resolve which worker this escrow is for
+        if target_freelancer_id:
+            target_freelancer_id = int(target_freelancer_id)
+            # Verify this worker is actually assigned to the gig
+            gig_worker = GigWorker.query.filter_by(
+                gig_id=gig_id, worker_id=target_freelancer_id, status='active'
+            ).first()
+            if not gig_worker:
+                return jsonify({'error': 'The specified freelancer is not assigned to this gig'}), 400
+        else:
+            # Fall back to the legacy single-worker freelancer_id
+            if not gig.freelancer_id:
+                return jsonify({'error': 'Gig must have an assigned freelancer'}), 400
+            target_freelancer_id = gig.freelancer_id
+            gig_worker = GigWorker.query.filter_by(
+                gig_id=gig_id, worker_id=target_freelancer_id
+            ).first()
+
+        # If no amount provided, use the worker's agreed amount
         if amount <= 0:
-            if gig.agreed_amount and gig.agreed_amount > 0:
+            if gig_worker and gig_worker.agreed_amount and gig_worker.agreed_amount > 0:
+                amount = gig_worker.agreed_amount
+            elif gig.agreed_amount and gig.agreed_amount > 0:
                 amount = gig.agreed_amount
             elif gig.budget_min and gig.budget_min > 0:
                 amount = gig.budget_min
             else:
                 return jsonify({'error': 'No valid amount found for escrow. Please specify an amount.'}), 400
-        
-        # Check if escrow already exists
-        existing = Escrow.query.filter_by(gig_id=gig_id).first()
+
+        # Check if escrow already exists for this specific (gig, worker) pair
+        existing = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=target_freelancer_id).first()
         if existing and existing.status in ['funded', 'released']:
-            return jsonify({'error': 'Escrow already exists for this gig'}), 400
-        
+            return jsonify({'error': 'Escrow already exists for this worker on this gig'}), 400
+
         # Calculate platform fee (tiered commission)
         platform_fee = calculate_commission(amount)
         net_amount = amount - platform_fee
-        
+
         # Create or update escrow
         if existing:
             escrow = existing
@@ -10256,7 +10289,7 @@ def create_escrow():
                 escrow_number=generate_escrow_number(),
                 gig_id=gig_id,
                 client_id=user_id,
-                freelancer_id=gig.freelancer_id,
+                freelancer_id=target_freelancer_id,
                 amount=amount,
                 platform_fee=platform_fee,
                 net_amount=net_amount,
@@ -10265,26 +10298,31 @@ def create_escrow():
                 payment_reference=f"ESC-{uuid.uuid4().hex[:8].upper()}"
             )
             db.session.add(escrow)
-        
+
         # Update client wallet (deduct held_balance)
         client_wallet = Wallet.query.filter_by(user_id=user_id).first()
         if not client_wallet:
             client_wallet = Wallet(user_id=user_id)
             db.session.add(client_wallet)
         client_wallet.held_balance += amount
-        
+
         # Create receipt for escrow funding
         db.session.flush()  # Get escrow ID
+
+        # Link this escrow back to the GigWorker record
+        if gig_worker and not gig_worker.escrow_id:
+            gig_worker.escrow_id = escrow.id
+
         receipt = create_escrow_receipt(escrow, gig, 'direct')
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Escrow funded successfully',
             'escrow': escrow.to_dict(),
             'receipt_number': receipt.receipt_number
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Create escrow error: {str(e)}", exc_info=True)
@@ -10292,41 +10330,61 @@ def create_escrow():
 
 @app.route('/api/escrow/<int:gig_id>', methods=['GET'])
 def get_escrow(gig_id):
-    """Get escrow status for a gig"""
+    """Get escrow status for a gig.
+
+    Returns all escrow records for the gig (one per worker on multi-worker gigs).
+    Pass ?freelancer_id=<id> to retrieve a specific worker's escrow only.
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     try:
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
-        
-        # Only client or freelancer can view escrow
-        if gig.client_id != user_id and gig.freelancer_id != user_id:
+
+        # Check access: client, any assigned worker, or admin
+        is_client = gig.client_id == user_id
+        is_worker = GigWorker.query.filter_by(gig_id=gig_id, worker_id=user_id).first() is not None
+        user = User.query.get(user_id)
+        if not is_client and not is_worker and not (user and user.is_admin):
             return jsonify({'error': 'Access denied'}), 403
-        
-        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
-        
-        if not escrow:
-            return jsonify({
-                'escrow': None,
-                'message': 'No escrow found for this gig'
-            }), 200
-        
+
+        freelancer_id_filter = request.args.get('freelancer_id', type=int)
+
+        if freelancer_id_filter:
+            escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=freelancer_id_filter).first()
+            if not escrow:
+                return jsonify({'escrow': None, 'message': 'No escrow found for this worker on this gig'}), 200
+            return jsonify({'escrow': escrow.to_dict()}), 200
+
+        # Return all escrows for this gig (supports multi-worker)
+        escrows = Escrow.query.filter_by(gig_id=gig_id).all()
+        if not escrows:
+            return jsonify({'escrow': None, 'escrows': [], 'message': 'No escrow found for this gig'}), 200
+
+        # Legacy single-escrow response for backwards compatibility
+        result = [e.to_dict() for e in escrows]
         return jsonify({
-            'escrow': escrow.to_dict()
+            'escrow': result[0],   # primary (first) escrow for backwards compatibility
+            'escrows': result      # all escrows for multi-worker support
         }), 200
-        
+
     except Exception as e:
         app.logger.error(f"Get escrow error: {str(e)}")
         return jsonify({'error': 'Failed to get escrow'}), 500
 
 @app.route('/api/escrow/<int:gig_id>/release', methods=['POST'])
 def release_escrow(gig_id):
-    """Release escrow funds to freelancer (client action after work approval)"""
+    """Release escrow funds to a freelancer (client action after work approval).
+
+    For multi-worker gigs pass freelancer_id in the JSON body to release
+    a specific worker's escrow independently without affecting other workers.
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
 
     try:
+        data = request.json or {}
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
 
@@ -10334,11 +10392,30 @@ def release_escrow(gig_id):
         if gig.client_id != user_id:
             return jsonify({'error': 'Only the client can release escrow'}), 403
 
-        # Check if work is completed
-        if gig.status != 'completed':
-            return jsonify({'error': 'Work must be marked as completed by the freelancer before releasing payment'}), 400
+        # Resolve which worker's escrow to release
+        target_freelancer_id = data.get('freelancer_id')
+        if target_freelancer_id:
+            target_freelancer_id = int(target_freelancer_id)
+        else:
+            target_freelancer_id = gig.freelancer_id
 
-        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        if not target_freelancer_id:
+            return jsonify({'error': 'No freelancer associated with this gig'}), 400
+
+        # For multi-worker gigs: check that this specific worker has submitted work
+        gig_worker = GigWorker.query.filter_by(gig_id=gig_id, worker_id=target_freelancer_id).first()
+        workers_needed = gig.workers_needed or 1
+
+        if workers_needed > 1 and gig_worker:
+            # Per-worker release: check individual submission status
+            if not gig_worker.work_submitted:
+                return jsonify({'error': 'This worker has not submitted their work yet'}), 400
+        else:
+            # Single-worker legacy check
+            if gig.status != 'completed':
+                return jsonify({'error': 'Work must be marked as completed by the freelancer before releasing payment'}), 400
+
+        escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=target_freelancer_id).first()
 
         if not escrow:
             return jsonify({'error': 'No escrow found'}), 404
@@ -10346,8 +10423,11 @@ def release_escrow(gig_id):
         if escrow.status != 'funded':
             return jsonify({'error': f'Escrow cannot be released (status: {escrow.status})'}), 400
 
-        # Check if freelancer has submitted their invoice
-        invoice = Invoice.query.filter_by(gig_id=gig_id).first()
+        # Check if freelancer has submitted their invoice (filter by specific freelancer for multi-worker gigs)
+        invoice = Invoice.query.filter_by(gig_id=gig_id, freelancer_id=target_freelancer_id).first()
+        if not invoice:
+            # Fallback: check any invoice for the gig (legacy single-worker)
+            invoice = Invoice.query.filter_by(gig_id=gig_id).first()
         if not invoice:
             return jsonify({'error': 'Invoice not found. Freelancer must complete work first.'}), 400
 
@@ -10360,7 +10440,7 @@ def release_escrow(gig_id):
 
         # Calculate SOCSO contribution (1.25% of net amount after platform commission)
         # Per Gig Workers Bill 2025: SOCSO is calculated on net earnings
-        freelancer = User.query.get(gig.freelancer_id)
+        freelancer = User.query.get(target_freelancer_id)
         socso_amount = 0.0
 
         if freelancer and freelancer.user_type in ['freelancer', 'both']:
@@ -10369,12 +10449,13 @@ def release_escrow(gig_id):
         # Final amount to freelancer after SOCSO deduction
         final_payout_amount = round(escrow.net_amount - socso_amount, 2)
 
-        # Create or update transaction record to track commission and SOCSO
-        transaction = Transaction.query.filter_by(gig_id=gig_id).first()
+        # Create transaction record for this specific worker's payment
+        # For multi-worker gigs each worker gets their own transaction keyed by (gig_id, freelancer_id)
+        transaction = Transaction.query.filter_by(gig_id=gig_id, freelancer_id=target_freelancer_id).first()
         if not transaction:
             transaction = Transaction(
                 gig_id=gig_id,
-                freelancer_id=gig.freelancer_id,
+                freelancer_id=target_freelancer_id,
                 client_id=gig.client_id,
                 amount=escrow.amount,
                 commission=escrow.platform_fee,
@@ -10385,7 +10466,6 @@ def release_escrow(gig_id):
             )
             db.session.add(transaction)
         else:
-            # Update existing transaction
             transaction.commission = escrow.platform_fee
             transaction.socso_amount = socso_amount
             transaction.status = 'completed'
@@ -10395,7 +10475,7 @@ def release_escrow(gig_id):
         # Create SOCSO contribution record
         if socso_amount > 0:
             create_socso_contribution(
-                freelancer_id=gig.freelancer_id,
+                freelancer_id=target_freelancer_id,
                 gross_amount=escrow.amount,
                 platform_commission=escrow.platform_fee,
                 net_earnings=escrow.net_amount,
@@ -10406,14 +10486,14 @@ def release_escrow(gig_id):
 
         # Update wallets
         client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
-        freelancer_wallet = Wallet.query.filter_by(user_id=gig.freelancer_id).first()
+        freelancer_wallet = Wallet.query.filter_by(user_id=target_freelancer_id).first()
 
         if client_wallet:
             client_wallet.held_balance -= escrow.amount
             client_wallet.total_spent += escrow.amount
 
         if not freelancer_wallet:
-            freelancer_wallet = Wallet(user_id=gig.freelancer_id)
+            freelancer_wallet = Wallet(user_id=target_freelancer_id)
             db.session.add(freelancer_wallet)
 
         # Credit freelancer wallet with final amount after SOCSO deduction
@@ -10422,7 +10502,7 @@ def release_escrow(gig_id):
 
         # Record payment history with SOCSO details
         payment_history = PaymentHistory(
-            user_id=gig.freelancer_id,
+            user_id=target_freelancer_id,
             type='release',
             amount=final_payout_amount,
             socso_amount=socso_amount,
@@ -10433,23 +10513,33 @@ def release_escrow(gig_id):
         )
         db.session.add(payment_history)
 
+        # Mark this worker's GigWorker entry as completed
+        if gig_worker:
+            gig_worker.status = 'completed'
+            gig_worker.completed_at = datetime.utcnow()
+
+        # If all workers for this gig are now completed, mark the gig as completed
+        workers_needed = gig.workers_needed or 1
+        if workers_needed > 1:
+            active_workers = GigWorker.query.filter_by(gig_id=gig_id, status='active').count()
+            if active_workers == 0:
+                gig.status = 'completed'
+        # Single-worker gig is already marked completed before escrow release
+
         # Mark invoice as paid and link to transaction
         db.session.flush()  # Ensure transaction has an ID
-        # Invoice already fetched above for validation
         if invoice:
             if invoice.status != 'paid':
                 invoice.status = 'paid'
                 invoice.paid_at = datetime.utcnow()
                 invoice.payment_method = 'escrow'
                 invoice.payment_reference = escrow.payment_reference
-            # Link invoice to transaction if not already linked
             if not invoice.transaction_id:
                 invoice.transaction_id = transaction.id
 
-        # Create payment receipts for both client and freelancer
-        # Check if receipts already exist for this payment
+        # Create payment receipts (keyed per escrow to avoid duplicates on multi-worker gigs)
         existing_client_receipt = Receipt.query.filter_by(
-            gig_id=gig_id,
+            escrow_id=escrow.id,
             receipt_type='payment',
             user_id=gig.client_id
         ).first()
@@ -10480,7 +10570,7 @@ def release_escrow(gig_id):
             freelancer_receipt = Receipt(
                 receipt_number=generate_receipt_number('payment'),
                 receipt_type='payment',
-                user_id=gig.freelancer_id,
+                user_id=target_freelancer_id,
                 gig_id=gig_id,
                 escrow_id=escrow.id,
                 invoice_id=invoice.id if invoice else None,
@@ -10507,7 +10597,7 @@ def release_escrow(gig_id):
 
             # Create notification for worker about payment received
             worker_notification = Notification(
-                user_id=gig.freelancer_id,
+                user_id=target_freelancer_id,
                 notification_type='payment',
                 title='Payment Received',
                 message=f'Payment of MYR {escrow.net_amount:.2f} received for gig: {gig.title}. Receipt #{freelancer_receipt.receipt_number}',
@@ -10707,7 +10797,11 @@ GigHala - Your Trusted Halal Gig Platform
 
 @app.route('/api/escrow/<int:gig_id>/refund', methods=['POST'])
 def refund_escrow(gig_id):
-    """Refund escrow funds to client"""
+    """Refund escrow funds to client.
+
+    Pass freelancer_id in the JSON body to refund a specific worker's escrow
+    on a multi-worker gig without affecting other workers.
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -10721,7 +10815,14 @@ def refund_escrow(gig_id):
         if gig.client_id != user_id and not user.is_admin:
             return jsonify({'error': 'Only the client or admin can refund escrow'}), 403
 
-        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+        # Resolve which worker's escrow to refund
+        target_freelancer_id = data.get('freelancer_id')
+        if target_freelancer_id:
+            escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=int(target_freelancer_id)).first()
+        else:
+            escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=gig.freelancer_id).first()
+            if not escrow:
+                escrow = Escrow.query.filter_by(gig_id=gig_id).first()
 
         if not escrow:
             return jsonify({'error': 'No escrow found'}), 404
@@ -10835,41 +10936,56 @@ def refund_escrow(gig_id):
 
 @app.route('/api/escrow/<int:gig_id>/dispute', methods=['POST'])
 def dispute_escrow(gig_id):
-    """Raise a dispute on escrow"""
+    """Raise a dispute on escrow.
+
+    Pass freelancer_id in the JSON body to dispute a specific worker's escrow
+    on a multi-worker gig.
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     try:
         data = request.json or {}
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
-        
-        # Only client or freelancer can dispute
-        if gig.client_id != user_id and gig.freelancer_id != user_id:
+
+        # Resolve which escrow to dispute
+        target_freelancer_id = data.get('freelancer_id')
+
+        # Access check: client, or the specific freelancer whose escrow is being disputed
+        is_client = gig.client_id == user_id
+        is_worker = GigWorker.query.filter_by(gig_id=gig_id, worker_id=user_id).first() is not None
+        if not is_client and not is_worker:
             return jsonify({'error': 'Access denied'}), 403
-        
-        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
-        
+
+        if target_freelancer_id:
+            escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=int(target_freelancer_id)).first()
+        elif gig.freelancer_id:
+            escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=gig.freelancer_id).first()
+        else:
+            # Worker disputing their own escrow
+            escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=user_id).first()
+
         if not escrow:
             return jsonify({'error': 'No escrow found'}), 404
-        
+
         if escrow.status != 'funded':
             return jsonify({'error': f'Cannot dispute escrow (status: {escrow.status})'}), 400
-        
+
         reason = data.get('reason', '')
         if not reason:
             return jsonify({'error': 'Dispute reason is required'}), 400
-        
+
         escrow.status = 'disputed'
         escrow.dispute_reason = reason
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Dispute raised successfully. Admin will review.',
             'escrow': escrow.to_dict()
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Dispute escrow error: {str(e)}")
@@ -11281,38 +11397,66 @@ def confirm_manual_escrow_payment(gig_id):
 
 @app.route('/api/escrow/my-escrows', methods=['GET'])
 def get_my_escrows():
-    """Get all escrows for the current user (as client or freelancer)"""
+    """Get all escrows for the current user (as client or freelancer).
+
+    Returns individual escrow list plus a grouped_by_worker summary
+    for the client view — one entry per worker across all gigs.
+    """
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
-    
+
     try:
         user_id = session['user_id']
-        
+
         # Get escrows where user is client or freelancer
         escrows = Escrow.query.filter(
             (Escrow.client_id == user_id) | (Escrow.freelancer_id == user_id)
         ).order_by(Escrow.created_at.desc()).all()
-        
+
         result = []
+        # grouped_by_worker: { worker_id: { worker info + list of escrows } }
+        grouped_by_worker = {}
+
         for escrow in escrows:
             gig = Gig.query.get(escrow.gig_id)
             client = User.query.get(escrow.client_id)
             freelancer = User.query.get(escrow.freelancer_id)
-            
-            result.append({
+            is_client = escrow.client_id == user_id
+
+            entry = {
                 **escrow.to_dict(),
                 'gig_title': gig.title if gig else 'Unknown Gig',
+                'gig_code': (gig.gig_code or f'GIG-{gig.id}') if gig else 'N/A',
                 'client_name': client.full_name or client.username if client else 'Unknown',
                 'freelancer_name': freelancer.full_name or freelancer.username if freelancer else 'Unknown',
-                'is_client': escrow.client_id == user_id,
+                'is_client': is_client,
                 'is_freelancer': escrow.freelancer_id == user_id
-            })
-        
+            }
+            result.append(entry)
+
+            # Build per-worker grouping for client view
+            if is_client and freelancer:
+                wid = escrow.freelancer_id
+                if wid not in grouped_by_worker:
+                    grouped_by_worker[wid] = {
+                        'worker_id': wid,
+                        'worker_name': freelancer.full_name or freelancer.username,
+                        'total_held': 0.0,
+                        'total_released': 0.0,
+                        'escrows': []
+                    }
+                grouped_by_worker[wid]['escrows'].append(entry)
+                if escrow.status == 'funded':
+                    grouped_by_worker[wid]['total_held'] += escrow.amount
+                elif escrow.status == 'released':
+                    grouped_by_worker[wid]['total_released'] += escrow.amount
+
         return jsonify({
             'success': True,
-            'escrows': result
+            'escrows': result,
+            'grouped_by_worker': list(grouped_by_worker.values())
         }), 200
-        
+
     except Exception as e:
         app.logger.error(f"Get my escrows error: {str(e)}")
         return jsonify({'error': 'Failed to get escrows'}), 500
@@ -11325,6 +11469,229 @@ def escrow_page():
     user = User.query.get(session['user_id'])
     return render_template('escrow.html', user=user, active_page='escrow')
 
+
+# ============================================================================
+# MY-WORKERS + DIRECT ASSIGN (MULTIPLE JOBS PER WORKER)
+# ============================================================================
+
+@app.route('/api/clients/my-workers', methods=['GET'])
+@login_required
+def get_my_hired_workers():
+    """Return all workers the logged-in client has ever hired, with job counts.
+
+    Enables the 'Assign Another Job' quick-action on the client dashboard.
+    """
+    user_id = session['user_id']
+
+    try:
+        # Collect all accepted applications across all client gigs
+        rows = db.session.query(
+            Application.freelancer_id,
+            Gig.id.label('gig_id'),
+            Gig.status.label('gig_status'),
+            Application.proposed_price
+        ).join(
+            Gig, Application.gig_id == Gig.id
+        ).filter(
+            Gig.client_id == user_id,
+            Application.status == 'accepted'
+        ).all()
+
+        workers = {}
+        for row in rows:
+            wid = row.freelancer_id
+            if wid not in workers:
+                worker = User.query.get(wid)
+                if not worker:
+                    continue
+                workers[wid] = {
+                    'worker_id': wid,
+                    'worker_name': worker.full_name or worker.username,
+                    'username': worker.username,
+                    'avatar_initials': (worker.username or 'W')[:2].upper(),
+                    'active_jobs': 0,
+                    'completed_jobs': 0,
+                    'total_jobs': 0,
+                    'skills': worker.skills if worker.skills else []
+                }
+            workers[wid]['total_jobs'] += 1
+            if row.gig_status in ('in_progress', 'open', 'pending_review'):
+                workers[wid]['active_jobs'] += 1
+            elif row.gig_status == 'completed':
+                workers[wid]['completed_jobs'] += 1
+
+        return jsonify({
+            'success': True,
+            'workers': list(workers.values())
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get my workers error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to fetch hired workers'}), 500
+
+
+@app.route('/api/gigs/assign-direct', methods=['POST'])
+@login_required
+def assign_direct():
+    """Create a new gig and directly assign it to an existing worker.
+
+    Bypasses the open-application flow. Useful when a client wants to give
+    a previously hired worker another job immediately (no limit).
+
+    Required JSON fields:
+        worker_id    (int)   – ID of the worker to assign
+        title        (str)   – Gig title
+        description  (str)   – Gig description
+        category     (str)   – Gig category
+        budget       (float) – Agreed budget (used as both min and max)
+
+    Optional:
+        duration     (str)   – e.g. "1-3 days"
+        is_remote    (bool)  – defaults True
+    """
+    user_id = session['user_id']
+
+    try:
+        data = request.json or {}
+        worker_id = data.get('worker_id')
+        title = (data.get('title') or '').strip()
+        description = (data.get('description') or '').strip()
+        category = (data.get('category') or '').strip()
+        budget = float(data.get('budget', 0))
+
+        # Validate required fields
+        if not all([worker_id, title, description, category]) or budget <= 0:
+            return jsonify({'error': 'worker_id, title, description, category, and budget are required'}), 400
+
+        worker_id = int(worker_id)
+        worker = User.query.get(worker_id)
+        if not worker:
+            return jsonify({'error': 'Worker not found'}), 404
+
+        # Verify client has previously hired this worker
+        existing_hire = db.session.query(Application).join(
+            Gig, Application.gig_id == Gig.id
+        ).filter(
+            Gig.client_id == user_id,
+            Application.freelancer_id == worker_id,
+            Application.status == 'accepted'
+        ).first()
+        if not existing_hire:
+            return jsonify({'error': 'You can only directly assign a worker you have previously hired'}), 403
+
+        # Generate a unique gig code
+        import random as _random
+        gig_code = f"GIG-{datetime.utcnow().strftime('%Y%m%d')}-{_random.randint(10000, 99999)}"
+
+        # Create the gig (already in_progress since worker is pre-assigned)
+        gig = Gig(
+            gig_code=gig_code,
+            title=title,
+            description=description,
+            category=category,
+            budget_min=budget,
+            budget_max=budget,
+            agreed_amount=budget,
+            payment_type='full_payment',
+            duration=data.get('duration', ''),
+            is_remote=data.get('is_remote', True),
+            status='in_progress',
+            client_id=user_id,
+            freelancer_id=worker_id,
+            workers_needed=1,
+            halal_compliant=True
+        )
+        db.session.add(gig)
+        db.session.flush()  # Get gig.id
+
+        # Create a pre-accepted Application record
+        application = Application(
+            gig_id=gig.id,
+            freelancer_id=worker_id,
+            proposed_price=budget,
+            cover_letter='Direct assignment by client',
+            status='accepted'
+        )
+        db.session.add(application)
+        db.session.flush()  # Get application.id
+
+        # Create GigWorker entry
+        gig_worker = GigWorker(
+            gig_id=gig.id,
+            worker_id=worker_id,
+            application_id=application.id,
+            agreed_amount=budget,
+            status='active'
+        )
+        db.session.add(gig_worker)
+
+        # Auto-create conversation between client and worker for this new gig
+        existing_conv = Conversation.query.filter(
+            ((Conversation.participant_1_id == user_id) & (Conversation.participant_2_id == worker_id)) |
+            ((Conversation.participant_1_id == worker_id) & (Conversation.participant_2_id == user_id)),
+            Conversation.gig_id == gig.id
+        ).first()
+
+        if not existing_conv:
+            conversation = Conversation(
+                participant_1_id=user_id,
+                participant_2_id=worker_id,
+                gig_id=gig.id
+            )
+            db.session.add(conversation)
+            db.session.flush()
+            system_msg = Message(
+                conversation_id=conversation.id,
+                sender_id=user_id,
+                content=f"New job assigned: '{gig.title}'. Please proceed when ready.",
+                message_type='text'
+            )
+            conversation.last_message_at = datetime.utcnow()
+            db.session.add(system_msg)
+
+        db.session.commit()
+
+        # Notify worker by email
+        try:
+            client = User.query.get(user_id)
+            subject = f"New Job Assigned: {gig.title}"
+            html_content = f"""
+            <html><body>
+            <p>Hi {worker.full_name or worker.username},</p>
+            <p><strong>{client.full_name or client.username}</strong> has directly assigned you a new job:</p>
+            <p><strong>{gig.title}</strong> — MYR {budget:.2f}</p>
+            <p>{description}</p>
+            <p><a href="{request.host_url.rstrip('/')}/gig/{gig.id}">View Job</a></p>
+            <p>GigHala Team</p>
+            </body></html>
+            """
+            email_service.send_single_email(
+                to_email=worker.email,
+                to_name=worker.full_name or worker.username,
+                subject=subject,
+                html_content=html_content,
+                text_content=f"New job assigned: {gig.title} — MYR {budget:.2f}"
+            )
+        except Exception as email_err:
+            app.logger.warning(f"Direct assign email failed: {email_err}")
+
+        return jsonify({
+            'message': 'Job assigned successfully',
+            'gig': {
+                'id': gig.id,
+                'gig_code': gig.gig_code,
+                'title': gig.title,
+                'status': gig.status,
+                'budget': budget,
+                'worker_id': worker_id,
+                'worker_name': worker.full_name or worker.username
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Assign direct error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Failed to assign job', 'details': str(e) if app.debug else None}), 500
 
 # ============================================================================
 # END ESCROW ENDPOINTS

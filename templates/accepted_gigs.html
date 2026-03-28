@@ -216,6 +216,71 @@
         }
     }
 
+    /* Assign Another Job Modal */
+    .assign-modal-overlay {
+        display: none;
+        position: fixed;
+        z-index: 1100;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .assign-modal-overlay.active { display: flex; }
+    .assign-modal-box {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 540px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        overflow: hidden;
+    }
+    .assign-modal-header {
+        padding: 22px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .assign-modal-header h2 { font-size: 18px; font-weight: 700; margin: 0; }
+    .assign-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-gray); line-height:1; }
+    .assign-modal-body { padding: 24px; }
+    .assign-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; }
+    .assign-form-group { margin-bottom: 16px; }
+    .assign-form-group label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; color: var(--text-dark); }
+    .assign-form-group input,
+    .assign-form-group textarea,
+    .assign-form-group select {
+        width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+        border-radius: var(--radius-md); font-size: 14px; font-family: inherit;
+        transition: border-color 0.2s;
+    }
+    .assign-form-group input:focus,
+    .assign-form-group textarea:focus,
+    .assign-form-group select:focus { outline: none; border-color: var(--primary); }
+    .assign-form-group textarea { min-height: 90px; resize: vertical; }
+    .assign-worker-info {
+        display: flex; align-items: center; gap: 10px;
+        background: var(--bg-light); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px;
+    }
+    .assign-worker-avatar {
+        width: 38px; height: 38px; border-radius: 50%; background: var(--primary);
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 13px; flex-shrink: 0;
+    }
+    .assign-btn { padding: 10px 20px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .assign-btn-cancel { background: var(--bg-light); color: var(--text-dark); }
+    .assign-btn-cancel:hover { background: #d1d5db; }
+    .assign-btn-submit { background: var(--primary); color: white; }
+    .assign-btn-submit:hover { background: var(--primary-dark); }
+    .assign-btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+    .action-btn.secondary {
+        background: white; color: var(--primary);
+        border: 1.5px solid var(--primary);
+    }
+    .action-btn.secondary:hover { background: var(--primary); color: white; }
+
     /* Completion Modal Styles */
     .completion-modal {
         display: none;
@@ -610,6 +675,11 @@
                             {{ 'Tandai Selesai' if lang == 'ms' else 'Mark Completed' }}
                         </button>
                         {% endif %}
+                        {% if item.role == 'client' %}
+                        <button class="action-btn secondary" onclick="openAssignModal({{ item.other_party.id if item.other_party else 0 }}, '{{ (item.other_party.full_name or item.other_party.username)|replace("'", "") if item.other_party else 'Worker' }}')" style="margin-right: 8px;" title="{{ 'Beri Kerja Lain' if lang == 'ms' else 'Assign Another Job' }}">
+                            + {{ 'Kerja Lain' if lang == 'ms' else 'Another Job' }}
+                        </button>
+                        {% endif %}
                         <a href="/gig/{{ item.gig.id }}" class="action-btn primary">
                             {{ 'Lihat' if lang == 'ms' else 'View' }}
                         </a>
@@ -629,6 +699,69 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Assign Another Job Modal -->
+    <div id="assignModal" class="assign-modal-overlay">
+        <div class="assign-modal-box">
+            <div class="assign-modal-header">
+                <h2>{{ 'Beri Kerja Baharu' if lang == 'ms' else 'Assign Another Job' }}</h2>
+                <button class="assign-modal-close" onclick="closeAssignModal()">&times;</button>
+            </div>
+            <div class="assign-modal-body">
+                <div class="assign-worker-info">
+                    <div class="assign-worker-avatar" id="assignWorkerAvatar">W</div>
+                    <div>
+                        <div style="font-weight:700;color:var(--text-dark);" id="assignWorkerName">Worker</div>
+                        <div style="font-size:12px;color:var(--text-gray);">{{ 'Tugasan terus – tiada had bilangan kerja' if lang == 'ms' else 'Direct assignment – no limit on number of jobs' }}</div>
+                    </div>
+                </div>
+                <input type="hidden" id="assignWorkerId">
+
+                <div class="assign-form-group">
+                    <label for="assignTitle">{{ 'Tajuk Kerja' if lang == 'ms' else 'Job Title' }} *</label>
+                    <input type="text" id="assignTitle" placeholder="{{ 'Contoh: Buat logo baru' if lang == 'ms' else 'e.g. Design a new logo' }}" maxlength="200">
+                </div>
+
+                <div class="assign-form-group">
+                    <label for="assignCategory">{{ 'Kategori' if lang == 'ms' else 'Category' }} *</label>
+                    <select id="assignCategory">
+                        <option value="">{{ 'Pilih kategori' if lang == 'ms' else 'Select category' }}</option>
+                        <option value="design">Design & Creative</option>
+                        <option value="writing">Writing & Content</option>
+                        <option value="tech">Technology & IT</option>
+                        <option value="marketing">Marketing & SEO</option>
+                        <option value="cleaning">Cleaning & Maintenance</option>
+                        <option value="tutoring">Tutoring & Education</option>
+                        <option value="cooking">Cooking & Catering</option>
+                        <option value="delivery">Delivery & Logistics</option>
+                        <option value="photography">Photography & Video</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="assign-form-group">
+                    <label for="assignDescription">{{ 'Penerangan Kerja' if lang == 'ms' else 'Job Description' }} *</label>
+                    <textarea id="assignDescription" placeholder="{{ 'Terangkan kerja yang perlu dilakukan...' if lang == 'ms' else 'Describe the work to be done...' }}"></textarea>
+                </div>
+
+                <div class="assign-form-group">
+                    <label for="assignBudget">{{ 'Bayaran (MYR)' if lang == 'ms' else 'Budget (MYR)' }} *</label>
+                    <input type="number" id="assignBudget" min="1" step="0.01" placeholder="0.00">
+                </div>
+
+                <div class="assign-form-group">
+                    <label for="assignDuration">{{ 'Tempoh (pilihan)' if lang == 'ms' else 'Duration (optional)' }}</label>
+                    <input type="text" id="assignDuration" placeholder="{{ 'cth. 1-3 hari' if lang == 'ms' else 'e.g. 1-3 days' }}" maxlength="50">
+                </div>
+
+                <div id="assignAlert" style="display:none;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;margin-top:8px;"></div>
+            </div>
+            <div class="assign-modal-footer">
+                <button class="assign-btn assign-btn-cancel" onclick="closeAssignModal()">{{ 'Batal' if lang == 'ms' else 'Cancel' }}</button>
+                <button class="assign-btn assign-btn-submit" id="assignSubmitBtn" onclick="submitAssignJob()">{{ 'Tugaskan Kerja' if lang == 'ms' else 'Assign Job' }}</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Completion Modal -->
     <div id="completionModal" class="completion-modal">
@@ -930,5 +1063,83 @@ document.getElementById('completionModal').addEventListener('click', (e) => {
         closeCompletionModal();
     }
 });
+
+// ── Assign Another Job ────────────────────────────────────────────────────────
+
+function openAssignModal(workerId, workerName) {
+    if (!workerId) return;
+    document.getElementById('assignWorkerId').value = workerId;
+    document.getElementById('assignWorkerName').textContent = workerName;
+    document.getElementById('assignWorkerAvatar').textContent = workerName.substring(0, 2).toUpperCase();
+    document.getElementById('assignTitle').value = '';
+    document.getElementById('assignCategory').value = '';
+    document.getElementById('assignDescription').value = '';
+    document.getElementById('assignBudget').value = '';
+    document.getElementById('assignDuration').value = '';
+    document.getElementById('assignAlert').style.display = 'none';
+    document.getElementById('assignSubmitBtn').disabled = false;
+    document.getElementById('assignSubmitBtn').textContent = '{{ "Tugaskan Kerja" if lang == "ms" else "Assign Job" }}';
+    document.getElementById('assignModal').classList.add('active');
+}
+
+function closeAssignModal() {
+    document.getElementById('assignModal').classList.remove('active');
+}
+
+document.getElementById('assignModal').addEventListener('click', (e) => {
+    if (e.target.id === 'assignModal') closeAssignModal();
+});
+
+function showAssignAlert(msg, type) {
+    const el = document.getElementById('assignAlert');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.background = type === 'error' ? '#fee2e2' : '#d1fae5';
+    el.style.color = type === 'error' ? '#991b1b' : '#065f46';
+    el.style.border = `1px solid ${type === 'error' ? '#fca5a5' : '#6ee7b7'}`;
+}
+
+async function submitAssignJob() {
+    const workerId = parseInt(document.getElementById('assignWorkerId').value);
+    const title = document.getElementById('assignTitle').value.trim();
+    const category = document.getElementById('assignCategory').value;
+    const description = document.getElementById('assignDescription').value.trim();
+    const budget = parseFloat(document.getElementById('assignBudget').value);
+    const duration = document.getElementById('assignDuration').value.trim();
+
+    if (!title || !category || !description || !budget || budget <= 0) {
+        showAssignAlert('{{ "Sila lengkapkan semua medan yang diperlukan." if lang == "ms" else "Please fill in all required fields." }}', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('assignSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = '{{ "Memproses..." if lang == "ms" else "Processing..." }}';
+
+    try {
+        const resp = await fetch('/api/gigs/assign-direct', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ worker_id: workerId, title, description, category, budget, duration })
+        });
+        const data = await resp.json();
+
+        if (resp.ok) {
+            showAssignAlert(data.message || '{{ "Kerja berjaya ditugaskan!" if lang == "ms" else "Job assigned successfully!" }}', 'success');
+            setTimeout(() => {
+                closeAssignModal();
+                window.location.reload();
+            }, 1500);
+        } else {
+            showAssignAlert(data.error || '{{ "Ralat berlaku." if lang == "ms" else "An error occurred." }}', 'error');
+            btn.disabled = false;
+            btn.textContent = '{{ "Tugaskan Kerja" if lang == "ms" else "Assign Job" }}';
+        }
+    } catch (err) {
+        showAssignAlert('{{ "Ralat sambungan. Sila cuba lagi." if lang == "ms" else "Connection error. Please try again." }}', 'error');
+        btn.disabled = false;
+        btn.textContent = '{{ "Tugaskan Kerja" if lang == "ms" else "Assign Job" }}';
+    }
+}
 </script>
 {% endblock %}
