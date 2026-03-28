@@ -5776,7 +5776,7 @@ def register():
                 bonus_amount=5.0,
                 status='pending',
                 registration_ip=registration_ip,
-                credit_after=datetime.utcnow() + timedelta(hours=24)  # 24h fraud delay
+                credit_after=datetime.utcnow() + timedelta(hours=96)  # 96h fraud delay
             )
             db.session.add(referral_record)
 
