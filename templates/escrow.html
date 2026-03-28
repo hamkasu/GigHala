@@ -543,26 +543,28 @@
 
 <script>
     let currentGigId = null;
+    let currentFreelancerId = null;
     let currentEscrowData = null;
     let allEscrows = [];
+    let groupedByWorker = [];
 
     document.addEventListener('DOMContentLoaded', function() {
         loadEscrows();
-        
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('payment') === 'success') {
             showAlert('Payment successful! Your escrow has been funded.', 'success');
         }
-        
+
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
+
                 this.classList.add('active');
                 const tabId = this.dataset.tab;
                 document.getElementById(tabId).classList.add('active');
-                
+
                 renderEscrows();
             });
         });
@@ -579,9 +581,10 @@
             .then(response => response.json())
             .then(data => {
                 document.querySelectorAll('.loading').forEach(l => l.style.display = 'none');
-                
+
                 if (data.success) {
                     allEscrows = data.escrows || [];
+                    groupedByWorker = data.grouped_by_worker || [];
                     renderEscrows();
                 } else {
                     showAlert(data.error || 'Failed to load escrows', 'error');
@@ -595,61 +598,98 @@
 
     function renderEscrows() {
         const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
-        
-        let filtered = allEscrows;
+
         if (activeTab === 'as-client') {
-            filtered = allEscrows.filter(e => e.is_client);
+            renderClientEscrows();
         } else if (activeTab === 'as-freelancer') {
-            filtered = allEscrows.filter(e => e.is_freelancer);
+            const filtered = allEscrows.filter(e => e.is_freelancer);
+            const container = document.getElementById('freelancerEscrows');
+            renderFlatEscrows(filtered, container, false);
+        } else {
+            renderFlatEscrows(allEscrows, document.getElementById('allEscrows'), null);
         }
-        
-        const containerId = activeTab === 'as-client' ? 'clientEscrows' : 
-                           activeTab === 'as-freelancer' ? 'freelancerEscrows' : 'allEscrows';
-        const container = document.getElementById(containerId);
-        
-        if (filtered.length === 0) {
+    }
+
+    // Client view: group escrows by worker for clarity
+    function renderClientEscrows() {
+        const container = document.getElementById('clientEscrows');
+        if (groupedByWorker.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">🔒</div>
                     <h3>No Escrows Found</h3>
                     <p>You don't have any escrow transactions yet.</p>
-                </div>
-            `;
+                </div>`;
             return;
         }
-        
-        container.innerHTML = filtered.map(escrow => renderEscrowCard(escrow, activeTab)).join('');
+
+        let html = '';
+        for (const group of groupedByWorker) {
+            const heldBadge = group.total_held > 0
+                ? `<span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;margin-left:8px;">MYR ${group.total_held.toFixed(2)} held</span>` : '';
+            const releasedBadge = group.total_released > 0
+                ? `<span style="background:#d1fae5;color:#065f46;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;margin-left:8px;">MYR ${group.total_released.toFixed(2)} released</span>` : '';
+
+            html += `
+            <div style="margin-bottom:24px;">
+                <div style="display:flex;align-items:center;margin-bottom:12px;padding:12px 16px;background:var(--bg-light);border-radius:var(--radius-md);border-left:4px solid var(--primary);">
+                    <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin-right:12px;">${group.worker_name.substring(0,2).toUpperCase()}</div>
+                    <div>
+                        <div style="font-weight:700;color:var(--text-dark);">${group.worker_name}</div>
+                        <div style="font-size:12px;color:var(--text-gray);">${group.escrows.length} job${group.escrows.length !== 1 ? 's' : ''} ${heldBadge}${releasedBadge}</div>
+                    </div>
+                </div>
+                ${group.escrows.map(escrow => renderEscrowCard(escrow, 'as-client')).join('')}
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    function renderFlatEscrows(list, container, isClient) {
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔒</div>
+                    <h3>No Escrows Found</h3>
+                    <p>You don't have any escrow transactions yet.</p>
+                </div>`;
+            return;
+        }
+        container.innerHTML = list.map(e => renderEscrowCard(e, isClient === null ? (e.is_client ? 'as-client' : 'as-freelancer') : (isClient ? 'as-client' : 'as-freelancer'))).join('');
     }
 
     function renderEscrowCard(escrow, view) {
         const isClient = escrow.is_client;
         const statusClass = `status-${escrow.status}`;
-        
+        const freelancerId = escrow.freelancer_id;
+
         let actions = '';
         if (isClient && escrow.status === 'pending') {
-            actions = `<button class="btn btn-fund" onclick="openFundModal(${escrow.gig_id})">Fund Escrow</button>`;
+            actions = `<button class="btn btn-fund" onclick="openFundModal(${escrow.gig_id}, ${freelancerId})">Fund Escrow</button>`;
         } else if (isClient && escrow.status === 'funded') {
             actions = `
-                <button class="btn btn-release" onclick="openReleaseModal(${escrow.gig_id})">Release to Freelancer</button>
-                <button class="btn btn-dispute" onclick="openDisputeModal(${escrow.gig_id})">Raise Dispute</button>
+                <button class="btn btn-release" onclick="openReleaseModal(${escrow.gig_id}, ${freelancerId})">Release to Freelancer</button>
+                <button class="btn btn-dispute" onclick="openDisputeModal(${escrow.gig_id}, ${freelancerId})">Raise Dispute</button>
             `;
         } else if (!isClient && escrow.status === 'funded') {
-            actions = `<button class="btn btn-dispute" onclick="openDisputeModal(${escrow.gig_id})">Raise Dispute</button>`;
+            actions = `<button class="btn btn-dispute" onclick="openDisputeModal(${escrow.gig_id}, ${freelancerId})">Raise Dispute</button>`;
         }
-        
+
+        const gigLabel = escrow.gig_code ? `<span style="font-size:11px;font-weight:600;color:var(--primary);margin-right:8px;">${escrow.gig_code}</span>` : '';
+
         return `
             <div class="escrow-card">
                 <div class="escrow-header">
                     <div>
-                        <div class="escrow-title">${escrow.gig_title}</div>
+                        <div class="escrow-title">${gigLabel}${escrow.gig_title}</div>
                         <div class="escrow-meta">
-                            ${isClient ? `Freelancer: ${escrow.freelancer_name}` : `Client: ${escrow.client_name}`}
+                            ${isClient ? `Worker: ${escrow.freelancer_name}` : `Client: ${escrow.client_name}`}
                             &bull; Ref: ${escrow.payment_reference || 'N/A'}
                         </div>
                     </div>
                     <span class="status-badge ${statusClass}">${escrow.status_label}</span>
                 </div>
-                
+
                 <div class="escrow-details">
                     <div class="detail-item">
                         <span class="detail-label">Escrow Amount</span>
@@ -664,7 +704,7 @@
                         <span class="detail-value">RM ${escrow.socso_amount.toFixed(2)}</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Freelancer Receives</span>
+                        <span class="detail-label">Worker Receives</span>
                         <span class="detail-value">RM ${escrow.final_payout.toFixed(2)}</span>
                     </div>
                     <div class="detail-item">
@@ -672,15 +712,17 @@
                         <span class="detail-value">${escrow.created_at ? new Date(escrow.created_at).toLocaleDateString('ms-MY') : 'N/A'}</span>
                     </div>
                 </div>
-                
+
                 ${actions ? `<div class="escrow-actions">${actions}</div>` : ''}
             </div>
         `;
     }
 
-    function openFundModal(gigId) {
+    function openFundModal(gigId, freelancerId) {
         currentGigId = gigId;
-        const escrow = allEscrows.find(e => e.gig_id === gigId);
+        currentFreelancerId = freelancerId || null;
+        const escrow = allEscrows.find(e => e.gig_id === gigId && (!freelancerId || e.freelancer_id === freelancerId))
+                    || allEscrows.find(e => e.gig_id === gigId);
         
         document.getElementById('fundModalContent').innerHTML = `
             <p style="margin-bottom: 16px;">You are about to fund the escrow for: <strong>${escrow.gig_title}</strong></p>
@@ -841,15 +883,23 @@
         });
     }
 
-    function openReleaseModal(gigId) {
+    function openReleaseModal(gigId, freelancerId) {
         currentGigId = gigId;
+        currentFreelancerId = freelancerId || null;
+        const escrow = allEscrows.find(e => e.gig_id === gigId && (!freelancerId || e.freelancer_id === freelancerId))
+                    || allEscrows.find(e => e.gig_id === gigId);
+        const workerName = escrow ? escrow.freelancer_name : 'the freelancer';
+        document.querySelector('#releaseModal .modal-body p').textContent =
+            `Are you sure you want to release the escrow funds to ${workerName}?`;
         document.getElementById('releaseModal').classList.add('active');
     }
 
     function confirmRelease() {
+        const body = currentFreelancerId ? { freelancer_id: currentFreelancerId } : {};
         fetch(`/api/escrow/${currentGigId}/release`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
         })
         .then(response => response.json())
         .then(data => {
@@ -866,8 +916,9 @@
         });
     }
 
-    function openDisputeModal(gigId) {
+    function openDisputeModal(gigId, freelancerId) {
         currentGigId = gigId;
+        currentFreelancerId = freelancerId || null;
         document.getElementById('disputeReason').value = '';
         document.getElementById('disputeModal').classList.add('active');
     }
@@ -878,11 +929,14 @@
             showAlert('Please provide a reason for the dispute', 'error');
             return;
         }
-        
+
+        const body = { reason };
+        if (currentFreelancerId) body.freelancer_id = currentFreelancerId;
+
         fetch(`/api/escrow/${currentGigId}/dispute`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: reason })
+            body: JSON.stringify(body)
         })
         .then(response => response.json())
         .then(data => {
