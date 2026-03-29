@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kod Rujukan Anda - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header .emoji {
+            font-size: 52px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0 0 10px 0;
+            font-size: 30px;
+            font-weight: 700;
+        }
+        .header p {
+            color: #d1fae5;
+            margin: 8px 0 0 0;
+            font-size: 16px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .intro-text {
+            font-size: 16px;
+            color: #444444;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        /* Referral code box */
+        .code-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px dashed #10b981;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .code-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .code-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #065f46;
+            letter-spacing: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 8px 0 16px 0;
+        }
+        .code-link {
+            background-color: #ffffff;
+            border: 1px solid #a7f3d0;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #059669;
+            word-break: break-all;
+            display: block;
+            margin: 0 auto;
+            max-width: 420px;
+        }
+        /* How it works */
+        .how-it-works {
+            background-color: #f9fafb;
+            border-radius: 10px;
+            padding: 25px 25px 15px 25px;
+            margin: 30px 0;
+        }
+        .how-it-works h2 {
+            color: #111827;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            font-weight: 700;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+        .step-number {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            font-size: 15px;
+            flex-shrink: 0;
+            margin-right: 14px;
+            margin-top: 2px;
+        }
+        .step-text {
+            font-size: 15px;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .step-text strong {
+            color: #065f46;
+        }
+        /* Bonus highlight */
+        .bonus-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 5px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px 25px;
+            margin: 25px 0;
+        }
+        .bonus-box h3 {
+            color: #92400e;
+            font-size: 18px;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        .bonus-box p {
+            color: #78350f;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 6px 0;
+        }
+        .bonus-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: #d97706;
+        }
+        /* CTA button */
+        .cta-button {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .cta-button a {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 44px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        /* Footer */
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 25px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 7px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        @media only screen and (max-width: 600px) {
+            .content { padding: 28px 18px; }
+            .header h1 { font-size: 24px; }
+            .code-value { font-size: 28px; letter-spacing: 4px; }
+            .cta-button a { padding: 15px 28px; font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="emoji">🎁</div>
+            <h1>Kod Rujukan Anda Sudah Sedia!</h1>
+            <p>Jemput rakan & dapatkan ganjaran tunai percuma</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <div class="greeting">Assalamualaikum {{ user_name }},</div>
+
+            <span class="badge">✨ Ciri Baharu</span>
+
+            <p class="intro-text">
+                Kami dengan gembira memperkenalkan <strong>Program Rujukan GigHala</strong>!
+                Kini setiap ahli mempunyai <strong>Kod Rujukan</strong> unik tersendiri.
+                Kongsi kod anda kepada rakan-rakan dan dapatkan <strong>ganjaran tunai</strong>
+                setiap kali mereka mendaftar menggunakan kod anda.
+            </p>
+
+            <!-- Referral Code Box -->
+            <div class="code-box">
+                <div class="code-label">Kod Rujukan Anda</div>
+                <div class="code-value">{{ referral_code }}</div>
+                <span class="code-link">{{ referral_link }}</span>
+            </div>
+
+            <!-- Bonus Highlight -->
+            <div class="bonus-box">
+                <h3>💰 Ganjaran Untuk Anda</h3>
+                <p>Dapatkan</p>
+                <div class="bonus-amount">RM 5.00</div>
+                <p>ke dalam dompet GigHala anda bagi setiap rakan baharu yang berjaya mendaftar
+                dan mengesahkan akaun mereka menggunakan kod rujukan anda.</p>
+                <p style="font-size: 13px; margin-top: 12px; opacity: 0.8;">
+                    * Tiada had — semakin ramai rakan yang anda jemput, semakin banyak ganjaran yang anda perolehi!
+                </p>
+            </div>
+
+            <!-- How It Works -->
+            <div class="how-it-works">
+                <h2>📋 Cara Penggunaan</h2>
+
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">
+                        <strong>Salin kod atau pautan anda</strong> — kod rujukan anda adalah
+                        <strong>{{ referral_code }}</strong>. Anda boleh kongsikan terus pautan pendaftaran di atas.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">
+                        <strong>Kongsi kepada rakan-rakan</strong> — hantar kepada rakan melalui WhatsApp,
+                        Telegram, media sosial atau apa-apa cara yang anda suka.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">
+                        <strong>Rakan mendaftar menggunakan kod anda</strong> — mereka perlu memasukkan
+                        kod rujukan semasa proses pendaftaran.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-text">
+                        <strong>Ganjaran dikreditkan secara automatik</strong> — selepas rakan anda
+                        mengesahkan akaun, <strong>RM 5.00</strong> akan masuk ke dalam dompet anda
+                        dalam masa 48 jam.
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-button">
+                <a href="{{ base_url }}/dashboard">Lihat Kod Rujukan Saya</a>
+            </div>
+
+            <!-- Info note -->
+            <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 18px 20px; margin: 20px 0;">
+                <p style="margin: 0; font-size: 14px; color: #1e40af; line-height: 1.7;">
+                    <strong>Nota:</strong> Kod rujukan anda juga boleh dilihat dan disalin terus dari
+                    <a href="{{ base_url }}/dashboard" style="color: #1d4ed8; font-weight: 600;">Dashboard</a> anda.
+                    Klik kad <em>"KOD RUJUKAN ANDA"</em> untuk menyalin pautan pendaftaran.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="font-weight: 600; color: #333; font-size: 15px;">GigHala</p>
+            <p>Platform Freelance Patuh Halal Malaysia</p>
+            <p>
+                <a href="{{ base_url }}/gigs">Cari Gig</a> |
+                <a href="{{ base_url }}/dashboard">Dashboard</a> |
+                <a href="{{ base_url }}/settings">Tetapan</a> |
+                <a href="{{ base_url }}/help">Bantuan</a>
+            </p>
+            <p style="margin-top: 18px; font-size: 13px; color: #9ca3af;">
+                Anda menerima email ini kerana anda adalah ahli GigHala.<br>
+                Untuk mengubah tetapan notifikasi, sila lawati
+                <a href="{{ base_url }}/settings">tetapan akaun</a> anda.
+            </p>
+        </div>
+
+    </div>
+</body>
+</html>

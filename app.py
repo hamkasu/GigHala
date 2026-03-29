@@ -15910,6 +15910,126 @@ def announce_direct_hire():
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
 
+@app.route('/api/admin/announce-referral-code', methods=['POST'])
+@admin_required
+def announce_referral_code():
+    """
+    Send a personalised referral-code announcement email to all users.
+    Each email contains the recipient's unique referral code and link.
+    """
+    try:
+        data = request.get_json() or {}
+        recipient_type = data.get('recipient_type', 'all_users')
+
+        if recipient_type == 'all_users':
+            users = User.query.all()
+        elif recipient_type == 'all':
+            users = User.query.filter(User.is_verified == True).all()
+        elif recipient_type == 'freelancers':
+            users = User.query.filter(
+                User.user_type.in_(['freelancer', 'both']),
+                User.is_verified == True
+            ).all()
+        elif recipient_type == 'clients':
+            users = User.query.filter(
+                User.user_type.in_(['client', 'both']),
+                User.is_verified == True
+            ).all()
+        else:
+            return jsonify({'error': 'Invalid recipient_type. Use all_users, all, freelancers, or clients.'}), 400
+
+        if not users:
+            return jsonify({'error': 'No matching users found'}), 400
+
+        base_url = request.host_url.rstrip('/')
+        subject = "🎁 Kod Rujukan Anda Sudah Sedia — Jemput Rakan & Dapatkan RM5!"
+
+        sent_count = 0
+        failed_count = 0
+        all_recipient_emails = []
+
+        for user in users:
+            # Ensure user has a referral code
+            if not user.referral_code:
+                user.referral_code = generate_referral_code()
+                db.session.commit()
+
+            referral_link = f"{base_url}/register?ref={user.referral_code}"
+            user_name = user.full_name or user.username
+
+            html_content = render_template(
+                'email_referral_announcement.html',
+                user_name=user_name,
+                referral_code=user.referral_code,
+                referral_link=referral_link,
+                base_url=base_url
+            )
+
+            text_content = (
+                f"Assalamualaikum {user_name},\n\n"
+                f"Kod Rujukan Anda: {user.referral_code}\n"
+                f"Pautan Pendaftaran: {referral_link}\n\n"
+                "Kongsi kod ini kepada rakan-rakan anda. Setiap kali rakan baharu mendaftar "
+                "menggunakan kod anda dan mengesahkan akaun mereka, anda akan menerima "
+                "RM 5.00 ke dalam dompet GigHala anda secara automatik.\n\n"
+                f"Lihat dashboard anda: {base_url}/dashboard\n\n"
+                "Terima kasih kerana menggunakan GigHala!\n"
+                "Team GigHala"
+            )
+
+            success, _, _, _ = email_service.send_single_email(
+                to_email=user.email,
+                to_name=user_name,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content
+            )
+
+            if success:
+                sent_count += 1
+            else:
+                failed_count += 1
+            all_recipient_emails.append(user.email)
+
+        # Archive in email log
+        try:
+            email_log = EmailSendLog(
+                email_type='admin_bulk',
+                subject=subject,
+                html_content='[personalised per-user — see referral announcement]',
+                text_content=None,
+                recipient_emails=json.dumps(all_recipient_emails),
+                sender_user_id=current_user.id if current_user and current_user.is_authenticated else None,
+                recipient_count=len(users),
+                successful_count=sent_count,
+                failed_count=failed_count,
+                recipient_type=recipient_type,
+                success=sent_count > 0,
+                error_message=None,
+                brevo_message_ids=json.dumps([]),
+                failed_recipients=json.dumps([])
+            )
+            db.session.add(email_log)
+            db.session.commit()
+        except Exception as log_err:
+            app.logger.error(f"[REFERRAL_ANNOUNCE_LOG] Failed to log: {log_err}")
+            db.session.rollback()
+
+        app.logger.info(
+            f"[ANNOUNCE] Referral code announcement sent: {sent_count} success, {failed_count} failed"
+        )
+        return jsonify({
+            'message': f"Emel kod rujukan berjaya dihantar kepada {sent_count} pengguna.",
+            'recipients_count': len(users),
+            'successful_count': sent_count,
+            'failed_count': failed_count
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"announce_referral_code error: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
+
+
 @app.route('/api/admin/email-logs', methods=['GET'])
 @admin_required
 def admin_email_logs():
