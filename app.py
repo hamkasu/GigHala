@@ -160,6 +160,12 @@ app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 
 db = SQLAlchemy(app)
 
+# ── Feature flags ──────────────────────────────────────────────────────────────
+# Set to True to enable the referral programme (dashboard card, registration
+# bonus tracking, scheduled credit job, and /api/referral-info endpoint).
+REFERRAL_ENABLED = False
+# ──────────────────────────────────────────────────────────────────────────────
+
 # Initialize CSRF Protection
 csrf = CSRFProtect(app)
 
@@ -1720,8 +1726,10 @@ def _apply_referral_credit(referral_record, referred_user):
 def process_pending_referral_bonuses():
     """
     Scheduled job: credit RM5 to referrers for verified users whose 24h fraud delay has passed.
-    Run hourly.
+    Run hourly. No-op while REFERRAL_ENABLED = False.
     """
+    if not REFERRAL_ENABLED:
+        return
     try:
         now = datetime.utcnow()
         due = Referral.query.filter(
@@ -5719,11 +5727,11 @@ def register():
         if User.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username already taken'}), 400
 
-        # Validate referral code if provided
+        # Validate referral code if provided (disabled until REFERRAL_ENABLED = True)
         referral_code_used = data.get('referral_code', '').strip().upper()
         referrer = None
         registration_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
-        if referral_code_used:
+        if REFERRAL_ENABLED and referral_code_used:
             referrer = User.query.filter_by(referral_code=referral_code_used).first()
             if not referrer:
                 return jsonify({'error': 'Invalid referral code'}), 400
@@ -5773,8 +5781,8 @@ def register():
         db.session.add(new_user)
         db.session.flush()  # Get new_user.id before commit
 
-        # Create referral record if referred by someone
-        if referrer:
+        # Create referral record if referred by someone (only when REFERRAL_ENABLED)
+        if REFERRAL_ENABLED and referrer:
             referral_record = Referral(
                 referrer_id=referrer.id,
                 referred_id=new_user.id,
@@ -16964,6 +16972,8 @@ def socso_statement():
 @login_required
 def get_referral_info():
     """Get current user's referral code and stats"""
+    if not REFERRAL_ENABLED:
+        return jsonify({'error': 'Referral programme is not yet active'}), 503
     try:
         user = User.query.get(session['user_id'])
         if not user:
