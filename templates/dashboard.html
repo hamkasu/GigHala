@@ -898,7 +898,7 @@
     </a>
     {% endif %}
 
-    {% if user.referral_code %}
+    {% if false and user.referral_code %}{# REFERRAL_ENABLED=False — unhide when feature launches #}
     <div class="stat-card-link" onclick="copyReferralCode('{{ user.referral_code }}')" style="cursor: pointer; text-decoration: none;">
         <div class="stat-card" style="border-left-color: #10b981;">
             <div class="stat-label">KOD RUJUKAN ANDA</div>
