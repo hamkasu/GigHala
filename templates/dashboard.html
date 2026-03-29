@@ -897,6 +897,16 @@
         </div>
     </a>
     {% endif %}
+
+    {% if user.referral_code %}
+    <div class="stat-card-link" onclick="copyReferralCode('{{ user.referral_code }}')" style="cursor: pointer; text-decoration: none;">
+        <div class="stat-card" style="border-left-color: #10b981;">
+            <div class="stat-label">KOD RUJUKAN ANDA</div>
+            <div class="stat-value" style="font-size: 20px; letter-spacing: 2px; font-family: monospace;" id="referral-code-display">{{ user.referral_code }}</div>
+            <div class="stat-description" id="referral-copy-hint">Klik untuk salin kod</div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <div class="dashboard-grid">
@@ -1533,6 +1543,32 @@
             console.error('Error submitting payout:', error);
             alert('Error submitting payout request. Please try again.');
         }
+    }
+
+    function copyReferralCode(code) {
+        const referralLink = `${window.location.origin}/register?ref=${code}`;
+        navigator.clipboard.writeText(referralLink).then(() => {
+            const hint = document.getElementById('referral-copy-hint');
+            const original = hint.textContent;
+            hint.textContent = 'Pautan disalin!';
+            hint.style.color = '#10b981';
+            setTimeout(() => {
+                hint.textContent = original;
+                hint.style.color = '';
+            }, 2000);
+        }).catch(() => {
+            // Fallback
+            const el = document.createElement('textarea');
+            el.value = referralLink;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            const hint = document.getElementById('referral-copy-hint');
+            hint.textContent = 'Pautan disalin!';
+            hint.style.color = '#10b981';
+            setTimeout(() => { hint.textContent = 'Klik untuk salin kod'; hint.style.color = ''; }, 2000);
+        });
     }
 
     // Load SOCSO deductions on page load
