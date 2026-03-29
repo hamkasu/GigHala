@@ -4939,6 +4939,11 @@ def dashboard():
     user_id = session['user_id']
     user = User.query.get(user_id)
 
+    # Ensure user has a referral code (backfill for existing users)
+    if not user.referral_code:
+        user.referral_code = generate_referral_code()
+        db.session.commit()
+
     # Get wallet information
     wallet = Wallet.query.filter_by(user_id=user_id).first()
     if not wallet:
