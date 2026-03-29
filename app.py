@@ -15942,7 +15942,7 @@ def announce_referral_code():
             return jsonify({'error': 'No matching users found'}), 400
 
         base_url = request.host_url.rstrip('/')
-        subject = "🎁 Kod Rujukan Anda Sudah Sedia — Jemput Rakan & Dapatkan RM5!"
+        subject = "🎁 Sesuatu Yang Menarik Akan Datang — Program Rujukan GigHala!"
 
         sent_count = 0
         failed_count = 0
@@ -15967,12 +15967,18 @@ def announce_referral_code():
 
             text_content = (
                 f"Assalamualaikum {user_name},\n\n"
-                f"Kod Rujukan Anda: {user.referral_code}\n"
-                f"Pautan Pendaftaran: {referral_link}\n\n"
-                "Kongsi kod ini kepada rakan-rakan anda. Setiap kali rakan baharu mendaftar "
-                "menggunakan kod anda dan mengesahkan akaun mereka, anda akan menerima "
-                "RM 5.00 ke dalam dompet GigHala anda secara automatik.\n\n"
-                f"Lihat dashboard anda: {base_url}/dashboard\n\n"
+                "Kami ingin berkongsi berita menarik dengan anda lebih awal!\n\n"
+                "GigHala akan melancarkan Program Rujukan tidak lama lagi — "
+                "sebuah ciri baharu yang membolehkan anda menjana wang tambahan "
+                "hanya dengan mengajak rakan-rakan anda menyertai platform ini.\n\n"
+                "APA YANG AKAN ANDA DAPAT:\n"
+                "- Kod Rujukan Unik peribadi anda sendiri\n"
+                "- Ganjaran tunai RM5.00 bagi setiap rakan yang mendaftar\n"
+                "- Pautan pendaftaran mudah untuk dikongsi\n"
+                "- Tiada had — lebih ramai rakan, lebih banyak ganjaran\n\n"
+                "Nantikan! Kami akan menghantar emel lanjut dengan kod rujukan "
+                "peribadi anda apabila ciri ini dilancarkan secara rasmi.\n\n"
+                f"Dashboard anda: {base_url}/dashboard\n\n"
                 "Terima kasih kerana menggunakan GigHala!\n"
                 "Team GigHala"
             )
