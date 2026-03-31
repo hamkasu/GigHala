@@ -1,14 +1,16 @@
-// Top-level build file — configuration for all sub-projects/modules
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.2'
-        classpath 'com.google.gms:google-services:4.4.1'
+        classpath 'com.android.tools.build:gradle:8.3.2'
+        classpath 'com.google.gms:google-services:4.4.2'
     }
 }
+
+// Capacitor generates this file during `npx cap sync android`
+apply from: 'capacitor.build.gradle'
 
 allprojects {
     repositories {
