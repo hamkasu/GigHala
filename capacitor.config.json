@@ -1,0 +1,51 @@
+{
+  "appId": "com.gighala.app",
+  "appName": "GigHala",
+  "webDir": "www",
+  "server": {
+    "url": "https://gighala.up.railway.app",
+    "cleartext": false,
+    "allowNavigation": [
+      "gighala.up.railway.app",
+      "*.gighala.com",
+      "accounts.google.com",
+      "*.stripe.com"
+    ]
+  },
+  "android": {
+    "backgroundColor": "#1a1a1a",
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false,
+    "loggingBehavior": "none"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#1a1a1a",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "spinnerColor": "#00C853",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1a1a1a"
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_gighala",
+      "iconColor": "#00C853",
+      "sound": "beep.wav"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "DARK",
+      "resizeOnFullScreen": true
+    }
+  }
+}
