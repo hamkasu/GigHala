@@ -60,8 +60,8 @@ uploads/
 
 # Node / Capacitor
 node_modules/
-www/
 .capacitor/
+# www/ is NOT ignored — our index.html is hand-written, not generated
 
 # Android build artifacts
 android/.gradle/
