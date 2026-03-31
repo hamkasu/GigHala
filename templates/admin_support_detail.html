@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket {{ ticket.ticket_number }}{% endblock %}
+
+{% block content %}
+<div style="max-width:780px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+        <a href="/admin/support" style="color:var(--text-gray);text-decoration:none;font-size:14px;">← All Tickets</a>
+        <h1 style="font-size:22px;font-weight:700;color:var(--text-dark);">{{ ticket.ticket_number }}</h1>
+        <span class="badge badge-{{ ticket.status }}" style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;">{{ ticket.status.replace('_', ' ') }}</span>
+        <span class="badge badge-{{ ticket.priority }}" style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;">{{ ticket.priority }}</span>
+        {% if ticket.escalation_level > 1 %}
+        <span style="background:#fce7f3;color:#be185d;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;">⬆ L{{ ticket.escalation_level }} {{ escalation_labels[ticket.escalation_level] }}</span>
+        {% endif %}
+    </div>
+
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:8px;">{{ ticket.subject }}</h2>
+        <div style="font-size:13px;color:var(--text-gray);margin-bottom:16px;">
+            👤 {{ ticket_user.full_name if ticket_user else 'Unknown' }} ({{ ticket_user.email if ticket_user else '' }}) &bull;
+            {{ categories.get(ticket.category, ticket.category) }} &bull;
+            {{ ticket.created_at.strftime('%d %b %Y, %H:%M') if ticket.created_at else '' }}
+            {% if ticket.escalated_at %} &bull; Escalated: {{ ticket.escalated_at.strftime('%d %b %Y') }}{% endif %}
+        </div>
+        <p style="font-size:15px;line-height:1.6;color:var(--text-dark);">{{ ticket.description }}</p>
+        {% if ticket.admin_notes %}
+        <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:var(--radius-md);padding:12px;margin-top:14px;font-size:13px;">
+            <strong>Admin Notes:</strong> {{ ticket.admin_notes }}
+        </div>
+        {% endif %}
+        {% if ticket.resolution_notes %}
+        <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:var(--radius-md);padding:12px;margin-top:14px;font-size:13px;color:#059669;">
+            <strong>✅ Resolution:</strong> {{ ticket.resolution_notes }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Thread -->
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Conversation</h3>
+        {% for msg in messages %}
+        <div style="margin-bottom:16px;{% if msg.is_admin_reply %}text-align:right;{% endif %}">
+            <div style="font-size:11px;color:var(--text-gray);margin-bottom:4px;">
+                {{ 'Support Team' if msg.is_admin_reply else ticket_user.full_name }} &bull; {{ msg.created_at.strftime('%d %b %Y, %H:%M') if msg.created_at else '' }}
+            </div>
+            <span style="display:inline-block;padding:10px 14px;border-radius:14px;font-size:14px;max-width:80%;line-height:1.5;{% if msg.is_admin_reply %}background:#7c3aed;color:white;{% else %}background:#f3f4f6;color:var(--text-dark);{% endif %}">
+                {{ msg.message }}
+            </span>
+        </div>
+        {% else %}
+        <p style="color:var(--text-gray);font-size:14px;">No messages yet.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Admin Action Form -->
+    <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Respond / Update</h3>
+        <textarea id="replyMsg" rows="4" placeholder="Reply to user..." style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:12px;"></textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+            <select id="statusSel" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;">
+                <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+            </select>
+            <input type="text" id="resolutionNotes" placeholder="Resolution notes (optional)..." value="{{ ticket.resolution_notes or '' }}" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;">
+            <button onclick="submitReply()" style="padding:8px 20px;background:#7c3aed;color:white;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;">Send Reply</button>
+        </div>
+        <textarea id="adminNotes" rows="2" placeholder="Internal admin notes (not shown to user)..." style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;">{{ ticket.admin_notes or '' }}</textarea>
+    </div>
+
+    <!-- Escalation -->
+    <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--radius-lg);padding:24px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;color:#92400e;">⬆ Escalate Ticket</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <select id="escalateLvl" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;">
+                <option value="2">Level 2 — Senior Support</option>
+                <option value="3">Level 3 — Management</option>
+            </select>
+            <input type="text" id="escalateReason" placeholder="Reason for escalation..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;">
+            <button onclick="submitEscalation()" style="padding:8px 20px;background:#f59e0b;color:white;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;">Escalate</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const ticketId = {{ ticket.id }};
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.content : '';
+}
+
+async function submitReply() {
+    const message = document.getElementById('replyMsg').value.trim();
+    const status = document.getElementById('statusSel').value;
+    const resolution_notes = document.getElementById('resolutionNotes').value.trim();
+    const admin_notes = document.getElementById('adminNotes').value.trim();
+
+    try {
+        const res = await fetch(`/api/admin/support/ticket/${ticketId}/respond`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+            body: JSON.stringify({message, status, resolution_notes, admin_notes})
+        });
+        const data = await res.json();
+        if (data.success) location.reload();
+        else alert(data.error || 'Failed.');
+    } catch(e) { alert('Connection error.'); }
+}
+
+async function submitEscalation() {
+    const level = parseInt(document.getElementById('escalateLvl').value);
+    const reason = document.getElementById('escalateReason').value.trim();
+    if (!reason) { alert('Please provide a reason.'); return; }
+
+    try {
+        const res = await fetch(`/api/admin/support/ticket/${ticketId}/escalate`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+            body: JSON.stringify({level, reason})
+        });
+        const data = await res.json();
+        if (data.success) { alert(`Escalated to ${data.level_label}`); location.reload(); }
+        else alert(data.error || 'Failed.');
+    } catch(e) { alert('Connection error.'); }
+}
+</script>
+{% endblock %}

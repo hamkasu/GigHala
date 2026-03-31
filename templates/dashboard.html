@@ -1138,6 +1138,7 @@
         <a href="/urgent-help" class="btn btn-outline" style="background:#e65100;color:white;border-color:#e65100;font-weight:700;">⚡ {{ 'Urgent Help' }}</a>
         <a href="/messages" class="btn btn-outline">{{ 'Mesej' if lang == 'ms' else 'Messages' }}</a>
         <a href="/billing" class="btn btn-outline">{{ t('view_wallet') }}</a>
+        <a href="/support" class="btn btn-outline" style="background: #7c3aed; color: white; border-color: #7c3aed;">🎫 {{ 'Sokongan' if lang == 'ms' else 'Support' }}</a>
         <button onclick="messageAdmin()" class="btn btn-outline" style="background: #0ea5e9; color: white; border-color: #0ea5e9;">💬 Message Admin</button>
         <button onclick="openPayoutModal()" class="btn btn-outline" style="background: var(--primary-green); color: white; border-color: var(--primary-green);">💰 Request Payout</button>
         {% if user.user_type in ['client', 'both'] %}

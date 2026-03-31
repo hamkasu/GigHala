@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Support Tickets{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .admin-support-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .page-header h1 {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .stat-pill {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 12px 18px;
+        text-align: center;
+        min-width: 90px;
+    }
+
+    .stat-pill .num {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .stat-pill .lbl {
+        font-size: 11px;
+        color: var(--text-gray);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .filters {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    .ticket-row {
+        background: var(--bg-white);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        transition: box-shadow 0.2s;
+    }
+
+    .ticket-row:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    }
+
+    .ticket-row.escalated-l2 { border-left: 4px solid #f59e0b; }
+    .ticket-row.escalated-l3 { border-left: 4px solid #dc2626; }
+    .ticket-row.urgent { border-left: 4px solid #dc2626; }
+
+    .ticket-info { flex: 1; }
+
+    .ticket-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+
+    .ticket-num {
+        font-size: 12px;
+        font-weight: 700;
+        color: #7c3aed;
+        font-family: monospace;
+    }
+
+    .ticket-subject {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .ticket-meta {
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-bottom: 6px;
+    }
+
+    .ticket-desc {
+        font-size: 13px;
+        color: var(--text-light);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 500px;
+    }
+
+    .ticket-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-end;
+        flex-shrink: 0;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 9px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-open { background: #dbeafe; color: #1d4ed8; }
+    .badge-in_progress { background: #fef3c7; color: #d97706; }
+    .badge-escalated { background: #fee2e2; color: #dc2626; }
+    .badge-resolved { background: #d1fae5; color: #059669; }
+    .badge-closed { background: #f3f4f6; color: #6b7280; }
+    .badge-low { background: #f3f4f6; color: #6b7280; }
+    .badge-medium { background: #dbeafe; color: #2563eb; }
+    .badge-high { background: #fef3c7; color: #d97706; }
+    .badge-urgent { background: #fee2e2; color: #dc2626; }
+
+    .btn-sm {
+        padding: 6px 14px;
+        font-size: 13px;
+        border-radius: var(--radius-md);
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: opacity 0.2s;
+    }
+
+    .btn-sm:hover { opacity: 0.85; }
+    .btn-purple { background: #7c3aed; color: white; }
+    .btn-orange { background: #f59e0b; color: white; }
+    .btn-green { background: #10b981; color: white; }
+    .btn-gray { background: #6b7280; color: white; }
+
+    /* Detail modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+        background: white;
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 680px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        margin: 16px;
+    }
+
+    .modal-head {
+        padding: 20px 24px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .modal-head h3 { font-size: 16px; font-weight: 700; margin: 0; }
+
+    .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 24px;
+    }
+
+    .message-bubble { margin-bottom: 14px; }
+    .bubble-meta { font-size: 11px; color: var(--text-gray); margin-bottom: 4px; }
+    .bubble-text {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 14px;
+        max-width: 85%;
+        line-height: 1.5;
+        word-break: break-word;
+    }
+
+    .message-bubble.admin-msg .bubble-meta { text-align: right; }
+    .message-bubble.admin-msg { text-align: right; }
+    .message-bubble.admin-msg .bubble-text { background: #7c3aed; color: white; }
+    .message-bubble.user-msg .bubble-text { background: #f3f4f6; color: var(--text-dark); }
+
+    .modal-actions {
+        padding: 16px 24px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .modal-actions textarea:focus { outline: none; border-color: #7c3aed; }
+
+    .action-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .action-row select {
+        padding: 7px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-family: inherit;
+    }
+
+    .escalation-section {
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        border-radius: var(--radius-md);
+        padding: 14px;
+        margin-top: 10px;
+    }
+
+    .escalation-section h4 {
+        font-size: 13px;
+        font-weight: 700;
+        color: #92400e;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-support-container">
+    <div class="page-header">
+        <h1>🎫 Support Tickets</h1>
+        <a href="/admin" class="btn btn-outline" style="font-size:13px;">← Admin Panel</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-pill">
+            <div class="num">{{ stats.open }}</div>
+            <div class="lbl">Open</div>
+        </div>
+        <div class="stat-pill">
+            <div class="num">{{ stats.in_progress }}</div>
+            <div class="lbl">In Progress</div>
+        </div>
+        <div class="stat-pill" style="border-color:#fca5a5;">
+            <div class="num" style="color:#dc2626;">{{ stats.escalated }}</div>
+            <div class="lbl">Escalated</div>
+        </div>
+        <div class="stat-pill" style="border-color:#6ee7b7;">
+            <div class="num" style="color:#059669;">{{ stats.resolved }}</div>
+            <div class="lbl">Resolved</div>
+        </div>
+        <div class="stat-pill" style="border-color:#fca5a5;">
+            <div class="num" style="color:#dc2626;">{{ stats.urgent }}</div>
+            <div class="lbl">Urgent</div>
+        </div>
+        <div class="stat-pill" style="border-color:#fcd34d;">
+            <div class="num" style="color:#d97706;">{{ stats.level2 }}</div>
+            <div class="lbl">Senior L2</div>
+        </div>
+        <div class="stat-pill" style="border-color:#fca5a5;">
+            <div class="num" style="color:#dc2626;">{{ stats.level3 }}</div>
+            <div class="lbl">Mgmt L3</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <label style="font-size:13px;font-weight:600;color:var(--text-dark);">Filter:</label>
+        <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+            <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Status</option>
+            <option value="open" {% if current_status == 'open' %}selected{% endif %}>Open</option>
+            <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+            <option value="escalated" {% if current_status == 'escalated' %}selected{% endif %}>Escalated</option>
+            <option value="resolved" {% if current_status == 'resolved' %}selected{% endif %}>Resolved</option>
+            <option value="closed" {% if current_status == 'closed' %}selected{% endif %}>Closed</option>
+        </select>
+        <select class="filter-select" id="filterPriority" onchange="applyFilters()">
+            <option value="all" {% if current_priority == 'all' %}selected{% endif %}>All Priorities</option>
+            {% for key, label in priorities.items() %}
+            <option value="{{ key }}" {% if current_priority == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Ticket list -->
+    {% if tickets %}
+        {% for item in tickets %}
+        {% set ticket = item.ticket %}
+        {% set ticket_user = item.user %}
+        <div class="ticket-row {% if ticket.escalation_level == 3 %}escalated-l3{% elif ticket.escalation_level == 2 %}escalated-l2{% elif ticket.priority == 'urgent' %}urgent{% endif %}">
+            <div class="ticket-info">
+                <div class="ticket-top">
+                    <span class="ticket-num">{{ ticket.ticket_number }}</span>
+                    <span class="badge badge-{{ ticket.status }}">{{ ticket.status.replace('_', ' ') }}</span>
+                    <span class="badge badge-{{ ticket.priority }}">{{ ticket.priority }}</span>
+                    {% if ticket.escalation_level > 1 %}
+                    <span class="badge" style="background:#fce7f3;color:#be185d;">⬆ L{{ ticket.escalation_level }} {{ escalation_labels[ticket.escalation_level] }}</span>
+                    {% endif %}
+                </div>
+                <div class="ticket-subject">{{ ticket.subject }}</div>
+                <div class="ticket-meta">
+                    👤 {{ ticket_user.full_name if ticket_user else 'Unknown' }} ({{ ticket_user.email if ticket_user else '' }}) &bull;
+                    {{ categories.get(ticket.category, ticket.category) }} &bull;
+                    {{ ticket.created_at.strftime('%d %b %Y, %H:%M') if ticket.created_at else '' }} &bull;
+                    {{ item.msg_count }} message{{ 's' if item.msg_count != 1 else '' }}
+                </div>
+                <div class="ticket-desc">{{ ticket.description }}</div>
+            </div>
+            <div class="ticket-actions">
+                <button class="btn-sm btn-purple" onclick="openAdminTicket({{ ticket.id }})">Manage</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center;padding:48px;color:var(--text-gray);">
+            <div style="font-size:36px;margin-bottom:12px;">🎫</div>
+            <p>No support tickets found.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Admin Ticket Modal -->
+<div class="modal-overlay" id="adminTicketModal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <div>
+                <h3 id="adminModalTitle">Ticket</h3>
+                <div id="adminModalMeta" style="font-size:12px;color:var(--text-gray);margin-top:4px;"></div>
+            </div>
+            <button onclick="closeAdminModal()" style="background:none;border:none;font-size:22px;cursor:pointer;">×</button>
+        </div>
+        <div class="modal-body" id="adminModalMessages"></div>
+        <div class="modal-actions">
+            <textarea id="adminReplyText" rows="3" placeholder="Write a reply to the user..."></textarea>
+            <div class="action-row">
+                <select id="adminStatusSelect">
+                    <option value="in_progress">In Progress</option>
+                    <option value="open">Open</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+                <input type="text" id="adminResolutionNotes" placeholder="Resolution notes (if resolving)..." style="flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:inherit;">
+                <button class="btn-sm btn-purple" onclick="sendAdminReply()">Reply & Update</button>
+            </div>
+
+            <!-- Escalation Section -->
+            <div class="escalation-section">
+                <h4>⬆ Escalation</h4>
+                <div class="action-row">
+                    <select id="escalateLevel">
+                        <option value="2">Level 2 — Senior Support</option>
+                        <option value="3">Level 3 — Management</option>
+                    </select>
+                    <input type="text" id="escalateReason" placeholder="Reason for escalation..." style="flex:1;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:13px;font-family:inherit;">
+                    <button class="btn-sm btn-orange" onclick="escalateTicket()">Escalate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let adminCurrentTicketId = null;
+
+function applyFilters() {
+    const status = document.getElementById('filterStatus').value;
+    const priority = document.getElementById('filterPriority').value;
+    window.location.href = `/admin/support?status=${status}&priority=${priority}`;
+}
+
+async function openAdminTicket(ticketId) {
+    adminCurrentTicketId = ticketId;
+    try {
+        const res = await fetch(`/api/support/ticket/${ticketId}`);
+        const data = await res.json();
+
+        document.getElementById('adminModalTitle').textContent = `${data.ticket_number} — ${data.subject}`;
+        document.getElementById('adminModalMeta').textContent =
+            `Category: ${data.category} | Priority: ${data.priority} | Status: ${data.status} | Escalation L${data.escalation_level}`;
+
+        const statusSel = document.getElementById('adminStatusSelect');
+        statusSel.value = data.status === 'open' ? 'in_progress' : data.status;
+
+        const msgContainer = document.getElementById('adminModalMessages');
+        msgContainer.innerHTML = '';
+
+        msgContainer.innerHTML += `
+            <div class="message-bubble user-msg">
+                <div class="bubble-meta">User (original description)</div>
+                <div class="bubble-text">${escapeHtml(data.description)}</div>
+            </div>`;
+
+        (data.messages || []).forEach(m => {
+            const cls = m.is_admin_reply ? 'admin-msg' : 'user-msg';
+            const sender = m.is_admin_reply ? 'Support Team' : 'User';
+            msgContainer.innerHTML += `
+                <div class="message-bubble ${cls}">
+                    <div class="bubble-meta">${sender} • ${formatDate(m.created_at)}</div>
+                    <div class="bubble-text">${escapeHtml(m.message)}</div>
+                </div>`;
+        });
+
+        if (data.resolution_notes) {
+            msgContainer.innerHTML += `<div style="background:#d1fae5;color:#059669;padding:12px;border-radius:10px;margin-top:8px;font-size:13px;">✅ <strong>Resolved:</strong> ${escapeHtml(data.resolution_notes)}</div>`;
+        }
+
+        document.getElementById('adminTicketModal').classList.add('active');
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    } catch(e) {
+        alert('Failed to load ticket.');
+    }
+}
+
+async function sendAdminReply() {
+    const message = document.getElementById('adminReplyText').value.trim();
+    const status = document.getElementById('adminStatusSelect').value;
+    const resolution_notes = document.getElementById('adminResolutionNotes').value.trim();
+
+    try {
+        const res = await fetch(`/api/admin/support/ticket/${adminCurrentTicketId}/respond`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+            body: JSON.stringify({message, status, resolution_notes})
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('adminReplyText').value = '';
+            document.getElementById('adminResolutionNotes').value = '';
+            closeAdminModal();
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to respond.');
+        }
+    } catch(e) {
+        alert('Connection error.');
+    }
+}
+
+async function escalateTicket() {
+    const level = parseInt(document.getElementById('escalateLevel').value);
+    const reason = document.getElementById('escalateReason').value.trim();
+    if (!reason) {
+        alert('Please provide a reason for escalation.');
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/admin/support/ticket/${adminCurrentTicketId}/escalate`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+            body: JSON.stringify({level, reason})
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(`Ticket escalated to ${data.level_label}`);
+            closeAdminModal();
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to escalate.');
+        }
+    } catch(e) {
+        alert('Connection error.');
+    }
+}
+
+function closeAdminModal() {
+    document.getElementById('adminTicketModal').classList.remove('active');
+    adminCurrentTicketId = null;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function formatDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString();
+}
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.content : '';
+}
+
+document.getElementById('adminTicketModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminModal();
+});
+</script>
+{% endblock %}

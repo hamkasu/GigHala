@@ -3871,6 +3871,67 @@ class ManagedSolutionRequest(db.Model):
         self.request_code = f'MGD-{count + 1:05d}'
 
 
+class SupportTicket(db.Model):
+    """User support tickets with escalation tracking"""
+    __tablename__ = 'support_ticket'
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_number = db.Column(db.String(20), unique=True, nullable=True)  # e.g. TKT-00001
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # account, payment, gig_issue, technical, billing, other
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high, urgent
+    subject = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='open')  # open, in_progress, escalated, resolved, closed
+    escalation_level = db.Column(db.Integer, default=1)  # 1=support, 2=senior_support, 3=management
+    escalated_at = db.Column(db.DateTime)
+    escalated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    escalation_reason = db.Column(db.Text)
+    assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'))
+    admin_notes = db.Column(db.Text)
+    resolution_notes = db.Column(db.Text)
+    resolved_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    resolved_at = db.Column(db.DateTime)
+    attachment_filename = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref=db.backref('support_tickets', lazy='dynamic'), foreign_keys=[user_id])
+    messages = db.relationship('SupportTicketMessage', backref='ticket', lazy='dynamic', order_by='SupportTicketMessage.created_at')
+
+    def generate_ticket_number(self):
+        count = SupportTicket.query.count()
+        self.ticket_number = f'TKT-{count + 1:05d}'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'ticket_number': self.ticket_number,
+            'category': self.category,
+            'priority': self.priority,
+            'subject': self.subject,
+            'description': self.description,
+            'status': self.status,
+            'escalation_level': self.escalation_level,
+            'escalation_reason': self.escalation_reason,
+            'resolution_notes': self.resolution_notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class SupportTicketMessage(db.Model):
+    """Messages/replies on a support ticket"""
+    __tablename__ = 'support_ticket_message'
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('support_ticket.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_admin_reply = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship('User', foreign_keys=[sender_id])
+
+
 # Initialize Security Logger after all models are defined
 from security_logger import init_security_logger
 security_logger = init_security_logger(app, db)
@@ -24955,6 +25016,373 @@ def fix_db_permissions_cmd():
     print('Or set SUPERUSER_DATABASE_URL and re-run: flask fix-db-permissions')
     print('=' * 60)
     sys.exit(1)
+
+
+# ============================================================
+# SUPPORT TICKET SYSTEM
+# ============================================================
+
+SUPPORT_CATEGORIES = {
+    'account': 'Account Issue',
+    'payment': 'Payment / Billing',
+    'gig_issue': 'Gig Problem',
+    'technical': 'Technical Issue',
+    'dispute': 'Dispute Related',
+    'other': 'Other'
+}
+
+SUPPORT_PRIORITIES = {
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High',
+    'urgent': 'Urgent'
+}
+
+ESCALATION_LABELS = {
+    1: 'Support Team',
+    2: 'Senior Support',
+    3: 'Management'
+}
+
+
+@app.route('/support')
+@page_login_required
+def support_tickets_page():
+    """User support tickets listing page"""
+    user = User.query.get(session['user_id'])
+    tickets = SupportTicket.query.filter_by(user_id=user.id).order_by(SupportTicket.created_at.desc()).all()
+    return render_template(
+        'support_tickets.html',
+        user=user,
+        tickets=tickets,
+        categories=SUPPORT_CATEGORIES,
+        priorities=SUPPORT_PRIORITIES,
+        active_page='support',
+        lang=get_user_language(),
+        t=t
+    )
+
+
+@app.route('/api/support/ticket', methods=['POST'])
+@login_required
+def create_support_ticket():
+    """Create a new support ticket"""
+    try:
+        user_id = session['user_id']
+        data = request.json
+
+        category = data.get('category', 'other')
+        priority = data.get('priority', 'medium')
+        subject = sanitize_input(data.get('subject', ''), max_length=200)
+        description = sanitize_input(data.get('description', ''), max_length=3000)
+
+        if not subject or not description:
+            return jsonify({'error': 'Subject and description are required'}), 400
+
+        if category not in SUPPORT_CATEGORIES:
+            category = 'other'
+        if priority not in SUPPORT_PRIORITIES:
+            priority = 'medium'
+
+        ticket = SupportTicket(
+            user_id=user_id,
+            category=category,
+            priority=priority,
+            subject=subject,
+            description=description,
+            status='open'
+        )
+        db.session.add(ticket)
+        db.session.flush()
+        ticket.generate_ticket_number()
+        db.session.commit()
+
+        # Create notification for admins
+        admins = User.query.filter_by(is_admin=True).all()
+        for admin in admins:
+            notif = Notification(
+                user_id=admin.id,
+                notification_type='support_ticket',
+                title='New Support Ticket',
+                message=f'{ticket.ticket_number}: {subject}',
+                link=f'/admin/support/{ticket.id}'
+            )
+            db.session.add(notif)
+        db.session.commit()
+
+        return jsonify({'success': True, 'ticket_number': ticket.ticket_number, 'ticket_id': ticket.id})
+    except Exception as e:
+        app.logger.error(f'Create support ticket error: {str(e)}')
+        return jsonify({'error': 'Failed to create ticket'}), 500
+
+
+@app.route('/api/support/tickets')
+@login_required
+def get_user_support_tickets():
+    """Get current user's support tickets"""
+    user_id = session['user_id']
+    tickets = SupportTicket.query.filter_by(user_id=user_id).order_by(SupportTicket.created_at.desc()).all()
+    return jsonify({'tickets': [t.to_dict() for t in tickets]})
+
+
+@app.route('/api/support/ticket/<int:ticket_id>')
+@login_required
+def get_support_ticket(ticket_id):
+    """Get a specific support ticket with messages"""
+    user_id = session['user_id']
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    if ticket.user_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    messages = [{
+        'id': m.id,
+        'message': m.message,
+        'is_admin_reply': m.is_admin_reply,
+        'sender_name': m.sender.full_name if m.sender else 'Support Team',
+        'created_at': m.created_at.isoformat() if m.created_at else None
+    } for m in ticket.messages]
+    data = ticket.to_dict()
+    data['messages'] = messages
+    return jsonify(data)
+
+
+@app.route('/api/support/ticket/<int:ticket_id>/message', methods=['POST'])
+@login_required
+def add_support_ticket_message(ticket_id):
+    """User adds a follow-up message to their ticket"""
+    user_id = session['user_id']
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    if ticket.user_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    if ticket.status in ('resolved', 'closed'):
+        return jsonify({'error': 'Ticket is closed'}), 400
+
+    data = request.json
+    message_text = sanitize_input(data.get('message', ''), max_length=2000)
+    if not message_text:
+        return jsonify({'error': 'Message cannot be empty'}), 400
+
+    msg = SupportTicketMessage(ticket_id=ticket_id, sender_id=user_id, message=message_text, is_admin_reply=False)
+    db.session.add(msg)
+
+    if ticket.status == 'resolved':
+        ticket.status = 'open'
+    ticket.updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+# --- Admin Support Routes ---
+
+@app.route('/admin/support')
+@page_login_required
+def admin_support_page():
+    """Admin support tickets management page"""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return redirect('/dashboard')
+
+    status_filter = request.args.get('status', 'all')
+    priority_filter = request.args.get('priority', 'all')
+    escalation_filter = request.args.get('escalation', 'all')
+
+    query = SupportTicket.query
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+    if priority_filter != 'all':
+        query = query.filter_by(priority=priority_filter)
+    if escalation_filter != 'all':
+        query = query.filter_by(escalation_level=int(escalation_filter))
+
+    tickets = query.order_by(SupportTicket.updated_at.desc()).all()
+
+    ticket_list = []
+    for tk in tickets:
+        ticket_user = User.query.get(tk.user_id)
+        msg_count = tk.messages.count()
+        ticket_list.append({'ticket': tk, 'user': ticket_user, 'msg_count': msg_count})
+
+    stats = {
+        'open': SupportTicket.query.filter_by(status='open').count(),
+        'in_progress': SupportTicket.query.filter_by(status='in_progress').count(),
+        'escalated': SupportTicket.query.filter_by(status='escalated').count(),
+        'resolved': SupportTicket.query.filter_by(status='resolved').count(),
+        'urgent': SupportTicket.query.filter_by(priority='urgent').count(),
+        'level2': SupportTicket.query.filter_by(escalation_level=2).count(),
+        'level3': SupportTicket.query.filter_by(escalation_level=3).count(),
+    }
+
+    return render_template(
+        'admin_support.html',
+        user=user,
+        tickets=ticket_list,
+        stats=stats,
+        categories=SUPPORT_CATEGORIES,
+        priorities=SUPPORT_PRIORITIES,
+        escalation_labels=ESCALATION_LABELS,
+        current_status=status_filter,
+        current_priority=priority_filter,
+        active_page='admin',
+        lang=get_user_language(),
+        t=t
+    )
+
+
+@app.route('/admin/support/<int:ticket_id>')
+@page_login_required
+def admin_support_ticket_detail(ticket_id):
+    """Admin view for a single support ticket"""
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return redirect('/dashboard')
+
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+    ticket_user = User.query.get(ticket.user_id)
+    messages = ticket.messages.all()
+
+    return render_template(
+        'admin_support_detail.html',
+        user=user,
+        ticket=ticket,
+        ticket_user=ticket_user,
+        messages=messages,
+        categories=SUPPORT_CATEGORIES,
+        priorities=SUPPORT_PRIORITIES,
+        escalation_labels=ESCALATION_LABELS,
+        active_page='admin',
+        lang=get_user_language(),
+        t=t
+    )
+
+
+@app.route('/api/admin/support/ticket/<int:ticket_id>/respond', methods=['POST'])
+@admin_required
+def admin_respond_to_ticket(ticket_id):
+    """Admin responds to a support ticket"""
+    try:
+        admin_id = session['user_id']
+        ticket = SupportTicket.query.get_or_404(ticket_id)
+        data = request.json
+
+        message_text = sanitize_input(data.get('message', ''), max_length=2000)
+        new_status = data.get('status', ticket.status)
+        admin_notes = data.get('admin_notes', '').strip()
+
+        if message_text:
+            msg = SupportTicketMessage(
+                ticket_id=ticket_id,
+                sender_id=admin_id,
+                message=message_text,
+                is_admin_reply=True
+            )
+            db.session.add(msg)
+
+            # Notify the user of admin reply
+            notif = Notification(
+                user_id=ticket.user_id,
+                notification_type='support_ticket',
+                title='Support Ticket Update',
+                message=f'Your ticket {ticket.ticket_number} received a reply.',
+                link=f'/support'
+            )
+            db.session.add(notif)
+
+        if new_status in ('open', 'in_progress', 'escalated', 'resolved', 'closed'):
+            ticket.status = new_status
+            if new_status == 'resolved':
+                ticket.resolved_by = admin_id
+                ticket.resolved_at = datetime.utcnow()
+                ticket.resolution_notes = data.get('resolution_notes', '')
+
+        if admin_notes:
+            ticket.admin_notes = admin_notes
+
+        ticket.assigned_to = admin_id
+        ticket.updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f'Admin respond to ticket error: {str(e)}')
+        return jsonify({'error': 'Failed to respond'}), 500
+
+
+@app.route('/api/admin/support/ticket/<int:ticket_id>/escalate', methods=['POST'])
+@admin_required
+def admin_escalate_ticket(ticket_id):
+    """Escalate a support ticket to a higher level"""
+    try:
+        admin_id = session['user_id']
+        ticket = SupportTicket.query.get_or_404(ticket_id)
+        data = request.json
+
+        reason = sanitize_input(data.get('reason', ''), max_length=500)
+        target_level = int(data.get('level', ticket.escalation_level + 1))
+
+        if target_level > 3:
+            return jsonify({'error': 'Maximum escalation level is 3 (Management)'}), 400
+
+        ticket.escalation_level = target_level
+        ticket.status = 'escalated'
+        ticket.escalated_at = datetime.utcnow()
+        ticket.escalated_by = admin_id
+        ticket.escalation_reason = reason
+        ticket.updated_at = datetime.utcnow()
+
+        # Inform the user of escalation
+        notif = Notification(
+            user_id=ticket.user_id,
+            notification_type='support_ticket',
+            title='Ticket Escalated',
+            message=f'Your ticket {ticket.ticket_number} has been escalated to {ESCALATION_LABELS[target_level]}.',
+            link='/support'
+        )
+        db.session.add(notif)
+
+        # Internal escalation message
+        msg = SupportTicketMessage(
+            ticket_id=ticket_id,
+            sender_id=admin_id,
+            message=f'[ESCALATED to {ESCALATION_LABELS[target_level]}] {reason}',
+            is_admin_reply=True
+        )
+        db.session.add(msg)
+        db.session.commit()
+
+        return jsonify({'success': True, 'new_level': target_level, 'level_label': ESCALATION_LABELS[target_level]})
+    except Exception as e:
+        app.logger.error(f'Escalate ticket error: {str(e)}')
+        return jsonify({'error': 'Failed to escalate ticket'}), 500
+
+
+@app.route('/api/admin/support/ticket/<int:ticket_id>/resolve', methods=['POST'])
+@admin_required
+def admin_resolve_ticket(ticket_id):
+    """Mark a support ticket as resolved"""
+    try:
+        admin_id = session['user_id']
+        ticket = SupportTicket.query.get_or_404(ticket_id)
+        data = request.json
+
+        resolution_notes = sanitize_input(data.get('resolution_notes', ''), max_length=1000)
+        ticket.status = 'resolved'
+        ticket.resolved_by = admin_id
+        ticket.resolved_at = datetime.utcnow()
+        ticket.resolution_notes = resolution_notes
+        ticket.updated_at = datetime.utcnow()
+
+        notif = Notification(
+            user_id=ticket.user_id,
+            notification_type='support_ticket',
+            title='Ticket Resolved',
+            message=f'Your support ticket {ticket.ticket_number} has been resolved.',
+            link='/support'
+        )
+        db.session.add(notif)
+        db.session.commit()
+
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f'Resolve ticket error: {str(e)}')
+        return jsonify({'error': 'Failed to resolve ticket'}), 500
 
 
 if __name__ == '__main__':
