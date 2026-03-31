@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ms" class="is-mobile-app">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{% block title %}GigHala{% endblock %}</title>
+
+    <!-- PWA / App icons -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js" defer></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/mobile.css">
+
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        /* Capacitor-specific overrides loaded inline to avoid FOUC */
+        html, body {
+            background: #1a1a1a;
+            overscroll-behavior: none;
+        }
+    </style>
+</head>
+<body class="capacitor-app">
+
+    <!-- Offline indicator -->
+    <div id="offline-banner" role="alert">
+        <i data-feather="wifi-off" style="width:16px;height:16px;"></i>
+        Tiada sambungan internet
+    </div>
+
+    <!-- Top navigation -->
+    <nav class="navbar mobile-navbar">
+        <div class="navbar-brand">
+            <a href="/" class="navbar-logo">
+                <img src="/static/logo.png" alt="GigHala" height="32">
+            </a>
+        </div>
+        <div class="navbar-actions">
+            {% if current_user.is_authenticated %}
+            <a href="/notifications" class="navbar-icon-btn" aria-label="Notifikasi">
+                <i data-feather="bell"></i>
+                {% if unread_notifications_count is defined and unread_notifications_count > 0 %}
+                <span class="notif-dot">{{ unread_notifications_count }}</span>
+                {% endif %}
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main page content -->
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom navigation bar (mobile-only) -->
+    <nav class="mobile-bottom-nav" aria-label="Navigasi utama">
+        <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+            <i data-feather="home"></i>
+            <span>Utama</span>
+        </a>
+        <a href="/gigs" class="nav-item {% if request.path.startswith('/gigs') %}active{% endif %}">
+            <i data-feather="briefcase"></i>
+            <span>Gig</span>
+        </a>
+        {% if current_user.is_authenticated %}
+        <a href="/post-gig" class="nav-item">
+            <i data-feather="plus-circle"></i>
+            <span>Siar</span>
+        </a>
+        <a href="/messages" class="nav-item {% if request.path.startswith('/messages') %}active{% endif %}">
+            <i data-feather="message-circle"></i>
+            <span>Mesej</span>
+        </a>
+        <a href="/profile" class="nav-item {% if request.path.startswith('/profile') %}active{% endif %}">
+            <i data-feather="user"></i>
+            <span>Profil</span>
+        </a>
+        {% else %}
+        <a href="/login" class="nav-item {% if request.path == '/login' %}active{% endif %}">
+            <i data-feather="log-in"></i>
+            <span>Log Masuk</span>
+        </a>
+        <a href="/register" class="nav-item {% if request.path == '/register' %}active{% endif %}">
+            <i data-feather="user-plus"></i>
+            <span>Daftar</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <!-- Core scripts -->
+    <script src="/static/js/app.js" defer></script>
+
+    <!--
+        Capacitor runtime is injected automatically by the WebView bridge.
+        capacitor-init.js sets up our plugin handlers once Capacitor is ready.
+    -->
+    <script src="/static/js/capacitor-init.js" defer></script>
+
+    <script>
+        // Init Feather icons after DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.feather) feather.replace();
+        });
+
+        // Add keyboard-visible class when virtual keyboard shows
+        window.addEventListener('resize', () => {
+            const threshold = 150;
+            const diff = window.outerHeight - window.innerHeight;
+            document.body.classList.toggle('keyboard-visible', diff > threshold);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -57,3 +57,22 @@ uploads/
 # Replit
 .cache/
 .upm/
+
+# Node / Capacitor
+node_modules/
+www/
+.capacitor/
+
+# Android build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/app/release/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Android SDK path (set locally)
+local.properties

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GigHala</string>
+    <string name="title_activity_main">GigHala</string>
+    <string name="package_name">com.gighala.app</string>
+    <string name="custom_url_scheme">gighala</string>
+</resources>

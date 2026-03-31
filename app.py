@@ -33,6 +33,7 @@ from halal_compliance import (
     HALAL_APPROVED_CATEGORY_SLUGS
 )
 from groq_moderation import ai_halal_moderation, get_cached_moderation
+from mobile_api import mobile_bp
 import qrcode
 import io
 import base64
@@ -122,6 +123,9 @@ def translate_cat_filter(slug):
 # Add ProxyFix middleware to handle Railway's proxy headers (X-Forwarded-For, X-Forwarded-Proto, etc.)
 # This is essential for OAuth to work correctly when behind a proxy
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1, x_port=1, x_prefix=1)
+
+# Register mobile API blueprint
+app.register_blueprint(mobile_bp)
 
 # Set secret key - CRITICAL for OAuth state management
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("SECRET_KEY")
@@ -1492,10 +1496,37 @@ def inject_translations():
 @app.after_request
 def set_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'"
+
+    # Mobile app (Capacitor WebView) sends X-Mobile-App header.
+    # Capacitor uses a custom scheme (capacitor://) so we must relax
+    # frame/connect restrictions for those requests.
+    is_mobile = request.headers.get('X-Mobile-App') == 'true'
+
+    if is_mobile:
+        # Allow Capacitor WebView origins
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self' capacitor: https:; "
+            "script-src 'self' 'unsafe-inline' capacitor: https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "img-src 'self' data: https: blob:; "
+            "connect-src 'self' capacitor: https:; "
+            "media-src 'self' blob:;"
+        )
+        # Don't block Capacitor WebView from framing
+        response.headers.pop('X-Frame-Options', None)
+    else:
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self'"
+        )
     return response
 
 # Input validation functions
