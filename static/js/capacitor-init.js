@@ -21,6 +21,7 @@ const GigHalaMobile = (() => {
                 Keyboard:           window.Capacitor.Plugins.Keyboard,
                 LocalNotifications: window.Capacitor.Plugins.LocalNotifications,
                 Network:            window.Capacitor.Plugins.Network,
+                Preferences:        window.Capacitor.Plugins.Preferences,
                 PushNotifications:  window.Capacitor.Plugins.PushNotifications,
                 SplashScreen:       window.Capacitor.Plugins.SplashScreen,
                 StatusBar:          window.Capacitor.Plugins.StatusBar,

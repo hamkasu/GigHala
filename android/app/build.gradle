@@ -80,6 +80,7 @@ dependencies {
     implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-splash-screen')
     implementation project(':capacitor-status-bar')
+    implementation project(':capacitor-preferences')
 
     // Biometric authentication
     implementation "androidx.biometric:biometric:1.2.0-alpha05"
