@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Siarkan Peranan Pecahan – Post Fractional Role | GigHala{% endblock %}
+{% block meta_description %}Siarkan peranan C-suite pecahan untuk PKS anda di GigHala — CFO, CMO, CTO, COO, HR Director dan lain-lain. Retainer bulanan, mematuhi halal.{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-container { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-size: 26px; font-weight: 800; color: var(--text-dark, #212121); margin-bottom: 6px; }
+    .page-subtitle { color: var(--text-gray, #757575); font-size: 14px; }
+
+    .form-card {
+        background: var(--bg-white, #fff);
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 16px; padding: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.05);
+        margin-bottom: 24px;
+    }
+    .form-section { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--border, #eee); }
+    .form-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .section-title { font-size: 14px; font-weight: 700; color: var(--text-dark, #212121); margin-bottom: 16px;
+        display: flex; align-items: center; gap: 8px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-dark, #212121); margin-bottom: 6px; }
+    .form-label .req { color: #e53935; margin-left: 2px; }
+    .form-control {
+        width: 100%; padding: 10px 14px; border: 1px solid var(--border, #ddd);
+        border-radius: 8px; font-size: 14px; background: var(--bg-white, #fff);
+        color: var(--text-dark, #212121); box-sizing: border-box; transition: border-color .15s;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary, #00C853); box-shadow: 0 0 0 3px rgba(0,200,83,.12); }
+    textarea.form-control { resize: vertical; min-height: 100px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 540px) { .form-row { grid-template-columns: 1fr; } }
+
+    .radio-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .radio-card {
+        flex: 1; min-width: 100px;
+        border: 2px solid var(--border, #ddd);
+        border-radius: 10px; padding: 12px 14px;
+        cursor: pointer; transition: border-color .15s, background .15s;
+        display: flex; align-items: center; gap: 8px;
+        font-size: 14px; font-weight: 600;
+    }
+    .radio-card input[type=radio] { accent-color: var(--primary, #00C853); }
+    .radio-card:has(input:checked) { border-color: var(--primary, #00C853); background: #f0fdf4; }
+
+    .hint { font-size: 12px; color: var(--text-gray, #888); margin-top: 4px; }
+
+    .halal-box {
+        background: #e8f5e9; border: 1px solid #a5d6a7;
+        border-radius: 10px; padding: 14px 16px;
+        display: flex; gap: 12px; align-items: flex-start;
+    }
+    .halal-box label { font-size: 13px; color: #1b5e20; font-weight: 500; cursor: pointer; }
+
+    .submit-btn {
+        width: 100%; padding: 14px; background: var(--primary, #00C853); color: #fff;
+        border: none; border-radius: 10px; font-size: 16px; font-weight: 700;
+        cursor: pointer; transition: background .15s;
+    }
+    .submit-btn:hover { background: #00b548; }
+    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+    .flash-error {
+        background: #ffebee; border: 1px solid #ef9a9a; color: #b71c1c;
+        border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">🤝 {% if lang == 'ms' %}Siarkan Peranan Pecahan{% else %}Post a Fractional Role{% endif %}</h1>
+        <p class="page-subtitle">
+            {% if lang == 'ms' %}
+            Daftarkan keperluan eksekutif C-suite sambilan untuk PKS anda. Platform kami akan memadankan anda dengan pakar yang berkelayakan.
+            {% else %}
+            List your part-time C-suite or senior executive need. Our platform will match you with qualified fractional professionals.
+            {% endif %}
+        </p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash-{{ category }}" role="alert">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/fractional/post" id="fractionalForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-card">
+            <!-- Role basics -->
+            <div class="form-section">
+                <div class="section-title">📋 {% if lang == 'ms' %}Maklumat Peranan{% else %}Role Details{% endif %}</div>
+
+                <div class="form-group">
+                    <label class="form-label" for="title">
+                        {% if lang == 'ms' %}Tajuk Peranan{% else %}Role Title{% endif %} <span class="req">*</span>
+                    </label>
+                    <input type="text" id="title" name="title" class="form-control"
+                           value="{{ form_data.get('title','') }}"
+                           placeholder="{% if lang == 'ms' %}cth: Fractional CFO untuk syarikat F&B yang berkembang{% else %}e.g. Fractional CFO for growing F&B company{% endif %}"
+                           maxlength="200" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="category">
+                        {% if lang == 'ms' %}Jenis Peranan{% else %}Role Type{% endif %} <span class="req">*</span>
+                    </label>
+                    <select id="category" name="category" class="form-control" required>
+                        {% set role_options = [
+                            ('fractional-roles',  'Fractional Professional Roles (General)'),
+                            ('fractional-cfo',    'Fractional CFO – Chief Financial Officer'),
+                            ('fractional-cmo',    'Fractional CMO – Chief Marketing Officer'),
+                            ('fractional-cto',    'Fractional CTO – Chief Technology Officer'),
+                            ('fractional-coo',    'Fractional COO – Chief Operating Officer'),
+                            ('fractional-chro',   'Fractional HR Director / CHRO'),
+                            ('fractional-legal',  'Fractional Legal Counsel / CLO'),
+                            ('fractional-cdo',    'Fractional CDO – Chief Data Officer'),
+                            ('fractional-cso',    'Fractional Sales Director / CSO'),
+                            ('fractional-cio',    'Fractional CIO – Chief Information Officer'),
+                            ('fractional-esg',    'Fractional ESG / Sustainability Officer'),
+                            ('fractional-halal',  'Fractional Halal Compliance Officer'),
+                        ] %}
+                        {% for slug, label in role_options %}
+                        <option value="{{ slug }}" {% if form_data.get('category', 'fractional-roles') == slug %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">
+                        {% if lang == 'ms' %}Penerangan Peranan{% else %}Role Description{% endif %} <span class="req">*</span>
+                    </label>
+                    <textarea id="description" name="description" class="form-control" rows="5"
+                              maxlength="5000" required
+                              placeholder="{% if lang == 'ms' %}Terangkan tanggungjawab, jangkaan, dan konteks perniagaan anda...{% else %}Describe the responsibilities, expectations, and your business context...{% endif %}">{{ form_data.get('description','') }}</textarea>
+                    <div class="hint">{% if lang == 'ms' %}Minimum 50 aksara{% else %}Minimum 50 characters{% endif %}</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="industry_focus">
+                        {% if lang == 'ms' %}Fokus Industri{% else %}Industry Focus{% endif %}
+                    </label>
+                    <input type="text" id="industry_focus" name="industry_focus" class="form-control"
+                           value="{{ form_data.get('industry_focus','') }}"
+                           placeholder="{% if lang == 'ms' %}cth: Makanan & Minuman, Teknologi, Pembuatan, Runcit{% else %}e.g. F&B, Technology, Manufacturing, Retail{% endif %}"
+                           maxlength="100">
+                </div>
+            </div>
+
+            <!-- Engagement terms -->
+            <div class="form-section">
+                <div class="section-title">📅 {% if lang == 'ms' %}Terma Penglibatan{% else %}Engagement Terms{% endif %}</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="commitment_days_per_week">
+                            {% if lang == 'ms' %}Hari Komitmen / Minggu{% else %}Commitment Days / Week{% endif %}
+                        </label>
+                        <input type="number" id="commitment_days_per_week" name="commitment_days_per_week"
+                               class="form-control" min="0.5" max="5" step="0.5"
+                               value="{{ form_data.get('commitment_days_per_week','') }}"
+                               placeholder="1 – 5">
+                        <div class="hint">{% if lang == 'ms' %}0.5 hingga 5 hari seminggu{% else %}0.5 to 5 days per week{% endif %}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="engagement_duration_months">
+                            {% if lang == 'ms' %}Tempoh Penglibatan (Bulan){% else %}Engagement Duration (Months){% endif %}
+                        </label>
+                        <input type="number" id="engagement_duration_months" name="engagement_duration_months"
+                               class="form-control" min="1" max="36"
+                               value="{{ form_data.get('engagement_duration_months','') }}"
+                               placeholder="3 – 12">
+                        <div class="hint">{% if lang == 'ms' %}Minimum 3 bulan disyorkan{% else %}Minimum 3 months recommended{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="monthly_retainer_amount">
+                            {% if lang == 'ms' %}Bajet Retainer Bulanan (RM){% else %}Monthly Retainer Budget (RM){% endif %}
+                        </label>
+                        <input type="number" id="monthly_retainer_amount" name="monthly_retainer_amount"
+                               class="form-control" min="0" step="100"
+                               value="{{ form_data.get('monthly_retainer_amount','') }}"
+                               placeholder="cth: 5000">
+                        <div class="hint">{% if lang == 'ms' %}Kosongkan jika boleh runding{% else %}Leave blank if negotiable{% endif %}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="min_years_experience">
+                            {% if lang == 'ms' %}Pengalaman Minimum (Tahun){% else %}Min. Years Experience{% endif %}
+                        </label>
+                        <input type="number" id="min_years_experience" name="min_years_experience"
+                               class="form-control" min="0" max="50"
+                               value="{{ form_data.get('min_years_experience','') }}"
+                               placeholder="cth: 8">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work mode -->
+            <div class="form-section">
+                <div class="section-title">🌐 {% if lang == 'ms' %}Mod Kerja{% else %}Work Mode{% endif %}</div>
+                <div class="radio-group">
+                    <label class="radio-card">
+                        <input type="radio" name="remote_onsite" value="remote"
+                               {% if form_data.get('remote_onsite','onsite') == 'remote' %}checked{% endif %}>
+                        🌐 Remote
+                    </label>
+                    <label class="radio-card">
+                        <input type="radio" name="remote_onsite" value="onsite"
+                               {% if form_data.get('remote_onsite','onsite') == 'onsite' %}checked{% endif %}>
+                        📍 Onsite
+                    </label>
+                    <label class="radio-card">
+                        <input type="radio" name="remote_onsite" value="hybrid"
+                               {% if form_data.get('remote_onsite','onsite') == 'hybrid' %}checked{% endif %}>
+                        🔀 Hybrid
+                    </label>
+                </div>
+            </div>
+
+            <!-- Halal declaration -->
+            <div class="form-section">
+                <div class="section-title">✅ {% if lang == 'ms' %}Pengisytiharan Halal{% else %}Halal Declaration{% endif %}</div>
+                <div class="halal-box">
+                    <input type="checkbox" id="halal_declaration" name="halal_declaration"
+                           {% if form_data.get('halal_declaration') %}checked{% endif %}
+                           style="margin-top:2px;accent-color:var(--primary,#00C853);" required>
+                    <label for="halal_declaration">
+                        {% if lang == 'ms' %}
+                        Saya mengesahkan bahawa peranan ini adalah untuk perniagaan yang mematuhi halal dan tidak melibatkan sebarang aktiviti haram mengikut prinsip Islam.
+                        {% else %}
+                        I confirm this role is for a halal-compliant business and does not involve any activities prohibited under Islamic principles.
+                        {% endif %}
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                🤝 {% if lang == 'ms' %}Siarkan Peranan Pecahan{% else %}Post Fractional Role{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('fractionalForm').addEventListener('submit', function() {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = '{% if lang == "ms" %}Menghantar...{% else %}Submitting...{% endif %}';
+});
+</script>
+{% endblock %}

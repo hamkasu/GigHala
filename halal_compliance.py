@@ -254,9 +254,50 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'fractional-roles',
         'name_en': 'Fractional Professional Roles',
         'name_ms': 'Peranan Profesional Pecahan',
-        'description_en': 'Part-time C-suite & senior executives (CFO, CMO, CTO, COO, HR, Legal) for SMEs — halal businesses only',
-        'description_ms': 'Eksekutif kanan & peringkat C sambilan (CFO, CMO, CTO, COO, HR, Undang-Undang) untuk PKS — perniagaan halal sahaja',
-        'icon': '🤝'
+        'description_en': (
+            'Part-time senior executives and C-suite professionals serving Malaysian SMEs on a retainer basis. '
+            'Includes: Fractional CFO (financial strategy, cash-flow, fundraising), '
+            'Fractional CMO (brand, growth, digital marketing), '
+            'Fractional CTO (tech roadmap, team building, architecture), '
+            'Fractional COO (operations, process improvement, supply chain), '
+            'Fractional CHRO/HR Director (talent, HR policy, compensation), '
+            'Fractional CLO/Legal Counsel (contracts, compliance, IP), '
+            'Fractional CDO (data strategy, analytics), '
+            'Fractional CSO/Sales Director (revenue, partnerships), '
+            'Fractional CIO (IT governance, digital transformation), '
+            'Fractional ESG/Sustainability Officer, '
+            'Fractional Halal Compliance Officer. '
+            'Halal-compliant engagements only — structured monthly retainer, min 3-month commitment.'
+        ),
+        'description_ms': (
+            'Eksekutif kanan dan peringkat C sambilan yang berkhidmat untuk PKS Malaysia atas dasar retainer. '
+            'Termasuk: CFO Pecahan (strategi kewangan, aliran tunai, pembiayaan), '
+            'CMO Pecahan (jenama, pertumbuhan, pemasaran digital), '
+            'CTO Pecahan (peta jalan teknologi, pasukan, seni bina), '
+            'COO Pecahan (operasi, penambahbaikan proses, rantaian bekalan), '
+            'Pengarah HR/CHRO Pecahan (bakat, dasar HR, pampasan), '
+            'Penasihat Undang-Undang/CLO Pecahan (kontrak, pematuhan, IP), '
+            'CDO Pecahan (strategi data, analitik), '
+            'Pengarah Jualan/CSO Pecahan (hasil, perkongsian), '
+            'CIO Pecahan (tadbir urus IT, transformasi digital), '
+            'Pegawai Kelestarian/ESG Pecahan, '
+            'Pegawai Pematuhan Halal Pecahan. '
+            'Penglibatan mematuhi halal sahaja — retainer bulanan berstruktur, komitmen minimum 3 bulan.'
+        ),
+        'icon': '🤝',
+        'sub_roles': [
+            {'slug': 'fractional-cfo',    'name_en': 'Fractional CFO',                  'name_ms': 'CFO Pecahan'},
+            {'slug': 'fractional-cmo',    'name_en': 'Fractional CMO',                  'name_ms': 'CMO Pecahan'},
+            {'slug': 'fractional-cto',    'name_en': 'Fractional CTO',                  'name_ms': 'CTO Pecahan'},
+            {'slug': 'fractional-coo',    'name_en': 'Fractional COO',                  'name_ms': 'COO Pecahan'},
+            {'slug': 'fractional-chro',   'name_en': 'Fractional HR Director / CHRO',   'name_ms': 'Pengarah HR Pecahan / CHRO'},
+            {'slug': 'fractional-legal',  'name_en': 'Fractional Legal Counsel / CLO',  'name_ms': 'Penasihat Undang-Undang Pecahan'},
+            {'slug': 'fractional-cdo',    'name_en': 'Fractional CDO',                  'name_ms': 'CDO Pecahan'},
+            {'slug': 'fractional-cso',    'name_en': 'Fractional Sales Director / CSO', 'name_ms': 'Pengarah Jualan Pecahan'},
+            {'slug': 'fractional-cio',    'name_en': 'Fractional CIO',                  'name_ms': 'CIO Pecahan'},
+            {'slug': 'fractional-esg',    'name_en': 'Fractional ESG / Sustainability Officer', 'name_ms': 'Pegawai ESG / Kelestarian Pecahan'},
+            {'slug': 'fractional-halal',  'name_en': 'Fractional Halal Compliance Officer', 'name_ms': 'Pegawai Pematuhan Halal Pecahan'},
+        ],
     },
     {
         'slug': 'creative-other',

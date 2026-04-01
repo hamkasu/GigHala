@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Pakar Pecahan – Fractional Experts Malaysia | GigHala{% endblock %}
+{% block meta_description %}Cari pakar C-suite pecahan di Malaysia — CFO, CMO, CTO, COO, HR Director dan lain-lain yang tersedia untuk PKS anda secara retainer bulanan.{% endblock %}
+{% block meta_description_en %}Find fractional C-suite experts in Malaysia — CFO, CMO, CTO, COO, HR Director and more available for your SME on a monthly retainer.{% endblock %}
+{% block canonical_url %}https://gighala.my/fractional/experts{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-container { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; }
+    .page-header { margin-bottom: 28px; }
+    .page-title { font-size: 26px; font-weight: 800; color: var(--text-dark, #212121); margin-bottom: 6px; }
+    .page-subtitle { color: var(--text-gray, #757575); font-size: 14px; max-width: 560px; }
+
+    .sub-role-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+    .sub-role-pill {
+        background: var(--bg-light, #f5f5f5); border: 1px solid var(--border, #e0e0e0);
+        border-radius: 20px; padding: 5px 14px; font-size: 13px;
+        color: var(--text-dark, #212121); cursor: pointer;
+        transition: background .15s; text-decoration: none;
+    }
+    .sub-role-pill:hover, .sub-role-pill.active { background:#e8f5e9; border-color:#00C853; color:#1b5e20; }
+
+    .filter-bar {
+        background: var(--bg-white, #fff); border: 1px solid var(--border, #e0e0e0);
+        border-radius: 12px; padding: 16px 20px; margin-bottom: 28px;
+        display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+    }
+    .filter-bar select, .filter-bar input {
+        border: 1px solid var(--border, #ddd); border-radius: 8px;
+        padding: 8px 12px; font-size: 14px; background: var(--bg-white, #fff);
+        color: var(--text-dark, #212121); flex: 1; min-width: 140px;
+    }
+    .filter-bar button { padding: 8px 20px; border-radius: 8px; background: var(--primary, #00C853); color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; }
+
+    .expert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .expert-card {
+        background: var(--bg-white, #fff); border: 1px solid var(--border, #e0e0e0);
+        border-radius: 16px; padding: 20px;
+        transition: box-shadow .2s, transform .2s;
+        text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 10px;
+    }
+    .expert-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.10); transform: translateY(-2px); }
+
+    .expert-header { display: flex; gap: 14px; align-items: center; }
+    .expert-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #eee; }
+    .expert-name { font-size: 15px; font-weight: 700; color: var(--text-dark, #212121); }
+    .expert-title { font-size: 12px; color: var(--text-gray, #888); }
+
+    .badge-pill {
+        display: inline-block; padding: 3px 10px; border-radius: 20px;
+        font-size: 12px; font-weight: 600; background: #e8f5e9; color: #1b5e20;
+    }
+    .tags-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag {
+        background: var(--bg-light, #f5f5f5); color: var(--text-dark, #555);
+        border-radius: 6px; padding: 3px 9px; font-size: 11px;
+    }
+
+    .stat-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--text-gray, #888); }
+    .stat-item-sm { display: flex; align-items: center; gap: 4px; }
+
+    .retainer-rate { font-size: 16px; font-weight: 700; color: var(--primary, #00C853); }
+
+    .card-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border, #eee);
+        display: flex; justify-content: space-between; align-items: center; }
+    .btn-view { font-size: 13px; color: var(--primary, #00C853); font-weight: 600; text-decoration: none; }
+
+    .empty-state { text-align:center; padding:64px 24px; color:var(--text-gray,#757575); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+
+    .linkedin-badge { font-size: 11px; color: #0077b5; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">🤝 {% if lang == 'ms' %}Pakar Profesional Pecahan{% else %}Fractional Professional Experts{% endif %}</h1>
+        <p class="page-subtitle">
+            {% if lang == 'ms' %}
+            C-suite dan eksekutif kanan yang tersedia untuk PKS Malaysia secara retainer bulanan.
+            {% else %}
+            C-suite and senior executives available for Malaysian SMEs on a monthly retainer basis.
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Sub-role pills -->
+    <div class="sub-role-pills">
+        {% set sub_roles = [
+            ('fractional-cfo',   'CFO'),
+            ('fractional-cmo',   'CMO'),
+            ('fractional-cto',   'CTO'),
+            ('fractional-coo',   'COO'),
+            ('fractional-chro',  'HR Director'),
+            ('fractional-legal', 'Legal Counsel'),
+            ('fractional-cdo',   'CDO'),
+            ('fractional-cso',   'Sales Director'),
+            ('fractional-cio',   'CIO'),
+            ('fractional-esg',   'ESG Officer'),
+            ('fractional-halal', 'Halal Officer'),
+        ] %}
+        <a href="/fractional/experts" class="sub-role-pill {% if not active_filters.category %}active{% endif %}">
+            {% if lang == 'ms' %}Semua{% else %}All{% endif %}
+        </a>
+        {% for slug, label in sub_roles %}
+        <a href="/fractional/experts?category={{ slug }}"
+           class="sub-role-pill {% if active_filters.category == slug %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" action="/fractional/experts" class="filter-bar">
+        <select name="days">
+            <option value="">{% if lang == 'ms' %}Hari Tersedia{% else %}Days Available{% endif %}</option>
+            <option value="1" {% if active_filters.days == '1' %}selected{% endif %}>≥1 {% if lang == 'ms' %}hari{% else %}day{% endif %}</option>
+            <option value="2" {% if active_filters.days == '2' %}selected{% endif %}>≥2 {% if lang == 'ms' %}hari{% else %}days{% endif %}</option>
+            <option value="3" {% if active_filters.days == '3' %}selected{% endif %}>≥3 {% if lang == 'ms' %}hari{% else %}days{% endif %}</option>
+        </select>
+        <input type="text" name="industry" value="{{ active_filters.industry }}"
+               placeholder="{% if lang == 'ms' %}Industri (cth: Teknologi, F&B){% else %}Industry (e.g. Tech, F&B){% endif %}">
+        <button type="submit">{% if lang == 'ms' %}Tapis{% else %}Filter{% endif %}</button>
+        {% if active_filters.category or active_filters.days or active_filters.industry %}
+        <a href="/fractional/experts" style="font-size:13px;color:var(--text-gray,#757575);align-self:center;text-decoration:none;">
+            {% if lang == 'ms' %}Kosongkan{% else %}Clear{% endif %}
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Expert grid -->
+    {% if experts %}
+    <div class="expert-grid">
+        {% for expert in experts %}
+        <div class="expert-card">
+            <div class="expert-header">
+                <img src="{% if expert.profile_photo %}/uploads/profile_photos/{{ expert.profile_photo }}{% else %}https://api.dicebear.com/9.x/adventurer/svg?seed={{ expert.username }}{% endif %}"
+                     alt="{{ expert.display_name }}" class="expert-avatar"
+                     onerror="this.onerror=null;this.src='{{ expert.fallback_avatar_url }}';">
+                <div>
+                    <div class="expert-name">{{ expert.display_name }}</div>
+                    {% if expert.bio %}
+                    <div class="expert-title">{{ expert.bio[:60] }}{% if expert.bio|length > 60 %}…{% endif %}</div>
+                    {% endif %}
+                    {% if expert.linkedin_url %}
+                    <div class="linkedin-badge">🔗 LinkedIn</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="stat-row">
+                {% if expert.fractional_days_available %}
+                <span class="stat-item-sm">📅 {{ expert.fractional_days_available }} {% if lang == 'ms' %}hari/mgg{% else %}d/wk{% endif %}</span>
+                {% endif %}
+                {% if expert.years_experience %}
+                <span class="stat-item-sm">⭐ {{ expert.years_experience }} {% if lang == 'ms' %}thn{% else %}yrs{% endif %}</span>
+                {% endif %}
+                {% if expert.max_concurrent_clients %}
+                <span class="stat-item-sm">👥 max {{ expert.max_concurrent_clients }} {% if lang == 'ms' %}klien{% else %}clients{% endif %}</span>
+                {% endif %}
+            </div>
+
+            {% if expert.fractional_industries %}
+            <div class="tags-row">
+                {% for industry in expert.fractional_industries.split(',')[:4] %}
+                <span class="tag">{{ industry.strip() }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="card-footer">
+                <div>
+                    {% if expert.monthly_retainer_rate %}
+                    <div class="retainer-rate">RM {{ "%.0f"|format(expert.monthly_retainer_rate) }}/{% if lang == 'ms' %}bulan{% else %}mo{% endif %}</div>
+                    {% else %}
+                    <div style="font-size:13px;color:var(--text-gray,#888);">{% if lang == 'ms' %}Boleh runding{% else %}Negotiable{% endif %}</div>
+                    {% endif %}
+                </div>
+                <a href="/public-profile/{{ expert.username }}" class="btn-view">
+                    {% if lang == 'ms' %}Lihat Profil →{% else %}View Profile →{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">🤝</div>
+        <h3>{% if lang == 'ms' %}Tiada pakar ditemui{% else %}No experts found{% endif %}</h3>
+        <p>{% if lang == 'ms' %}Cuba ubah penapis atau semak semula kemudian.{% else %}Try adjusting the filters or check back soon.{% endif %}</p>
+    </div>
+    {% endif %}
+
+    <!-- CTA for freelancers -->
+    {% if user and user.user_type in ['freelancer', 'both'] and not user.available_for_fractional %}
+    <div style="margin-top:40px;background:linear-gradient(135deg,#1a237e,#00C853);border-radius:16px;padding:28px 24px;color:#fff;text-align:center;">
+        <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;">
+            {% if lang == 'ms' %}Anda seorang profesional kanan?{% else %}Are you a senior professional?{% endif %}
+        </h3>
+        <p style="opacity:.88;font-size:14px;margin-bottom:16px;">
+            {% if lang == 'ms' %}
+            Aktifkan profil Pecahan anda dan mula terima retainer daripada PKS Malaysia.
+            {% else %}
+            Activate your Fractional profile and start receiving retainers from Malaysian SMEs.
+            {% endif %}
+        </p>
+        <a href="/settings#fractional" style="display:inline-block;background:#fff;color:#1a237e;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">
+            {% if lang == 'ms' %}Aktifkan Profil Pecahan{% else %}Activate Fractional Profile{% endif %}
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

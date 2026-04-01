@@ -14318,6 +14318,9 @@ def get_categories():
         'event-planning': '🎉',
         'tours': '✈️',
         
+        # Fractional Professional Roles
+        'fractional-roles': '🤝',
+
         # General
         'general': '📦',
         'design': '🎨',
@@ -21868,7 +21871,7 @@ def init_database():
             Category(name='Travel Guide & Tours', slug='tours', description='Local guides, virtual tours, travel planning', icon='map-pin'),
             
             # Fractional Professional Roles
-            Category(name='Fractional Professional Roles', slug='fractional-roles', description='Part-time CFO, CMO, CTO, COO, HR Director, Legal Counsel and other senior roles for SMEs', icon='users'),
+            Category(name='Fractional Professional Roles', slug='fractional-roles', description='Part-time C-suite & senior executives for Malaysian SMEs: Fractional CFO, CMO, CTO, COO, HR Director, Legal Counsel, CDO, Sales Director, CIO, ESG Officer, Halal Compliance Officer — monthly retainer, halal-compliant engagements', icon='handshake'),
 
             # General
             Category(name='General Services', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),

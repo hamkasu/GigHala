@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Peranan Profesional Pecahan – Fractional Roles | GigHala{% endblock %}
+{% block meta_description %}Cari peranan profesional pecahan (fractional) untuk PKS Malaysia — CFO, CMO, CTO, COO, HR Director, Legal Counsel dan lain-lain. Retainer bulanan, halal-compliant.{% endblock %}
+{% block meta_description_en %}Browse fractional professional roles for Malaysian SMEs — Fractional CFO, CMO, CTO, COO, HR Director, Legal Counsel and more. Monthly retainer, halal-compliant engagements.{% endblock %}
+{% block canonical_url %}https://gighala.my/fractional/browse{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .frac-hero {
+        background: linear-gradient(135deg, #1a237e 0%, #00C853 100%);
+        color: #fff;
+        padding: 48px 24px 40px;
+        text-align: center;
+        border-radius: 0 0 24px 24px;
+        margin-bottom: 32px;
+    }
+    .frac-hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .frac-hero p  { font-size: 15px; opacity: .88; max-width: 560px; margin: 0 auto 20px; }
+    .frac-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-white { background:#fff; color:#1a237e; padding:10px 22px; border-radius:8px; font-weight:700; font-size:14px; text-decoration:none; }
+    .btn-outline-white { border:2px solid #fff; color:#fff; padding:8px 20px; border-radius:8px; font-weight:600; font-size:14px; text-decoration:none; }
+
+    .sub-role-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+    .sub-role-pill {
+        background: var(--bg-light, #f5f5f5);
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 13px;
+        color: var(--text-dark, #212121);
+        cursor: pointer;
+        transition: background .15s;
+        text-decoration: none;
+    }
+    .sub-role-pill:hover, .sub-role-pill.active { background:#e8f5e9; border-color:#00C853; color:#1b5e20; }
+
+    .filter-bar {
+        background: var(--bg-white, #fff);
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+    }
+    .filter-bar select, .filter-bar input {
+        border: 1px solid var(--border, #ddd);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 14px;
+        background: var(--bg-white, #fff);
+        color: var(--text-dark, #212121);
+        flex: 1; min-width: 150px;
+    }
+    .filter-bar button { padding: 8px 20px; border-radius: 8px; background: var(--primary, #00C853); color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; }
+
+    .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .listing-card {
+        background: var(--bg-white, #fff);
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 16px;
+        padding: 20px;
+        transition: box-shadow .2s, transform .2s;
+        text-decoration: none; color: inherit;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .listing-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.10); transform: translateY(-2px); }
+    .listing-card-title { font-size: 16px; font-weight: 700; color: var(--text-dark, #212121); }
+    .listing-meta { font-size: 13px; color: var(--text-gray, #757575); display:flex; gap:10px; flex-wrap:wrap; }
+    .badge-pill {
+        display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+        background: #e8f5e9; color: #1b5e20;
+    }
+    .badge-remote { background:#e3f2fd; color:#0d47a1; }
+    .badge-onsite { background:#fff3e0; color:#e65100; }
+    .badge-hybrid { background:#f3e5f5; color:#4a148c; }
+    .listing-desc { font-size: 13px; color: var(--text-gray, #757575); line-height: 1.5;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .listing-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; border-top:1px solid var(--border,#eee); }
+    .retainer-amount { font-size: 15px; font-weight: 700; color: var(--primary, #00C853); }
+    .days-badge { font-size: 12px; color: var(--text-gray,#757575); }
+
+    .empty-state { text-align:center; padding:64px 24px; color:var(--text-gray,#757575); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+
+    .pagination-row { display:flex; gap:8px; justify-content:center; margin-top:32px; }
+    .page-btn {
+        padding:8px 14px; border-radius:8px; border:1px solid var(--border,#ddd);
+        background: var(--bg-white,#fff); color:var(--text-dark,#212121); font-size:14px;
+        text-decoration:none; cursor:pointer;
+    }
+    .page-btn.active { background:var(--primary,#00C853); color:#fff; border-color:var(--primary,#00C853); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="frac-hero">
+    <h1>🤝 {% if lang == 'ms' %}Peranan Profesional Pecahan{% else %}Fractional Professional Roles{% endif %}</h1>
+    <p>
+        {% if lang == 'ms' %}
+        Eksekutif kanan C-suite sambilan untuk PKS Malaysia — bayaran retainer bulanan, mematuhi halal.
+        {% else %}
+        Part-time C-suite and senior executives for Malaysian SMEs — monthly retainer, halal-compliant.
+        {% endif %}
+    </p>
+    <div class="frac-cta-row">
+        <a href="/fractional/experts" class="btn-white">
+            {% if lang == 'ms' %}Cari Pakar Pecahan{% else %}Find Fractional Experts{% endif %}
+        </a>
+        {% if user and user.user_type in ['client', 'both'] %}
+        <a href="/fractional/post" class="btn-outline-white">
+            {% if lang == 'ms' %}Siarkan Peranan{% else %}Post a Role{% endif %}
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="page-container" style="max-width:1100px;margin:0 auto;padding:0 16px 48px;">
+
+    <!-- Sub-role quick filters -->
+    <div class="sub-role-pills">
+        {% set sub_roles = [
+            ('fractional-cfo',   'CFO'),
+            ('fractional-cmo',   'CMO'),
+            ('fractional-cto',   'CTO'),
+            ('fractional-coo',   'COO'),
+            ('fractional-chro',  'HR Director'),
+            ('fractional-legal', 'Legal Counsel'),
+            ('fractional-cdo',   'CDO'),
+            ('fractional-cso',   'Sales Director'),
+            ('fractional-cio',   'CIO'),
+            ('fractional-esg',   'ESG Officer'),
+            ('fractional-halal', 'Halal Officer'),
+        ] %}
+        <a href="/fractional/browse" class="sub-role-pill {% if not active_filters.category %}active{% endif %}">
+            {% if lang == 'ms' %}Semua{% else %}All{% endif %}
+        </a>
+        {% for slug, label in sub_roles %}
+        <a href="/fractional/browse?category={{ slug }}"
+           class="sub-role-pill {% if active_filters.category == slug %}active{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Filter bar -->
+    <form method="GET" action="/fractional/browse" class="filter-bar">
+        <select name="remote_onsite">
+            <option value="">{% if lang == 'ms' %}Mod Kerja{% else %}Work Mode{% endif %}</option>
+            <option value="remote"  {% if active_filters.remote_onsite == 'remote'  %}selected{% endif %}>Remote</option>
+            <option value="onsite"  {% if active_filters.remote_onsite == 'onsite'  %}selected{% endif %}>Onsite</option>
+            <option value="hybrid"  {% if active_filters.remote_onsite == 'hybrid'  %}selected{% endif %}>Hybrid</option>
+        </select>
+        <select name="days">
+            <option value="">{% if lang == 'ms' %}Hari / Minggu{% else %}Days / Week{% endif %}</option>
+            <option value="1"   {% if active_filters.days == '1'   %}selected{% endif %}>1 {% if lang == 'ms' %}hari{% else %}day{% endif %}</option>
+            <option value="2"   {% if active_filters.days == '2'   %}selected{% endif %}>≤2 {% if lang == 'ms' %}hari{% else %}days{% endif %}</option>
+            <option value="3"   {% if active_filters.days == '3'   %}selected{% endif %}>≤3 {% if lang == 'ms' %}hari{% else %}days{% endif %}</option>
+        </select>
+        <input type="text" name="industry" value="{{ active_filters.industry }}"
+               placeholder="{% if lang == 'ms' %}Industri (cth: Makanan, Teknologi){% else %}Industry (e.g. F&B, Tech){% endif %}">
+        <button type="submit">{% if lang == 'ms' %}Tapis{% else %}Filter{% endif %}</button>
+        {% if active_filters.category or active_filters.remote_onsite or active_filters.days or active_filters.industry %}
+        <a href="/fractional/browse" style="font-size:13px;color:var(--text-gray,#757575);align-self:center;text-decoration:none;">
+            {% if lang == 'ms' %}Kosongkan{% else %}Clear{% endif %}
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Listings -->
+    {% if listings %}
+    <div class="listing-grid">
+        {% for gig in listings %}
+        <a href="/fractional/listing/{{ gig.id }}" class="listing-card">
+            <div>
+                <div class="listing-meta">
+                    <span class="badge-pill">🤝 Fractional</span>
+                    {% if gig.remote_onsite == 'remote' %}
+                    <span class="badge-pill badge-remote">🌐 Remote</span>
+                    {% elif gig.remote_onsite == 'onsite' %}
+                    <span class="badge-pill badge-onsite">📍 Onsite</span>
+                    {% else %}
+                    <span class="badge-pill badge-hybrid">🔀 Hybrid</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="listing-card-title">{{ gig.title }}</div>
+            <div class="listing-desc">{{ gig.description }}</div>
+            {% if gig.industry_focus %}
+            <div style="font-size:12px;color:var(--text-gray,#888);">
+                🏭 {{ gig.industry_focus }}
+            </div>
+            {% endif %}
+            <div class="listing-footer">
+                <div>
+                    {% if gig.monthly_retainer_amount %}
+                    <span class="retainer-amount">RM {{ "%.0f"|format(gig.monthly_retainer_amount) }}/{% if lang == 'ms' %}bulan{% else %}mo{% endif %}</span>
+                    {% else %}
+                    <span style="font-size:13px;color:var(--text-gray,#888);">{% if lang == 'ms' %}Boleh runding{% else %}Negotiable{% endif %}</span>
+                    {% endif %}
+                </div>
+                <div class="days-badge">
+                    {% if gig.commitment_days_per_week %}{{ gig.commitment_days_per_week }} {% if lang == 'ms' %}hari/mgg{% else %}d/wk{% endif %}{% endif %}
+                    {% if gig.engagement_duration_months %} · {{ gig.engagement_duration_months }}{% if lang == 'ms' %} bln{% else %}mo{% endif %}{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-row">
+        {% if pagination.has_prev %}
+        <a href="?page={{ pagination.prev_num }}{% if active_filters.category %}&category={{ active_filters.category }}{% endif %}{% if active_filters.remote_onsite %}&remote_onsite={{ active_filters.remote_onsite }}{% endif %}{% if active_filters.days %}&days={{ active_filters.days }}{% endif %}{% if active_filters.industry %}&industry={{ active_filters.industry }}{% endif %}" class="page-btn">&#8592;</a>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <a href="?page={{ p }}{% if active_filters.category %}&category={{ active_filters.category }}{% endif %}{% if active_filters.remote_onsite %}&remote_onsite={{ active_filters.remote_onsite }}{% endif %}{% if active_filters.days %}&days={{ active_filters.days }}{% endif %}{% if active_filters.industry %}&industry={{ active_filters.industry }}{% endif %}"
+               class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+            {% else %}
+            <span class="page-btn" style="pointer-events:none;color:#aaa;">…</span>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <a href="?page={{ pagination.next_num }}{% if active_filters.category %}&category={{ active_filters.category }}{% endif %}{% if active_filters.remote_onsite %}&remote_onsite={{ active_filters.remote_onsite }}{% endif %}{% if active_filters.days %}&days={{ active_filters.days }}{% endif %}{% if active_filters.industry %}&industry={{ active_filters.industry }}{% endif %}" class="page-btn">&#8594;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">🤝</div>
+        <h3>{% if lang == 'ms' %}Tiada peranan tersenarai buat masa ini{% else %}No listings yet{% endif %}</h3>
+        <p>{% if lang == 'ms' %}Cuba kosongkan penapis atau semak semula kemudian.{% else %}Try clearing the filters or check back soon.{% endif %}</p>
+        {% if user and user.user_type in ['client', 'both'] %}
+        <a href="/fractional/post" style="display:inline-block;margin-top:16px;padding:10px 24px;background:var(--primary,#00C853);color:#fff;border-radius:8px;font-weight:700;text-decoration:none;">
+            {% if lang == 'ms' %}Siarkan Peranan Pertama{% else %}Post the First Role{% endif %}
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
