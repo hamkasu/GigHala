@@ -251,6 +251,14 @@ HALAL_APPROVED_CATEGORIES = [
         'icon': '📐'
     },
     {
+        'slug': 'fractional-roles',
+        'name_en': 'Fractional Professional Roles',
+        'name_ms': 'Peranan Profesional Pecahan',
+        'description_en': 'Part-time C-suite & senior executives (CFO, CMO, CTO, COO, HR, Legal) for SMEs — halal businesses only',
+        'description_ms': 'Eksekutif kanan & peringkat C sambilan (CFO, CMO, CTO, COO, HR, Undang-Undang) untuk PKS — perniagaan halal sahaja',
+        'icon': '🤝'
+    },
+    {
         'slug': 'creative-other',
         'name_en': 'Other Creative Services',
         'name_ms': 'Perkhidmatan Kreatif Lain',

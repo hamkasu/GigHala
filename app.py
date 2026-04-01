@@ -107,7 +107,7 @@ MAIN_CATEGORY_SLUGS = [
     'engineering', 'music', 'photography', 'finance', 'crafts',
     'garden', 'coaching', 'data', 'pets', 'handyman', 'tours',
     'events', 'online-selling', 'virtual-assistant', 'delivery',
-    'micro-tasks', 'caregiving', 'creative-other'
+    'micro-tasks', 'caregiving', 'fractional-roles', 'creative-other'
 ]
 
 # WhatsApp configuration is handled by whatsapp_service (Meta Cloud API)
@@ -21812,6 +21812,9 @@ def init_database():
             Category(name='Event Planning & Coordination', slug='event-planning', description='Event planning, party coordination, wedding planning', icon='calendar'),
             Category(name='Travel Guide & Tours', slug='tours', description='Local guides, virtual tours, travel planning', icon='map-pin'),
             
+            # Fractional Professional Roles
+            Category(name='Fractional Professional Roles', slug='fractional-roles', description='Part-time CFO, CMO, CTO, COO, HR Director, Legal Counsel and other senior roles for SMEs', icon='users'),
+
             # General
             Category(name='General Services', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
         ]
