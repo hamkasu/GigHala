@@ -107,7 +107,9 @@ MAIN_CATEGORY_SLUGS = [
     'engineering', 'music', 'photography', 'finance', 'crafts',
     'garden', 'coaching', 'data', 'pets', 'handyman', 'tours',
     'events', 'online-selling', 'virtual-assistant', 'delivery',
-    'micro-tasks', 'caregiving', 'fractional-roles', 'creative-other'
+    'micro-tasks', 'caregiving', 'creative-other'
+    # fractional-roles is intentionally excluded — it has its own
+    # dedicated section (/fractional/*) separate from the gig flow
 ]
 
 # WhatsApp configuration is handled by whatsapp_service (Meta Cloud API)
