@@ -577,6 +577,34 @@
             transform: rotate(180deg);
         }
 
+        /* Fractional nav button dropdown (in .user-email-bar) */
+        .frac-nav-wrap { position: relative; display: inline-flex; align-items: center; }
+        .frac-nav-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: #1a2a1a;
+            border: 1px solid rgba(255,213,79,0.25);
+            border-radius: 10px;
+            min-width: 180px;
+            z-index: 2000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            padding: 6px 0;
+        }
+        .frac-nav-wrap:hover .frac-nav-dropdown { display: block; }
+        .frac-nav-item {
+            display: block;
+            padding: 10px 16px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .frac-nav-item:hover { background: rgba(255,213,79,0.10); color: #FFD54F; }
+
         .dropdown-item {
             display: block;
             padding: 12px 16px;
@@ -1591,6 +1619,20 @@
                     <a href="/documents" title="Documents" style="color: #00C853; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 200, 83, 0.05);">
                         <i data-feather="file-text" style="width: 20px; height: 20px;"></i>
                     </a>
+                    <!-- Fractional Roles — premium nav button, separate from gig flow -->
+                    <div style="position:relative;display:inline-flex;align-items:center;" class="frac-nav-wrap">
+                        <a href="/fractional/browse" title="Fractional Professional Roles – Peranan Profesional Pecahan"
+                           style="color:#FFD54F;font-size:15px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;background:rgba(255,213,79,0.10);">
+                            🤝 Fractional
+                        </a>
+                        <div class="frac-nav-dropdown">
+                            <a href="/fractional/browse" class="frac-nav-item">🔍 Browse Roles</a>
+                            <a href="/fractional/experts" class="frac-nav-item">👥 Find Experts</a>
+                            {% if user.user_type in ['client', 'both'] %}
+                            <a href="/fractional/post" class="frac-nav-item" style="color:#00C853;font-weight:700;">➕ Post a Role</a>
+                            {% endif %}
+                        </div>
+                    </div>
                     <a href="/urgent-help" title="Urgent Help – Bantuan Segera" style="color: #e65100; font-size: 15px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(230, 81, 0, 0.08);">
                         ⚡ Urgent Help
                     </a>
