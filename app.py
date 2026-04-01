@@ -3333,7 +3333,9 @@ class Escrow(db.Model):
             'refunded': 'Refunded to Client',
             'partial_refund': 'Partially Refunded',
             'disputed': 'Under Dispute',
-            'cancelled': 'Cancelled'
+            'cancelled': 'Cancelled',
+            'active_retainer': 'Retainer Aktif',
+            'month_complete': 'Bulan Selesai',
         }
         return labels.get(self.status, self.status.title())
 
@@ -3346,7 +3348,9 @@ class Escrow(db.Model):
             'refunded': 'secondary',
             'partial_refund': 'warning',
             'disputed': 'danger',
-            'cancelled': 'dark'
+            'cancelled': 'dark',
+            'active_retainer': 'primary',
+            'month_complete': 'success',
         }
         return colors.get(self.status, 'secondary')
 
@@ -25896,6 +25900,38 @@ def fractional_success():
     user = User.query.get(user_id)
     return render_template('fractional_success.html', user=user,
                            active_page='fractional', lang=get_user_language(), t=t)
+
+
+@app.route('/fractional/engagement-letter/<int:escrow_id>')
+@page_login_required
+def fractional_engagement_letter(escrow_id):
+    """Generate and download the PDF engagement letter for a fractional retainer."""
+    from flask import make_response
+    from services.engagement_letter import generate_engagement_letter
+
+    user_id = session['user_id']
+
+    try:
+        escrow = Escrow.query.get_or_404(escrow_id)
+
+        # Only the client or the freelancer on this engagement may download it
+        if user_id not in (escrow.client_id, escrow.freelancer_id):
+            flash('Anda tidak dibenarkan mengakses dokumen ini.', 'error')
+            return redirect(url_for('dashboard'))
+
+        buffer = generate_engagement_letter(escrow)
+        pdf_data = buffer.read()
+
+        response = make_response(pdf_data)
+        filename = f'GigHala_Engagement_Letter_{escrow.escrow_number}.pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        response.headers['Content-Type'] = 'application/pdf'
+        return response
+
+    except Exception as e:
+        app.logger.error(f'fractional_engagement_letter error escrow {escrow_id}: {str(e)}')
+        flash('Terdapat masalah menjana surat penglibatan. Sila cuba lagi.', 'error')
+        return redirect(url_for('fractional_detail', gig_id=escrow.gig_id) if escrow else url_for('dashboard'))
 
 
 if __name__ == '__main__':
