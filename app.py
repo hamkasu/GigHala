@@ -25439,6 +25439,465 @@ def admin_resolve_ticket(ticket_id):
         return jsonify({'error': 'Failed to resolve ticket'}), 500
 
 
+# ============================================================
+# FRACTIONAL & RETAINED EXPERT ROUTES
+# ============================================================
+
+def fractional_match(gig):
+    """Return top-5 matched Users for a fractional gig listing.
+
+    Hard filters (all must pass):
+    - available_for_fractional == True
+    - user_type in ('freelancer', 'both')
+    - fractional_days_available >= gig.commitment_days_per_week  (if set on gig)
+    - years_experience >= gig.min_years_experience               (if set on gig)
+
+    Soft scoring (higher = better match):
+    - gig.industry_focus found in user.fractional_industries: +2 pts
+    - proposed rate within 20 % of gig.monthly_retainer_amount:  +1 pt
+    - linkedin_url is present:                                    +1 pt
+
+    Returns list of (user, score) tuples sorted descending, max 5.
+    """
+    try:
+        query = User.query.filter(
+            User.available_for_fractional == True,
+            User.user_type.in_(['freelancer', 'both'])
+        )
+
+        # Hard filter: days availability
+        if gig.commitment_days_per_week is not None:
+            query = query.filter(
+                User.fractional_days_available >= gig.commitment_days_per_week
+            )
+
+        # Hard filter: minimum years experience
+        if gig.min_years_experience is not None:
+            query = query.filter(
+                User.years_experience >= gig.min_years_experience
+            )
+
+        candidates = query.all()
+
+        scored = []
+        for candidate in candidates:
+            score = 0
+
+            # Industry focus overlap
+            if gig.industry_focus and candidate.fractional_industries:
+                gig_industry = gig.industry_focus.lower()
+                user_industries = candidate.fractional_industries.lower()
+                if gig_industry in user_industries:
+                    score += 2
+
+            # Rate within 20 % of listing amount
+            if gig.monthly_retainer_amount and candidate.monthly_retainer_rate:
+                try:
+                    gig_rate = float(gig.monthly_retainer_amount)
+                    user_rate = float(candidate.monthly_retainer_rate)
+                    if gig_rate > 0 and abs(user_rate - gig_rate) / gig_rate <= 0.20:
+                        score += 1
+                except (ValueError, TypeError, ZeroDivisionError):
+                    pass
+
+            # LinkedIn URL present — signals credibility
+            if candidate.linkedin_url:
+                score += 1
+
+            scored.append((candidate, score))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return scored[:5]
+
+    except Exception as e:
+        app.logger.error(f'fractional_match error: {str(e)}')
+        return []
+
+
+@app.route('/fractional/post', methods=['GET', 'POST'])
+@page_login_required
+def fractional_post():
+    """Post a new fractional or retained role listing."""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    if user.user_type not in ['client', 'both']:
+        flash('Hanya klien boleh menyiarkan peranan fractional.', 'error')
+        return redirect(url_for('dashboard'))
+
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+    form_data = {}
+
+    if request.method == 'POST':
+        form_data = {
+            'title': request.form.get('title', ''),
+            'description': request.form.get('description', ''),
+            'category': request.form.get('category', 'fractional-roles'),
+            'industry_focus': request.form.get('industry_focus', ''),
+            'commitment_days_per_week': request.form.get('commitment_days_per_week', ''),
+            'engagement_duration_months': request.form.get('engagement_duration_months', ''),
+            'monthly_retainer_amount': request.form.get('monthly_retainer_amount', ''),
+            'remote_onsite': request.form.get('remote_onsite', 'onsite'),
+            'min_years_experience': request.form.get('min_years_experience', ''),
+            'halal_declaration': request.form.get('halal_declaration') == 'on',
+        }
+
+        try:
+            title = sanitize_input(form_data['title'], max_length=200)
+            description = sanitize_input(form_data['description'], max_length=5000)
+            category = sanitize_input(form_data['category'], max_length=50)
+            industry_focus = sanitize_input(form_data['industry_focus'], max_length=100)
+            remote_onsite = sanitize_input(form_data['remote_onsite'], max_length=20)
+
+            if not title or not description:
+                flash('Sila isi tajuk dan penerangan peranan.', 'error')
+                return render_template('fractional_post.html', user=user, categories=categories,
+                                       form_data=form_data, active_page='fractional',
+                                       lang=get_user_language(), t=t)
+
+            if not form_data['halal_declaration']:
+                flash('Sila sahkan pematuhan halal sebelum menyiarkan peranan.', 'error')
+                return render_template('fractional_post.html', user=user, categories=categories,
+                                       form_data=form_data, active_page='fractional',
+                                       lang=get_user_language(), t=t)
+
+            # Parse numeric fields
+            try:
+                commitment_days = float(form_data['commitment_days_per_week']) if form_data['commitment_days_per_week'] else None
+                if commitment_days is not None and (commitment_days <= 0 or commitment_days > 5):
+                    flash('Bilangan hari komitmen mestilah antara 0.5 dan 5.', 'error')
+                    return render_template('fractional_post.html', user=user, categories=categories,
+                                           form_data=form_data, active_page='fractional',
+                                           lang=get_user_language(), t=t)
+            except (ValueError, TypeError):
+                flash('Format hari komitmen tidak sah.', 'error')
+                return render_template('fractional_post.html', user=user, categories=categories,
+                                       form_data=form_data, active_page='fractional',
+                                       lang=get_user_language(), t=t)
+
+            try:
+                duration_months = int(form_data['engagement_duration_months']) if form_data['engagement_duration_months'] else None
+                if duration_months is not None and duration_months <= 0:
+                    flash('Tempoh penglibatan mestilah lebih dari 0 bulan.', 'error')
+                    return render_template('fractional_post.html', user=user, categories=categories,
+                                           form_data=form_data, active_page='fractional',
+                                           lang=get_user_language(), t=t)
+            except (ValueError, TypeError):
+                flash('Format tempoh penglibatan tidak sah.', 'error')
+                return render_template('fractional_post.html', user=user, categories=categories,
+                                       form_data=form_data, active_page='fractional',
+                                       lang=get_user_language(), t=t)
+
+            try:
+                retainer_amount = float(form_data['monthly_retainer_amount']) if form_data['monthly_retainer_amount'] else None
+                if retainer_amount is not None and retainer_amount < 0:
+                    flash('Jumlah retainer bulanan tidak boleh negatif.', 'error')
+                    return render_template('fractional_post.html', user=user, categories=categories,
+                                           form_data=form_data, active_page='fractional',
+                                           lang=get_user_language(), t=t)
+            except (ValueError, TypeError):
+                flash('Format jumlah retainer tidak sah.', 'error')
+                return render_template('fractional_post.html', user=user, categories=categories,
+                                       form_data=form_data, active_page='fractional',
+                                       lang=get_user_language(), t=t)
+
+            try:
+                min_exp = int(form_data['min_years_experience']) if form_data['min_years_experience'] else None
+                if min_exp is not None and min_exp < 0:
+                    flash('Pengalaman minimum tidak boleh negatif.', 'error')
+                    return render_template('fractional_post.html', user=user, categories=categories,
+                                           form_data=form_data, active_page='fractional',
+                                           lang=get_user_language(), t=t)
+            except (ValueError, TypeError):
+                flash('Format pengalaman minimum tidak sah.', 'error')
+                return render_template('fractional_post.html', user=user, categories=categories,
+                                       form_data=form_data, active_page='fractional',
+                                       lang=get_user_language(), t=t)
+
+            # Build the Gig — budget_min/max mirrors the monthly retainer for escrow compatibility
+            budget_val = retainer_amount or 0.0
+            new_gig = Gig(
+                title=title,
+                description=description,
+                category=category or 'fractional-roles',
+                budget_min=budget_val,
+                budget_max=budget_val,
+                listing_type='fractional',
+                commitment_days_per_week=commitment_days,
+                engagement_duration_months=duration_months,
+                rate_type='monthly_retainer',
+                monthly_retainer_amount=retainer_amount,
+                min_years_experience=min_exp,
+                industry_focus=industry_focus,
+                remote_onsite=remote_onsite,
+                is_remote=(remote_onsite == 'remote'),
+                status='open',
+                client_id=user_id,
+                halal_compliant=True,
+                halal_verified=False,
+            )
+            db.session.add(new_gig)
+            db.session.commit()
+
+            flash('Peranan fractional anda telah disiarkan dengan jayanya!', 'success')
+            return redirect(url_for('fractional_success'))
+
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f'fractional_post error: {str(e)}')
+            flash('Terdapat masalah teknikal. Sila cuba lagi.', 'error')
+            return render_template('fractional_post.html', user=user, categories=categories,
+                                   form_data=form_data, active_page='fractional',
+                                   lang=get_user_language(), t=t)
+
+    return render_template('fractional_post.html', user=user, categories=categories,
+                           form_data=form_data, active_page='fractional',
+                           lang=get_user_language(), t=t)
+
+
+@app.route('/fractional/browse')
+def fractional_browse():
+    """Browse all open fractional and retained role listings."""
+    user = User.query.get(session['user_id']) if 'user_id' in session else None
+
+    # Collect filter params
+    filter_category = request.args.get('category', '').strip()
+    filter_remote = request.args.get('remote_onsite', '').strip()
+    filter_days = request.args.get('days', '').strip()
+    filter_industry = request.args.get('industry', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 12
+
+    try:
+        query = Gig.query.filter(
+            Gig.listing_type == 'fractional',
+            Gig.status == 'open'
+        )
+
+        if filter_category:
+            query = query.filter(Gig.category == filter_category)
+        if filter_remote:
+            query = query.filter(Gig.remote_onsite == filter_remote)
+        if filter_days:
+            try:
+                days_val = float(filter_days)
+                query = query.filter(Gig.commitment_days_per_week <= days_val)
+            except (ValueError, TypeError):
+                pass
+        if filter_industry:
+            query = query.filter(Gig.industry_focus.ilike(f'%{filter_industry}%'))
+
+        pagination = query.order_by(Gig.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        listings = pagination.items
+
+    except Exception as e:
+        app.logger.error(f'fractional_browse error: {str(e)}')
+        listings = []
+        pagination = None
+
+    active_filters = {
+        'category': filter_category,
+        'remote_onsite': filter_remote,
+        'days': filter_days,
+        'industry': filter_industry,
+    }
+
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+
+    return render_template('fractional_browse.html',
+                           user=user,
+                           listings=listings,
+                           pagination=pagination,
+                           active_filters=active_filters,
+                           categories=categories,
+                           active_page='fractional',
+                           lang=get_user_language(), t=t)
+
+
+@app.route('/fractional/listing/<int:gig_id>')
+def fractional_detail(gig_id):
+    """View a single fractional listing with matched expert suggestions."""
+    user = User.query.get(session['user_id']) if 'user_id' in session else None
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+
+        if gig.listing_type != 'fractional':
+            flash('Penyenaraian ini bukan peranan fractional.', 'error')
+            return redirect(url_for('fractional_browse'))
+
+        client = User.query.get(gig.client_id)
+
+        # Matched experts — only computed for authenticated users
+        matched_experts = []
+        if user:
+            matched_experts = fractional_match(gig)
+
+        # Existing applications for this listing
+        existing_applications = FractionalApplication.query.filter_by(
+            gig_id=gig_id
+        ).order_by(FractionalApplication.created_at.desc()).all()
+
+        # Check if current user has already applied
+        user_application = None
+        if user:
+            user_application = FractionalApplication.query.filter_by(
+                gig_id=gig_id, applicant_id=user.id
+            ).first()
+
+        return render_template('fractional_detail.html',
+                               gig=gig,
+                               client=client,
+                               user=user,
+                               matched_experts=matched_experts,
+                               existing_applications=existing_applications,
+                               user_application=user_application,
+                               active_page='fractional',
+                               lang=get_user_language(), t=t)
+
+    except Exception as e:
+        app.logger.error(f'fractional_detail error gig {gig_id}: {str(e)}')
+        return render_template('error.html', error='Terdapat masalah teknikal. Sila cuba lagi.',
+                               lang=get_user_language(), t=t), 500
+
+
+@app.route('/fractional/experts')
+def fractional_experts():
+    """Browse freelancers who are available for fractional or retained work."""
+    user = User.query.get(session['user_id']) if 'user_id' in session else None
+
+    filter_category = request.args.get('category', '').strip()
+    filter_days = request.args.get('days', '').strip()
+    filter_industry = request.args.get('industry', '').strip()
+
+    try:
+        query = User.query.filter(
+            User.available_for_fractional == True,
+            User.user_type.in_(['freelancer', 'both'])
+        )
+
+        if filter_days:
+            try:
+                days_val = float(filter_days)
+                query = query.filter(User.fractional_days_available >= days_val)
+            except (ValueError, TypeError):
+                pass
+
+        if filter_industry:
+            query = query.filter(User.fractional_industries.ilike(f'%{filter_industry}%'))
+
+        if filter_category:
+            # Match category against the user's bio or skills text (broad match)
+            query = query.filter(
+                db.or_(
+                    User.bio.ilike(f'%{filter_category}%'),
+                    User.skills.ilike(f'%{filter_category}%')
+                )
+            )
+
+        experts = query.order_by(User.rating.desc()).limit(50).all()
+
+    except Exception as e:
+        app.logger.error(f'fractional_experts error: {str(e)}')
+        experts = []
+
+    active_filters = {
+        'category': filter_category,
+        'days': filter_days,
+        'industry': filter_industry,
+    }
+
+    categories = Category.query.filter(Category.slug.in_(MAIN_CATEGORY_SLUGS)).all()
+
+    return render_template('fractional_experts.html',
+                           user=user,
+                           experts=experts,
+                           active_filters=active_filters,
+                           categories=categories,
+                           active_page='fractional',
+                           lang=get_user_language(), t=t)
+
+
+@app.route('/fractional/apply/<int:gig_id>', methods=['POST'])
+@page_login_required
+def fractional_apply(gig_id):
+    """Submit an application for a fractional role listing."""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    if user.user_type not in ['freelancer', 'both']:
+        flash('Hanya pekerja bebas boleh memohon peranan fractional.', 'error')
+        return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+    try:
+        gig = Gig.query.get_or_404(gig_id)
+
+        if gig.listing_type != 'fractional':
+            flash('Permohonan ini tidak sah untuk jenis penyenaraian ini.', 'error')
+            return redirect(url_for('fractional_browse'))
+
+        if gig.status != 'open':
+            flash('Peranan ini tidak lagi menerima permohonan.', 'error')
+            return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+        if gig.client_id == user_id:
+            flash('Anda tidak boleh memohon peranan anda sendiri.', 'error')
+            return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+        # Check for duplicate application (unique constraint: gig_id + applicant_id)
+        existing = FractionalApplication.query.filter_by(
+            gig_id=gig_id, applicant_id=user_id
+        ).first()
+        if existing:
+            flash('Anda telah pun memohon peranan ini.', 'error')
+            return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+        cover_note = sanitize_input(request.form.get('cover_note', ''), max_length=2000)
+
+        proposed_rate = None
+        rate_str = request.form.get('proposed_monthly_rate', '').strip()
+        if rate_str:
+            try:
+                proposed_rate = float(rate_str)
+                if proposed_rate < 0 or proposed_rate > 10000000:
+                    flash('Kadar retainer yang dicadangkan tidak sah.', 'error')
+                    return redirect(url_for('fractional_detail', gig_id=gig_id))
+            except (ValueError, TypeError):
+                flash('Format kadar retainer tidak sah.', 'error')
+                return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+        application = FractionalApplication(
+            gig_id=gig_id,
+            applicant_id=user_id,
+            cover_note=cover_note,
+            proposed_monthly_rate=proposed_rate,
+            status='pending'
+        )
+        db.session.add(application)
+        db.session.commit()
+
+        flash('Permohonan anda telah dihantar dengan jayanya!', 'success')
+        return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'fractional_apply error gig {gig_id}: {str(e)}')
+        flash('Terdapat masalah teknikal. Sila cuba lagi.', 'error')
+        return redirect(url_for('fractional_detail', gig_id=gig_id))
+
+
+@app.route('/fractional/success')
+@page_login_required
+def fractional_success():
+    """Confirmation page shown after a fractional listing is posted."""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    return render_template('fractional_success.html', user=user,
+                           active_page='fractional', lang=get_user_language(), t=t)
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
