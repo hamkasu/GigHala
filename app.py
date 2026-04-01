@@ -2598,6 +2598,16 @@ class User(UserMixin, db.Model):
     referred_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # User who referred this user
     referral_bonus_credited = db.Column(db.Boolean, default=False)  # Whether referrer received bonus for this user
 
+    # Fractional employment fields
+    available_for_fractional = db.Column(db.Boolean, default=False)  # Opted in to fractional/retained work
+    fractional_days_available = db.Column(db.Numeric(3, 1), nullable=True)  # Days per week free for fractional work
+    max_concurrent_clients = db.Column(db.Integer, nullable=True)  # Max simultaneous fractional clients
+    min_engagement_months = db.Column(db.Integer, nullable=True)  # Minimum engagement length (months)
+    monthly_retainer_rate = db.Column(db.Numeric(12, 2), nullable=True)  # MYR per month
+    fractional_industries = db.Column(db.String(255), nullable=True)  # Comma-separated industry focus areas
+    linkedin_url = db.Column(db.String(255), nullable=True)  # LinkedIn profile URL
+    years_experience = db.Column(db.Integer, nullable=True)  # Total years of professional experience
+
     @property
     def profile_picture(self):
         """Alias for profile_photo for backward compatibility"""
@@ -2724,6 +2734,16 @@ class Gig(db.Model):
     report_count = db.Column(db.Integer, default=0)  # Number of reports received
     ai_moderation_result = db.Column(db.Text)  # JSON result from AI halal compliance check
 
+    # Fractional employment fields
+    listing_type = db.Column(db.String(20), default='gig')  # gig, fractional, retained
+    commitment_days_per_week = db.Column(db.Numeric(3, 1), nullable=True)  # e.g. 1.0, 2.5 days/week
+    engagement_duration_months = db.Column(db.Integer, nullable=True)  # e.g. 3, 6, 12
+    rate_type = db.Column(db.String(20), nullable=True)  # monthly_retainer, daily_rate, hourly
+    monthly_retainer_amount = db.Column(db.Numeric(12, 2), nullable=True)  # MYR
+    min_years_experience = db.Column(db.Integer, nullable=True)
+    industry_focus = db.Column(db.String(100), nullable=True)
+    remote_onsite = db.Column(db.String(20), nullable=True)  # remote, onsite, hybrid
+
 class GigWorker(db.Model):
     """Track multiple workers assigned to a gig when workers_needed > 1.
 
@@ -2799,6 +2819,30 @@ class Application(db.Model):
 
     # Relationship to specialization
     specialization = db.relationship('WorkerSpecialization', backref=db.backref('applications', passive_deletes=True))
+
+class FractionalApplication(db.Model):
+    """Expert application for a fractional or retained role listing.
+
+    Separate from Application (which is gig-specific). Supports shortlisting
+    workflow and proposed monthly retainer negotiation.
+    status values: 'pending', 'shortlisted', 'accepted', 'rejected'
+    """
+    __tablename__ = 'fractional_application'
+    id = db.Column(db.Integer, primary_key=True)
+    gig_id = db.Column(db.Integer, db.ForeignKey('gig.id', ondelete='CASCADE'), nullable=False)
+    applicant_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    cover_note = db.Column(db.Text, nullable=True)
+    proposed_monthly_rate = db.Column(db.Numeric(12, 2), nullable=True)  # MYR per month
+    status = db.Column(db.String(20), default='pending')  # pending, shortlisted, accepted, rejected
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    gig = db.relationship('Gig', backref='fractional_applications')
+    applicant = db.relationship('User', backref='fractional_applications')
+
+    __table_args__ = (
+        db.UniqueConstraint('gig_id', 'applicant_id', name='uq_fractional_application'),
+    )
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -3242,7 +3286,14 @@ class Escrow(db.Model):
     refunded_at = db.Column(db.DateTime)
     dispute_reason = db.Column(db.Text)
     admin_notes = db.Column(db.Text)
-    
+
+    # Fractional retainer fields
+    retainer_start_date = db.Column(db.DateTime, nullable=True)  # When the monthly retainer engagement began
+    retainer_next_due = db.Column(db.DateTime, nullable=True)  # Date next monthly retainer payment is due
+    termination_requested = db.Column(db.Boolean, default=False)  # Either party has issued termination notice
+    termination_requested_by = db.Column(db.String(20), nullable=True)  # 'client' or 'freelancer'
+    termination_notice_date = db.Column(db.DateTime, nullable=True)  # When notice was issued (30-day window starts here)
+
     def to_dict(self):
         """Convert escrow to dictionary for JSON response"""
         # Calculate SOCSO on net amount (after platform fee)
