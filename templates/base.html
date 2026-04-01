@@ -1681,6 +1681,9 @@
                     <a href="/workers" class="nav-link {% if active_page == 'workers' %}active{% endif %}">{{ t('nav_workers') }}</a>
                     <a href="/services" class="nav-link {% if active_page == 'services' %}active{% endif %}">{% if lang == 'ms' %}Perkhidmatan{% else %}Services{% endif %}</a>
                     <a href="/worker-updates" class="nav-link {% if active_page == 'worker-updates' %}active{% endif %}">{{ t('nav_worker_updates') }}</a>
+                    <a href="/fractional/browse" class="nav-link {% if active_page == 'fractional' %}active{% endif %}" style="display:flex;align-items:center;gap:4px;" title="Fractional Professional Roles – Peranan Profesional Pecahan">
+                        <span style="font-size:12px;">🤝</span> {% if lang == 'ms' %}Peranan Pecahan{% else %}Fractional Roles{% endif %}
+                    </a>
                     <a href="/urgent-help" class="nav-link {% if active_page == 'urgent-help' %}active{% endif %}" style="{% if active_page != 'urgent-help' %}color:#e65100;{% endif %}display:flex;align-items:center;gap:4px;" title="Urgent Help – Bantuan Segera Premium">
                         <span style="font-size:12px;">⚡</span> {% if lang == 'ms' %}Urgent Help{% else %}Urgent Help{% endif %}
                     </a>

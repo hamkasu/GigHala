@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Peranan Pecahan Disiarkan! | GigHala{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .success-container {
+        max-width: 560px; margin: 64px auto; padding: 0 16px 64px;
+        text-align: center;
+    }
+    .success-icon { font-size: 64px; margin-bottom: 20px; }
+    .success-title { font-size: 26px; font-weight: 800; color: var(--text-dark, #212121); margin-bottom: 10px; }
+    .success-subtitle { font-size: 15px; color: var(--text-gray, #757575); line-height: 1.6; margin-bottom: 32px; }
+
+    .next-steps {
+        background: var(--bg-white, #fff); border: 1px solid var(--border, #e0e0e0);
+        border-radius: 16px; padding: 24px; text-align: left; margin-bottom: 28px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .next-steps h3 { font-size: 14px; font-weight: 700; color: var(--text-dark, #212121); margin-bottom: 16px; }
+    .step-item { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+    .step-num {
+        width: 26px; height: 26px; border-radius: 50%; background: var(--primary, #00C853);
+        color: #fff; font-size: 12px; font-weight: 700; display: flex;
+        align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .step-text { font-size: 13px; color: var(--text-dark, #333); line-height: 1.5; }
+    .step-text strong { color: var(--text-dark, #212121); }
+
+    .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+        padding: 12px 26px; background: var(--primary, #00C853); color: #fff;
+        border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none;
+    }
+    .btn-secondary {
+        padding: 10px 24px; background: var(--bg-white, #fff);
+        border: 2px solid var(--border, #ddd); color: var(--text-dark, #212121);
+        border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;
+    }
+
+    .halal-seal {
+        background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 12px;
+        padding: 14px 18px; font-size: 13px; color: #1b5e20; margin-bottom: 24px;
+        display: flex; align-items: center; gap: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-icon">🎉</div>
+    <h1 class="success-title">
+        {% if lang == 'ms' %}
+        Peranan Pecahan Anda Telah Disiarkan!
+        {% else %}
+        Your Fractional Role is Live!
+        {% endif %}
+    </h1>
+    <p class="success-subtitle">
+        {% if lang == 'ms' %}
+        Platform kami akan memadankan anda dengan pakar profesional yang berkelayakan. Anda akan dihubungi apabila terdapat permohonan.
+        {% else %}
+        Our platform will match you with qualified fractional professionals. You'll be notified when applications arrive.
+        {% endif %}
+    </p>
+
+    <div class="halal-seal">
+        <span style="font-size:20px;">✅</span>
+        <span>
+            {% if lang == 'ms' %}
+            Penyenaraian anda telah ditandai untuk semakan pematuhan halal. Ini memastikan semua penglibatan mematuhi prinsip Islam.
+            {% else %}
+            Your listing has been flagged for halal compliance review. This ensures all engagements adhere to Islamic principles.
+            {% endif %}
+        </span>
+    </div>
+
+    <div class="next-steps">
+        <h3>{% if lang == 'ms' %}Langkah Seterusnya{% else %}What Happens Next{% endif %}</h3>
+
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">
+                {% if lang == 'ms' %}
+                <strong>Pemadanan AI</strong> — Algoritma kami mencari pakar yang paling sesuai berdasarkan industri, kadar, dan ketersediaan.
+                {% else %}
+                <strong>AI Matching</strong> — Our algorithm finds the best-fit experts based on industry, rate, and availability.
+                {% endif %}
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">
+                {% if lang == 'ms' %}
+                <strong>Terima Permohonan</strong> — Pakar yang berminat akan menghantar nota permohonan dan kadar retainer yang dicadangkan.
+                {% else %}
+                <strong>Receive Applications</strong> — Interested experts submit a cover note and proposed retainer rate.
+                {% endif %}
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">
+                {% if lang == 'ms' %}
+                <strong>Temu duga & Pilih</strong> — Semak profil, berhubung terus, dan pilih pakar yang paling sesuai.
+                {% else %}
+                <strong>Interview & Select</strong> — Review profiles, connect directly, and choose the best fit.
+                {% endif %}
+            </div>
+        </div>
+        <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-text">
+                {% if lang == 'ms' %}
+                <strong>Retainer Escrow</strong> — Bayaran retainer bulanan diuruskan melalui escrow selamat GigHala dengan Surat Penglibatan rasmi.
+                {% else %}
+                <strong>Retainer Escrow</strong> — Monthly retainer payments are managed through GigHala's secure escrow with a formal Engagement Letter.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="action-row">
+        <a href="/fractional/browse" class="btn-primary">
+            {% if lang == 'ms' %}Lihat Semua Penyenaraian{% else %}View All Listings{% endif %}
+        </a>
+        <a href="/fractional/post" class="btn-secondary">
+            {% if lang == 'ms' %}Siarkan Peranan Lain{% else %}Post Another Role{% endif %}
+        </a>
+    </div>
+
+    <div style="margin-top:24px;">
+        <a href="/dashboard" style="font-size:13px;color:var(--text-gray,#888);">
+            {% if lang == 'ms' %}← Kembali ke Papan Pemuka{% else %}← Back to Dashboard{% endif %}
+        </a>
+    </div>
+</div>
+{% endblock %}
