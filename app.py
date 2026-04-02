@@ -25581,6 +25581,12 @@ def fractional_match(gig):
         return []
 
 
+@app.route('/fractional')
+def fractional_index():
+    """Redirect bare /fractional to the browse listing page."""
+    return redirect(url_for('fractional_browse'))
+
+
 @app.route('/fractional/post', methods=['GET', 'POST'])
 @page_login_required
 def fractional_post():
