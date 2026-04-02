@@ -731,6 +731,88 @@
             </div>
         </nav>
 
+        <!-- ===== FRACTIONAL PROFESSIONAL ROLES ANNOUNCEMENT ===== -->
+        <div id="fractional-section" style="background: linear-gradient(135deg, #0d1f0d 0%, #0a1628 50%, #0d1f0d 100%); padding: 72px 20px; position: relative; overflow: hidden;">
+
+            <!-- Decorative background glow -->
+            <div style="position:absolute;top:-80px;left:-80px;width:320px;height:320px;background:radial-gradient(circle,rgba(255,213,79,0.07) 0%,transparent 70%);pointer-events:none;"></div>
+            <div style="position:absolute;bottom:-80px;right:-80px;width:320px;height:320px;background:radial-gradient(circle,rgba(0,200,83,0.07) 0%,transparent 70%);pointer-events:none;"></div>
+
+            <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1;">
+
+                <!-- NEW badge + label -->
+                <div style="text-align:center;margin-bottom:20px;">
+                    <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,213,79,0.12);border:1px solid rgba(255,213,79,0.35);color:#FFD54F;font-size:0.78rem;font-weight:800;padding:6px 16px;border-radius:999px;letter-spacing:0.6px;text-transform:uppercase;">
+                        ✦ {% if lang == 'ms' %}Baru di GigHala{% else %}New on GigHala{% endif %}
+                    </span>
+                </div>
+
+                <!-- Main headline -->
+                <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:#ffffff;text-align:center;margin:0 auto 16px;max-width:780px;line-height:1.2;">
+                    🤝 {% if lang == 'ms' %}Peranan Profesional Pecahan untuk PKS Malaysia{% else %}Fractional Professional Roles for Malaysian SMEs{% endif %}
+                </h2>
+                <p style="text-align:center;color:rgba(255,255,255,0.6);font-size:1rem;max-width:620px;margin:0 auto 48px;line-height:1.7;">
+                    {% if lang == 'ms' %}
+                    Dapatkan kepakaran C-suite kelas dunia tanpa merekrut sepenuh masa. Bayar retainer bulanan, komitmen minimum 3 bulan, mematuhi halal sepenuhnya.
+                    {% else %}
+                    Access world-class C-suite expertise without a full-time hire. Monthly retainer, minimum 3-month commitment, fully halal-compliant.
+                    {% endif %}
+                </p>
+
+                <!-- Sub-role grid -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:48px;">
+                    {% set frac_roles = [
+                        ('💰', 'Fractional CFO',          'Strategi kewangan & aliran tunai',         'Financial strategy & cash-flow'),
+                        ('📣', 'Fractional CMO',          'Jenama, pertumbuhan & pemasaran digital',  'Brand, growth & digital marketing'),
+                        ('💻', 'Fractional CTO',          'Peta jalan teknologi & seni bina',         'Tech roadmap & architecture'),
+                        ('⚙️', 'Fractional COO',          'Operasi & rantaian bekalan',               'Operations & supply chain'),
+                        ('👥', 'Fractional HR Director',  'Bakat, dasar HR & pampasan',               'Talent, HR policy & compensation'),
+                        ('⚖️', 'Fractional Legal Counsel','Kontrak, pematuhan & IP',                  'Contracts, compliance & IP'),
+                        ('📊', 'Fractional CDO',          'Strategi data & analitik',                 'Data strategy & analytics'),
+                        ('🤝', 'Fractional Sales Director','Hasil & perkongsian strategik',           'Revenue & strategic partnerships'),
+                        ('🖥️', 'Fractional CIO',          'Tadbir urus IT & transformasi digital',    'IT governance & digital transformation'),
+                        ('🌿', 'Fractional ESG Officer',  'Kelestarian & pematuhan ESG',              'Sustainability & ESG compliance'),
+                        ('✅', 'Fractional Halal Officer', 'Pematuhan halal & sijil',                 'Halal compliance & certification'),
+                    ] %}
+                    {% for icon, title, desc_ms, desc_en in frac_roles %}
+                    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;transition:border-color 0.2s,background 0.2s;" onmouseover="this.style.borderColor='rgba(255,213,79,0.35)';this.style.background='rgba(255,213,79,0.06)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.04)';">
+                        <div style="font-size:22px;margin-bottom:8px;">{{ icon }}</div>
+                        <div style="font-size:13px;font-weight:700;color:#ffffff;margin-bottom:4px;">{{ title }}</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.4;">{% if lang == 'ms' %}{{ desc_ms }}{% else %}{{ desc_en }}{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- CTAs -->
+                <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
+                    <a href="/fractional/browse"
+                       style="display:inline-flex;align-items:center;gap:8px;background:#FFD54F;color:#0d1f0d;padding:14px 28px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;transition:background 0.2s;"
+                       onmouseover="this.style.background='#FFC107';" onmouseout="this.style.background='#FFD54F';">
+                        🔍 {% if lang == 'ms' %}Semak Peranan Tersedia{% else %}Browse Open Roles{% endif %}
+                    </a>
+                    <a href="/fractional/experts"
+                       style="display:inline-flex;align-items:center;gap:8px;background:transparent;border:2px solid rgba(255,255,255,0.25);color:#ffffff;padding:12px 26px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:border-color 0.2s;"
+                       onmouseover="this.style.borderColor='rgba(255,213,79,0.6)';" onmouseout="this.style.borderColor='rgba(255,255,255,0.25)';">
+                        👥 {% if lang == 'ms' %}Cari Pakar Pecahan{% else %}Find Fractional Experts{% endif %}
+                    </a>
+                    {% if user and user.user_type in ['client', 'both'] %}
+                    <a href="/fractional/post"
+                       style="display:inline-flex;align-items:center;gap:8px;background:#00C853;color:#ffffff;padding:14px 28px;border-radius:10px;font-weight:800;font-size:15px;text-decoration:none;transition:background 0.2s;"
+                       onmouseover="this.style.background='#00b548';" onmouseout="this.style.background='#00C853';">
+                        ➕ {% if lang == 'ms' %}Siarkan Peranan{% else %}Post a Role{% endif %}
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Trust footnote -->
+                <p style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.82rem;margin-top:28px;">
+                    ✅ {% if lang == 'ms' %}Mematuhi halal sepenuhnya · Retainer bulanan melalui escrow selamat · Surat Penglibatan rasmi{% else %}Fully halal-compliant · Monthly retainer via secure escrow · Formal Engagement Letter{% endif %}
+                </p>
+
+            </div>
+        </div>
+        <!-- ===== END FRACTIONAL SECTION ===== -->
+
         <!-- Benefits Section -->
         <div id="benefits-section" style="background: #ffffff; padding: 60px 20px;">
             <div class="container" style="max-width: 1200px; margin: 0 auto;">
