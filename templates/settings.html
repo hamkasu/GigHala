@@ -502,6 +502,7 @@
     <div class="settings-tabs">
         <button class="settings-tab active" data-tab="profile">Maklumat Peribadi</button>
         <button class="settings-tab" data-tab="specializations">Kepakaran & Kemahiran</button>
+        <button class="settings-tab" data-tab="fractional" id="fractional">🤝 Peranan Pecahan</button>
         <button class="settings-tab" data-tab="verification">Pengesahan Identiti</button>
         <button class="settings-tab" data-tab="security">Keselamatan</button>
         <button class="settings-tab" data-tab="payment">Maklumat Pembayaran</button>
@@ -976,6 +977,139 @@
         </form>
     </div>
 
+    <!-- ===== FRACTIONAL PROFILE SECTION ===== -->
+    <div class="settings-section" id="fractional-section">
+        <h2 class="section-title">🤝 Peranan Profesional Pecahan</h2>
+        <p class="section-description">
+            Aktifkan profil pecahan anda untuk muncul dalam carian PKS Malaysia yang mencari kepakaran C-suite sambilan — CFO, CMO, CTO dan lain-lain.
+            Tetapan ini hanya relevan untuk freelancer / profesional kanan.
+        </p>
+
+        <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:14px 16px;margin-bottom:24px;font-size:13px;color:#1b5e20;">
+            💡 <strong>Cara ia berfungsi:</strong> Aktifkan togol di bawah, isikan butiran anda, dan profil anda akan muncul di
+            <a href="/fractional/experts" style="color:#1b5e20;font-weight:700;">halaman Pakar Pecahan</a> — boleh ditemui oleh SME seluruh Malaysia.
+        </div>
+
+        <form action="/settings/fractional" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Opt-in toggle -->
+            <div class="form-group" style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--border);">
+                <label class="form-label">Status Ketersediaan Pecahan</label>
+                <div style="display:flex;align-items:center;gap:14px;margin-top:8px;">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                        <input type="checkbox" name="available_for_fractional" value="1"
+                               {% if user.available_for_fractional %}checked{% endif %}
+                               style="width:20px;height:20px;accent-color:var(--primary,#00C853);">
+                        <span style="font-size:14px;font-weight:600;color:var(--text-dark);">
+                            Saya tersedia untuk penglibatan pecahan / retainer
+                        </span>
+                    </label>
+                </div>
+                <p class="form-hint">Nyahaktifkan ini untuk menyembunyikan profil anda daripada senarai Pakar Pecahan.</p>
+            </div>
+
+            <!-- Role & experience -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                <div class="form-group">
+                    <label class="form-label">Jenis Peranan Utama</label>
+                    <select name="fractional_role_type" class="form-select">
+                        {% set role_opts = [
+                            ('', 'Pilih peranan...'),
+                            ('fractional-cfo',   'Fractional CFO'),
+                            ('fractional-cmo',   'Fractional CMO'),
+                            ('fractional-cto',   'Fractional CTO'),
+                            ('fractional-coo',   'Fractional COO'),
+                            ('fractional-chro',  'Fractional HR Director / CHRO'),
+                            ('fractional-legal', 'Fractional Legal Counsel / CLO'),
+                            ('fractional-cdo',   'Fractional CDO'),
+                            ('fractional-cso',   'Fractional Sales Director / CSO'),
+                            ('fractional-cio',   'Fractional CIO'),
+                            ('fractional-esg',   'Fractional ESG / Sustainability Officer'),
+                            ('fractional-halal', 'Fractional Halal Compliance Officer'),
+                        ] %}
+                        {% for val, label in role_opts %}
+                        <option value="{{ val }}" {% if user.fractional_role_type == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="form-hint">Peranan yang paling menggambarkan kepakaran anda</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah Pengalaman (Tahun)</label>
+                    <input type="number" name="years_experience" class="form-input"
+                           min="0" max="60" value="{{ user.years_experience or '' }}"
+                           placeholder="cth: 15">
+                    <p class="form-hint">Digunakan untuk menapis semasa pemadanan AI</p>
+                </div>
+            </div>
+
+            <!-- Availability & capacity -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+                <div class="form-group">
+                    <label class="form-label">Hari Tersedia / Minggu</label>
+                    <select name="fractional_days_available" class="form-select">
+                        <option value="">Pilih...</option>
+                        {% for d in ['0.5','1.0','1.5','2.0','2.5','3.0','3.5','4.0','4.5','5.0'] %}
+                        <option value="{{ d }}" {% if user.fractional_days_available and '%.1f'|format(user.fractional_days_available|float) == d %}selected{% endif %}>
+                            {{ d }} hari
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Maks. Klien Serentak</label>
+                    <input type="number" name="max_concurrent_clients" class="form-input"
+                           min="1" max="10" value="{{ user.max_concurrent_clients or '' }}"
+                           placeholder="cth: 3">
+                    <p class="form-hint">Bilangan klien yang boleh anda kendalikan pada satu masa</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Min. Tempoh Penglibatan (Bulan)</label>
+                    <input type="number" name="min_engagement_months" class="form-input"
+                           min="1" max="24" value="{{ user.min_engagement_months or '' }}"
+                           placeholder="cth: 3">
+                    <p class="form-hint">Penglibatan terpendek yang anda terima</p>
+                </div>
+            </div>
+
+            <!-- Rate -->
+            <div class="form-group" style="margin-bottom:20px;">
+                <label class="form-label">Kadar Retainer Bulanan (RM)</label>
+                <div style="position:relative;max-width:280px;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-gray);font-weight:600;">RM</span>
+                    <input type="number" name="monthly_retainer_rate" class="form-input"
+                           style="padding-left:40px;"
+                           min="0" step="100" value="{{ user.monthly_retainer_rate or '' }}"
+                           placeholder="cth: 8000">
+                </div>
+                <p class="form-hint">Kadar permintaan anda sebulan. Digunakan untuk pemadanan ±20% dalam algoritma AI kami.</p>
+            </div>
+
+            <!-- Industry focus -->
+            <div class="form-group" style="margin-bottom:20px;">
+                <label class="form-label">Fokus Industri</label>
+                <input type="text" name="fractional_industries" class="form-input"
+                       value="{{ user.fractional_industries or '' }}"
+                       placeholder="cth: Makanan & Minuman, Teknologi, Pembuatan, Runcit, Hartanah">
+                <p class="form-hint">Asingkan dengan koma. Ini meningkatkan skor pemadanan anda dengan penyiar yang berkaitan (+2 mata).</p>
+            </div>
+
+            <!-- LinkedIn -->
+            <div class="form-group" style="margin-bottom:28px;">
+                <label class="form-label">URL Profil LinkedIn</label>
+                <input type="url" name="linkedin_url" class="form-input"
+                       value="{{ user.linkedin_url or '' }}"
+                       placeholder="https://linkedin.com/in/nama-anda">
+                <p class="form-hint">Kehadiran LinkedIn memberi +1 mata kredibiliti dalam pemadanan AI kami.</p>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="padding:12px 32px;font-size:15px;font-weight:700;">
+                💾 Simpan Profil Pecahan
+            </button>
+        </form>
+    </div>
+    <!-- ===== END FRACTIONAL SECTION ===== -->
+
     <!-- Payment Settings Section -->
     <div class="settings-section" id="payment-section">
         <h2 class="section-title">Maklumat Pembayaran</h2>
@@ -1033,6 +1167,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(targetTab + '-section').classList.add('active');
         });
     });
+
+    // Auto-activate tab from URL hash (e.g. /settings#fractional)
+    const hashTab = window.location.hash.replace('#', '');
+    if (hashTab) {
+        const targetBtn = document.querySelector(`.settings-tab[data-tab="${hashTab}"]`);
+        if (targetBtn) targetBtn.click();
+    }
 
     // ==================== SPECIALIZATIONS MANAGEMENT ====================
     let currentCategoryId = null;

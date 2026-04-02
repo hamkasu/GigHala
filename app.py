@@ -2602,6 +2602,7 @@ class User(UserMixin, db.Model):
 
     # Fractional employment fields
     available_for_fractional = db.Column(db.Boolean, default=False)  # Opted in to fractional/retained work
+    fractional_role_type = db.Column(db.String(30), nullable=True)  # Primary sub-role slug e.g. 'fractional-cfo'
     fractional_days_available = db.Column(db.Numeric(3, 1), nullable=True)  # Days per week free for fractional work
     max_concurrent_clients = db.Column(db.Integer, nullable=True)  # Max simultaneous fractional clients
     min_engagement_months = db.Column(db.Integer, nullable=True)  # Minimum engagement length (months)
@@ -5701,6 +5702,63 @@ def update_bank_details():
         flash('Ralat berlaku. Sila cuba lagi.', 'error')
     
     return redirect('/settings')
+
+@app.route('/settings/fractional', methods=['POST'])
+@page_login_required
+def update_fractional_settings():
+    """Save the user's fractional professional profile fields."""
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    try:
+        user.available_for_fractional = request.form.get('available_for_fractional') == '1'
+
+        role_type = sanitize_input(request.form.get('fractional_role_type', ''), max_length=30)
+        user.fractional_role_type = role_type or None
+
+        days_str = request.form.get('fractional_days_available', '').strip()
+        if days_str:
+            days_val = float(days_str)
+            if 0.5 <= days_val <= 5.0:
+                user.fractional_days_available = days_val
+            else:
+                flash('Hari tersedia mestilah antara 0.5 dan 5.', 'error')
+                return redirect('/settings#fractional')
+        else:
+            user.fractional_days_available = None
+
+        max_clients_str = request.form.get('max_concurrent_clients', '').strip()
+        user.max_concurrent_clients = int(max_clients_str) if max_clients_str else None
+
+        min_months_str = request.form.get('min_engagement_months', '').strip()
+        user.min_engagement_months = int(min_months_str) if min_months_str else None
+
+        rate_str = request.form.get('monthly_retainer_rate', '').strip()
+        user.monthly_retainer_rate = float(rate_str) if rate_str else None
+
+        industries = sanitize_input(request.form.get('fractional_industries', ''), max_length=255)
+        user.fractional_industries = industries or None
+
+        linkedin = sanitize_input(request.form.get('linkedin_url', ''), max_length=255)
+        if linkedin and not linkedin.startswith(('http://', 'https://')):
+            linkedin = 'https://' + linkedin
+        user.linkedin_url = linkedin or None
+
+        exp_str = request.form.get('years_experience', '').strip()
+        user.years_experience = int(exp_str) if exp_str else None
+
+        db.session.commit()
+        flash('Profil pecahan berjaya dikemaskini!', 'success')
+    except (ValueError, TypeError):
+        db.session.rollback()
+        flash('Format nilai tidak sah. Sila semak semua medan nombor.', 'error')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'update_fractional_settings error: {str(e)}')
+        flash('Ralat berlaku. Sila cuba lagi.', 'error')
+
+    return redirect('/settings#fractional')
+
 
 @app.route('/settings/verification', methods=['POST'])
 @page_login_required
