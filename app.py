@@ -22553,15 +22553,6 @@ def support():
             <li><a href="/pricing" style="color: var(--primary);">Struktur Harga</a></li>
         </ul>
     </div>
-    
-    <div class="content-section">
-        <h2><span class="icon">🏢</span> Alamat Pejabat</h2>
-        <p><strong>Calmic Sdn Bhd</strong></p>
-        <p>Level 15, Menara KL<br>
-        Jalan Sultan Ismail<br>
-        50250 Kuala Lumpur, Malaysia</p>
-        <p style="margin-top: 16px;"><strong>Waktu Operasi:</strong> Isnin - Jumaat, 9:00 AM - 6:00 PM</p>
-    </div>
     '''
     return render_template('static_page.html', 
                          user=user, 
