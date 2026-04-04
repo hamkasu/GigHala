@@ -1661,6 +1661,9 @@
                     <a href="/gigs" title="Latest Gigs" style="color: #00C853; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 200, 83, 0.05);">
                         <i data-feather="briefcase" style="width: 18px; height: 18px;"></i><span class="btn-text"> Gigs</span>
                     </a>
+                    <a href="/support" title="Support" style="color: #00C853; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 200, 83, 0.05);">
+                        <i data-feather="help-circle" style="width: 18px; height: 18px;"></i><span class="btn-text"> Support</span>
+                    </a>
                     <a href="/login" title="Log Masuk" style="color: #00C853; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 200, 83, 0.05);"><i data-feather="log-in" style="width: 18px; height: 18px;"></i><span class="btn-text"> Log Masuk</span></a>
                     <a href="/register" title="Daftar Percuma" style="font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: #00C853; color: white;"><i data-feather="user-plus" style="width: 18px; height: 18px;"></i><span class="btn-text"> Daftar</span></a>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right;">
@@ -1761,6 +1764,7 @@
                         {% endif %}
                     </a>
                     <a href="/billing" class="nav-link {% if active_page == 'billing' %}active{% endif %}">{{ t('nav_wallet') }}</a>
+                    <a href="/support" class="nav-link {% if active_page == 'support' %}active{% endif %}">{% if lang == 'ms' %}Sokongan{% else %}Support{% endif %}</a>
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
