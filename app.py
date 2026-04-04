@@ -25997,6 +25997,10 @@ def fractional_engagement_letter(escrow_id):
         return redirect(url_for('fractional_detail', gig_id=escrow.gig_id) if escrow else url_for('dashboard'))
 
 
+# Register FAQ / long-tail SEO content pages (defined in content_pages.py)
+from content_pages import register_content_routes
+register_content_routes(app)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', 'False') == 'True')
