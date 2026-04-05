@@ -308,7 +308,7 @@ private fun WorkerUpdateCard(update: WorkerUpdateDto, onContact: () -> Unit) {
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(w.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                            if (w.isVerified) {
+                            if (w.isVerified == true) {
                                 Icon(Icons.Filled.Verified, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
                             }
                         }

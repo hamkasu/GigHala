@@ -12,8 +12,8 @@ data class WorkerDto(
     val rating: Double = 0.0,
     @Json(name = "review_count") val reviewCount: Int = 0,
     @Json(name = "completed_gigs") val completedGigs: Int = 0,
-    @Json(name = "is_verified") val isVerified: Boolean = false,
-    @Json(name = "halal_verified") val halalVerified: Boolean = false,
+    @Json(name = "is_verified") val isVerified: Boolean? = false,
+    @Json(name = "halal_verified") val halalVerified: Boolean? = false,
     @Json(name = "profile_photo") val profilePhoto: String? = null
 )
 
