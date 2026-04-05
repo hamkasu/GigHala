@@ -40,6 +40,19 @@ data class UserDto(
     val bio: String? = null,
     val location: String? = null,
     val skills: String? = null,
+    val phone: String? = null,
+    val language: String? = null,
+    @Json(name = "portfolio_url") val portfolioUrl: String? = null,
+    @Json(name = "ic_number") val icNumber: String? = null,
+    @Json(name = "socso_membership_number") val socsoMembershipNumber: String? = null,
+    @Json(name = "socso_consent") val socsoConsent: Boolean = false,
+    @Json(name = "bank_name") val bankName: String? = null,
+    @Json(name = "bank_account_number") val bankAccountNumber: String? = null,
+    @Json(name = "bank_account_holder") val bankAccountHolder: String? = null,
+    @Json(name = "available_for_fractional") val availableForFractional: Boolean = false,
+    @Json(name = "fractional_role_type") val fractionalRoleType: String? = null,
+    @Json(name = "fractional_days_available") val fractionalDaysAvailable: Double = 1.0,
+    @Json(name = "halal_verified") val halalVerified: Boolean = false,
     val rating: Double = 0.0,
     @Json(name = "review_count") val reviewCount: Int = 0,
     @Json(name = "total_earnings") val totalEarnings: Double = 0.0,
@@ -58,4 +71,27 @@ data class Verify2faRequest(
 @JsonClass(generateAdapter = true)
 data class ForgotPasswordRequest(
     val email: String
+)
+
+// ── Profile update ─────────────────────────────────────────────────────────
+
+@JsonClass(generateAdapter = true)
+data class UpdateProfileRequest(
+    @Json(name = "full_name") val fullName: String,
+    val phone: String,
+    val location: String,
+    val bio: String,
+    val skills: List<String>,
+    @Json(name = "user_type") val userType: String,
+    val language: String,
+    @Json(name = "portfolio_url") val portfolioUrl: String,
+    @Json(name = "ic_number") val icNumber: String,
+    @Json(name = "socso_membership_number") val socsoMembershipNumber: String,
+    @Json(name = "socso_consent") val socsoConsent: Boolean
+)
+
+@JsonClass(generateAdapter = true)
+data class TwoFaStatusResponse(
+    @Json(name = "totp_enabled") val totpEnabled: Boolean = false,
+    @Json(name = "totp_enabled_at") val totpEnabledAt: String? = null
 )

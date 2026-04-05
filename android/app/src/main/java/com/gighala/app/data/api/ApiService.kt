@@ -1,6 +1,7 @@
 package com.gighala.app.data.api
 
 import com.gighala.app.data.api.models.*
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -22,6 +23,42 @@ interface ApiService {
 
     @GET("api/me")
     suspend fun getCurrentUser(): Response<UserDto>
+
+    @GET("api/profile")
+    suspend fun getProfile(): Response<UserDto>
+
+    @PUT("api/profile")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): Response<AuthResponse>
+
+    @FormUrlEncoded
+    @POST("settings/password")
+    suspend fun changePassword(
+        @Field("current_password") currentPassword: String,
+        @Field("new_password") newPassword: String,
+        @Field("confirm_password") confirmPassword: String
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("settings/bank")
+    suspend fun updateBankInfo(
+        @Field("bank_name") bankName: String,
+        @Field("bank_account_number") accountNumber: String,
+        @Field("bank_account_holder") accountHolder: String
+    ): Response<ResponseBody>
+
+    @FormUrlEncoded
+    @POST("settings/fractional")
+    suspend fun updateFractional(
+        @Field("available_for_fractional") available: Boolean,
+        @Field("fractional_role_type") roleType: String,
+        @Field("fractional_days_available") daysAvailable: Float
+    ): Response<ResponseBody>
+
+    @GET("api/2fa/status")
+    suspend fun get2faStatus(): Response<TwoFaStatusResponse>
+
+    @POST("api/2fa/disable")
+    suspend fun disable2fa(): Response<AuthResponse>
 
     @POST("api/forgot-password")
     suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<AuthResponse>
