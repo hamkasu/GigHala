@@ -40,7 +40,7 @@ class DashboardViewModel @Inject constructor(
                 state.copy(
                     isLoading = false,
                     stats = statsResult.getOrNull()?.getOrNull(),
-                    myGigs = gigsResult.getOrNull()?.gigs ?: state.myGigs,
+                    myGigs = gigsResult.getOrNull() ?: state.myGigs,
                     error = gigsResult.exceptionOrNull()?.message
                 )
             }
