@@ -30,6 +30,7 @@ val drawerItems = listOf(
     DrawerItem(Icons.Filled.Person,        "Profile",        Screen.Profile.route),
     DrawerItem(Icons.Filled.AccountBalanceWallet, "Wallet", Screen.Wallet.route),
     DrawerItem(Icons.Filled.Description,   "Documents",      Screen.Documents.route),
+    DrawerItem(Icons.Filled.Update,        "Worker Updates", Screen.WorkerUpdates.route),
     DrawerItem(Icons.Filled.Star,          "Fractional",     Screen.Home.route, badge = "Pro"),
     DrawerItem(Icons.Filled.FlashOn,       "Urgent Help",    Screen.Home.route, badge = "!"),
 )
