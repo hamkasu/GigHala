@@ -18,8 +18,10 @@ import com.gighala.app.ui.gig.PostGigScreen
 import com.gighala.app.ui.home.HomeScreen
 import com.gighala.app.ui.messages.ConversationScreen
 import com.gighala.app.ui.messages.MessagesScreen
+import com.gighala.app.ui.documents.DocumentsScreen
 import com.gighala.app.ui.notifications.NotificationsScreen
 import com.gighala.app.ui.profile.ProfileScreen
+import com.gighala.app.ui.wallet.WalletScreen
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -40,6 +42,8 @@ sealed class Screen(val route: String) {
     }
     object Notifications  : Screen("notifications")
     object Profile        : Screen("profile")
+    object Wallet         : Screen("wallet")
+    object Documents      : Screen("documents")
 }
 
 data class BottomNavItem(
@@ -66,8 +70,10 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val drawerRoutes = bottomNavItems.map { it.screen.route } +
+        listOf(Screen.Wallet.route, Screen.Documents.route)
     val showBottomBar = isAuthenticated && currentRoute in bottomNavItems.map { it.screen.route }
-    val showDrawer = isAuthenticated && currentRoute in bottomNavItems.map { it.screen.route }
+    val showDrawer = isAuthenticated && currentRoute in drawerRoutes
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -207,6 +213,18 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
                                 popUpTo(0) { inclusive = true }
                             }
                         },
+                        onMenuClick = openDrawer
+                    )
+                }
+                composable(Screen.Wallet.route) {
+                    WalletScreen(
+                        contentPadding = padding,
+                        onMenuClick = openDrawer
+                    )
+                }
+                composable(Screen.Documents.route) {
+                    DocumentsScreen(
+                        contentPadding = padding,
                         onMenuClick = openDrawer
                     )
                 }

@@ -114,4 +114,10 @@ interface ApiService {
 
     @GET("api/billing/stats")
     suspend fun getBillingStats(): Response<BillingStatsResponse>
+
+    @GET("api/billing/wallet")
+    suspend fun getWallet(): Response<WalletDto>
+
+    @GET("api/billing/invoices")
+    suspend fun getInvoices(): Response<List<InvoiceDto>>
 }
