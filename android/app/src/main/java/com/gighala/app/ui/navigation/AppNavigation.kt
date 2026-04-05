@@ -113,7 +113,8 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
             composable(Screen.Register.route) {
                 RegisterScreen(
                     onRegisterSuccess = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } } },
-                    onNavigateLogin = { navController.popBackStack() }
+                    onNavigateLogin = { navController.popBackStack() },
+                    onSocialLogin = { provider -> navController.navigate(Screen.SocialLogin.route(provider)) }
                 )
             }
 
