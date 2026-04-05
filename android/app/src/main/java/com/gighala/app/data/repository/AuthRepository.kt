@@ -80,4 +80,10 @@ class AuthRepository @Inject constructor(
     }
 
     fun currentUser(): UserDto? = (_authState.value as? AuthState.Authenticated)?.user
+
+    /** Called after social OAuth in WebView — inject cookies then refresh user. */
+    suspend fun completeSocialLogin(host: String, rawCookies: String) {
+        cookieJar.injectRawCookies(host, rawCookies)
+        refreshCurrentUser()
+    }
 }

@@ -11,6 +11,7 @@ import androidx.navigation.compose.*
 import com.gighala.app.ui.auth.AuthViewModel
 import com.gighala.app.ui.auth.LoginScreen
 import com.gighala.app.ui.auth.RegisterScreen
+import com.gighala.app.ui.auth.SocialLoginScreen
 import com.gighala.app.ui.dashboard.DashboardScreen
 import com.gighala.app.ui.gig.GigDetailScreen
 import com.gighala.app.ui.gig.PostGigScreen
@@ -23,6 +24,9 @@ import com.gighala.app.ui.profile.ProfileScreen
 sealed class Screen(val route: String) {
     object Login          : Screen("login")
     object Register       : Screen("register")
+    object SocialLogin    : Screen("social_login/{provider}") {
+        fun route(provider: String) = "social_login/$provider"
+    }
     object Home           : Screen("home")
     object GigDetail      : Screen("gig/{gigId}") {
         fun route(gigId: Int) = "gig/$gigId"
@@ -92,7 +96,18 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
             composable(Screen.Login.route) {
                 LoginScreen(
                     onLoginSuccess = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } } },
-                    onNavigateRegister = { navController.navigate(Screen.Register.route) }
+                    onNavigateRegister = { navController.navigate(Screen.Register.route) },
+                    onSocialLogin = { provider -> navController.navigate(Screen.SocialLogin.route(provider)) }
+                )
+            }
+            composable(
+                Screen.SocialLogin.route,
+                arguments = listOf(navArgument("provider") { type = NavType.StringType })
+            ) { backStack ->
+                SocialLoginScreen(
+                    provider = backStack.arguments!!.getString("provider") ?: "google",
+                    onSuccess = { navController.navigate(Screen.Home.route) { popUpTo(Screen.Login.route) { inclusive = true } } },
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(Screen.Register.route) {
