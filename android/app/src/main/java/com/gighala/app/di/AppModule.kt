@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.gighala.app.BuildConfig
 import com.gighala.app.data.api.ApiService
 import com.gighala.app.data.local.AppDatabase
+import com.gighala.app.util.CsrfInterceptor
 import com.gighala.app.util.PersistentCookieJar
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -30,21 +31,28 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(cookieJar: PersistentCookieJar): OkHttpClient {
+    fun provideCsrfInterceptor(): CsrfInterceptor = CsrfInterceptor()
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        cookieJar: PersistentCookieJar,
+        csrfInterceptor: CsrfInterceptor
+    ): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
                     else HttpLoggingInterceptor.Level.NONE
         }
         return OkHttpClient.Builder()
             .cookieJar(cookieJar)
-            .addInterceptor(logging)
-            // Send CSRF token stored in cookie back as a header (Flask-WTF)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .header("X-Requested-With", "XMLHttpRequest")
                     .build()
                 chain.proceed(request)
             }
+            .addInterceptor(csrfInterceptor)
+            .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
