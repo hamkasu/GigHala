@@ -48,6 +48,8 @@ object AppModule {
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .header("X-Requested-With", "XMLHttpRequest")
+                    .header("Referer", BuildConfig.BASE_URL + "/")
+                    .header("Origin", BuildConfig.BASE_URL)
                     .build()
                 chain.proceed(request)
             }
