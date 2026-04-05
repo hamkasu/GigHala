@@ -57,14 +57,14 @@ class HomeViewModel @Inject constructor(
                 page = page,
                 category = _uiState.value.selectedCategory,
                 workType = _uiState.value.selectedWorkType
-            ).onSuccess { response ->
+            ).onSuccess { gigs ->
                 _uiState.update { state ->
                     state.copy(
-                        gigs = if (refresh) response.gigs else state.gigs + response.gigs,
+                        gigs = if (refresh) gigs else state.gigs + gigs,
                         isLoading = false,
                         isLoadingMore = false,
                         currentPage = page,
-                        hasMore = page < response.pages
+                        hasMore = gigs.size >= 20
                     )
                 }
             }.onFailure { error ->
@@ -91,11 +91,12 @@ class HomeViewModel @Inject constructor(
     private fun searchGigs(query: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            gigRepository.searchGigs(query).onSuccess { response ->
-                _uiState.update { it.copy(gigs = response.gigs, isLoading = false, hasMore = false) }
-            }.onFailure { error ->
-                _uiState.update { it.copy(isLoading = false, error = error.message) }
-            }
+            gigRepository.getGigs(category = _uiState.value.selectedCategory, search = query)
+                .onSuccess { gigs ->
+                    _uiState.update { it.copy(gigs = gigs, isLoading = false, hasMore = false) }
+                }.onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false, error = error.message) }
+                }
         }
     }
 }

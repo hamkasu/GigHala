@@ -14,16 +14,17 @@ class GigRepository @Inject constructor(
     suspend fun getGigs(
         page: Int = 1,
         category: String? = null,
-        workType: String? = null
-    ): Result<GigListResponse> = runCatching {
-        val response = api.getGigs(page = page, category = category, workType = workType)
-        val body = response.body() ?: error("Empty response")
+        workType: String? = null,
+        search: String? = null
+    ): Result<List<GigDto>> = runCatching {
+        val response = api.getGigs(category = category, search = search?.takeIf { it.isNotBlank() })
+        val gigs = response.body() ?: error("Empty response")
         // Cache page 1 for offline fallback
-        if (page == 1) {
+        if (page == 1 && search.isNullOrBlank()) {
             gigDao.evictOlderThan(System.currentTimeMillis() - 24 * 60 * 60 * 1000)
-            gigDao.insertAll(body.gigs.map { it.toCached() })
+            gigDao.insertAll(gigs.map { it.toCached() })
         }
-        body
+        gigs
     }
 
     suspend fun getGig(id: Int): Result<GigDto> = runCatching {

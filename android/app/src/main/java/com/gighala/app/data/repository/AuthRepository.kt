@@ -30,7 +30,7 @@ class AuthRepository @Inject constructor(
         val body = response.bodyOrError("Login failed")
         when {
             body.requires2fa -> _authState.value = AuthState.Requires2FA(body.message ?: "2FA required")
-            body.success && body.user != null -> _authState.value = AuthState.Authenticated(body.user)
+            body.user != null -> _authState.value = AuthState.Authenticated(body.user)
             else -> error(body.error ?: body.message ?: "Login failed")
         }
         body
@@ -47,7 +47,7 @@ class AuthRepository @Inject constructor(
     ): Result<AuthResponse> = runCatching {
         val response = api.register(RegisterRequest(username, email, password, fullName, userType, privacyConsent, socsoConsent))
         val body = response.bodyOrError("Registration failed")
-        if (body.success && body.user != null) _authState.value = AuthState.Authenticated(body.user)
+        if (body.user != null) _authState.value = AuthState.Authenticated(body.user)
         else error(body.error ?: body.message ?: "Registration failed")
         body
     }
@@ -55,7 +55,7 @@ class AuthRepository @Inject constructor(
     suspend fun verify2fa(code: String): Result<AuthResponse> = runCatching {
         val response = api.verify2fa(Verify2faRequest(code))
         val body = response.bodyOrError("2FA verification failed")
-        if (body.success && body.user != null) _authState.value = AuthState.Authenticated(body.user)
+        if (body.user != null) _authState.value = AuthState.Authenticated(body.user)
         else error(body.error ?: body.message ?: "2FA verification failed")
         body
     }
