@@ -10,8 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gighala.app.data.repository.AuthState
 
@@ -19,6 +22,7 @@ import com.gighala.app.data.repository.AuthState
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateLogin: () -> Unit,
+    onSocialLogin: (provider: String) -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val authState by viewModel.authState.collectAsState()
@@ -45,7 +49,42 @@ fun RegisterScreen(
         Spacer(Modifier.height(24.dp))
         Text("Create Account", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
         Text("Join GigHala — halal work, blessed earnings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(24.dp))
+
+        // Social sign-up buttons
+        SocialRegisterButton(
+            label = "Sign up with Google",
+            badgeText = "G",
+            badgeColor = Color(0xFF4285F4),
+            onClick = { onSocialLogin("google") }
+        )
+        Spacer(Modifier.height(12.dp))
+        SocialRegisterButton(
+            label = "Sign up with X",
+            badgeText = "X",
+            badgeColor = Color(0xFF000000),
+            onClick = { onSocialLogin("x") }
+        )
+        Spacer(Modifier.height(12.dp))
+        SocialRegisterButton(
+            label = "Sign up with Facebook",
+            badgeText = "f",
+            badgeColor = Color(0xFF1877F2),
+            onClick = { onSocialLogin("facebook") }
+        )
+        Spacer(Modifier.height(20.dp))
+
+        // Divider
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            HorizontalDivider(modifier = Modifier.weight(1f))
+            Text(
+                "  or register with email  ",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(20.dp))
 
         OutlinedTextField(
             value = fullName,
@@ -134,5 +173,31 @@ fun RegisterScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+private fun SocialRegisterButton(
+    label: String,
+    badgeText: String,
+    badgeColor: Color,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+    ) {
+        Text(
+            text = badgeText,
+            color = badgeColor,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            modifier = Modifier.width(24.dp)
+        )
+        Spacer(Modifier.width(12.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
