@@ -5,6 +5,8 @@ import com.gighala.app.data.api.models.*
 import com.gighala.app.util.PersistentCookieJar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.json.JSONObject
+import retrofit2.Response
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,11 +27,11 @@ class AuthRepository @Inject constructor(
 
     suspend fun login(email: String, password: String): Result<AuthResponse> = runCatching {
         val response = api.login(LoginRequest(email, password))
-        val body = response.body() ?: error("Empty response")
+        val body = response.bodyOrError("Login failed")
         when {
             body.requires2fa -> _authState.value = AuthState.Requires2FA(body.message ?: "2FA required")
             body.success && body.user != null -> _authState.value = AuthState.Authenticated(body.user)
-            else -> error(body.message ?: "Login failed")
+            else -> error(body.error ?: body.message ?: "Login failed")
         }
         body
     }
@@ -39,21 +41,35 @@ class AuthRepository @Inject constructor(
         email: String,
         password: String,
         fullName: String,
-        userType: String
+        userType: String,
+        privacyConsent: Boolean = true,
+        socsoConsent: Boolean = true
     ): Result<AuthResponse> = runCatching {
-        val response = api.register(RegisterRequest(username, email, password, fullName, userType))
-        val body = response.body() ?: error("Empty response")
+        val response = api.register(RegisterRequest(username, email, password, fullName, userType, privacyConsent, socsoConsent))
+        val body = response.bodyOrError("Registration failed")
         if (body.success && body.user != null) _authState.value = AuthState.Authenticated(body.user)
-        else error(body.message ?: "Registration failed")
+        else error(body.error ?: body.message ?: "Registration failed")
         body
     }
 
     suspend fun verify2fa(code: String): Result<AuthResponse> = runCatching {
         val response = api.verify2fa(Verify2faRequest(code))
-        val body = response.body() ?: error("Empty response")
+        val body = response.bodyOrError("2FA verification failed")
         if (body.success && body.user != null) _authState.value = AuthState.Authenticated(body.user)
-        else error(body.message ?: "2FA verification failed")
+        else error(body.error ?: body.message ?: "2FA verification failed")
         body
+    }
+
+    /** Reads body() on success, or parses errorBody() JSON for the error/message field. */
+    private fun Response<AuthResponse>.bodyOrError(fallback: String): AuthResponse {
+        if (isSuccessful) return body() ?: AuthResponse()
+        val errJson = errorBody()?.string() ?: return AuthResponse(error = fallback)
+        return try {
+            val obj = JSONObject(errJson)
+            AuthResponse(error = obj.optString("error").ifEmpty { obj.optString("message", fallback) })
+        } catch (_: Exception) {
+            AuthResponse(error = fallback)
+        }
     }
 
     suspend fun logout() {

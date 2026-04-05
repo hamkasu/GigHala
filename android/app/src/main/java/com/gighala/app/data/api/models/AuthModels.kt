@@ -15,13 +15,16 @@ data class RegisterRequest(
     val email: String,
     val password: String,
     @Json(name = "full_name") val fullName: String,
-    @Json(name = "user_type") val userType: String = "both"
+    @Json(name = "user_type") val userType: String = "both",
+    @Json(name = "privacy_consent") val privacyConsent: Boolean = true,
+    @Json(name = "socso_consent") val socsoConsent: Boolean = true
 )
 
 @JsonClass(generateAdapter = true)
 data class AuthResponse(
-    val success: Boolean,
+    val success: Boolean = false,
     val message: String? = null,
+    val error: String? = null,
     val user: UserDto? = null,
     @Json(name = "requires_2fa") val requires2fa: Boolean = false
 )

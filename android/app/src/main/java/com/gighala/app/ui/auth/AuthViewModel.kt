@@ -39,10 +39,14 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun register(username: String, email: String, password: String, fullName: String, userType: String) {
+    fun register(
+        username: String, email: String, password: String,
+        fullName: String, userType: String,
+        privacyConsent: Boolean = true, socsoConsent: Boolean = true
+    ) {
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
-            authRepository.register(username.trim(), email.trim(), password, fullName.trim(), userType)
+            authRepository.register(username.trim(), email.trim(), password, fullName.trim(), userType, privacyConsent, socsoConsent)
                 .onFailure { _uiState.value = AuthUiState(error = it.message) }
                 .onSuccess { _uiState.value = AuthUiState() }
         }

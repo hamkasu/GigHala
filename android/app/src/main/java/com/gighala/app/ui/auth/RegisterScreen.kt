@@ -34,6 +34,8 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var userType by remember { mutableStateOf("both") }
+    var privacyConsent by remember { mutableStateOf(false) }
+    var socsoConsent by remember { mutableStateOf(false) }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) onRegisterSuccess()
@@ -143,11 +145,44 @@ fun RegisterScreen(
                 )
             }
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
+
+        // Privacy Policy consent (PDPA 2010)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Checkbox(checked = privacyConsent, onCheckedChange = { privacyConsent = it })
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "I agree to GigHala's Privacy Policy (PDPA 2010)",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        // SOCSO consent (Gig Workers Bill 2025)
+        if (userType in listOf("freelancer", "both")) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(checked = socsoConsent, onCheckedChange = { socsoConsent = it })
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "I agree to mandatory SOCSO deductions (1.25%) under the Gig Workers Bill 2025",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.register(username, email, password, fullName, userType) },
-            enabled = username.isNotBlank() && email.isNotBlank() && password.length >= 6 && fullName.isNotBlank() && !uiState.isLoading,
+            onClick = { viewModel.register(username, email, password, fullName, userType, privacyConsent, socsoConsent) },
+            enabled = username.isNotBlank() && email.isNotBlank() && password.length >= 6
+                && fullName.isNotBlank() && privacyConsent
+                && (userType == "client" || socsoConsent)
+                && !uiState.isLoading,
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
             if (uiState.isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
