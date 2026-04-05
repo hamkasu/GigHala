@@ -76,8 +76,11 @@ data class BillingStatsResponse(
     @Json(name = "total_earnings") val totalEarnings: Double = 0.0,
     @Json(name = "pending_earnings") val pendingEarnings: Double = 0.0,
     @Json(name = "available_balance") val availableBalance: Double = 0.0,
+    @Json(name = "total_earned") val totalEarned: Double = 0.0,
+    @Json(name = "held_balance") val heldBalance: Double = 0.0,
     @Json(name = "completed_gigs") val completedGigs: Int = 0,
     @Json(name = "active_gigs") val activeGigs: Int = 0,
     @Json(name = "posted_gigs") val postedGigs: Int = 0,
-    @Json(name = "total_spent") val totalSpent: Double = 0.0
+    @Json(name = "total_spent") val totalSpent: Double = 0.0,
+    @Json(name = "total_socso") val totalSocso: Double = 0.0
 )

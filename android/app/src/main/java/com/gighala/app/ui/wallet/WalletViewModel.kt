@@ -80,6 +80,7 @@ class WalletViewModel @Inject constructor(
                     isLoadingWallet = false,
                     wallet = if (walletResp.isSuccessful) walletResp.body() else null,
                     totalSocso = if (statsResp.isSuccessful) statsResp.body()?.totalSocso ?: 0.0 else 0.0,
+
                     walletError = if (!walletResp.isSuccessful) "Failed to load wallet" else null
                 )
             } catch (e: Exception) {
