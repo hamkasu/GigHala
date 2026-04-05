@@ -288,6 +288,7 @@ private fun PersonalInfoTab(s: ProfileUiState, vm: ProfileViewModel) {
 }
 
 // ── TAB 2: Skills ─────────────────────────────────────────────────────────────
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SkillsTab(s: ProfileUiState, vm: ProfileViewModel) {
     Column(
