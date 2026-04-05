@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- GigHala "G" monogram on green background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 C35.2,20 20,35.2 20,54 C20,72.8 35.2,88 54,88
+                         C72.8,88 88,72.8 88,54 C88,35.2 72.8,20 54,20 Z
+                         M66,62 L58,62 L58,58 L64,58 L64,50 C64,44.5 59.5,40 54,40
+                         C48.5,40 44,44.5 44,50 L44,58 C44,63.5 48.5,68 54,68
+                         C56.5,68 58.8,67.1 60.5,65.5 L63.5,68.5
+                         C61,71 57.6,72.5 54,72.5 C46,72.5 39.5,66 39.5,58
+                         L39.5,50 C39.5,42 46,35.5 54,35.5 C62,35.5 68.5,42 68.5,50
+                         L68.5,62 L66,62 Z" />
+</vector>
