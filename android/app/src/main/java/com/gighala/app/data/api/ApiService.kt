@@ -119,5 +119,32 @@ interface ApiService {
     suspend fun getWallet(): Response<WalletDto>
 
     @GET("api/billing/invoices")
-    suspend fun getInvoices(): Response<List<InvoiceDto>>
+    suspend fun getInvoices(
+        @Query("page") page: Int = 1,
+        @Query("per_page") perPage: Int = 50,
+        @Query("status") status: String? = null
+    ): Response<List<InvoiceDto>>
+
+    @GET("api/billing/transactions")
+    suspend fun getTransactions(
+        @Query("page") page: Int = 1,
+        @Query("per_page") perPage: Int = 50,
+        @Query("type") type: String? = null
+    ): Response<List<TransactionDto>>
+
+    @GET("api/billing/payouts")
+    suspend fun getPayouts(
+        @Query("page") page: Int = 1,
+        @Query("per_page") perPage: Int = 50
+    ): Response<List<PayoutDto>>
+
+    @POST("api/billing/payouts")
+    suspend fun requestPayout(@Body request: PayoutRequest): Response<PayoutResponse>
+
+    @GET("api/billing/socso-contributions")
+    suspend fun getSocsoContributions(
+        @Query("page") page: Int = 1,
+        @Query("per_page") perPage: Int = 50,
+        @Query("year") year: Int? = null
+    ): Response<SocsoContributionsResponse>
 }
