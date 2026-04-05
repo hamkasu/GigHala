@@ -147,6 +147,16 @@ interface ApiService {
     @POST("api/notifications/mark-read")
     suspend fun markNotificationsRead(@Body ids: Map<String, List<Int>>): Response<AuthResponse>
 
+    // ── Worker Updates ────────────────────────────────────────────────────────
+
+    @GET("api/worker-updates")
+    suspend fun getWorkerUpdates(
+        @Query("days") days: Int = 30,
+        @Query("category_id") categoryId: Int? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 24
+    ): Response<WorkerUpdatesResponse>
+
     // ── Billing / Dashboard ───────────────────────────────────────────────────
 
     @GET("api/billing/stats")

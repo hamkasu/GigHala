@@ -22,6 +22,7 @@ import com.gighala.app.ui.documents.DocumentsScreen
 import com.gighala.app.ui.notifications.NotificationsScreen
 import com.gighala.app.ui.profile.ProfileScreen
 import com.gighala.app.ui.wallet.WalletScreen
+import com.gighala.app.ui.workers.WorkerUpdatesScreen
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -44,6 +45,7 @@ sealed class Screen(val route: String) {
     object Profile        : Screen("profile")
     object Wallet         : Screen("wallet")
     object Documents      : Screen("documents")
+    object WorkerUpdates  : Screen("worker_updates")
 }
 
 data class BottomNavItem(
@@ -71,7 +73,7 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val drawerRoutes = bottomNavItems.map { it.screen.route } +
-        listOf(Screen.Wallet.route, Screen.Documents.route)
+        listOf(Screen.Wallet.route, Screen.Documents.route, Screen.WorkerUpdates.route)
     val showBottomBar = isAuthenticated && currentRoute in bottomNavItems.map { it.screen.route }
     val showDrawer = isAuthenticated && currentRoute in drawerRoutes
 
@@ -226,6 +228,16 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
                     DocumentsScreen(
                         contentPadding = padding,
                         onMenuClick = openDrawer
+                    )
+                }
+                composable(Screen.WorkerUpdates.route) {
+                    WorkerUpdatesScreen(
+                        contentPadding = padding,
+                        onMenuClick = openDrawer,
+                        onContactWorker = { workerId ->
+                            // Navigate to messages; worker contact starts a new conversation
+                            navController.navigate(Screen.Messages.route)
+                        }
                     )
                 }
             }
