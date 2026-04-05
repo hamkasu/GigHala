@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Android GigHala - Akan Hadir!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%);
+            padding: 50px 20px;
+            text-align: center;
+        }
+        .header .emoji {
+            font-size: 56px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0 0 12px 0;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .header .subtitle {
+            color: #A5D6A7;
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        .coming-soon-banner {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            text-align: center;
+            padding: 14px 20px;
+        }
+        .coming-soon-banner p {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+        .announcement-badge {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .intro-text {
+            font-size: 16px;
+            color: #333333;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        .phone-mockup {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            border-radius: 20px;
+            padding: 30px 25px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(27, 94, 32, 0.25);
+        }
+        .phone-mockup .phone-screen {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 260px;
+        }
+        .phone-mockup .phone-screen .app-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+        .phone-mockup .phone-screen h3 {
+            color: #1B5E20;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 5px 0;
+        }
+        .phone-mockup .phone-screen p {
+            color: #6b7280;
+            font-size: 13px;
+            margin: 0;
+        }
+        .phone-mockup .app-label {
+            color: #A5D6A7;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        .feature-box {
+            background: linear-gradient(135deg, #f0fdf4 0%, #e8f5e9 100%);
+            border-left: 5px solid #1B5E20;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+        .feature-box h2 {
+            color: #1B5E20;
+            font-size: 20px;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+        }
+        .feature-box p {
+            color: #555555;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 8px 0;
+        }
+        .benefits-list {
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px 30px;
+            margin: 25px 0;
+        }
+        .benefits-list h3 {
+            color: #333333;
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            font-weight: 600;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 18px;
+            font-size: 15px;
+            color: #555555;
+        }
+        .benefit-item .icon {
+            font-size: 26px;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+        .benefit-item strong {
+            color: #1B5E20;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .timeline-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #e8eaf6 100%);
+            border-left: 5px solid #1976d2;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+        .timeline-box h3 {
+            color: #1565c0;
+            font-size: 18px;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 14px;
+            font-size: 15px;
+        }
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #1976d2;
+            flex-shrink: 0;
+            margin-top: 4px;
+            margin-right: 14px;
+        }
+        .timeline-dot.active {
+            background-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+        .timeline-item p {
+            margin: 0;
+            color: #555;
+        }
+        .timeline-item strong {
+            color: #333;
+        }
+        .notify-box {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6e6 100%);
+            border-left: 5px solid #ff9800;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .notify-box h3 {
+            color: #f57c00;
+            font-size: 20px;
+            margin: 0 0 12px 0;
+            font-weight: 700;
+        }
+        .notify-box p {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 0;
+        }
+        .cta-button {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .cta-button a {
+            display: inline-block;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 45px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(27, 94, 32, 0.35);
+        }
+        .platform-badges {
+            text-align: center;
+            margin: 25px 0;
+        }
+        .platform-badges p {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 4px;
+        }
+        .badge .store-icon {
+            margin-right: 6px;
+        }
+        .social-proof {
+            background-color: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+            font-style: italic;
+            color: #166534;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+            margin: 30px 0;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 25px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #1B5E20;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .header h1 {
+                font-size: 26px;
+            }
+            .cta-button a {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+            .benefits-list {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+
+        <!-- Header -->
+        <div class="header">
+            <span class="emoji">📱🎉</span>
+            <h1>Aplikasi Android GigHala Akan Hadir!</h1>
+            <p class="subtitle">Pengalaman gig halal di hujung jari anda</p>
+        </div>
+
+        <!-- Coming Soon Banner -->
+        <div class="coming-soon-banner">
+            <p>🚀 Coming Soon — Aplikasi Rasmi Android GigHala</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <div class="greeting">
+                <strong>Assalamualaikum {{ user_name }},</strong>
+            </div>
+
+            <span class="announcement-badge">📣 Berita Besar!</span>
+
+            <div class="intro-text">
+                Kami ada berita yang sangat menggembirakan untuk anda! <strong>Aplikasi Android rasmi GigHala</strong> sedang dalam pembangunan dan akan tersedia tidak lama lagi di Google Play Store.
+            </div>
+
+            <div class="intro-text">
+                Semua ciri platform GigHala yang anda suka — kini dalam genggaman anda. Cari gig, hantar tawaran, urus pembayaran, dan berkomunikasi dengan klien — semuanya dari telefon anda!
+            </div>
+
+            <!-- Phone Mockup Visual -->
+            <div class="phone-mockup">
+                <div class="phone-screen">
+                    <div class="app-icon">🏡</div>
+                    <h3>GigHala</h3>
+                    <p>Platform Freelance Halal</p>
+                </div>
+                <p class="app-label">Segera di Google Play Store</p>
+            </div>
+
+            <!-- What's Coming -->
+            <div class="feature-box">
+                <h2>📲 Apa Yang Anda Boleh Buat Dengan Aplikasi Ini?</h2>
+                <p>
+                    Aplikasi Android GigHala direka untuk memberikan pengalaman terbaik bagi freelancer dan klien yang sentiasa bergerak.
+                </p>
+            </div>
+
+            <!-- Benefits -->
+            <div class="benefits-list">
+                <h3>✨ Ciri-Ciri Utama Aplikasi:</h3>
+
+                <div class="benefit-item">
+                    <span class="icon">🔔</span>
+                    <div>
+                        <strong>Notifikasi Segera (Push Notification)</strong>
+                        Terima notifikasi tawaran gig baru, mesej daripada klien, dan kemas kini pembayaran sekelip mata — tanpa perlu buka pelayar web.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">🔍</span>
+                    <div>
+                        <strong>Cari &amp; Siar Gig Dengan Mudah</strong>
+                        Cari gig mengikut lokasi, kategori, dan bajet — atau siarkan gig baharu dengan beberapa ketukan sahaja.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">💬</span>
+                    <div>
+                        <strong>Sistem Mesej Terus (In-App Chat)</strong>
+                        Berkomunikasi dengan klien atau pekerja dalam aplikasi tanpa perlu beralih ke platform lain.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">💳</span>
+                    <div>
+                        <strong>Urus Pembayaran Di Mana Sahaja</strong>
+                        Semak status bayaran, hantar invois, dan jejak pendapatan anda dengan mudah dari telefon.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">🤖</span>
+                    <div>
+                        <strong>Padanan Gig Berkuasa AI</strong>
+                        Sistem AI kami akan mencadangkan gig yang paling sesuai untuk anda — terus di aplikasi anda.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">📍</span>
+                    <div>
+                        <strong>Gig Berdekatan Berdasarkan Lokasi</strong>
+                        Cari peluang kerja berhampiran anda dengan menggunakan GPS telefon pintar anda.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">✅</span>
+                    <div>
+                        <strong>Pengesahan Halal Terus Dari Aplikasi</strong>
+                        Sahkan status halal gig dan pekerja dengan mudah dan yakin.
+                    </div>
+                </div>
+
+                <div class="benefit-item">
+                    <span class="icon">🌙</span>
+                    <div>
+                        <strong>Mod Gelap &amp; Reka Bentuk Moden</strong>
+                        Aplikasi yang cantik, pantas, dan selesa digunakan siang dan malam.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-box">
+                <h3>📅 Jadual Pelancaran</h3>
+                <div class="timeline-item">
+                    <div class="timeline-dot active"></div>
+                    <p><strong>Sekarang</strong> — Pembangunan aplikasi sedang berjalan lancar ✅</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p><strong>Tidak Lama Lagi</strong> — Beta Testing dengan pengguna terpilih</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p><strong>Akan Datang</strong> — Pelancaran rasmi di Google Play Store 🚀</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Notify Section -->
+            <div class="notify-box">
+                <h3>🔔 Jadilah Yang Pertama Tahu!</h3>
+                <p>
+                    Pastikan akaun anda sentiasa aktif dan notifikasi email anda dihidupkan supaya anda tidak terlepas pengumuman pelancaran aplikasi Android GigHala yang akan datang!
+                </p>
+            </div>
+
+            <!-- Social Proof -->
+            <div class="social-proof">
+                "GigHala adalah platform gig halal pertama Malaysia — dan kini kami hadir di telefon anda. Ini bukan sekadar aplikasi, ini adalah masa depan gig economy halal di Malaysia!"
+                <br><br>
+                — <strong>Pasukan GigHala</strong>
+            </div>
+
+            <!-- CTA Button -->
+            <div class="cta-button">
+                <a href="{{ base_url }}/gigs">Jelajahi Gig Di Laman Web Sekarang →</a>
+            </div>
+
+            <!-- Platform info -->
+            <div class="platform-badges">
+                <p>Aplikasi akan tersedia pada platform berikut:</p>
+                <span class="badge"><span class="store-icon">▶</span> Google Play Store</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Final note -->
+            <div style="text-align: center; margin: 20px 0;">
+                <p style="font-size: 16px; color: #333; line-height: 1.8;">
+                    Terima kasih kerana terus bersama GigHala.<br>
+                    Bersama-sama kita bina ekosistem gig yang halal, amanah, dan berkualiti. 💚
+                </p>
+                <p style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+                    Sementara menunggu aplikasi dilancarkan, teruskan gunakan GigHala di laman web kami.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p style="font-weight: 700; color: #1B5E20; font-size: 16px;">GigHala</p>
+            <p>Platform Freelance Patuh Halal Malaysia</p>
+            <p>
+                <a href="{{ base_url }}/gigs">Cari Gig</a> |
+                <a href="{{ base_url }}/dashboard">Dashboard</a> |
+                <a href="{{ base_url }}/settings">Tetapan</a> |
+                <a href="{{ base_url }}/help">Bantuan</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 13px; color: #9ca3af;">
+                Anda menerima email ini kerana anda adalah ahli GigHala.<br>
+                Untuk mengubah tetapan notifikasi, sila lawati <a href="{{ base_url }}/settings">tetapan akaun</a> anda.
+            </p>
+            <p style="font-size: 12px; color: #d1d5db; margin-top: 10px;">
+                © 2025 GigHala. Hak Cipta Terpelihara.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
