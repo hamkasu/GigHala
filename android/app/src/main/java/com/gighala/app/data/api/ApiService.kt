@@ -30,13 +30,10 @@ interface ApiService {
 
     @GET("api/gigs")
     suspend fun getGigs(
-        @Query("page") page: Int = 1,
-        @Query("per_page") perPage: Int = 20,
         @Query("category") category: String? = null,
-        @Query("status") status: String? = null,
-        @Query("work_type") workType: String? = null,
-        @Query("location") location: String? = null
-    ): Response<GigListResponse>
+        @Query("location") location: String? = null,
+        @Query("search") search: String? = null
+    ): Response<List<GigDto>>
 
     @GET("api/gigs/{id}")
     suspend fun getGig(@Path("id") id: Int): Response<GigDto>
