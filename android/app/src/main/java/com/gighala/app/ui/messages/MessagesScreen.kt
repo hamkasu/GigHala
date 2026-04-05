@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,45 +16,56 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gighala.app.data.api.models.ConversationDto
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesScreen(
     contentPadding: PaddingValues,
     onConversationClick: (Int) -> Unit,
+    onMenuClick: () -> Unit = {},
     viewModel: MessagesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.messagesState.collectAsState()
 
-    LazyColumn(
-        contentPadding = PaddingValues(
-            top = 16.dp,
-            bottom = contentPadding.calculateBottomPadding() + 16.dp
-        )
-    ) {
-        item {
-            Text(
-                "Messages",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(horizontal = 16.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Messages") },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
-            Spacer(Modifier.height(8.dp))
         }
-
-        if (uiState.isLoading) {
-            item {
-                Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+    ) { innerPadding ->
+        LazyColumn(
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding(),
+                bottom = contentPadding.calculateBottomPadding() + 16.dp
+            )
+        ) {
+            if (uiState.isLoading) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-        } else if (uiState.conversations.isEmpty()) {
-            item {
-                Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
-                    Text("No messages yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else if (uiState.conversations.isEmpty()) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
+                        Text("No messages yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-            }
-        } else {
-            items(uiState.conversations, key = { it.id }) { conversation ->
-                ConversationItem(conversation, onClick = { onConversationClick(conversation.id) })
-                HorizontalDivider()
+            } else {
+                items(uiState.conversations, key = { it.id }) { conversation ->
+                    ConversationItem(conversation, onClick = { onConversationClick(conversation.id) })
+                    HorizontalDivider()
+                }
             }
         }
     }

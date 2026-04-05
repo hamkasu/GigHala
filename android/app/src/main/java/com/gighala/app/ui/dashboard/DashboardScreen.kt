@@ -20,23 +20,38 @@ import com.gighala.app.util.toMyr
 fun DashboardScreen(
     contentPadding: PaddingValues,
     onGigClick: (Int) -> Unit,
+    onMenuClick: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Dashboard") },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { innerPadding ->
     LazyColumn(
         contentPadding = PaddingValues(
-            top = 16.dp,
+            top = innerPadding.calculateTopPadding() + 16.dp,
             bottom = contentPadding.calculateBottomPadding() + 16.dp,
             start = 16.dp,
             end = 16.dp
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item {
-            Text("Dashboard", style = MaterialTheme.typography.headlineMedium)
-            Spacer(Modifier.height(4.dp))
-        }
+        item { Spacer(Modifier.height(4.dp)) }
 
         if (uiState.isLoading) {
             item {
@@ -78,6 +93,7 @@ fun DashboardScreen(
             }
         }
     }
+    } // end Scaffold
 }
 
 @Composable
