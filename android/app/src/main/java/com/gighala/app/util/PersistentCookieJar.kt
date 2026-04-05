@@ -29,4 +29,22 @@ class PersistentCookieJar : CookieJar {
 
     fun hasSession(): Boolean =
         store.values.flatten().any { it.name == "session" }
+
+    /** Inject a raw cookie string from a WebView (e.g. after social OAuth). */
+    fun injectRawCookies(host: String, rawCookieHeader: String) {
+        val url = okhttp3.HttpUrl.Builder()
+            .scheme("https").host(host).build()
+        val cookies = rawCookieHeader.split(";")
+            .mapNotNull { part ->
+                val kv = part.trim().split("=", limit = 2)
+                if (kv.size == 2) {
+                    Cookie.Builder()
+                        .domain(host)
+                        .name(kv[0].trim())
+                        .value(kv[1].trim())
+                        .build()
+                } else null
+            }
+        if (cookies.isNotEmpty()) saveFromResponse(url, cookies)
+    }
 }

@@ -1,8 +1,9 @@
 package com.gighala.app.ui.auth
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -16,11 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gighala.app.data.repository.AuthState
 
@@ -28,6 +32,7 @@ import com.gighala.app.data.repository.AuthState
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateRegister: () -> Unit,
+    onSocialLogin: (provider: String) -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val authState by viewModel.authState.collectAsState()
@@ -70,6 +75,42 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(40.dp))
+
+        if (authState !is AuthState.Requires2FA) {
+            // Social login buttons
+            SocialLoginButton(
+                label = "Continue with Google",
+                badgeText = "G",
+                badgeColor = Color(0xFF4285F4),
+                onClick = { onSocialLogin("google") }
+            )
+            Spacer(Modifier.height(12.dp))
+            SocialLoginButton(
+                label = "Continue with X",
+                badgeText = "X",
+                badgeColor = Color(0xFF000000),
+                onClick = { onSocialLogin("x") }
+            )
+            Spacer(Modifier.height(12.dp))
+            SocialLoginButton(
+                label = "Continue with Facebook",
+                badgeText = "f",
+                badgeColor = Color(0xFF1877F2),
+                onClick = { onSocialLogin("facebook") }
+            )
+            Spacer(Modifier.height(20.dp))
+            // Divider
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                HorizontalDivider(modifier = Modifier.weight(1f))
+                Text(
+                    "  or  ",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f))
+            }
+            Spacer(Modifier.height(20.dp))
+        }
 
         if (authState is AuthState.Requires2FA) {
             // 2FA entry
@@ -166,5 +207,38 @@ fun LoginScreen(
             Text("Don't have an account?", style = MaterialTheme.typography.bodyMedium)
             TextButton(onClick = onNavigateRegister) { Text("Register") }
         }
+    }
+}
+
+@Composable
+private fun SocialLoginButton(
+    label: String,
+    badgeText: String,
+    badgeColor: Color,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .border(0.dp, Color.Transparent, RoundedCornerShape(4.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = badgeText,
+                color = badgeColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
