@@ -1219,6 +1219,13 @@
                     <div style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">Line breaks are automatically preserved. You can also use HTML tags for advanced formatting.</div>
                 </div>
 
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text);">Attachments (optional)</label>
+                    <input type="file" id="email-attachments" name="attachments" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: white;">
+                    <div style="font-size: 12px; color: var(--text-gray); margin-top: 6px;">Attach images or files (PDF, Word, Excel, ZIP, etc.). Max 10 MB per file.</div>
+                    <div id="email-attachments-preview" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                </div>
+
                 <button type="submit" class="btn btn-primary" id="email-send-btn" style="width: 100%; padding: 12px;">Send Email</button>
             </form>
             <div id="email-status" style="margin-top: 16px;"></div>
@@ -3244,14 +3251,26 @@
 
     document.getElementById('email-user-search')?.addEventListener('input', renderUserList);
 
+    // Show attachment file name previews
+    document.getElementById('email-attachments')?.addEventListener('change', function() {
+        const preview = document.getElementById('email-attachments-preview');
+        preview.innerHTML = '';
+        Array.from(this.files).forEach(file => {
+            const tag = document.createElement('span');
+            tag.style.cssText = 'background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:4px 10px;font-size:12px;color:#166534;';
+            tag.textContent = file.name + ' (' + (file.size > 1024*1024 ? (file.size/1024/1024).toFixed(1)+'MB' : Math.round(file.size/1024)+'KB') + ')';
+            preview.appendChild(tag);
+        });
+    });
+
     async function sendEmailBroadcast(event) {
         event.preventDefault();
-        
+
         const subject = document.getElementById('email-subject').value.trim();
         const html_content = document.getElementById('email-content').value.trim();
         const recipient_type = document.getElementById('email-recipient-type').value;
         const selected_user_ids = recipient_type === 'selected' ? Array.from(selectedUserIds) : [];
-        
+
         if (!subject || !html_content) {
             showError('email-status', 'Subject and content are required');
             return;
@@ -3261,30 +3280,39 @@
             showError('email-status', 'Please select at least one user');
             return;
         }
-        
+
         try {
             const btn = document.getElementById('email-send-btn');
             btn.disabled = true;
             btn.textContent = 'Sending...';
-            
+
+            // Use FormData to support file attachments
+            const formData = new FormData();
+            formData.append('subject', subject);
+            formData.append('html_content', html_content);
+            formData.append('text_content', html_content);
+            formData.append('recipient_type', recipient_type);
+            formData.append('selected_user_ids', JSON.stringify(selected_user_ids));
+
+            const attachmentInput = document.getElementById('email-attachments');
+            if (attachmentInput && attachmentInput.files.length > 0) {
+                Array.from(attachmentInput.files).forEach(file => {
+                    formData.append('attachments', file);
+                });
+            }
+
             const response = await fetch('/api/admin/send-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({
-                    subject,
-                    html_content,
-                    text_content: html_content,
-                    recipient_type,
-                    selected_user_ids
-                })
+                body: formData
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
                 showSuccess('email-status', `✓ Email sent to ${data.recipients_count} ${data.recipient_type} ${data.recipient_type === 'selected' ? 'user' : 'users'}!`);
                 document.getElementById('email-broadcast-form').reset();
+                document.getElementById('email-attachments-preview').innerHTML = '';
                 selectedUserIds.clear();
             } else {
                 showError('email-status', data.error || 'Failed to send email');

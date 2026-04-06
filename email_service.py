@@ -22,7 +22,7 @@ class EmailService:
         """Check if Brevo is properly configured"""
         return BREVO_AVAILABLE and bool(self.api_key and self.from_email)
 
-    def send_bulk_email(self, to_emails, subject, html_content, text_content=None):
+    def send_bulk_email(self, to_emails, subject, html_content, text_content=None, attachments=None):
         """
         Send bulk email to multiple recipients individually (BCC-style privacy)
 
@@ -34,6 +34,7 @@ class EmailService:
             subject: Email subject
             html_content: HTML email body
             text_content: Plain text email body (optional)
+            attachments: List of dicts with 'content' (base64 string) and 'name' (filename) (optional)
 
         Returns:
             tuple: (success: bool, message: str, response_status: int or None, details: dict)
@@ -80,13 +81,17 @@ class EmailService:
                 # Build sender
                 sender = {"email": self.from_email, "name": self.from_name}
 
-                api_response = client.transactional_emails.send_transac_email(
+                send_kwargs = dict(
                     to=[to_item],
                     sender=sender,
                     subject=subject,
                     html_content=html_content,
                     text_content=text_content,
                 )
+                if attachments:
+                    send_kwargs['attachment'] = attachments
+
+                api_response = client.transactional_emails.send_transac_email(**send_kwargs)
 
                 if api_response and hasattr(api_response, 'message_id'):
                     successful_sends += 1
@@ -131,11 +136,11 @@ class EmailService:
             current_app.logger.error(f"[EMAIL_SEND] FAILED: {message}")
             return False, message, None, result_details
 
-    def send_single_email(self, to_email, to_name, subject, html_content, text_content=None):
+    def send_single_email(self, to_email, to_name, subject, html_content, text_content=None, attachments=None):
         """Send email to a single recipient"""
-        return self.send_bulk_email([(to_email, to_name)], subject, html_content, text_content)
+        return self.send_bulk_email([(to_email, to_name)], subject, html_content, text_content, attachments)
 
-    def send_email(self, to_email, subject, html_content, text_content=None, to_name=None):
+    def send_email(self, to_email, subject, html_content, text_content=None, to_name=None, attachments=None):
         """
         Send email to a single recipient (backward compatibility wrapper)
 
@@ -145,6 +150,7 @@ class EmailService:
             html_content: HTML email body
             text_content: Plain text email body (optional)
             to_name: Recipient name (optional)
+            attachments: List of dicts with 'content' (base64 string) and 'name' (filename) (optional)
 
         Returns:
             bool: True if email sent successfully, False otherwise
@@ -154,7 +160,8 @@ class EmailService:
             to_name=to_name,
             subject=subject,
             html_content=html_content,
-            text_content=text_content
+            text_content=text_content,
+            attachments=attachments
         )
         return success
 
