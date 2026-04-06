@@ -2001,6 +2001,31 @@ def send_transaction_sms_notification(phone, message_text):
         return True, "Notification sent successfully"
     return False, f"Failed to send WhatsApp: {result['error']}"
 
+def notify_admins(notification_type, title, message, link=None, related_id=None):
+    """
+    Create in-app Notification records for all admin users.
+    Called after gig or bid creation so every admin sees the activity
+    in their notifications panel immediately.
+    Errors are silently logged so they never interrupt the main request.
+    """
+    try:
+        admins = User.query.filter_by(is_admin=True).all()
+        for admin in admins:
+            notif = Notification(
+                user_id=admin.id,
+                notification_type=notification_type,
+                title=title,
+                message=message,
+                link=link,
+                related_id=related_id,
+            )
+            db.session.add(notif)
+        if admins:
+            db.session.commit()
+    except Exception as e:
+        app.logger.error(f"notify_admins error: {str(e)}")
+
+
 def send_interaction_notification(user, subject, message, html_content=None, text_content=None, sms_message=None):
     """
     Send comprehensive notification via email and SMS for client-worker interactions
@@ -4840,6 +4865,15 @@ def post_gig():
                         db.session.add(gig_photo)
                 
                 db.session.commit()
+
+            # Notify all admins of the new gig
+            notify_admins(
+                notification_type='new_gig',
+                title='New Gig Posted',
+                message=f'"{title}" posted by user #{user_id} (status: {gig_status})',
+                link=f'/admin/gigs/{new_gig.id}',
+                related_id=new_gig.id,
+            )
 
             # Inform user about gig status
             if gig_status == 'pending_review':
@@ -7690,6 +7724,15 @@ def create_gig():
 
         db.session.commit()
 
+        # Notify all admins of the new gig
+        notify_admins(
+            notification_type='new_gig',
+            title='New Gig Posted',
+            message=f'"{title}" posted by user #{session["user_id"]} (status: {gig_status})',
+            link=f'/admin/gigs/{new_gig.id}',
+            related_id=new_gig.id,
+        )
+
         # Return appropriate message based on moderation result
         response = {
             'message': 'Gig created successfully',
@@ -7945,6 +7988,15 @@ def apply_to_gig(gig_id):
 
         db.session.add(application)
         db.session.commit()
+
+        # Notify all admins of the new bid
+        notify_admins(
+            notification_type='application',
+            title='New Bid Submitted',
+            message=f'User #{session["user_id"]} bid RM {proposed_price} on gig "{gig.title}" ({gig.gig_code})',
+            link=f'/admin/gigs/{gig_id}',
+            related_id=application.id,
+        )
 
         # Send email notification to client
         try:
@@ -24964,7 +25016,7 @@ with app.app_context():
     init_database()
 
 # Initialize scheduled jobs (email digests, etc.)
-scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance)
+scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance, Application=Application)
 
 # Setup Google OAuth if credentials are available
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint

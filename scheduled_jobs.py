@@ -615,7 +615,183 @@ def send_worker_updates_digest(app, db, User, WorkerSpecialization, EmailDigestL
                 logger.error(f"Failed to log error: {str(log_error)}")
 
 
-def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance):
+def send_admin_activity_digest(app, db, User, Gig, Application, EmailDigestLog, EmailSendLog, email_service):
+    """
+    Send an hourly digest email to all admin users summarising new gigs and
+    new bids created since the last digest run.
+
+    Uses digest_type='admin_activity' in EmailDigestLog to track the cutoff.
+    """
+    with app.app_context():
+        try:
+            logger.info("Starting admin activity digest job...")
+
+            # Determine cutoff: since the last successful admin digest
+            last_digest = db.session.query(EmailDigestLog).filter_by(
+                digest_type='admin_activity'
+            ).order_by(EmailDigestLog.sent_at.desc()).first()
+
+            cutoff_time = last_digest.sent_at if last_digest else datetime.utcnow() - timedelta(hours=1)
+            logger.info(f"Admin digest cutoff: {cutoff_time}")
+
+            # Fetch new gigs and bids since cutoff
+            new_gigs = db.session.query(Gig).filter(
+                Gig.created_at > cutoff_time
+            ).order_by(Gig.created_at.desc()).all()
+
+            new_bids = db.session.query(Application).filter(
+                Application.created_at > cutoff_time
+            ).order_by(Application.created_at.desc()).all()
+
+            logger.info(f"New gigs: {len(new_gigs)}, new bids: {len(new_bids)}")
+
+            # Always log the run, even if there's nothing to report
+            if not new_gigs and not new_bids:
+                logger.info("No new activity since last digest")
+                digest_log = EmailDigestLog(
+                    digest_type='admin_activity',
+                    sent_at=datetime.utcnow(),
+                    recipient_count=0,
+                    gig_count=0,
+                    success=True,
+                    error_message="No new activity"
+                )
+                db.session.add(digest_log)
+                db.session.commit()
+                return
+
+            # Get all admin users with an email address
+            admins = db.session.query(User).filter_by(is_admin=True).filter(
+                User.email.isnot(None)
+            ).all()
+
+            if not admins:
+                logger.info("No admin users with email addresses found")
+                return
+
+            base_url = os.getenv('BASE_URL', 'https://gighala.my')
+
+            # Build gig summaries (lightweight, no lazy-loaded relationships needed)
+            gig_summaries = [
+                {
+                    'id': g.id,
+                    'gig_code': g.gig_code or f'GIG-{g.id}',
+                    'title': g.title,
+                    'category': g.category,
+                    'budget_min': g.budget_min,
+                    'budget_max': g.budget_max,
+                    'status': g.status,
+                    'client_id': g.client_id,
+                    'created_at': g.created_at,
+                }
+                for g in new_gigs
+            ]
+
+            # Build bid summaries
+            bid_summaries = [
+                {
+                    'id': b.id,
+                    'gig_id': b.gig_id,
+                    'freelancer_id': b.freelancer_id,
+                    'proposed_price': b.proposed_price,
+                    'status': b.status,
+                    'created_at': b.created_at,
+                }
+                for b in new_bids
+            ]
+
+            successful_sends = 0
+            failed_sends = 0
+
+            for admin in admins:
+                admin_name = admin.full_name or admin.username or "Admin"
+
+                with app.test_request_context():
+                    html_content = render_template(
+                        'email_admin_activity_digest.html',
+                        admin_name=admin_name,
+                        new_gigs=gig_summaries,
+                        new_bids=bid_summaries,
+                        gig_count=len(gig_summaries),
+                        bid_count=len(bid_summaries),
+                        cutoff_time=cutoff_time,
+                        base_url=base_url,
+                    )
+
+                subject = f"GigHala Admin: {len(new_gigs)} new gig(s), {len(new_bids)} new bid(s)"
+
+                try:
+                    success, message, status_code, details = email_service.send_single_email(
+                        to_email=admin.email,
+                        to_name=admin_name,
+                        subject=subject,
+                        html_content=html_content,
+                    )
+
+                    try:
+                        import json
+                        email_log = EmailSendLog(
+                            email_type='admin_activity_digest',
+                            subject=subject,
+                            html_content=html_content,
+                            recipient_emails=json.dumps([admin.email]),
+                            recipient_user_id=admin.id,
+                            recipient_count=1,
+                            successful_count=1 if success else 0,
+                            failed_count=0 if success else 1,
+                            recipient_type='admins',
+                            success=success,
+                            error_message=message if not success else None,
+                            brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                            failed_recipients=json.dumps(details.get('failed_recipients', [])),
+                        )
+                        db.session.add(email_log)
+                        db.session.commit()
+                    except Exception as log_error:
+                        logger.error(f"Failed to log admin digest email: {str(log_error)}")
+
+                    if success:
+                        successful_sends += 1
+                        logger.info(f"Admin digest sent to {admin.email}")
+                    else:
+                        failed_sends += 1
+                        logger.error(f"Failed to send admin digest to {admin.email}: {message}")
+
+                except Exception as e:
+                    failed_sends += 1
+                    logger.error(f"Error sending admin digest to {admin.email}: {str(e)}")
+
+            logger.info(f"Admin digest complete: {successful_sends} sent, {failed_sends} failed")
+
+            digest_log = EmailDigestLog(
+                digest_type='admin_activity',
+                sent_at=datetime.utcnow(),
+                recipient_count=successful_sends,
+                gig_count=len(new_gigs),
+                success=successful_sends > 0 or not admins,
+                error_message=f"Failed: {failed_sends}" if failed_sends > 0 else None,
+            )
+            db.session.add(digest_log)
+            db.session.commit()
+
+        except Exception as e:
+            logger.error(f"Error in send_admin_activity_digest: {str(e)}", exc_info=True)
+            try:
+                digest_log = EmailDigestLog(
+                    digest_type='admin_activity',
+                    sent_at=datetime.utcnow(),
+                    recipient_count=0,
+                    gig_count=0,
+                    success=False,
+                    error_message=str(e),
+                )
+                db.session.add(digest_log)
+                db.session.commit()
+            except Exception as log_error:
+                logger.error(f"Failed to log admin digest error: {str(log_error)}")
+
+
+def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance, Application=None):
     """
     Initialize APScheduler with all scheduled jobs
 
@@ -630,6 +806,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         EmailSendLog: EmailSendLog model
         email_service: EmailService instance
         calculate_distance: Function to calculate distance between coordinates
+        Application: Application model (for admin activity digest)
 
     Returns:
         scheduler: Configured APScheduler instance
@@ -698,6 +875,16 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         replace_existing=True
     )
 
+    # Schedule admin activity digest every hour (new gigs + bids summary)
+    if Application is not None:
+        scheduler.add_job(
+            func=lambda: send_admin_activity_digest(app, db, User, Gig, Application, EmailDigestLog, EmailSendLog, email_service),
+            trigger=CronTrigger(minute=30, timezone=timezone),  # half-past every hour
+            id='admin_activity_digest',
+            name='Send admin activity digest (hourly)',
+            replace_existing=True
+        )
+
     # Start the scheduler
     scheduler.start()
     logger.info(f"Scheduler started with timezone: {timezone}")
@@ -708,6 +895,7 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
     logger.info("  - AI-matched gigs email at 9:00 AM")
     logger.info("  - AI-matched gigs email at 9:00 PM")
     logger.info("  - Referral bonus processing every hour")
+    logger.info("  - Admin activity digest every hour (at :30)")
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
