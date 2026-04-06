@@ -165,7 +165,7 @@ db = SQLAlchemy(app)
 # ── Feature flags ──────────────────────────────────────────────────────────────
 # Set to True to enable the referral programme (dashboard card, registration
 # bonus tracking, scheduled credit job, and /api/referral-info endpoint).
-REFERRAL_ENABLED = False
+REFERRAL_ENABLED = True
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Initialize CSRF Protection
