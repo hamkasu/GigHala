@@ -15890,13 +15890,35 @@ def admin_send_sms():
 @admin_required
 def admin_send_email():
     """Send email to selected users or all users"""
+    import base64
     try:
-        data = request.get_json()
-        subject = data.get('subject', '').strip()
-        html_content = data.get('html_content', '').strip()
-        text_content = data.get('text_content', '').strip()
-        recipient_type = data.get('recipient_type', 'all')  # 'all', 'freelancers', 'clients', 'selected'
-        selected_user_ids = data.get('selected_user_ids', [])
+        # Support both multipart (with files) and JSON requests
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            subject = request.form.get('subject', '').strip()
+            html_content = request.form.get('html_content', '').strip()
+            text_content = request.form.get('text_content', '').strip()
+            recipient_type = request.form.get('recipient_type', 'all')
+            selected_user_ids_raw = request.form.get('selected_user_ids', '[]')
+            try:
+                selected_user_ids = json.loads(selected_user_ids_raw)
+            except Exception:
+                selected_user_ids = []
+
+            # Process uploaded attachments
+            attachments = []
+            for file in request.files.getlist('attachments'):
+                if file and file.filename:
+                    file_bytes = file.read()
+                    encoded = base64.b64encode(file_bytes).decode('utf-8')
+                    attachments.append({'content': encoded, 'name': file.filename})
+        else:
+            data = request.get_json()
+            subject = data.get('subject', '').strip()
+            html_content = data.get('html_content', '').strip()
+            text_content = data.get('text_content', '').strip()
+            recipient_type = data.get('recipient_type', 'all')  # 'all', 'freelancers', 'clients', 'selected'
+            selected_user_ids = data.get('selected_user_ids', [])
+            attachments = []
         
         # Validation
         if not subject:
@@ -15933,7 +15955,8 @@ def admin_send_email():
             to_emails=to_emails,
             subject=subject,
             html_content=html_content,
-            text_content=text_content or None
+            text_content=text_content or None,
+            attachments=attachments or None
         )
 
         # Create database log entry with email content for archival
