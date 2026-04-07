@@ -301,6 +301,8 @@
                 </select>
             </div>
 
+            <input type="hidden" name="referral_code" id="referralCodeInput">
+
             <button type="submit" class="btn-primary">
                 {% if lang == 'ms' %}Daftar Sekarang{% else %}Register Now{% endif %}
             </button>
@@ -316,6 +318,14 @@
     </div>
 
     <script>
+        // Pre-fill referral code from ?ref= URL parameter
+        (function() {
+            const ref = new URLSearchParams(window.location.search).get('ref');
+            if (ref) {
+                document.getElementById('referralCodeInput').value = ref;
+            }
+        })();
+
         async function handleRegister(event) {
             event.preventDefault();
             const form = event.target;
@@ -336,6 +346,7 @@
                 ic_number: formData.get('ic_number') || '',
                 location: formData.get('location') || 'Kuala Lumpur',
                 user_type: formData.get('user_type') || 'freelancer',
+                referral_code: formData.get('referral_code') || undefined,
                 privacy_consent: true,
                 socso_consent: true
             };

@@ -1741,12 +1741,29 @@ def process_pending_referral_bonuses():
         credited = 0
         for record in due:
             referred_user = User.query.get(record.referred_id)
-            if referred_user and referred_user.is_verified and not referred_user.referral_bonus_credited:
-                try:
-                    _apply_referral_credit(record, referred_user)
-                    credited += 1
-                except Exception as e:
-                    app.logger.error(f"Referral credit error for referral {record.id}: {e}")
+            if not (referred_user and referred_user.is_verified
+                    and referred_user.ic_number and referred_user.ic_number.strip()
+                    and not referred_user.referral_bonus_credited):
+                continue
+
+            # Reject if the same IC is registered on any other account (duplicate identity)
+            ic = referred_user.ic_number.strip()
+            duplicate_ic = User.query.filter(
+                User.ic_number == ic,
+                User.id != referred_user.id
+            ).first()
+            if duplicate_ic:
+                record.status = 'rejected'
+                app.logger.warning(
+                    f"Referral {record.id} rejected: IC {ic[:4]}**** already used by user {duplicate_ic.id}"
+                )
+                continue
+
+            try:
+                _apply_referral_credit(record, referred_user)
+                credited += 1
+            except Exception as e:
+                app.logger.error(f"Referral credit error for referral {record.id}: {e}")
         if credited:
             db.session.commit()
             app.logger.info(f"Referral scheduler: credited {credited} bonus(es)")
@@ -1779,21 +1796,8 @@ def verify_email_token(token):
         user.email_verification_token = None
         user.email_verification_expires = None
 
-        # Credit referral bonus (RM5) if the 24h fraud-delay has already passed
-        # (normal case: the scheduler handles it; this covers late verifiers)
-        if user.referred_by_id and not user.referral_bonus_credited:
-            try:
-                referral_record = Referral.query.filter_by(
-                    referred_id=user.id, status='pending'
-                ).first()
-                if referral_record and (
-                    referral_record.credit_after is None or
-                    datetime.utcnow() >= referral_record.credit_after
-                ):
-                    _apply_referral_credit(referral_record, user)
-            except Exception as ref_err:
-                app.logger.error(f"Error crediting referral bonus: {ref_err}")
-
+        # Referral bonus is credited by the hourly scheduler only after the referred
+        # user has both verified their email AND added their IC number (anti-spam).
         db.session.commit()
 
         app.logger.info(f"Email verified for user {user.username} ({user.email})")
