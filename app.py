@@ -1741,14 +1741,29 @@ def process_pending_referral_bonuses():
         credited = 0
         for record in due:
             referred_user = User.query.get(record.referred_id)
-            if (referred_user and referred_user.is_verified
+            if not (referred_user and referred_user.is_verified
                     and referred_user.ic_number and referred_user.ic_number.strip()
                     and not referred_user.referral_bonus_credited):
-                try:
-                    _apply_referral_credit(record, referred_user)
-                    credited += 1
-                except Exception as e:
-                    app.logger.error(f"Referral credit error for referral {record.id}: {e}")
+                continue
+
+            # Reject if the same IC is registered on any other account (duplicate identity)
+            ic = referred_user.ic_number.strip()
+            duplicate_ic = User.query.filter(
+                User.ic_number == ic,
+                User.id != referred_user.id
+            ).first()
+            if duplicate_ic:
+                record.status = 'rejected'
+                app.logger.warning(
+                    f"Referral {record.id} rejected: IC {ic[:4]}**** already used by user {duplicate_ic.id}"
+                )
+                continue
+
+            try:
+                _apply_referral_credit(record, referred_user)
+                credited += 1
+            except Exception as e:
+                app.logger.error(f"Referral credit error for referral {record.id}: {e}")
         if credited:
             db.session.commit()
             app.logger.info(f"Referral scheduler: credited {credited} bonus(es)")
