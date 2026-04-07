@@ -16156,7 +16156,12 @@ def announce_referral_code():
             return jsonify({'error': 'No matching users found'}), 400
 
         base_url = request.host_url.rstrip('/')
-        subject = "🎁 Sesuatu Yang Menarik Akan Datang — Program Rujukan GigHala!"
+        email_type = data.get('email_type', 'announcement')  # 'announcement' or 'howto'
+        subject = (
+            "Cara Guna Program Rujukan GigHala — Jana RM5 Per Rakan!"
+            if email_type == 'howto'
+            else "🎁 Sesuatu Yang Menarik Akan Datang — Program Rujukan GigHala!"
+        )
 
         sent_count = 0
         failed_count = 0
@@ -16171,31 +16176,53 @@ def announce_referral_code():
             referral_link = f"{base_url}/register?ref={user.referral_code}"
             user_name = user.full_name or user.username
 
+            template = 'email_referral_howto.html' if email_type == 'howto' else 'email_referral_announcement.html'
             html_content = render_template(
-                'email_referral_announcement.html',
+                template,
                 user_name=user_name,
                 referral_code=user.referral_code,
                 referral_link=referral_link,
                 base_url=base_url
             )
 
-            text_content = (
-                f"Assalamualaikum {user_name},\n\n"
-                "Kami ingin berkongsi berita menarik dengan anda lebih awal!\n\n"
-                "GigHala akan melancarkan Program Rujukan tidak lama lagi — "
-                "sebuah ciri baharu yang membolehkan anda menjana wang tambahan "
-                "hanya dengan mengajak rakan-rakan anda menyertai platform ini.\n\n"
-                "APA YANG AKAN ANDA DAPAT:\n"
-                "- Kod Rujukan Unik peribadi anda sendiri\n"
-                "- Ganjaran tunai RM5.00 bagi setiap rakan yang mendaftar\n"
-                "- Pautan pendaftaran mudah untuk dikongsi\n"
-                "- Tiada had — lebih ramai rakan, lebih banyak ganjaran\n\n"
-                "Nantikan! Kami akan menghantar emel lanjut dengan kod rujukan "
-                "peribadi anda apabila ciri ini dilancarkan secara rasmi.\n\n"
-                f"Dashboard anda: {base_url}/dashboard\n\n"
-                "Terima kasih kerana menggunakan GigHala!\n"
-                "Team GigHala"
-            )
+            if email_type == 'howto':
+                text_content = (
+                    f"Assalamualaikum {user_name},\n\n"
+                    "Program Rujukan GigHala kini aktif!\n\n"
+                    "KOD RUJUKAN ANDA: " + user.referral_code + "\n"
+                    f"PAUTAN ANDA: {referral_link}\n\n"
+                    "CARA PENGGUNAAN:\n"
+                    "1. Salin pautan anda di atas\n"
+                    "2. Kongsi kepada rakan melalui WhatsApp, Telegram, atau media sosial\n"
+                    "3. Rakan mendaftar dan sahkan emel mereka\n"
+                    "4. Rakan lengkapkan profil dengan No. IC\n"
+                    "5. Anda terima RM5.00 dalam masa 48 jam!\n\n"
+                    "SYARAT:\n"
+                    "- Rakan mesti mendaftar melalui pautan anda\n"
+                    "- Rakan mesti sahkan emel mereka\n"
+                    "- Rakan mesti isi No. IC dalam profil\n"
+                    "- Tempoh pengesahan 48 jam\n\n"
+                    f"Pergi ke dashboard: {base_url}/dashboard\n\n"
+                    "Terima kasih!\nTeam GigHala"
+                )
+            else:
+                text_content = (
+                    f"Assalamualaikum {user_name},\n\n"
+                    "Kami ingin berkongsi berita menarik dengan anda lebih awal!\n\n"
+                    "GigHala akan melancarkan Program Rujukan tidak lama lagi — "
+                    "sebuah ciri baharu yang membolehkan anda menjana wang tambahan "
+                    "hanya dengan mengajak rakan-rakan anda menyertai platform ini.\n\n"
+                    "APA YANG AKAN ANDA DAPAT:\n"
+                    "- Kod Rujukan Unik peribadi anda sendiri\n"
+                    "- Ganjaran tunai RM5.00 bagi setiap rakan yang mendaftar\n"
+                    "- Pautan pendaftaran mudah untuk dikongsi\n"
+                    "- Tiada had — lebih ramai rakan, lebih banyak ganjaran\n\n"
+                    "Nantikan! Kami akan menghantar emel lanjut dengan kod rujukan "
+                    "peribadi anda apabila ciri ini dilancarkan secara rasmi.\n\n"
+                    f"Dashboard anda: {base_url}/dashboard\n\n"
+                    "Terima kasih kerana menggunakan GigHala!\n"
+                    "Team GigHala"
+                )
 
             success, _, _, _ = email_service.send_single_email(
                 to_email=user.email,
