@@ -262,6 +262,7 @@
         <button class="tab-btn" onclick="switchTab('revenue')">Revenue</button>
         <button class="tab-btn" onclick="switchTab('reports')">Financial Reports</button>
         <button class="tab-btn" onclick="switchTab('roles')">User Roles</button>
+        <button class="tab-btn" onclick="switchTab('referrals')">🤝 Referrals</button>
     </div>
 
     <!-- Overview Tab -->
@@ -641,6 +642,40 @@
     </div>
 
     <!-- Roles Tab -->
+    <!-- Referrals Tab -->
+    <div id="referrals-tab" class="tab-content">
+        <h2 style="margin-bottom: 16px;">🤝 Referral Programme</h2>
+
+        <!-- Summary stats -->
+        <div class="stats-grid" id="referral-stats-grid" style="margin-bottom: 24px;">
+            <div class="stat-card"><h3>Total Referrals</h3><div class="value" id="ref-total">—</div></div>
+            <div class="stat-card"><h3>Credited</h3><div class="value" id="ref-credited" style="color:#10b981;">—</div></div>
+            <div class="stat-card"><h3>Pending</h3><div class="value" id="ref-pending" style="color:#f59e0b;">—</div></div>
+            <div class="stat-card"><h3>Rejected</h3><div class="value" id="ref-rejected" style="color:#ef4444;">—</div></div>
+            <div class="stat-card"><h3>Total Bonus Paid</h3><div class="value" id="ref-bonus" style="color:#6366f1;">—</div></div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar" style="margin-bottom: 16px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <select id="ref-status-filter" onchange="loadReferrals(1)"
+                    style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:14px;">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="credited">Credited</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <button onclick="loadReferrals(1)"
+                    style="padding:8px 16px; background:#6366f1; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                Refresh
+            </button>
+        </div>
+
+        <div class="data-table" id="referrals-table">
+            <div class="loading">Loading referrals...</div>
+        </div>
+        <div id="referrals-pagination" style="margin-top:16px; text-align:center;"></div>
+    </div>
+
     <div id="roles-tab" class="tab-content">
         <h2 style="margin-bottom: 16px;">Admin Role Management</h2>
         <p style="margin-bottom: 20px; color: var(--text-gray);">
@@ -675,6 +710,7 @@ function switchTab(tabName) {
     else if (tabName === 'revenue') loadRevenue();
     else if (tabName === 'reports') { /* Reports tab doesn't auto-load */ }
     else if (tabName === 'roles') loadRoles();
+    else if (tabName === 'referrals') loadReferrals(1);
 }
 
 async function loadOverview() {
@@ -1644,6 +1680,109 @@ function exportReportToCSV() {
 // Load overview on page load
 document.addEventListener('DOMContentLoaded', () => {
     loadOverview();
+    // Auto-open referrals tab if ?tab=referrals in URL
+    if (new URLSearchParams(window.location.search).get('tab') === 'referrals') {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById('referrals-tab').classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => { if (b.textContent.includes('Referral')) b.classList.add('active'); });
+        loadReferrals(1);
+    }
 });
+
+// ── Referrals ────────────────────────────────────────────────
+let referralCurrentPage = 1;
+
+async function loadReferrals(page = 1) {
+    referralCurrentPage = page;
+    const status = document.getElementById('ref-status-filter').value;
+    const tableDiv = document.getElementById('referrals-table');
+    tableDiv.innerHTML = '<div class="loading">Loading referrals...</div>';
+
+    try {
+        const res  = await fetch(`/api/admin/referrals?page=${page}&per_page=50&status=${status}`);
+        const data = await res.json();
+        if (!res.ok) { tableDiv.innerHTML = `<div class="loading">Error: ${data.error}</div>`; return; }
+
+        // Update stat cards
+        document.getElementById('ref-total').textContent    = data.stats.total;
+        document.getElementById('ref-credited').textContent = data.stats.credited;
+        document.getElementById('ref-pending').textContent  = data.stats.pending;
+        document.getElementById('ref-rejected').textContent = data.stats.rejected;
+        document.getElementById('ref-bonus').textContent    = `RM ${data.stats.total_bonus_rm.toFixed(2)}`;
+
+        if (!data.referrals.length) {
+            tableDiv.innerHTML = '<div class="loading">No referrals found.</div>';
+            document.getElementById('referrals-pagination').innerHTML = '';
+            return;
+        }
+
+        const statusBadge = s => ({
+            credited: '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">Credited</span>',
+            pending:  '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">Pending</span>',
+            rejected: '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;">Rejected</span>',
+        }[s] || s);
+
+        const tick  = v => v ? '✅' : '❌';
+
+        const rows = data.referrals.map(r => `
+            <tr>
+                <td>#${r.id}</td>
+                <td>
+                    <a href="/admin/users/${r.referrer_id}" target="_blank" style="font-weight:600;color:#6366f1;">
+                        ${r.referrer_name}
+                    </a><br>
+                    <small style="color:var(--text-gray);">${r.referrer_email}</small>
+                </td>
+                <td>
+                    <a href="/admin/users/${r.referred_id}" target="_blank" style="font-weight:600;color:#6366f1;">
+                        ${r.referred_name}
+                    </a><br>
+                    <small style="color:var(--text-gray);">${r.referred_email}</small>
+                </td>
+                <td style="text-align:center;">${tick(r.referred_verified)}</td>
+                <td style="text-align:center;">${tick(r.referred_ic)}</td>
+                <td>RM ${r.bonus_amount.toFixed(2)}</td>
+                <td>${statusBadge(r.status)}</td>
+                <td style="font-size:12px;">${r.created_at}</td>
+                <td style="font-size:12px;">${r.credited_at || '—'}</td>
+            </tr>`).join('');
+
+        tableDiv.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f9fafb;font-size:12px;font-weight:700;color:var(--text-gray);text-transform:uppercase;">
+                        <th style="padding:10px 12px;text-align:left;">#</th>
+                        <th style="padding:10px 12px;text-align:left;">Referrer (Pengaju)</th>
+                        <th style="padding:10px 12px;text-align:left;">Referred (Pengguna Baharu)</th>
+                        <th style="padding:10px 12px;text-align:center;">Email Verified</th>
+                        <th style="padding:10px 12px;text-align:center;">IC Added</th>
+                        <th style="padding:10px 12px;text-align:left;">Bonus</th>
+                        <th style="padding:10px 12px;text-align:left;">Status</th>
+                        <th style="padding:10px 12px;text-align:left;">Registered</th>
+                        <th style="padding:10px 12px;text-align:left;">Credited At</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size:14px;">${rows}</tbody>
+            </table>`;
+
+        // Pagination
+        const pages = data.total_pages;
+        if (pages > 1) {
+            let btns = '';
+            for (let i = 1; i <= pages; i++) {
+                btns += `<button onclick="loadReferrals(${i})"
+                    style="margin:0 3px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);
+                    background:${i===page?'#6366f1':'#fff'};color:${i===page?'#fff':'inherit'};cursor:pointer;">
+                    ${i}</button>`;
+            }
+            document.getElementById('referrals-pagination').innerHTML = btns;
+        } else {
+            document.getElementById('referrals-pagination').innerHTML = '';
+        }
+    } catch (err) {
+        tableDiv.innerHTML = `<div class="loading">Network error: ${err.message}</div>`;
+    }
+}
 </script>
 {% endblock %}

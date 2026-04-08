@@ -5973,6 +5973,25 @@ def register():
             )
             db.session.add(referral_record)
 
+            # Notify all admins of the new referral
+            try:
+                admins = User.query.filter_by(is_admin=True).all()
+                for admin in admins:
+                    db.session.add(Notification(
+                        user_id=admin.id,
+                        notification_type='referral',
+                        title='Rujukan Baharu',
+                        message=(
+                            f"{new_user.username} mendaftar menggunakan kod rujukan "
+                            f"{referrer.username} ({referral_code_used}). "
+                            f"Bonus RM{referral_record.bonus_amount:.2f} menunggu pengesahan."
+                        ),
+                        link='/accounting?tab=referrals',
+                        related_id=referral_record.id
+                    ))
+            except Exception as notif_err:
+                app.logger.error(f"Failed to create admin referral notification: {notif_err}")
+
         db.session.commit()
 
         session['user_id'] = new_user.id
@@ -17229,6 +17248,63 @@ def socso_statement():
                          active_page='billing',
                          lang=get_user_language(),
                          t=t)
+
+@app.route('/api/admin/referrals', methods=['GET'])
+@admin_required
+def admin_referrals():
+    """Admin: referral programme stats and full referral list."""
+    page     = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    status   = request.args.get('status', 'all')
+
+    q = Referral.query
+    if status != 'all':
+        q = q.filter(Referral.status == status)
+    total = q.count()
+    referrals = q.order_by(Referral.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    # Summary stats
+    total_credited  = Referral.query.filter_by(status='credited').count()
+    total_pending   = Referral.query.filter_by(status='pending').count()
+    total_rejected  = Referral.query.filter_by(status='rejected').count()
+    total_bonus_rm  = db.session.query(db.func.sum(Referral.bonus_amount)).filter_by(status='credited').scalar() or 0.0
+
+    rows = []
+    for r in referrals.items:
+        referrer = User.query.get(r.referrer_id)
+        referred = User.query.get(r.referred_id)
+        rows.append({
+            'id'            : r.id,
+            'referrer_id'   : r.referrer_id,
+            'referrer_name' : referrer.username  if referrer else '(deleted)',
+            'referrer_email': referrer.email     if referrer else '',
+            'referred_id'   : r.referred_id,
+            'referred_name' : referred.username  if referred else '(deleted)',
+            'referred_email': referred.email     if referred else '',
+            'referred_ic'   : bool(referred and referred.ic_number and referred.ic_number.strip()),
+            'referred_verified': bool(referred and referred.is_verified),
+            'bonus_amount'  : r.bonus_amount,
+            'status'        : r.status,
+            'created_at'    : r.created_at.strftime('%d %b %Y %H:%M') if r.created_at else '',
+            'credited_at'   : r.credited_at.strftime('%d %b %Y %H:%M') if r.credited_at else None,
+            'credit_after'  : r.credit_after.strftime('%d %b %Y %H:%M') if r.credit_after else None,
+            'registration_ip': r.registration_ip or '',
+        })
+
+    return jsonify({
+        'stats': {
+            'total'          : total,
+            'credited'       : total_credited,
+            'pending'        : total_pending,
+            'rejected'       : total_rejected,
+            'total_bonus_rm' : round(total_bonus_rm, 2),
+        },
+        'referrals'  : rows,
+        'page'       : page,
+        'per_page'   : per_page,
+        'total_pages': referrals.pages,
+    })
+
 
 @app.route('/api/referral/info', methods=['GET'])
 @login_required
