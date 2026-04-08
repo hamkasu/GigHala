@@ -899,11 +899,26 @@
     {% endif %}
 
     {% if user.referral_code %}{# REFERRAL_ENABLED=True #}
-    <div class="stat-card-link" onclick="copyReferralCode('{{ user.referral_code }}')" style="cursor: pointer; text-decoration: none;">
-        <div class="stat-card" style="border-left-color: #10b981;">
-            <div class="stat-label">KOD RUJUKAN ANDA</div>
-            <div class="stat-value" style="font-size: 20px; letter-spacing: 2px; font-family: monospace;" id="referral-code-display">{{ user.referral_code }}</div>
-            <div class="stat-description" id="referral-copy-hint">Klik untuk salin kod</div>
+    <div class="stat-card" style="border-left-color: #10b981; grid-column: span 2;">
+        <div class="stat-label">KOD RUJUKAN ANDA</div>
+        <div style="font-size: 22px; letter-spacing: 3px; font-family: monospace; font-weight: 700; color: var(--text-dark); margin: 6px 0 4px;">{{ user.referral_code }}</div>
+        <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 12px; word-break: break-all;" id="referral-link-display">{{ request.host_url.rstrip('/') }}/register?ref={{ user.referral_code }}</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button onclick="copyReferralCode('{{ user.referral_code }}')"
+                    style="display:flex;align-items:center;gap:6px;background:#10b981;color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span id="referral-copy-hint">Salin Pautan</span>
+            </button>
+            <button onclick="shareReferralWhatsApp('{{ user.referral_code }}')"
+                    style="display:flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.862L0 24l6.335-1.54A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.367l-.36-.213-3.762.916.949-3.655-.235-.376A9.818 9.818 0 1 1 12 21.818z"/></svg>
+                WhatsApp
+            </button>
+            <button onclick="shareReferralTelegram('{{ user.referral_code }}')"
+                    style="display:flex;align-items:center;gap:6px;background:#0088cc;color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.32 13.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z"/></svg>
+                Telegram
+            </button>
         </div>
     </div>
     {% endif %}
@@ -1548,28 +1563,32 @@
 
     function copyReferralCode(code) {
         const referralLink = `${window.location.origin}/register?ref=${code}`;
-        navigator.clipboard.writeText(referralLink).then(() => {
-            const hint = document.getElementById('referral-copy-hint');
-            const original = hint.textContent;
-            hint.textContent = 'Pautan disalin!';
-            hint.style.color = '#10b981';
-            setTimeout(() => {
-                hint.textContent = original;
-                hint.style.color = '';
-            }, 2000);
-        }).catch(() => {
-            // Fallback
+        const hint = document.getElementById('referral-copy-hint');
+        const doCopy = () => {
+            hint.textContent = 'Disalin! ✓';
+            setTimeout(() => { hint.textContent = 'Salin Pautan'; }, 2000);
+        };
+        navigator.clipboard.writeText(referralLink).then(doCopy).catch(() => {
             const el = document.createElement('textarea');
             el.value = referralLink;
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            const hint = document.getElementById('referral-copy-hint');
-            hint.textContent = 'Pautan disalin!';
-            hint.style.color = '#10b981';
-            setTimeout(() => { hint.textContent = 'Klik untuk salin kod'; hint.style.color = ''; }, 2000);
+            doCopy();
         });
+    }
+
+    function shareReferralWhatsApp(code) {
+        const link = `${window.location.origin}/register?ref=${code}`;
+        const msg = encodeURIComponent(`Jom join GigHala — platform freelance halal Malaysia! Daftar guna pautan saya dan mula cari kerja atau post gig: ${link}`);
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+
+    function shareReferralTelegram(code) {
+        const link = `${window.location.origin}/register?ref=${code}`;
+        const msg = encodeURIComponent(`Jom join GigHala — platform freelance halal Malaysia! Daftar guna pautan saya: ${link}`);
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${msg}`, '_blank');
     }
 
     // Load SOCSO deductions on page load
