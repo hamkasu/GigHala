@@ -1184,6 +1184,47 @@
         </div>
     </div>
 
+    <!-- ── Quick Announcement: Referral Programme ── -->
+    <div class="data-table" style="margin-bottom: 24px; border: 2px solid #10b981;">
+        <div class="table-header" style="background: linear-gradient(135deg, #065f46, #059669); color: white;">
+            <h2 style="color: white;">🤝 Quick Announcement — Referral Programme</h2>
+        </div>
+        <div style="padding: 24px;">
+            <p style="font-size: 15px; color: var(--text-gray); margin: 0 0 16px;">
+                Send a personalised referral email to users — each email contains their unique referral code and link.
+                Choose the email type: <strong>Launch</strong> (full flow + visual steps) or <strong>How-To</strong> (step-by-step guide).
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <div>
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Email Type:</label>
+                    <select id="referral-email-type"
+                            style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: white;">
+                        <option value="launch">🚀 Launch Email (Announce + Full Flow)</option>
+                        <option value="howto">📖 How-To Guide (Step-by-Step)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Send to:</label>
+                    <select id="referral-recipient-type"
+                            style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: white;">
+                        <option value="all_users">All Users (Everyone)</option>
+                        <option value="all">All Verified Users Only</option>
+                        <option value="freelancers">Freelancers / Both</option>
+                        <option value="clients">Clients / Both</option>
+                    </select>
+                </div>
+                <div style="margin-top: 22px;">
+                    <button onclick="sendReferralAnnouncement()"
+                            id="referral-announce-btn"
+                            style="background: #059669; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Send Referral Email
+                    </button>
+                </div>
+            </div>
+            <div id="referral-announce-status" style="margin-top: 14px;"></div>
+        </div>
+    </div>
+
     <div class="data-table">
         <div class="table-header">
             <h2>📧 Send Email to Users</h2>
@@ -3462,6 +3503,44 @@
         } finally {
             btn.disabled = false;
             btn.textContent = 'Send Announcement Email';
+        }
+    }
+
+    // ==================== REFERRAL ANNOUNCEMENT ====================
+    async function sendReferralAnnouncement() {
+        const emailType = document.getElementById('referral-email-type').value;
+        const recipientType = document.getElementById('referral-recipient-type').value;
+        const btn = document.getElementById('referral-announce-btn');
+        const statusDiv = document.getElementById('referral-announce-status');
+
+        const typeLabels = { launch: 'Launch Email', howto: 'How-To Guide' };
+        const recipientLabels = { all_users: 'ALL users (including unverified)', all: 'all verified users', freelancers: 'freelancers', clients: 'clients' };
+        if (!confirm(`Send the Referral "${typeLabels[emailType]}" to ${recipientLabels[recipientType] || recipientType}? This cannot be undone.`)) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        statusDiv.innerHTML = '<div style="padding:12px;background:#f0fdf9;color:#065f46;border-radius:8px;">Sending referral emails — this may take a moment...</div>';
+
+        try {
+            const response = await fetch('/api/admin/announce-referral-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email_type: emailType, recipient_type: recipientType })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                statusDiv.innerHTML = `<div style="padding:12px;background:#dcfce7;color:#166534;border-radius:8px;">
+                    ✅ <strong>Referral emails sent!</strong><br>
+                    Delivered: ${data.successful_count} · Failed: ${data.failed_count} · Total: ${data.recipients_count}
+                </div>`;
+            } else {
+                statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ ${data.error || 'Failed to send'}</div>`;
+            }
+        } catch (err) {
+            statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ Network error: ${err.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send Referral Email';
         }
     }
 
