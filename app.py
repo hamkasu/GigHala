@@ -16156,12 +16156,13 @@ def announce_referral_code():
             return jsonify({'error': 'No matching users found'}), 400
 
         base_url = request.host_url.rstrip('/')
-        email_type = data.get('email_type', 'announcement')  # 'announcement' or 'howto'
-        subject = (
-            "Cara Guna Program Rujukan GigHala — Jana RM5 Per Rakan!"
-            if email_type == 'howto'
-            else "🎁 Sesuatu Yang Menarik Akan Datang — Program Rujukan GigHala!"
-        )
+        email_type = data.get('email_type', 'announcement')  # 'announcement', 'howto', or 'launch'
+        if email_type == 'launch':
+            subject = "Program Rujukan GigHala Kini Aktif — Jana RM5 Per Rakan!"
+        elif email_type == 'howto':
+            subject = "Cara Guna Program Rujukan GigHala — Jana RM5 Per Rakan!"
+        else:
+            subject = "🎁 Sesuatu Yang Menarik Akan Datang — Program Rujukan GigHala!"
 
         sent_count = 0
         failed_count = 0
@@ -16176,7 +16177,12 @@ def announce_referral_code():
             referral_link = f"{base_url}/register?ref={user.referral_code}"
             user_name = user.full_name or user.username
 
-            template = 'email_referral_howto.html' if email_type == 'howto' else 'email_referral_announcement.html'
+            if email_type == 'launch':
+                template = 'email_referral_launch.html'
+            elif email_type == 'howto':
+                template = 'email_referral_howto.html'
+            else:
+                template = 'email_referral_announcement.html'
             html_content = render_template(
                 template,
                 user_name=user_name,
@@ -16185,7 +16191,30 @@ def announce_referral_code():
                 base_url=base_url
             )
 
-            if email_type == 'howto':
+            if email_type == 'launch':
+                text_content = (
+                    f"Assalamualaikum {user_name},\n\n"
+                    "Program Rujukan GigHala kini rasmi dilancarkan!\n\n"
+                    f"KOD RUJUKAN ANDA : {user.referral_code}\n"
+                    f"PAUTAN ANDA      : {referral_link}\n\n"
+                    "CARA PENGGUNAAN — 4 LANGKAH:\n"
+                    "1. Salin pautan anda di atas\n"
+                    "2. Kongsi kepada rakan (WhatsApp, Telegram, media sosial)\n"
+                    "3. Rakan daftar, sahkan emel, dan isi No. IC dalam profil\n"
+                    "4. RM5.00 dikreditkan ke dompet anda dalam masa 48 jam!\n\n"
+                    "JANGKA MASA:\n"
+                    "  Hari 1     : Rakan mendaftar\n"
+                    "  Hari 1-2   : Rakan sahkan emel & isi No. IC\n"
+                    "  Selepas itu: RM5.00 masuk ke dompet anda secara automatik\n\n"
+                    "SYARAT:\n"
+                    "- Rakan mesti daftar melalui pautan anda\n"
+                    "- Rakan mesti sahkan emel mereka\n"
+                    "- Rakan mesti isi No. IC (MyKad) yang sah\n"
+                    "- Tidak boleh merujuk diri sendiri\n\n"
+                    f"Pergi ke dashboard: {base_url}/dashboard\n\n"
+                    "Terima kasih!\nTeam GigHala"
+                )
+            elif email_type == 'howto':
                 text_content = (
                     f"Assalamualaikum {user_name},\n\n"
                     "Program Rujukan GigHala kini aktif!\n\n"

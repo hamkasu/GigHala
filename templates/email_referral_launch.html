@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program Rujukan GigHala — Kini Aktif!</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0fdf4;
+        }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+
+        /* ── Header ─────────────────────────────────────────── */
+        .header {
+            background: linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%);
+            padding: 48px 24px 36px;
+            text-align: center;
+        }
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: #d1fae5;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 18px;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0 0 10px;
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+        .header p { color: #a7f3d0; margin: 0; font-size: 15px; line-height: 1.6; }
+
+        /* ── Content ─────────────────────────────────────────── */
+        .content { padding: 36px 28px; }
+        .greeting { font-size: 17px; color: #111827; font-weight: 600; margin: 0 0 14px; }
+        .intro { font-size: 15px; color: #4b5563; line-height: 1.8; margin: 0 0 32px; }
+
+        /* ── Personal Code Card ──────────────────────────────── */
+        .code-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #10b981;
+            border-radius: 14px;
+            padding: 26px 24px;
+            text-align: center;
+            margin: 0 0 36px;
+        }
+        .code-card .card-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+        .code-card .code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 30px;
+            font-weight: 800;
+            color: #065f46;
+            letter-spacing: 5px;
+            margin: 0 0 14px;
+        }
+        .code-card .link-label { font-size: 12px; color: #6b7280; margin: 0 0 6px; }
+        .code-card .link-box {
+            background: #ffffff;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #047857;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        .code-card .bonus-pill {
+            display: inline-block;
+            background: #f59e0b;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 5px 16px;
+            border-radius: 20px;
+            margin-top: 14px;
+        }
+
+        /* ── Flow Section ────────────────────────────────────── */
+        .flow-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+            margin: 0 0 24px;
+        }
+
+        /* Flow step row */
+        .flow-step {
+            display: table;
+            width: 100%;
+            margin-bottom: 6px;
+        }
+        .flow-step-left {
+            display: table-cell;
+            width: 52px;
+            vertical-align: top;
+            text-align: center;
+        }
+        .flow-step-right {
+            display: table-cell;
+            vertical-align: top;
+            padding-left: 14px;
+            padding-bottom: 24px;
+        }
+        .step-circle {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 38px;
+            text-align: center;
+            display: inline-block;
+        }
+        /* Connector line */
+        .flow-connector {
+            display: table;
+            width: 100%;
+            margin-bottom: 0;
+        }
+        .connector-left {
+            display: table-cell;
+            width: 52px;
+            text-align: center;
+        }
+        .connector-line {
+            display: inline-block;
+            width: 2px;
+            height: 18px;
+            background: #a7f3d0;
+            margin: 0 auto;
+        }
+        .connector-right { display: table-cell; }
+
+        .step-heading {
+            font-size: 15px;
+            font-weight: 700;
+            color: #065f46;
+            margin: 6px 0 5px;
+        }
+        .step-desc {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.7;
+            margin: 0;
+        }
+        .step-tag {
+            display: inline-block;
+            background: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        /* ── Requirements ────────────────────────────────────── */
+        .req-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 22px 22px 14px;
+            margin: 32px 0;
+        }
+        .req-section h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 16px;
+        }
+        .req-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .req-icon { display: table-cell; width: 26px; font-size: 15px; vertical-align: top; padding-top: 1px; }
+        .req-text { display: table-cell; font-size: 14px; color: #374151; line-height: 1.6; }
+        .req-text.blocked { color: #9ca3af; text-decoration: line-through; }
+
+        /* ── Payout Timeline ─────────────────────────────────── */
+        .timeline {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 10px 10px 0;
+            padding: 18px 20px;
+            margin: 0 0 32px;
+        }
+        .timeline h3 { font-size: 14px; font-weight: 700; color: #92400e; margin: 0 0 10px; }
+        .tl-row { display: table; width: 100%; margin-bottom: 8px; }
+        .tl-time { display: table-cell; width: 90px; font-size: 13px; font-weight: 700; color: #b45309; vertical-align: top; }
+        .tl-event { display: table-cell; font-size: 13px; color: #78350f; line-height: 1.5; }
+
+        /* ── CTA ─────────────────────────────────────────────── */
+        .cta { text-align: center; margin: 28px 0; }
+        .cta a {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 44px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 18px rgba(16,185,129,0.4);
+        }
+        .cta-sub { text-align: center; font-size: 13px; color: #9ca3af; margin: 10px 0 0; }
+
+        /* ── Footer ──────────────────────────────────────────── */
+        .footer {
+            background: #f9fafb;
+            padding: 28px 24px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p { margin: 6px 0; font-size: 13px; color: #6b7280; }
+        .footer a { color: #10b981; text-decoration: none; font-weight: 500; }
+        .footer .brand { font-size: 15px; font-weight: 700; color: #374151; margin-bottom: 4px; }
+
+        @media only screen and (max-width: 600px) {
+            .content { padding: 26px 16px; }
+            .header { padding: 36px 16px 28px; }
+            .header h1 { font-size: 22px; }
+            .code-card .code { font-size: 22px; letter-spacing: 3px; }
+            .cta a { padding: 14px 28px; font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+
+    <!-- ── Header ── -->
+    <div class="header">
+        <div class="header-badge">Program Rujukan · Kini Aktif</div>
+        <h1>Jana RM5 Setiap Kali<br>Anda Jemput Rakan!</h1>
+        <p>Kongsi kod anda. Rakan mendaftar. Wang masuk ke dompet anda.</p>
+    </div>
+
+    <!-- ── Body ── -->
+    <div class="content">
+
+        <p class="greeting">Assalamualaikum {{ user_name }},</p>
+        <p class="intro">
+            Berita baik! <strong>Program Rujukan GigHala kini rasmi dilancarkan.</strong>
+            Anda sudah mempunyai kod rujukan peribadi anda sendiri — mulakan kongsikan kepada
+            rakan dan jana pendapatan tambahan tanpa had.
+        </p>
+
+        <!-- ── Personal Code Card ── -->
+        <div class="code-card">
+            <div class="card-label">Kod Rujukan Peribadi Anda</div>
+            <div class="code">{{ referral_code }}</div>
+            <div class="link-label">Atau kongsi pautan ini terus:</div>
+            <div class="link-box">{{ referral_link }}</div>
+            <div class="bonus-pill">RM 5.00 per rujukan berjaya</div>
+        </div>
+
+        <!-- ── Flow ── -->
+        <p class="flow-title">Bagaimana Ia Berfungsi?</p>
+
+        <!-- Step 1 -->
+        <div class="flow-step">
+            <div class="flow-step-left"><div class="step-circle">1</div></div>
+            <div class="flow-step-right">
+                <div class="step-heading">Salin &amp; Kongsi Pautan Anda</div>
+                <p class="step-desc">Pergi ke Dashboard, salin kod atau pautan peribadi anda, dan hantar kepada rakan melalui WhatsApp, Telegram, atau media sosial.</p>
+                <span class="step-tag">Anda yang buat ini</span>
+            </div>
+        </div>
+        <div class="flow-connector"><div class="connector-left"><div class="connector-line"></div></div><div class="connector-right"></div></div>
+
+        <!-- Step 2 -->
+        <div class="flow-step">
+            <div class="flow-step-left"><div class="step-circle">2</div></div>
+            <div class="flow-step-right">
+                <div class="step-heading">Rakan Daftar Akaun</div>
+                <p class="step-desc">Rakan anda klik pautan dan daftar. Kod anda diisi secara automatik — mereka tidak perlu buat apa-apa tambahan.</p>
+                <span class="step-tag">Automatik</span>
+            </div>
+        </div>
+        <div class="flow-connector"><div class="connector-left"><div class="connector-line"></div></div><div class="connector-right"></div></div>
+
+        <!-- Step 3 -->
+        <div class="flow-step">
+            <div class="flow-step-left"><div class="step-circle">3</div></div>
+            <div class="flow-step-right">
+                <div class="step-heading">Rakan Sahkan Emel &amp; Isi No. IC</div>
+                <p class="step-desc">Rakan anda klik pautan pengesahan dalam emel mereka, kemudian pergi ke Tetapan dan isi No. IC (MyKad) mereka untuk lengkapkan profil.</p>
+                <span class="step-tag">Rakan yang buat ini</span>
+            </div>
+        </div>
+        <div class="flow-connector"><div class="connector-left"><div class="connector-line"></div></div><div class="connector-right"></div></div>
+
+        <!-- Step 4 -->
+        <div class="flow-step">
+            <div class="flow-step-left"><div class="step-circle">4</div></div>
+            <div class="flow-step-right">
+                <div class="step-heading">RM5 Masuk ke Dompet Anda</div>
+                <p class="step-desc">Sistem kami memproses ganjaran secara automatik. RM5.00 akan dikreditkan ke dompet GigHala anda dalam masa 48 jam. Tiada had — ulang untuk setiap rakan baharu!</p>
+                <span class="step-tag">Automatik · dalam 48 jam</span>
+            </div>
+        </div>
+
+        <!-- ── Payout Timeline ── -->
+        <div class="timeline">
+            <h3>Jangka Masa Pembayaran</h3>
+            <div class="tl-row">
+                <div class="tl-time">Hari 1</div>
+                <div class="tl-event">Rakan mendaftar menggunakan kod anda</div>
+            </div>
+            <div class="tl-row">
+                <div class="tl-time">Hari 1–2</div>
+                <div class="tl-event">Rakan sahkan emel &amp; isi No. IC dalam profil</div>
+            </div>
+            <div class="tl-row">
+                <div class="tl-time">48 jam</div>
+                <div class="tl-event">Tempoh pengesahan keselamatan berlalu</div>
+            </div>
+            <div class="tl-row">
+                <div class="tl-time">Selepas itu</div>
+                <div class="tl-event"><strong>RM5.00 dikreditkan ke dompet anda secara automatik</strong></div>
+            </div>
+        </div>
+
+        <!-- ── Requirements ── -->
+        <div class="req-section">
+            <h3>Syarat Untuk Mendapat Ganjaran</h3>
+            <div class="req-row">
+                <div class="req-icon">✅</div>
+                <div class="req-text">Rakan mendaftar melalui pautan atau kod rujukan anda</div>
+            </div>
+            <div class="req-row">
+                <div class="req-icon">✅</div>
+                <div class="req-text">Rakan mengesahkan alamat emel mereka</div>
+            </div>
+            <div class="req-row">
+                <div class="req-icon">✅</div>
+                <div class="req-text">Rakan mengisi No. IC (MyKad) yang sah dalam profil</div>
+            </div>
+            <div class="req-row">
+                <div class="req-icon">✅</div>
+                <div class="req-text">Tempoh pengesahan 48 jam berlalu</div>
+            </div>
+            <div class="req-row">
+                <div class="req-icon">❌</div>
+                <div class="req-text blocked">Tidak boleh merujuk diri sendiri</div>
+            </div>
+            <div class="req-row">
+                <div class="req-icon">❌</div>
+                <div class="req-text blocked">Tidak boleh menggunakan No. IC yang sama pada beberapa akaun</div>
+            </div>
+        </div>
+
+        <!-- ── CTA ── -->
+        <div class="cta">
+            <a href="{{ base_url }}/dashboard">Lihat Kod Rujukan Saya &rarr;</a>
+        </div>
+        <p class="cta-sub">Soalan? Hubungi kami di <a href="mailto:support@gighala.my" style="color:#10b981;">support@gighala.my</a></p>
+
+    </div>
+
+    <!-- ── Footer ── -->
+    <div class="footer">
+        <p class="brand">GigHala</p>
+        <p>Platform Freelance Patuh Halal Malaysia</p>
+        <p style="margin-top:10px;">
+            <a href="{{ base_url }}/gigs">Cari Gig</a> &nbsp;|&nbsp;
+            <a href="{{ base_url }}/dashboard">Dashboard</a> &nbsp;|&nbsp;
+            <a href="{{ base_url }}/settings">Tetapan</a> &nbsp;|&nbsp;
+            <a href="{{ base_url }}/help">Bantuan</a>
+        </p>
+        <p style="margin-top:14px;font-size:12px;color:#9ca3af;">
+            Anda menerima emel ini kerana anda adalah ahli GigHala.<br>
+            Untuk mengubah tetapan notifikasi, lawati <a href="{{ base_url }}/settings">tetapan akaun</a> anda.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>
