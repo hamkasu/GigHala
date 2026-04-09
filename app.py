@@ -13448,6 +13448,11 @@ def get_profile():
         'location': user.location,
         'bio': user.bio,
         'skills': json.loads(user.skills) if user.skills else [],
+        'profile_photo': user.profile_photo,
+        'portfolio_url': user.portfolio_url,
+        'ic_number': user.ic_number,
+        'socso_membership_number': user.socso_membership_number,
+        'socso_consent': user.socso_consent or False,
         'rating': user.rating,
         'review_count': user.review_count,
         'total_earnings': user.total_earnings,
@@ -13500,6 +13505,29 @@ def update_profile():
             if data['language'] not in ['ms', 'en']:
                 return jsonify({'error': 'Invalid language. Choose "ms" or "en"'}), 400
             user.language = data['language']
+
+        if 'user_type' in data:
+            if data['user_type'] not in ['freelancer', 'client', 'both']:
+                return jsonify({'error': 'Invalid user type'}), 400
+            user.user_type = data['user_type']
+
+        if 'portfolio_url' in data:
+            user.portfolio_url = sanitize_input(data['portfolio_url'], max_length=500)
+
+        if 'ic_number' in data:
+            ic = sanitize_input(data['ic_number'], max_length=20)
+            is_valid, msg = validate_ic_number(ic)
+            if not is_valid:
+                return jsonify({'error': msg}), 400
+            user.ic_number = ic
+
+        if 'socso_membership_number' in data:
+            user.socso_membership_number = sanitize_input(data['socso_membership_number'], max_length=20)
+
+        if 'socso_consent' in data:
+            user.socso_consent = bool(data['socso_consent'])
+            if user.socso_consent and not user.socso_consent_date:
+                user.socso_consent_date = datetime.utcnow()
 
         db.session.commit()
 
