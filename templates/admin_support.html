@@ -153,6 +153,10 @@
     .badge-medium { background: #dbeafe; color: #2563eb; }
     .badge-high { background: #fef3c7; color: #d97706; }
     .badge-urgent { background: #fee2e2; color: #dc2626; }
+    .badge-sla-ok { background: #d1fae5; color: #059669; }
+    .badge-sla-warning { background: #fef3c7; color: #d97706; }
+    .badge-sla-breached { background: #fee2e2; color: #dc2626; }
+    .sla-timer { font-size: 11px; font-weight: 700; font-family: monospace; }
 
     .btn-sm {
         padding: 6px 14px;
@@ -316,6 +320,10 @@
             <div class="num" style="color:#dc2626;">{{ stats.level3 }}</div>
             <div class="lbl">Mgmt L3</div>
         </div>
+        <div class="stat-pill" style="border-color:#fca5a5;cursor:pointer;" onclick="document.getElementById('filterSla').value='breached';applyFilters()">
+            <div class="num" style="color:#dc2626;">{{ stats.sla_breached }}</div>
+            <div class="lbl">SLA Breach</div>
+        </div>
     </div>
 
     <!-- Filters -->
@@ -335,6 +343,11 @@
             <option value="{{ key }}" {% if current_priority == key %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
+        <select class="filter-select" id="filterSla" onchange="applyFilters()">
+            <option value="all" {% if current_sla == 'all' %}selected{% endif %}>All SLA</option>
+            <option value="breached" {% if current_sla == 'breached' %}selected{% endif %}>SLA Breached</option>
+            <option value="at_risk" {% if current_sla == 'at_risk' %}selected{% endif %}>SLA At Risk</option>
+        </select>
     </div>
 
     <!-- Ticket list -->
@@ -342,14 +355,25 @@
         {% for item in tickets %}
         {% set ticket = item.ticket %}
         {% set ticket_user = item.user %}
-        <div class="ticket-row {% if ticket.escalation_level == 3 %}escalated-l3{% elif ticket.escalation_level == 2 %}escalated-l2{% elif ticket.priority == 'urgent' %}urgent{% endif %}">
+        {% set sla_st = item.sla_status %}
+        <div class="ticket-row {% if ticket.escalation_level == 3 %}escalated-l3{% elif ticket.escalation_level == 2 %}escalated-l2{% elif ticket.priority == 'urgent' %}urgent{% elif sla_st == 'breached' %}escalated-l3{% endif %}">
             <div class="ticket-info">
                 <div class="ticket-top">
                     <span class="ticket-num">{{ ticket.ticket_number }}</span>
                     <span class="badge badge-{{ ticket.status }}">{{ ticket.status.replace('_', ' ') }}</span>
                     <span class="badge badge-{{ ticket.priority }}">{{ ticket.priority }}</span>
+                    {% if ticket.channel == 'chat' %}
+                    <span class="badge" style="background:#ede9fe;color:#7c3aed;">💬 Chat</span>
+                    {% endif %}
                     {% if ticket.escalation_level > 1 %}
                     <span class="badge" style="background:#fce7f3;color:#be185d;">⬆ L{{ ticket.escalation_level }} {{ escalation_labels[ticket.escalation_level] }}</span>
+                    {% endif %}
+                    {% if sla_st == 'breached' %}
+                    <span class="badge badge-sla-breached">🚨 SLA Breached</span>
+                    {% elif sla_st == 'warning' %}
+                    <span class="badge badge-sla-warning">⏰ SLA At Risk</span>
+                    {% elif sla_st == 'ok' and ticket.sla_due_at %}
+                    <span class="badge badge-sla-ok sla-timer" data-due="{{ ticket.sla_due_at.isoformat() }}">SLA OK</span>
                     {% endif %}
                 </div>
                 <div class="ticket-subject">{{ ticket.subject }}</div>
@@ -358,6 +382,9 @@
                     {{ categories.get(ticket.category, ticket.category) }} &bull;
                     {{ ticket.created_at.strftime('%d %b %Y, %H:%M') if ticket.created_at else '' }} &bull;
                     {{ item.msg_count }} message{{ 's' if item.msg_count != 1 else '' }}
+                    {% if ticket.sla_due_at and ticket.status not in ('resolved','closed') %} &bull;
+                    SLA due: {{ ticket.sla_due_at.strftime('%d %b %H:%M') }}
+                    {% endif %}
                 </div>
                 <div class="ticket-desc">{{ ticket.description }}</div>
             </div>
@@ -422,7 +449,8 @@ let adminCurrentTicketId = null;
 function applyFilters() {
     const status = document.getElementById('filterStatus').value;
     const priority = document.getElementById('filterPriority').value;
-    window.location.href = `/admin/support?status=${status}&priority=${priority}`;
+    const sla = document.getElementById('filterSla').value;
+    window.location.href = `/admin/support?status=${status}&priority=${priority}&sla=${sla}`;
 }
 
 async function openAdminTicket(ticketId) {

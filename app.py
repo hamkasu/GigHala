@@ -2493,6 +2493,18 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def support_required(f):
+    """Decorator for API endpoints — allows admins and support_agent role"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'error': 'Unauthorized - Please login'}), 401
+        user = User.query.get(session['user_id'])
+        if not user or not (user.is_admin or user.admin_role == 'support_agent'):
+            return jsonify({'error': 'Forbidden - Support access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
 def billing_admin_required(f):
     """Decorator to require billing/accountant admin authentication"""
     @wraps(f)
@@ -3985,16 +3997,17 @@ class ManagedSolutionRequest(db.Model):
 
 
 class SupportTicket(db.Model):
-    """User support tickets with escalation tracking"""
+    """User support tickets with escalation and SLA tracking"""
     __tablename__ = 'support_ticket'
     id = db.Column(db.Integer, primary_key=True)
     ticket_number = db.Column(db.String(20), unique=True, nullable=True)  # e.g. TKT-00001
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # account, payment, gig_issue, technical, billing, other
+    category = db.Column(db.String(50), nullable=False)  # billing, account, gig_issue, dispute, technical, other
     priority = db.Column(db.String(20), default='medium')  # low, medium, high, urgent
     subject = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='open')  # open, in_progress, escalated, resolved, closed
+    channel = db.Column(db.String(20), default='web')  # web, chat
     escalation_level = db.Column(db.Integer, default=1)  # 1=support, 2=senior_support, 3=management
     escalated_at = db.Column(db.DateTime)
     escalated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -4005,6 +4018,12 @@ class SupportTicket(db.Model):
     resolved_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     resolved_at = db.Column(db.DateTime)
     attachment_filename = db.Column(db.String(255))
+    # SLA tracking
+    sla_due_at = db.Column(db.DateTime)
+    first_responded_at = db.Column(db.DateTime)
+    sla_warning_sent = db.Column(db.Boolean, default=False)
+    sla_breached = db.Column(db.Boolean, default=False)
+    sla_breach_notified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -4015,6 +4034,19 @@ class SupportTicket(db.Model):
         count = SupportTicket.query.count()
         self.ticket_number = f'TKT-{count + 1:05d}'
 
+    def sla_status(self):
+        """Returns 'ok', 'warning' (>75% elapsed), 'breached', or None if no SLA set."""
+        if not self.sla_due_at or self.status in ('resolved', 'closed'):
+            return None
+        if self.sla_breached:
+            return 'breached'
+        now = datetime.utcnow()
+        total = (self.sla_due_at - self.created_at).total_seconds()
+        elapsed = (now - self.created_at).total_seconds()
+        if total > 0 and elapsed / total >= 0.75:
+            return 'warning'
+        return 'ok'
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -4024,9 +4056,12 @@ class SupportTicket(db.Model):
             'subject': self.subject,
             'description': self.description,
             'status': self.status,
+            'channel': self.channel,
             'escalation_level': self.escalation_level,
             'escalation_reason': self.escalation_reason,
             'resolution_notes': self.resolution_notes,
+            'sla_due_at': self.sla_due_at.isoformat() if self.sla_due_at else None,
+            'sla_breached': self.sla_breached,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -25422,11 +25457,11 @@ def fix_db_permissions_cmd():
 # ============================================================
 
 SUPPORT_CATEGORIES = {
+    'billing': 'Billing & Payments',
     'account': 'Account Issue',
-    'payment': 'Payment / Billing',
-    'gig_issue': 'Gig Problem',
-    'technical': 'Technical Issue',
+    'gig_issue': 'Gig Issue',
     'dispute': 'Dispute Related',
+    'technical': 'Technical Issue',
     'other': 'Other'
 }
 
@@ -25435,6 +25470,24 @@ SUPPORT_PRIORITIES = {
     'medium': 'Medium',
     'high': 'High',
     'urgent': 'Urgent'
+}
+
+# SLA first-response targets in hours by priority
+SLA_FIRST_RESPONSE_HOURS = {
+    'urgent': 2,
+    'high': 4,
+    'medium': 8,
+    'low': 24,
+}
+
+# Auto-elevate priority for high-stakes categories
+CATEGORY_DEFAULT_PRIORITY = {
+    'billing': 'high',
+    'dispute': 'high',
+    'account': 'medium',
+    'gig_issue': 'medium',
+    'technical': 'medium',
+    'other': 'low',
 }
 
 ESCALATION_LABELS = {
@@ -25468,20 +25521,34 @@ def create_support_ticket():
     """Create a new support ticket"""
     try:
         user_id = session['user_id']
+        user = User.query.get(user_id)
         data = request.json
 
         category = data.get('category', 'other')
-        priority = data.get('priority', 'medium')
         subject = sanitize_input(data.get('subject', ''), max_length=200)
         description = sanitize_input(data.get('description', ''), max_length=3000)
+        channel = data.get('channel', 'web')
+        if channel not in ('web', 'chat'):
+            channel = 'web'
 
         if not subject or not description:
             return jsonify({'error': 'Subject and description are required'}), 400
 
         if category not in SUPPORT_CATEGORIES:
             category = 'other'
-        if priority not in SUPPORT_PRIORITIES:
-            priority = 'medium'
+
+        # Auto-elevate priority for high-stakes categories; user may override upward
+        auto_priority = CATEGORY_DEFAULT_PRIORITY.get(category, 'medium')
+        requested_priority = data.get('priority', auto_priority)
+        priority_rank = list(SUPPORT_PRIORITIES.keys())  # low, medium, high, urgent
+        if requested_priority not in priority_rank:
+            requested_priority = auto_priority
+        # Use whichever is higher (user-requested vs auto)
+        priority = requested_priority if priority_rank.index(requested_priority) >= priority_rank.index(auto_priority) else auto_priority
+
+        # Calculate SLA due time
+        sla_hours = SLA_FIRST_RESPONSE_HOURS.get(priority, 24)
+        sla_due = datetime.utcnow() + timedelta(hours=sla_hours)
 
         ticket = SupportTicket(
             user_id=user_id,
@@ -25489,18 +25556,22 @@ def create_support_ticket():
             priority=priority,
             subject=subject,
             description=description,
-            status='open'
+            status='open',
+            channel=channel,
+            sla_due_at=sla_due
         )
         db.session.add(ticket)
         db.session.flush()
         ticket.generate_ticket_number()
         db.session.commit()
 
-        # Create notification for admins
-        admins = User.query.filter_by(is_admin=True).all()
-        for admin in admins:
+        # Notify admins and support agents
+        agents = User.query.filter(
+            (User.is_admin == True) | (User.admin_role == 'support_agent')
+        ).all()
+        for agent in agents:
             notif = Notification(
-                user_id=admin.id,
+                user_id=agent.id,
                 notification_type='support_ticket',
                 title='New Support Ticket',
                 message=f'{ticket.ticket_number}: {subject}',
@@ -25508,6 +25579,35 @@ def create_support_ticket():
             )
             db.session.add(notif)
         db.session.commit()
+
+        # Send confirmation email to user
+        if user and user.email:
+            try:
+                from email_service import email_service as _es
+                category_label = SUPPORT_CATEGORIES.get(category, category)
+                html_body = f"""
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+                    <h2 style="color:#7c3aed;">Support Ticket Received</h2>
+                    <p>Hi {user.full_name or user.username},</p>
+                    <p>We've received your support request and will respond within our SLA window.</p>
+                    <table style="border-collapse:collapse;width:100%;margin:16px 0;">
+                        <tr><td style="padding:8px;font-weight:600;color:#374151;">Ticket Number</td><td style="padding:8px;">{ticket.ticket_number}</td></tr>
+                        <tr style="background:#f9fafb;"><td style="padding:8px;font-weight:600;color:#374151;">Category</td><td style="padding:8px;">{category_label}</td></tr>
+                        <tr><td style="padding:8px;font-weight:600;color:#374151;">Priority</td><td style="padding:8px;">{priority.title()}</td></tr>
+                        <tr style="background:#f9fafb;"><td style="padding:8px;font-weight:600;color:#374151;">Subject</td><td style="padding:8px;">{subject}</td></tr>
+                        <tr><td style="padding:8px;font-weight:600;color:#374151;">Expected Response</td><td style="padding:8px;">Within {sla_hours} hours</td></tr>
+                    </table>
+                    <p>You can view and reply to this ticket at: <a href="https://gighala.com/support" style="color:#7c3aed;">gighala.com/support</a></p>
+                    <p style="color:#6b7280;font-size:13px;">GigHala Support Team</p>
+                </div>"""
+                _es.send_email(
+                    to_email=user.email,
+                    subject=f'[{ticket.ticket_number}] Support Request Received — {subject}',
+                    html_content=html_body,
+                    to_name=user.full_name or user.username
+                )
+            except Exception as email_err:
+                app.logger.warning(f'Confirmation email failed for ticket {ticket.ticket_number}: {email_err}')
 
         return jsonify({'success': True, 'ticket_number': ticket.ticket_number, 'ticket_id': ticket.id})
     except Exception as e:
@@ -25527,10 +25627,12 @@ def get_user_support_tickets():
 @app.route('/api/support/ticket/<int:ticket_id>')
 @login_required
 def get_support_ticket(ticket_id):
-    """Get a specific support ticket with messages"""
+    """Get a specific support ticket with messages — owner or support agent"""
     user_id = session['user_id']
+    user = User.query.get(user_id)
     ticket = SupportTicket.query.get_or_404(ticket_id)
-    if ticket.user_id != user_id:
+    is_agent = user and (user.is_admin or user.admin_role == 'support_agent')
+    if not is_agent and ticket.user_id != user_id:
         return jsonify({'error': 'Unauthorized'}), 403
     messages = [{
         'id': m.id,
@@ -25570,19 +25672,59 @@ def add_support_ticket_message(ticket_id):
     return jsonify({'success': True})
 
 
+@app.route('/api/support/ticket/<int:ticket_id>/poll')
+@login_required
+def poll_support_ticket(ticket_id):
+    """Poll for new messages on a support ticket since a given timestamp.
+    Used by the live chat widget for real-time feel via polling.
+    Query param: since=<ISO datetime>
+    """
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    ticket = SupportTicket.query.get_or_404(ticket_id)
+
+    is_agent = user and (user.is_admin or user.admin_role == 'support_agent')
+    if not is_agent and ticket.user_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    since_str = request.args.get('since', '')
+    try:
+        since = datetime.fromisoformat(since_str) if since_str else datetime.utcnow() - timedelta(seconds=30)
+    except ValueError:
+        since = datetime.utcnow() - timedelta(seconds=30)
+
+    new_messages = SupportTicketMessage.query.filter(
+        SupportTicketMessage.ticket_id == ticket_id,
+        SupportTicketMessage.created_at > since
+    ).order_by(SupportTicketMessage.created_at).all()
+
+    return jsonify({
+        'messages': [{
+            'id': m.id,
+            'message': m.message,
+            'is_admin_reply': m.is_admin_reply,
+            'sender_name': m.sender.full_name if m.sender else 'Support Team',
+            'created_at': m.created_at.isoformat()
+        } for m in new_messages],
+        'status': ticket.status,
+        'server_time': datetime.utcnow().isoformat()
+    })
+
+
 # --- Admin Support Routes ---
 
 @app.route('/admin/support')
 @page_login_required
 def admin_support_page():
-    """Admin support tickets management page"""
+    """Admin/support-agent support tickets management page"""
     user = User.query.get(session['user_id'])
-    if not user or not user.is_admin:
+    if not user or not (user.is_admin or user.admin_role == 'support_agent'):
         return redirect('/dashboard')
 
     status_filter = request.args.get('status', 'all')
     priority_filter = request.args.get('priority', 'all')
     escalation_filter = request.args.get('escalation', 'all')
+    sla_filter = request.args.get('sla', 'all')
 
     query = SupportTicket.query
     if status_filter != 'all':
@@ -25591,6 +25733,15 @@ def admin_support_page():
         query = query.filter_by(priority=priority_filter)
     if escalation_filter != 'all':
         query = query.filter_by(escalation_level=int(escalation_filter))
+    if sla_filter == 'breached':
+        query = query.filter_by(sla_breached=True)
+    elif sla_filter == 'at_risk':
+        now = datetime.utcnow()
+        query = query.filter(
+            SupportTicket.sla_due_at.isnot(None),
+            SupportTicket.sla_breached == False,
+            SupportTicket.status.notin_(['resolved', 'closed'])
+        )
 
     tickets = query.order_by(SupportTicket.updated_at.desc()).all()
 
@@ -25598,7 +25749,12 @@ def admin_support_page():
     for tk in tickets:
         ticket_user = User.query.get(tk.user_id)
         msg_count = tk.messages.count()
-        ticket_list.append({'ticket': tk, 'user': ticket_user, 'msg_count': msg_count})
+        ticket_list.append({
+            'ticket': tk,
+            'user': ticket_user,
+            'msg_count': msg_count,
+            'sla_status': tk.sla_status()
+        })
 
     stats = {
         'open': SupportTicket.query.filter_by(status='open').count(),
@@ -25608,6 +25764,9 @@ def admin_support_page():
         'urgent': SupportTicket.query.filter_by(priority='urgent').count(),
         'level2': SupportTicket.query.filter_by(escalation_level=2).count(),
         'level3': SupportTicket.query.filter_by(escalation_level=3).count(),
+        'sla_breached': SupportTicket.query.filter_by(sla_breached=True).filter(
+            SupportTicket.status.notin_(['resolved', 'closed'])
+        ).count(),
     }
 
     return render_template(
@@ -25620,6 +25779,7 @@ def admin_support_page():
         escalation_labels=ESCALATION_LABELS,
         current_status=status_filter,
         current_priority=priority_filter,
+        current_sla=sla_filter,
         active_page='admin',
         lang=get_user_language(),
         t=t
@@ -25629,9 +25789,9 @@ def admin_support_page():
 @app.route('/admin/support/<int:ticket_id>')
 @page_login_required
 def admin_support_ticket_detail(ticket_id):
-    """Admin view for a single support ticket"""
+    """Admin/support-agent view for a single support ticket"""
     user = User.query.get(session['user_id'])
-    if not user or not user.is_admin:
+    if not user or not (user.is_admin or user.admin_role == 'support_agent'):
         return redirect('/dashboard')
 
     ticket = SupportTicket.query.get_or_404(ticket_id)
@@ -25654,9 +25814,9 @@ def admin_support_ticket_detail(ticket_id):
 
 
 @app.route('/api/admin/support/ticket/<int:ticket_id>/respond', methods=['POST'])
-@admin_required
+@support_required
 def admin_respond_to_ticket(ticket_id):
-    """Admin responds to a support ticket"""
+    """Admin/support-agent responds to a support ticket"""
     try:
         admin_id = session['user_id']
         ticket = SupportTicket.query.get_or_404(ticket_id)
@@ -25665,6 +25825,7 @@ def admin_respond_to_ticket(ticket_id):
         message_text = sanitize_input(data.get('message', ''), max_length=2000)
         new_status = data.get('status', ticket.status)
         admin_notes = data.get('admin_notes', '').strip()
+        ticket_user = User.query.get(ticket.user_id)
 
         if message_text:
             msg = SupportTicketMessage(
@@ -25675,15 +25836,43 @@ def admin_respond_to_ticket(ticket_id):
             )
             db.session.add(msg)
 
-            # Notify the user of admin reply
+            # Track first response for SLA
+            if not ticket.first_responded_at:
+                ticket.first_responded_at = datetime.utcnow()
+
+            # In-app notification for user
             notif = Notification(
                 user_id=ticket.user_id,
                 notification_type='support_ticket',
                 title='Support Ticket Update',
                 message=f'Your ticket {ticket.ticket_number} received a reply.',
-                link=f'/support'
+                link='/support'
             )
             db.session.add(notif)
+
+            # Email notification to user
+            if ticket_user and ticket_user.email:
+                try:
+                    from email_service import email_service as _es
+                    html_body = f"""
+                    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+                        <h2 style="color:#7c3aed;">New Reply on Your Support Ticket</h2>
+                        <p>Hi {ticket_user.full_name or ticket_user.username},</p>
+                        <p>Our support team has replied to your ticket <strong>{ticket.ticket_number}</strong>.</p>
+                        <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:16px 0;font-size:14px;line-height:1.6;">
+                            {message_text.replace(chr(10), '<br>')}
+                        </div>
+                        <p><a href="https://gighala.com/support" style="background:#7c3aed;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">View &amp; Reply</a></p>
+                        <p style="color:#6b7280;font-size:13px;margin-top:24px;">GigHala Support Team &bull; Ticket {ticket.ticket_number}</p>
+                    </div>"""
+                    _es.send_email(
+                        to_email=ticket_user.email,
+                        subject=f'[{ticket.ticket_number}] Support Team Replied — {ticket.subject}',
+                        html_content=html_body,
+                        to_name=ticket_user.full_name or ticket_user.username
+                    )
+                except Exception as email_err:
+                    app.logger.warning(f'Reply email failed for ticket {ticket.ticket_number}: {email_err}')
 
         if new_status in ('open', 'in_progress', 'escalated', 'resolved', 'closed'):
             ticket.status = new_status
@@ -25691,6 +25880,30 @@ def admin_respond_to_ticket(ticket_id):
                 ticket.resolved_by = admin_id
                 ticket.resolved_at = datetime.utcnow()
                 ticket.resolution_notes = data.get('resolution_notes', '')
+                # Send resolution email
+                if ticket_user and ticket_user.email:
+                    try:
+                        from email_service import email_service as _es
+                        resolution_text = data.get('resolution_notes', '') or 'Your issue has been resolved.'
+                        html_body = f"""
+                        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+                            <h2 style="color:#059669;">Ticket Resolved</h2>
+                            <p>Hi {ticket_user.full_name or ticket_user.username},</p>
+                            <p>Your support ticket <strong>{ticket.ticket_number}</strong> has been resolved.</p>
+                            <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:16px;margin:16px 0;font-size:14px;">
+                                <strong>Resolution:</strong> {resolution_text}
+                            </div>
+                            <p>If you need further assistance, you can open a new ticket at <a href="https://gighala.com/support" style="color:#7c3aed;">gighala.com/support</a>.</p>
+                            <p style="color:#6b7280;font-size:13px;">GigHala Support Team</p>
+                        </div>"""
+                        _es.send_email(
+                            to_email=ticket_user.email,
+                            subject=f'[{ticket.ticket_number}] Ticket Resolved — {ticket.subject}',
+                            html_content=html_body,
+                            to_name=ticket_user.full_name or ticket_user.username
+                        )
+                    except Exception as email_err:
+                        app.logger.warning(f'Resolution email failed for ticket {ticket.ticket_number}: {email_err}')
 
         if admin_notes:
             ticket.admin_notes = admin_notes
@@ -25705,7 +25918,7 @@ def admin_respond_to_ticket(ticket_id):
 
 
 @app.route('/api/admin/support/ticket/<int:ticket_id>/escalate', methods=['POST'])
-@admin_required
+@support_required
 def admin_escalate_ticket(ticket_id):
     """Escalate a support ticket to a higher level"""
     try:
@@ -25753,7 +25966,7 @@ def admin_escalate_ticket(ticket_id):
 
 
 @app.route('/api/admin/support/ticket/<int:ticket_id>/resolve', methods=['POST'])
-@admin_required
+@support_required
 def admin_resolve_ticket(ticket_id):
     """Mark a support ticket as resolved"""
     try:

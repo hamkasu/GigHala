@@ -698,6 +698,15 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         replace_existing=True
     )
 
+    # Schedule SLA compliance check every 15 minutes
+    scheduler.add_job(
+        func=lambda: check_sla_tickets(app, db, User, email_service),
+        trigger=CronTrigger(minute='0,15,30,45', timezone=timezone),
+        id='check_sla_tickets',
+        name='Check support ticket SLA compliance (every 15 min)',
+        replace_existing=True
+    )
+
     # Start the scheduler
     scheduler.start()
     logger.info(f"Scheduler started with timezone: {timezone}")
@@ -708,11 +717,126 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
     logger.info("  - AI-matched gigs email at 9:00 AM")
     logger.info("  - AI-matched gigs email at 9:00 PM")
     logger.info("  - Referral bonus processing every hour")
+    logger.info("  - SLA compliance check every 15 minutes")
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
 
     return scheduler
+
+
+def check_sla_tickets(app, db, User, email_service):
+    """
+    Check all open support tickets for SLA compliance.
+    - Sends a warning email to support agents when 75% of SLA time has elapsed.
+    - Sends a breach alert when SLA deadline is passed.
+    Runs every 15 minutes.
+    """
+    with app.app_context():
+        try:
+            from app import SupportTicket
+            now = datetime.utcnow()
+            active_statuses = ('open', 'in_progress', 'escalated')
+
+            tickets = SupportTicket.query.filter(
+                SupportTicket.status.in_(active_statuses),
+                SupportTicket.sla_due_at.isnot(None)
+            ).all()
+
+            changed = False
+            for ticket in tickets:
+                sla_due = ticket.sla_due_at
+                total_secs = max((sla_due - ticket.created_at).total_seconds(), 1)
+                elapsed_secs = (now - ticket.created_at).total_seconds()
+                elapsed_pct = elapsed_secs / total_secs
+
+                # Warning at 75% elapsed
+                if elapsed_pct >= 0.75 and not ticket.sla_warning_sent:
+                    hours_left = max((sla_due - now).total_seconds() / 3600, 0)
+                    _send_sla_warning_email(app, ticket, User, email_service, hours_left)
+                    ticket.sla_warning_sent = True
+                    changed = True
+
+                # Breach when past due
+                if now > sla_due and not ticket.sla_breached:
+                    ticket.sla_breached = True
+                    if not ticket.sla_breach_notified:
+                        _send_sla_breach_email(app, ticket, User, email_service)
+                        ticket.sla_breach_notified = True
+                    changed = True
+
+            if changed:
+                db.session.commit()
+
+        except Exception as e:
+            logger.error(f'SLA check error: {e}')
+
+
+def _send_sla_warning_email(app, ticket, User, email_service, hours_left):
+    """Email support agents that a ticket is approaching its SLA deadline."""
+    try:
+        agents = User.query.filter(
+            (User.is_admin == True) | (User.admin_role == 'support_agent')
+        ).all()
+        if not agents:
+            return
+        to_emails = [(a.email, a.full_name or a.username) for a in agents if a.email]
+        if not to_emails:
+            return
+        html = f"""
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+            <h2 style="color:#d97706;">⚠️ SLA Warning — Ticket Approaching Deadline</h2>
+            <p>Ticket <strong>{ticket.ticket_number}</strong> is approaching its SLA deadline.</p>
+            <table style="border-collapse:collapse;width:100%;margin:16px 0;">
+                <tr><td style="padding:8px;font-weight:600;">Ticket</td><td style="padding:8px;">{ticket.ticket_number}</td></tr>
+                <tr style="background:#fef9c3;"><td style="padding:8px;font-weight:600;">Subject</td><td style="padding:8px;">{ticket.subject}</td></tr>
+                <tr><td style="padding:8px;font-weight:600;">Priority</td><td style="padding:8px;">{ticket.priority.title()}</td></tr>
+                <tr style="background:#fef9c3;"><td style="padding:8px;font-weight:600;">SLA Due</td><td style="padding:8px;">{ticket.sla_due_at.strftime('%d %b %Y %H:%M UTC')}</td></tr>
+                <tr><td style="padding:8px;font-weight:600;color:#d97706;">Time Remaining</td><td style="padding:8px;color:#d97706;font-weight:700;">{hours_left:.1f} hours</td></tr>
+            </table>
+            <p><a href="https://gighala.com/admin/support/{ticket.id}" style="background:#7c3aed;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Respond Now</a></p>
+        </div>"""
+        email_service.send_bulk_email(
+            to_emails=to_emails,
+            subject=f'[SLA Warning] {ticket.ticket_number} — {hours_left:.1f}h remaining',
+            html_content=html
+        )
+    except Exception as e:
+        logger.error(f'SLA warning email error for {ticket.ticket_number}: {e}')
+
+
+def _send_sla_breach_email(app, ticket, User, email_service):
+    """Email support agents and super_admin that a ticket has breached SLA."""
+    try:
+        agents = User.query.filter(
+            (User.is_admin == True) | (User.admin_role == 'support_agent')
+        ).all()
+        if not agents:
+            return
+        to_emails = [(a.email, a.full_name or a.username) for a in agents if a.email]
+        if not to_emails:
+            return
+        overdue_mins = int((datetime.utcnow() - ticket.sla_due_at).total_seconds() / 60)
+        html = f"""
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+            <h2 style="color:#dc2626;">🚨 SLA Breached — Immediate Action Required</h2>
+            <p>Ticket <strong>{ticket.ticket_number}</strong> has exceeded its SLA response time.</p>
+            <table style="border-collapse:collapse;width:100%;margin:16px 0;">
+                <tr><td style="padding:8px;font-weight:600;">Ticket</td><td style="padding:8px;">{ticket.ticket_number}</td></tr>
+                <tr style="background:#fee2e2;"><td style="padding:8px;font-weight:600;">Subject</td><td style="padding:8px;">{ticket.subject}</td></tr>
+                <tr><td style="padding:8px;font-weight:600;">Priority</td><td style="padding:8px;">{ticket.priority.title()}</td></tr>
+                <tr style="background:#fee2e2;"><td style="padding:8px;font-weight:600;">SLA Deadline</td><td style="padding:8px;">{ticket.sla_due_at.strftime('%d %b %Y %H:%M UTC')}</td></tr>
+                <tr><td style="padding:8px;font-weight:600;color:#dc2626;">Overdue By</td><td style="padding:8px;color:#dc2626;font-weight:700;">{overdue_mins} minutes</td></tr>
+            </table>
+            <p><a href="https://gighala.com/admin/support/{ticket.id}" style="background:#dc2626;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Respond Immediately</a></p>
+        </div>"""
+        email_service.send_bulk_email(
+            to_emails=to_emails,
+            subject=f'[SLA BREACHED] {ticket.ticket_number} — {overdue_mins} min overdue',
+            html_content=html
+        )
+    except Exception as e:
+        logger.error(f'SLA breach email error for {ticket.ticket_number}: {e}')
 
 
 def _run_referral_job(app):
