@@ -2544,6 +2544,7 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     admin_role = db.Column(db.String(50))  # super_admin, billing, moderator, etc.
     admin_permissions = db.Column(db.Text)  # JSON string of specific permissions
+    is_deleted = db.Column(db.Boolean, default=False)  # soft-delete; preserves data for audit
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
     ic_number = db.Column(db.String(20))
     # Bank account details for payment transfers
@@ -15674,7 +15675,9 @@ def admin_get_users():
         per_page = int(request.args.get('per_page', 20))
         search = sanitize_input(request.args.get('search', ''), max_length=100)
 
-        query = User.query
+        query = User.query.filter(
+            (User.is_deleted == False) | (User.is_deleted == None)
+        )
 
         if search:
             search_pattern = f'%{search}%'
@@ -15873,95 +15876,15 @@ def _try_grant_table(table_name):
 @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_user(user_id):
-    """Delete a user and all associated data.
-
-    Uses raw SQL throughout to avoid SQLAlchemy ORM relationship loading,
-    which causes SELECT queries against tables that may not yet exist or
-    that the app user lacks SELECT permission on (InsufficientPrivilege /
-    UndefinedTable).  A _safe_del helper silently skips tables that do
-    not exist in the current database schema.
-    """
-    from sqlalchemy import text as _sql
-
+    """Soft-delete a user: set is_deleted=True so they are hidden from the
+    admin user list but all data is retained for audit purposes."""
     if session['user_id'] == user_id:
         return jsonify({'error': 'Cannot delete your own account'}), 400
 
-    if not User.query.get(user_id):
-        return jsonify({'error': 'User not found'}), 404
-
-    def _safe_del(stmt, params=None):
-        """Execute stmt, rolling back silently when the table doesn't exist."""
-        try:
-            db.session.execute(_sql(stmt), params or {})
-        except Exception as _e:
-            _s = str(_e).lower()
-            if 'does not exist' in _s or 'undefined' in type(_e).__name__.lower():
-                db.session.rollback()
-            else:
-                raise
-
     try:
-        u = user_id
-
-        # Notifications, portfolio, email audit
-        _safe_del('DELETE FROM notification WHERE user_id = :u', {'u': u})
-        _safe_del('DELETE FROM portfolio_item WHERE user_id = :u', {'u': u})
-        _safe_del('DELETE FROM email_history WHERE user_id = :u', {'u': u})
-
-        # Messaging
-        _safe_del(
-            'DELETE FROM message WHERE conversation_id IN '
-            '(SELECT id FROM conversation WHERE participant_1_id = :u OR participant_2_id = :u)',
-            {'u': u})
-        _safe_del(
-            'DELETE FROM conversation WHERE participant_1_id = :u OR participant_2_id = :u',
-            {'u': u})
-
-        # Social / moderation
-        _safe_del('DELETE FROM review WHERE reviewer_id = :u OR reviewee_id = :u', {'u': u})
-        _safe_del('DELETE FROM gig_report WHERE reporter_id = :u', {'u': u})
-        _safe_del('DELETE FROM referral WHERE referrer_id = :u OR referred_id = :u', {'u': u})
-
-        # Worker profile
-        _safe_del('DELETE FROM worker_rate_audit WHERE user_id = :u', {'u': u})
-        _safe_del('DELETE FROM worker_specialization WHERE user_id = :u', {'u': u})
-
-        # Request / support features (tables may not exist in all deployments)
-        _safe_del('DELETE FROM urgent_request WHERE user_id = :u', {'u': u})
-        _safe_del('DELETE FROM managed_solution_request WHERE user_id = :u', {'u': u})
-        _safe_del(
-            'DELETE FROM support_ticket_message WHERE ticket_id IN '
-            '(SELECT id FROM support_ticket WHERE user_id = :u)',
-            {'u': u})
-        _safe_del('DELETE FROM support_ticket WHERE user_id = :u', {'u': u})
-
-        # Financial records
-        _safe_del('DELETE FROM payment_history WHERE user_id = :u', {'u': u})
-        _safe_del('DELETE FROM receipt WHERE user_id = :u', {'u': u})
-        _safe_del('DELETE FROM wallet WHERE user_id = :u', {'u': u})
-
-        # Gig-level data for gigs owned by the user
-        gig_rows = db.session.execute(
-            _sql('SELECT id FROM gig WHERE client_id = :u'), {'u': u}
-        ).fetchall()
-        if gig_rows:
-            gig_ids = [r[0] for r in gig_rows]
-            ph = ','.join(f':g{i}' for i in range(len(gig_ids)))
-            gp = {f'g{i}': g for i, g in enumerate(gig_ids)}
-            _safe_del(f'DELETE FROM fractional_application WHERE gig_id IN ({ph})', gp)
-            _safe_del(f'DELETE FROM application WHERE gig_id IN ({ph})', gp)
-            _safe_del(f'DELETE FROM gig_worker WHERE gig_id IN ({ph})', gp)
-            _safe_del(f'DELETE FROM gig WHERE id IN ({ph})', gp)
-
-        # Gig-level data where user is worker / applicant
-        _safe_del('DELETE FROM fractional_application WHERE applicant_id = :u', {'u': u})
-        _safe_del('DELETE FROM application WHERE freelancer_id = :u', {'u': u})
-        _safe_del('DELETE FROM gig_worker WHERE worker_id = :u', {'u': u})
-
-        # Delete the user — raw SQL bypasses ORM relationship loading entirely
-        db.session.execute(_sql('DELETE FROM "user" WHERE id = :u'), {'u': u})
+        user = User.query.get_or_404(user_id)
+        user.is_deleted = True
         db.session.commit()
-
         return jsonify({'message': 'User deleted successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -22095,6 +22018,8 @@ def _apply_column_migrations():
         'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS referral_code VARCHAR(10)',
         'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS referred_by_id INTEGER REFERENCES "user"(id)',
         'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS referral_bonus_credited BOOLEAN DEFAULT FALSE',
+        # Soft-delete flag
+        'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE',
         # Anti-abuse columns on referral table
         'ALTER TABLE referral ADD COLUMN IF NOT EXISTS registration_ip VARCHAR(45)',
         'ALTER TABLE referral ADD COLUMN IF NOT EXISTS credit_after TIMESTAMP',
