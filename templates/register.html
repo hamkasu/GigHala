@@ -267,8 +267,16 @@
             </div>
 
             <div class="form-group">
-                <label>{% if lang == 'ms' %}No. IC (Opsional){% else %}IC Number (Optional){% endif %}</label>
-                <input type="text" name="ic_number" placeholder="{% if lang == 'ms' %}XXXXXX-XX-XXXX{% else %}XXXXXX-XX-XXXX{% endif %}">
+                <label>{% if lang == 'ms' %}No. IC / Pasport (Opsional){% else %}IC / Passport Number (Optional){% endif %}</label>
+                <input type="text" name="ic_number" maxlength="20"
+                    placeholder="{% if lang == 'ms' %}Contoh: 901234-56-7890 atau A12345678{% else %}e.g. 901234-56-7890 or A12345678{% endif %}">
+                <small style="color: var(--text-gray); font-size: 12px; display: block; margin-top: 4px;">
+                    {% if lang == 'ms' %}
+                        IC MyKad: 12 digit (sengkang dibenarkan, cth: 901234-56-7890). Pasport: 6–20 aksara alfanumerik.
+                    {% else %}
+                        MyKad IC: 12 digits (dashes allowed, e.g. 901234-56-7890). Passport: 6–20 alphanumeric characters.
+                    {% endif %}
+                </small>
             </div>
 
             <div class="form-group">

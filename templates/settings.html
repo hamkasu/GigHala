@@ -695,9 +695,9 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">No. Kad Pengenalan (IC)</label>
-                <input type="text" name="ic_number" class="form-input" value="{{ user.ic_number or '' }}" placeholder="Contoh: 901234567890" maxlength="12" pattern="[0-9]{12}">
-                <p class="form-hint">12 digit tanpa sengkang (-). Diperlukan untuk pengesahan identiti.</p>
+                <label class="form-label">No. Kad Pengenalan (IC) / Pasport</label>
+                <input type="text" name="ic_number" class="form-input" value="{{ user.ic_number or '' }}" placeholder="Contoh: 901234-56-7890 atau A12345678" maxlength="20">
+                <p class="form-hint">IC MyKad: 12 digit, sengkang dibenarkan (cth: 901234-56-7890). Pasport: 6–20 aksara alfanumerik. Diperlukan untuk pengesahan identiti dan kepatuhan SOCSO.</p>
             </div>
 
             <div class="form-group">
