@@ -15827,10 +15827,18 @@ def _try_grant_table(table_name):
     if su_url:
         try:
             from sqlalchemy import create_engine as _ce
+            from urllib.parse import urlparse as _up, urlunparse as _uu
             if su_url.startswith('postgres://'):
                 su_url = su_url.replace('postgres://', 'postgresql+psycopg2://', 1)
             elif su_url.startswith('postgresql://') and 'psycopg2' not in su_url:
                 su_url = su_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+            # Force connection to the app's database, not the default DB in su_url
+            app_db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+            if app_db_url:
+                _su = _up(su_url)
+                _app = _up(app_db_url)
+                if _app.path and _app.path != _su.path:
+                    su_url = _uu(_su._replace(path=_app.path))
             su_engine = _ce(su_url)
             with su_engine.connect() as sc:
                 sc.execute(_t(f'GRANT ALL ON TABLE {table_name} TO "{cur_user}"'))
