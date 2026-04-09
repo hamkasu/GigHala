@@ -15859,6 +15859,14 @@ def _try_grant_table(table_name):
             return True
         except Exception as _e:
             app.logger.warning(f'_try_grant_table({table_name}) failed: {_e}')
+
+    # All strategies failed — log actionable instructions
+    app.logger.error(
+        f'[DB PERMISSIONS] Cannot grant access on "{table_name}" to "{cur_user}". '
+        f'Run this in psql as a superuser: '
+        f'GRANT SELECT, INSERT, UPDATE, DELETE ON {table_name} TO "{cur_user}"; '
+        f'Or set SUPERUSER_DATABASE_URL and restart the app.'
+    )
     return False
 
 
@@ -25183,7 +25191,7 @@ def fix_db_permissions_cmd():
         sys.exit(0)
 
     _app_user = _up(database_url).username or ''
-    _fix_tables = ('worker_specialization', 'worker_rate_audit', 'gig_worker')
+    _fix_tables = ('worker_specialization', 'worker_rate_audit', 'gig_worker', 'fractional_application')
     _fix_seqs   = ('worker_specialization_id_seq', 'worker_rate_audit_id_seq', 'gig_worker_id_seq')
 
     def _norm(u):
