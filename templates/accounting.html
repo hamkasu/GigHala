@@ -949,11 +949,19 @@ async function loadRoles() {
 }
 
 function editRole(userId, username, currentRole) {
-    const newRole = prompt(`Change role for ${username}.\n\nAvailable roles:\n- super_admin\n- billing\n- moderator\n- (leave empty to remove role)\n\nCurrent role: ${currentRole}`, currentRole);
+    document.getElementById('roleModalTitle').textContent = `Change role for ${username}`;
+    const select = document.getElementById('roleModalSelect');
+    select.value = currentRole === 'none' ? '' : currentRole;
+    document.getElementById('roleModal').style.display = 'flex';
+    document.getElementById('roleModalConfirm').onclick = function() {
+        const newRole = select.value || null;
+        closeRoleModal();
+        updateUserRole(userId, newRole);
+    };
+}
 
-    if (newRole === null) return; // User cancelled
-
-    updateUserRole(userId, newRole || null);
+function closeRoleModal() {
+    document.getElementById('roleModal').style.display = 'none';
 }
 
 async function updateUserRole(userId, role) {
@@ -1785,4 +1793,23 @@ async function loadReferrals(page = 1) {
     }
 }
 </script>
+
+<!-- Role Edit Modal -->
+<div id="roleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; padding:28px 32px; min-width:340px; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <h3 id="roleModalTitle" style="margin:0 0 20px; font-size:1.1rem; color:#1e293b;"></h3>
+        <label style="display:block; margin-bottom:8px; font-size:0.875rem; color:#64748b; font-weight:500;">Select Role</label>
+        <select id="roleModalSelect" style="width:100%; padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:1rem; color:#1e293b; background:#f8fafc; margin-bottom:24px; cursor:pointer;">
+            <option value="">-- Remove role --</option>
+            <option value="super_admin">super_admin</option>
+            <option value="billing">billing</option>
+            <option value="moderator">moderator</option>
+        </select>
+        <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <button onclick="closeRoleModal()" style="padding:9px 20px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; color:#64748b; cursor:pointer; font-size:0.95rem;">Cancel</button>
+            <button id="roleModalConfirm" style="padding:9px 20px; border:none; border-radius:8px; background:#6366f1; color:#fff; cursor:pointer; font-size:0.95rem; font-weight:500;">Save</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
