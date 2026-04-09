@@ -42,12 +42,9 @@ import calendar
 # Stripe configuration - will be set dynamically based on mode
 def get_stripe_keys():
     """Get Stripe keys based on the current mode setting"""
-    from models import get_site_setting
-
     # Get the mode from environment variable or site settings (default to 'test' for safety)
     stripe_mode = os.environ.get('STRIPE_MODE')
     if not stripe_mode:
-        from models import get_site_setting
         stripe_mode = get_site_setting('stripe_mode', 'test')
 
     if stripe_mode == 'live':
@@ -7196,8 +7193,6 @@ def facebook_callback():
 def get_billing_stats():
     """Get billing statistics for the current user"""
     try:
-        from models import PaymentHistory, Wallet, Payout, Invoice
-
         # Get wallet
         wallet = Wallet.query.filter_by(user_id=current_user.id).first()
         available_balance = wallet.balance if wallet else 0.0
@@ -13500,6 +13495,11 @@ def update_profile():
             # Limit to 20 skills, each max 50 chars
             skills = [sanitize_input(str(skill), max_length=50) for skill in skills[:20]]
             user.skills = json.dumps(skills)
+
+        if 'language' in data:
+            if data['language'] not in ['ms', 'en']:
+                return jsonify({'error': 'Invalid language. Choose "ms" or "en"'}), 400
+            user.language = data['language']
 
         db.session.commit()
 
