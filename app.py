@@ -1796,6 +1796,10 @@ def verify_email_token(token):
         user.email_verification_token = None
         user.email_verification_expires = None
 
+        # Grant referral code now that the email is confirmed
+        if not user.referral_code:
+            user.referral_code = generate_referral_code()
+
         # Referral bonus is credited by the hourly scheduler only after the referred
         # user has both verified their email AND added their IC number (anti-spam).
         db.session.commit()
@@ -5071,8 +5075,8 @@ def dashboard():
     user_id = session['user_id']
     user = User.query.get(user_id)
 
-    # Ensure user has a referral code (backfill for existing users)
-    if not user.referral_code:
+    # Ensure verified user has a referral code (backfill for existing verified users)
+    if user.is_verified and not user.referral_code:
         user.referral_code = generate_referral_code()
         db.session.commit()
 
@@ -5955,7 +5959,7 @@ def register():
             email_verification_token=verification_token,
             email_verification_expires=verification_expires,
             is_verified=False,  # User needs to verify email
-            referral_code=generate_referral_code(),
+            referral_code=None,  # Assigned only after email verification
             referred_by_id=referrer.id if referrer else None
         )
 
@@ -16225,7 +16229,9 @@ def announce_referral_code():
         all_recipient_emails = []
 
         for user in users:
-            # Ensure user has a referral code
+            # Only send to verified users; skip unverified (no referral code yet)
+            if not user.is_verified:
+                continue
             if not user.referral_code:
                 user.referral_code = generate_referral_code()
                 db.session.commit()
