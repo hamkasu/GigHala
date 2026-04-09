@@ -13447,7 +13447,7 @@ def get_profile():
         'user_type': user.user_type,
         'location': user.location,
         'bio': user.bio,
-        'skills': json.loads(user.skills) if user.skills else [],
+        'skills': ', '.join(json.loads(user.skills)) if user.skills else '',
         'profile_photo': user.profile_photo,
         'portfolio_url': user.portfolio_url,
         'ic_number': user.ic_number,
