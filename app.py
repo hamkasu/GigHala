@@ -15794,25 +15794,63 @@ def admin_update_user(user_id):
         return jsonify({'error': 'Failed to update user'}), 500
 
 def _try_grant_table(table_name):
-    """Attempt to GRANT ALL on table to the current DB user via SET ROLE to owner.
-    Returns True if the app user now has access, False otherwise."""
+    """Attempt to GRANT ALL on table to the current DB user.
+
+    Tries in order:
+    1. Already owner — nothing to do.
+    2. SUPERUSER_DATABASE_URL — grant via elevated connection (works on managed
+       Postgres like Railway, Neon, Supabase where SET ROLE is restricted).
+    3. SET ROLE to table owner + GRANT (requires role membership; works on
+       self-hosted Postgres but fails on managed platforms).
+
+    Returns True if the grant succeeded or was unnecessary, False otherwise.
+    """
     from sqlalchemy import text as _t
+    cur_user = None
+    owner = None
     try:
         with db.engine.connect() as c:
             cur_user = c.execute(_t('SELECT current_user')).scalar()
             owner_row = c.execute(_t(
                 "SELECT tableowner FROM pg_tables WHERE tablename=:t"
             ), {'t': table_name}).fetchone()
-            if owner_row and owner_row[0] != cur_user:
-                c.execute(_t(f'SET ROLE "{owner_row[0]}"'))
+            if owner_row:
+                owner = owner_row[0]
+            if owner and owner == cur_user:
+                return True  # already owner, no grant needed
+    except Exception as _e:
+        app.logger.warning(f'_try_grant_table({table_name}) lookup failed: {_e}')
+        return False
+
+    # Strategy 1: Use SUPERUSER_DATABASE_URL (correct approach for managed Postgres)
+    su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
+    if su_url:
+        try:
+            from sqlalchemy import create_engine as _ce
+            if su_url.startswith('postgres://'):
+                su_url = su_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+            elif su_url.startswith('postgresql://') and 'psycopg2' not in su_url:
+                su_url = su_url.replace('postgresql://', 'postgresql+psycopg2://', 1)
+            su_engine = _ce(su_url)
+            with su_engine.connect() as sc:
+                sc.execute(_t(f'GRANT ALL ON TABLE {table_name} TO "{cur_user}"'))
+                sc.commit()
+            app.logger.info(f'_try_grant_table({table_name}): granted via SUPERUSER_DATABASE_URL')
+            return True
+        except Exception as _e:
+            app.logger.warning(f'_try_grant_table({table_name}) via SUPERUSER_DATABASE_URL failed: {_e}')
+
+    # Strategy 2: SET ROLE to table owner + GRANT (self-hosted Postgres only)
+    if owner:
+        try:
+            with db.engine.connect() as c:
+                c.execute(_t(f'SET ROLE "{owner}"'))
                 c.execute(_t(f'GRANT ALL ON TABLE {table_name} TO "{cur_user}"'))
                 c.execute(_t('RESET ROLE'))
                 c.commit()
-                return True
-            elif owner_row and owner_row[0] == cur_user:
-                return True  # already owner
-    except Exception as _e:
-        app.logger.warning(f'_try_grant_table({table_name}) failed: {_e}')
+            return True
+        except Exception as _e:
+            app.logger.warning(f'_try_grant_table({table_name}) failed: {_e}')
     return False
 
 
@@ -22009,7 +22047,7 @@ def init_database():
     try:
         db.create_all()
 
-        # On PostgreSQL, fix permissions if the table is owned by a different role
+        # On PostgreSQL, fix permissions if tables are owned by a different role
         db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
         if 'postgres' in db_url:
             try:
@@ -22019,6 +22057,11 @@ def init_database():
                     ))
             except Exception:
                 _fix_specialization_permissions()
+            # Ensure the app user has full permissions on gig_worker and application
+            # (these may be owned by a different role, e.g. "postgres", causing
+            # "permission denied for table gig_worker" on admin delete operations)
+            _try_grant_table('gig_worker')
+            _try_grant_table('application')
 
         # Add default categories if they don't exist
         default_categories = [
