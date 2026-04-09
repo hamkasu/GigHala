@@ -1667,6 +1667,8 @@
                     <a href="/support" title="Support" style="color: #00C853; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 200, 83, 0.05);">
                         <i data-feather="help-circle" style="width: 18px; height: 18px;"></i><span class="btn-text"> Support</span>
                     </a>
+                    <a href="/login" title="Log Masuk" style="color: #00C853; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(0, 200, 83, 0.05);"><i data-feather="log-in" style="width: 18px; height: 18px;"></i><span class="btn-text"> Log Masuk</span></a>
+                    <a href="/register" title="Daftar Percuma" style="font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: #00C853; color: white;"><i data-feather="user-plus" style="width: 18px; height: 18px;"></i><span class="btn-text"> Daftar</span></a>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right;">
                         <div class="date-content" style="display: flex; gap: 10px; font-size: 15px; align-items: center; justify-content: flex-end;">
                             <span class="hijri-date" style="color: #00C853; font-weight: 600; white-space: nowrap;">{{ today_hijri }}</span>
@@ -1701,6 +1703,8 @@
                 <div style="display: flex; align-items: center; gap: 9px;">
                     <a href="/post-gig" class="action-button btn-post-gig" title="Post a Gig" style="font-size: 14px; padding: 6px 10px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: #fff; color: #1DBF73; border: 1px solid #1DBF73; border-radius: var(--radius-md); transition: all 0.2s;"><i data-feather="plus-circle" style="width: 16px; height: 16px;"></i><span class="btn-text"> Post</span></a>
                     <a href="/#cari-gig" class="pwa-auth-btn" title="Latest Gigs" style="background: #0d7c66; text-decoration: none; text-align: center; line-height: 1; padding: 7px 10px; font-size: 13px; border-radius: 9px; display: flex; align-items: center; gap: 4px;"><i data-feather="briefcase" style="width: 16px; height: 16px;"></i><span class="btn-text"> Gigs</span></a>
+                    <button class="pwa-auth-btn" onclick="app.showLogin()" title="Log Masuk" style="padding: 7px 10px; font-size: 13px; border-radius: 9px; display: flex; align-items: center; gap: 4px;"><i data-feather="log-in" style="width: 16px; height: 16px;"></i><span class="btn-text"> Masuk</span></button>
+                    <button class="pwa-auth-btn" onclick="app.showRegister()" title="Daftar" style="padding: 7px 10px; font-size: 13px; border-radius: 9px; display: flex; align-items: center; gap: 4px;"><i data-feather="user-plus" style="width: 16px; height: 16px;"></i><span class="btn-text"> Daftar</span></button>
                     <div class="date-content" style="color: #ccc; font-size: 11px; margin-left: 12px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
                         <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
                         <span class="gregorian-date">{{ today_gregorian }}</span>
