@@ -1532,10 +1532,36 @@ def validate_phone(phone):
 def validate_ic_number(ic_number):
     """
     Validate Malaysian IC/MyKad or passport number.
-    This will be done by IC / Passport Verification in the system
+    - Malaysian IC (MyKad): YYMMDD-PB-XXXX, 12 digits (dashes optional)
+    - Passport: alphanumeric, 6–20 characters
     Returns (is_valid, error_message)
     """
-    return True, ""
+    if not ic_number:
+        return True, ""  # IC is optional at registration
+
+    cleaned = re.sub(r'[-\s]', '', ic_number)
+
+    if cleaned.isdigit():
+        # Malaysian MyKad must be exactly 12 digits
+        if len(cleaned) != 12:
+            return False, "Malaysian IC number must be exactly 12 digits"
+        # Validate date portion (YYMMDD)
+        month = int(cleaned[2:4])
+        day = int(cleaned[4:6])
+        if not (1 <= month <= 12):
+            return False, "Invalid IC number: month out of range"
+        if not (1 <= day <= 31):
+            return False, "Invalid IC number: day out of range"
+        # Validate check digit using established algorithm
+        if not validate_mykad_checkdigit(cleaned):
+            return False, "Invalid IC number: check digit mismatch"
+        return True, ""
+
+    # Passport: alphanumeric, 6–20 chars
+    if re.match(r'^[A-Za-z0-9]{6,20}$', cleaned):
+        return True, ""
+
+    return False, "Invalid IC/Passport format. Enter a 12-digit Malaysian IC or a 6–20 character passport number"
 
 def validate_mykad_checkdigit(mykad):
     """
@@ -2512,6 +2538,29 @@ def billing_admin_required(f):
                 )
             return jsonify({'error': 'Forbidden - Billing/Accounting access required'}), 403
 
+        return f(*args, **kwargs)
+    return decorated_function
+
+def verified_required(f):
+    """Decorator to require a verified (email-confirmed) user for sensitive operations.
+
+    Combines session authentication with email-verification enforcement so that
+    unverified accounts cannot post gigs, apply, accept applications, or trigger
+    any payment/escrow action.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'error': 'Unauthorized - Please login'}), 401
+        user = globals()['User'].query.get(session['user_id'])
+        if not user:
+            session.clear()
+            return jsonify({'error': 'Session expired - Please login again'}), 401
+        if not user.is_verified:
+            return jsonify({
+                'error': 'Email verification required. Please verify your email before continuing.',
+                'requires_verification': True
+            }), 403
         return f(*args, **kwargs)
     return decorated_function
 
@@ -7520,11 +7569,9 @@ def search_suggestions():
         return jsonify([])
 
 @app.route('/api/gigs', methods=['POST'])
+@verified_required
 @api_rate_limit(requests_per_minute=30)
 def create_gig():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     try:
         data = request.json
 
@@ -7882,6 +7929,7 @@ def get_gig(gig_id):
     })
 
 @app.route('/api/gigs/<int:gig_id>/apply', methods=['POST'])
+@verified_required
 @api_rate_limit(requests_per_minute=20)
 def apply_to_gig(gig_id):
     """Apply to a gig with optional specialized rate.
@@ -7891,9 +7939,6 @@ def apply_to_gig(gig_id):
     - specialization_id: ID of the specialization to use
     - proposed_price: Override price (can be auto-calculated from specialization)
     """
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     try:
         data = request.json
         gig = Gig.query.get_or_404(gig_id)
@@ -8603,11 +8648,9 @@ def get_gig_applications(gig_id):
         return jsonify({'error': 'Failed to retrieve applications'}), 500
 
 @app.route('/api/applications/<int:application_id>/accept', methods=['POST'])
+@verified_required
 def accept_application(application_id):
     """Client accepts a freelancer's application"""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     try:
         application = Application.query.get_or_404(application_id)
         gig = Gig.query.get(application.gig_id)
@@ -9049,11 +9092,9 @@ def get_gig_details(gig_id):
         return jsonify({'error': 'Failed to fetch gig details'}), 500
 
 @app.route('/api/gigs/<int:gig_id>/mark-completed', methods=['POST'])
+@verified_required
 def mark_gig_completed(gig_id):
     """Freelancer marks work as completed (ready for client to release payment)"""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     try:
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
@@ -10548,15 +10589,13 @@ def report_gig(gig_id):
 # ============================================================================
 
 @app.route('/api/escrow/create', methods=['POST'])
+@verified_required
 def create_escrow():
     """Create an escrow when client funds a gig.
 
     Supports per-worker escrows for multi-worker gigs. Pass freelancer_id in
     the request body to fund a specific worker's escrow independently.
     """
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     try:
         data = request.json
         gig_id = data.get('gig_id')
@@ -10710,15 +10749,13 @@ def get_escrow(gig_id):
         return jsonify({'error': 'Failed to get escrow'}), 500
 
 @app.route('/api/escrow/<int:gig_id>/release', methods=['POST'])
+@verified_required
 def release_escrow(gig_id):
     """Release escrow funds to a freelancer (client action after work approval).
 
     For multi-worker gigs pass freelancer_id in the JSON body to release
     a specific worker's escrow independently without affecting other workers.
     """
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
     try:
         data = request.json or {}
         gig = Gig.query.get_or_404(gig_id)
@@ -11332,11 +11369,9 @@ def dispute_escrow(gig_id):
 # ============================================================================
 
 @app.route('/api/escrow/<int:gig_id>/pay', methods=['POST'])
+@verified_required
 def initiate_escrow_payment(gig_id):
     """Initiate PayHalal payment to fund an escrow"""
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
     try:
         from payhalal import get_payhalal_client, calculate_payhalal_processing_fee
         
@@ -12957,7 +12992,7 @@ def get_stripe_account_status():
 
 
 @app.route('/api/stripe/connect/instant-payout', methods=['POST'])
-@login_required
+@verified_required
 def create_instant_payout():
     """Create an instant payout to user's bank account via Stripe Connect (Malaysia)"""
     try:
@@ -17639,7 +17674,7 @@ def calculate_next_batch_release_time():
     return next_batch_utc, batch_id
 
 @app.route('/api/billing/payouts', methods=['POST'])
-@login_required
+@verified_required
 def request_payout():
     """Request a payout withdrawal from wallet balance (NO SOCSO deduction on payout - SOCSO deducted on escrow release)"""
     try:
