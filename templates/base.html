@@ -2352,5 +2352,332 @@
     {% endblock %}
 
     {% block extra_scripts %}{% endblock %}
+
+    {% if current_user and current_user.is_authenticated %}
+    <!-- ===== Live Support Chat Widget ===== -->
+    <style>
+        #support-chat-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #support-chat-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+        #support-chat-btn .chat-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: #dc2626;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        #support-chat-panel {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            width: 360px;
+            max-height: 520px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            z-index: 9001;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #support-chat-panel.open { display: flex; }
+        .sc-head {
+            background: #7c3aed;
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .sc-head-title { font-weight: 700; font-size: 15px; }
+        .sc-head-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+        .sc-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; }
+        .sc-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sc-bubble { max-width: 82%; }
+        .sc-bubble.user { align-self: flex-end; text-align: right; }
+        .sc-bubble.agent { align-self: flex-start; }
+        .sc-bubble .btext {
+            display: inline-block;
+            padding: 9px 13px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .sc-bubble.user .btext { background: #7c3aed; color: white; }
+        .sc-bubble.agent .btext { background: #f3f4f6; color: #111827; }
+        .sc-bubble .bmeta { font-size: 10px; color: #9ca3af; margin-top: 3px; }
+        .sc-form {
+            padding: 10px 14px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .sc-form input {
+            flex: 1;
+            padding: 9px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .sc-form input:focus { border-color: #7c3aed; }
+        .sc-send {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sc-start {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sc-start p { font-size: 13px; color: #374151; margin: 0; }
+        .sc-start input, .sc-start select, .sc-start textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .sc-start button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        .sc-ticket-num {
+            font-size: 11px;
+            color: #7c3aed;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 6px 14px;
+            background: #f5f3ff;
+            flex-shrink: 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        @media (max-width: 480px) {
+            #support-chat-panel { width: calc(100vw - 24px); right: 12px; }
+        }
+    </style>
+
+    <!-- Chat button -->
+    <button id="support-chat-btn" onclick="scToggle()" title="{% if lang == 'ms' %}Hubungi Sokongan{% else %}Contact Support{% endif %}">
+        💬
+        <span class="chat-badge" id="scBadge"></span>
+    </button>
+
+    <!-- Chat panel -->
+    <div id="support-chat-panel">
+        <div class="sc-head">
+            <div>
+                <div class="sc-head-title">{% if lang == 'ms' %}Sokongan GigHala{% else %}GigHala Support{% endif %}</div>
+                <div class="sc-head-sub" id="scStatus">{% if lang == 'ms' %}Kami sedia membantu{% else %}We're here to help{% endif %}</div>
+            </div>
+            <button class="sc-close" onclick="scToggle()">×</button>
+        </div>
+
+        <!-- Step 1: Start chat form -->
+        <div id="scStartView" class="sc-start">
+            <p>{% if lang == 'ms' %}Terangkan isu anda dan kami akan membalas secepat mungkin.{% else %}Describe your issue and we'll reply as soon as possible.{% endif %}</p>
+            <select id="scCategory">
+                <option value="billing">{% if lang == 'ms' %}Bil & Pembayaran{% else %}Billing & Payments{% endif %}</option>
+                <option value="account">{% if lang == 'ms' %}Isu Akaun{% else %}Account Issue{% endif %}</option>
+                <option value="gig_issue" selected>{% if lang == 'ms' %}Masalah Gig{% else %}Gig Issue{% endif %}</option>
+                <option value="dispute">{% if lang == 'ms' %}Pertikaian{% else %}Dispute{% endif %}</option>
+                <option value="technical">{% if lang == 'ms' %}Teknikal{% else %}Technical{% endif %}</option>
+                <option value="other">{% if lang == 'ms' %}Lain-lain{% else %}Other{% endif %}</option>
+            </select>
+            <input type="text" id="scSubject" placeholder="{% if lang == 'ms' %}Tajuk ringkas...{% else %}Brief subject...{% endif %}" maxlength="200">
+            <textarea id="scDesc" rows="3" placeholder="{% if lang == 'ms' %}Huraikan isu anda...{% else %}Describe your issue...{% endif %}"></textarea>
+            <button onclick="scStartChat()">{% if lang == 'ms' %}Mula Sembang{% else %}Start Chat{% endif %}</button>
+        </div>
+
+        <!-- Step 2: Active chat view -->
+        <div id="scChatView" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+            <div id="scTicketNum" class="sc-ticket-num"></div>
+            <div class="sc-body" id="scMessages"></div>
+            <div class="sc-form">
+                <input type="text" id="scInput" placeholder="{% if lang == 'ms' %}Taip mesej...{% else %}Type a message...{% endif %}" onkeydown="if(event.key==='Enter')scSend()">
+                <button class="sc-send" onclick="scSend()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var SC = {
+            ticketId: null,
+            ticketNum: null,
+            lastPollTime: null,
+            pollTimer: null,
+            open: false
+        };
+
+        function getCsrf() {
+            var m = document.querySelector('meta[name="csrf-token"]');
+            return m ? m.content : '';
+        }
+
+        function escHtml(s) {
+            if (!s) return '';
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        }
+
+        function fmtTime(iso) {
+            if (!iso) return '';
+            var d = new Date(iso);
+            return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        }
+
+        function appendBubble(msg) {
+            var box = document.getElementById('scMessages');
+            var div = document.createElement('div');
+            div.className = 'sc-bubble ' + (msg.is_admin_reply ? 'agent' : 'user');
+            div.innerHTML = '<div class="btext">' + escHtml(msg.message) + '</div>' +
+                '<div class="bmeta">' + (msg.is_admin_reply ? 'Support' : '{% if lang == "ms" %}Anda{% else %}You{% endif %}') + ' · ' + fmtTime(msg.created_at) + '</div>';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function startPolling() {
+            SC.lastPollTime = new Date().toISOString();
+            SC.pollTimer = setInterval(function() {
+                if (!SC.ticketId || !SC.open) return;
+                fetch('/api/support/ticket/' + SC.ticketId + '/poll?since=' + encodeURIComponent(SC.lastPollTime))
+                    .then(function(r){ return r.json(); })
+                    .then(function(d) {
+                        if (d.messages && d.messages.length > 0) {
+                            d.messages.forEach(appendBubble);
+                            SC.lastPollTime = d.server_time || new Date().toISOString();
+                            // Show badge if panel closed
+                            if (!SC.open) {
+                                var b = document.getElementById('scBadge');
+                                b.style.display = 'flex';
+                                b.textContent = '!';
+                            }
+                        }
+                        if (d.status === 'resolved' || d.status === 'closed') {
+                            document.getElementById('scStatus').textContent = '{% if lang == "ms" %}Tiket diselesaikan{% else %}Ticket resolved{% endif %}';
+                            clearInterval(SC.pollTimer);
+                        }
+                    }).catch(function(){});
+            }, 4000);
+        }
+
+        window.scToggle = function() {
+            SC.open = !SC.open;
+            var panel = document.getElementById('support-chat-panel');
+            if (SC.open) {
+                panel.classList.add('open');
+                document.getElementById('scBadge').style.display = 'none';
+            } else {
+                panel.classList.remove('open');
+            }
+        };
+
+        window.scStartChat = function() {
+            var category = document.getElementById('scCategory').value;
+            var subject = document.getElementById('scSubject').value.trim();
+            var desc = document.getElementById('scDesc').value.trim();
+            if (!subject || !desc) {
+                alert('{% if lang == "ms" %}Sila isi tajuk dan huraian.{% else %}Please fill in subject and description.{% endif %}');
+                return;
+            }
+            fetch('/api/support/ticket', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+                body: JSON.stringify({category: category, subject: subject, description: desc, channel: 'chat', priority: 'medium'})
+            }).then(function(r){ return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    SC.ticketId = d.ticket_id;
+                    SC.ticketNum = d.ticket_number;
+                    document.getElementById('scTicketNum').textContent = d.ticket_number;
+                    document.getElementById('scStartView').style.display = 'none';
+                    var cv = document.getElementById('scChatView');
+                    cv.style.display = 'flex';
+                    cv.style.flexDirection = 'column';
+                    cv.style.flex = '1';
+                    cv.style.overflow = 'hidden';
+                    // Show the original message as a bubble
+                    appendBubble({message: desc, is_admin_reply: false, created_at: new Date().toISOString()});
+                    document.getElementById('scStatus').textContent = '{% if lang == "ms" %}Menunggu respons ejen...{% else %}Waiting for agent...{% endif %}';
+                    startPolling();
+                } else {
+                    alert(d.error || '{% if lang == "ms" %}Gagal memulakan sembang.{% else %}Failed to start chat.{% endif %}');
+                }
+            }).catch(function(){ alert('{% if lang == "ms" %}Ralat sambungan.{% else %}Connection error.{% endif %}'); });
+        };
+
+        window.scSend = function() {
+            var inp = document.getElementById('scInput');
+            var msg = inp.value.trim();
+            if (!msg || !SC.ticketId) return;
+            inp.value = '';
+            // Optimistic UI
+            appendBubble({message: msg, is_admin_reply: false, created_at: new Date().toISOString()});
+            fetch('/api/support/ticket/' + SC.ticketId + '/message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+                body: JSON.stringify({message: msg})
+            }).catch(function(){});
+            SC.lastPollTime = new Date().toISOString();
+        };
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>
