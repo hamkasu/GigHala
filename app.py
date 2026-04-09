@@ -5608,11 +5608,32 @@ def update_profile_settings():
         user.portfolio_url = portfolio_url or None
 
         ic_number = request.form.get('ic_number', '').strip()
+        ic_just_verified = False
         if ic_number:
-            if not re.match(r'^\d{12}$', ic_number):
+            ic_clean = re.sub(r'[-\s]', '', ic_number)
+            if not re.match(r'^\d{12}$', ic_clean):
                 flash('No. IC mestilah 12 digit nombor sahaja.', 'error')
                 return redirect('/settings')
-            user.ic_number = ic_number
+            user.ic_number = ic_clean
+
+            # Auto-verify the user when they enter a valid MyKad IC number
+            if not user.is_verified and validate_mykad_checkdigit(ic_clean):
+                user.is_verified = True
+                ic_just_verified = True
+                # Promote any pending verification or create a new approved record
+                pending_v = IdentityVerification.query.filter_by(user_id=user_id, status='pending').first()
+                if pending_v:
+                    pending_v.status = 'approved'
+                    pending_v.verified_at = datetime.utcnow()
+                    pending_v.ic_number = ic_clean
+                elif not IdentityVerification.query.filter_by(user_id=user_id, status='approved').first():
+                    db.session.add(IdentityVerification(
+                        user_id=user_id,
+                        ic_number=ic_clean,
+                        full_name=user.full_name or user.username,
+                        status='approved',
+                        verified_at=datetime.utcnow()
+                    ))
 
         socso_membership_number = request.form.get('socso_membership_number', '').strip()
         if socso_membership_number:
@@ -5628,12 +5649,15 @@ def update_profile_settings():
             user.socso_consent = False
 
         db.session.commit()
-        flash('Maklumat profil berjaya dikemaskini!', 'success')
+        if ic_just_verified:
+            flash('No. IC anda berjaya disahkan! Akaun anda kini telah disahkan.', 'success')
+        else:
+            flash('Maklumat profil berjaya dikemaskini!', 'success')
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Profile update error: {str(e)}")
         flash('Ralat berlaku. Sila cuba lagi.', 'error')
-    
+
     return redirect('/settings')
 
 @app.route('/settings/password', methods=['POST'])
