@@ -5616,8 +5616,8 @@ def update_profile_settings():
                 return redirect('/settings')
             user.ic_number = ic_clean
 
-            # Auto-verify the user when they enter a valid MyKad IC number
-            if not user.is_verified and validate_mykad_checkdigit(ic_clean):
+            # Auto-verify the user when they enter a valid 12-digit MyKad IC number
+            if not user.is_verified:
                 user.is_verified = True
                 ic_just_verified = True
                 # Promote any pending verification or create a new approved record
