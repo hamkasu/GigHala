@@ -15873,22 +15873,23 @@ def admin_delete_user(user_id):
 
         user = User.query.get_or_404(user_id)
 
-        # Ensure we have DELETE permission on gig_worker (self-heal via SET ROLE)
-        _try_grant_table('gig_worker')
-
-        # Delete associated data
+        # Delete associated data — explicit deletes prevent SQLAlchemy from
+        # SELECTing related rows (lazy-load on delete) against tables the app
+        # user may not own, which would raise InsufficientPrivilege.
         # Delete GigWorker assignments (worker side)
         GigWorker.query.filter_by(worker_id=user_id).delete(synchronize_session=False)
         Application.query.filter_by(freelancer_id=user_id).delete(synchronize_session=False)
+        FractionalApplication.query.filter_by(applicant_id=user_id).delete(synchronize_session=False)
         Review.query.filter(
             (Review.reviewer_id == user_id) | (Review.reviewee_id == user_id)
         ).delete(synchronize_session=False)
 
-        # Delete user's gigs and related assignments/applications
+        # Delete user's gigs and all gig-level related rows first
         user_gigs = Gig.query.filter_by(client_id=user_id).all()
         for gig in user_gigs:
             GigWorker.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
             Application.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
+            FractionalApplication.query.filter_by(gig_id=gig.id).delete(synchronize_session=False)
             db.session.delete(gig)
 
         db.session.delete(user)
@@ -22065,11 +22066,11 @@ def init_database():
                     ))
             except Exception:
                 _fix_specialization_permissions()
-            # Ensure the app user has full permissions on gig_worker and application
-            # (these may be owned by a different role, e.g. "postgres", causing
-            # "permission denied for table gig_worker" on admin delete operations)
-            _try_grant_table('gig_worker')
-            _try_grant_table('application')
+            # Ensure the app user has full permissions on tables that may be
+            # owned by a different role (e.g. "postgres"), which would cause
+            # InsufficientPrivilege errors during admin delete operations.
+            for _tbl in ('gig_worker', 'application', 'fractional_application'):
+                _try_grant_table(_tbl)
 
         # Add default categories if they don't exist
         default_categories = [
