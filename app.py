@@ -2635,6 +2635,10 @@ class User(UserMixin, db.Model):
     totp_secret = db.Column(db.String(32))  # TOTP secret key for 2FA
     totp_enabled = db.Column(db.Boolean, default=False)  # Whether 2FA is enabled
     totp_enabled_at = db.Column(db.DateTime)  # When 2FA was enabled
+    # PDPA consent tracking (PDPA 2010 s.6 — explicit, informed consent)
+    privacy_consent = db.Column(db.Boolean, default=False)  # Explicit Privacy Policy acceptance
+    privacy_consent_date = db.Column(db.DateTime)  # Timestamp of consent (audit trail)
+    privacy_policy_version = db.Column(db.String(10), default='1.0')  # Version accepted
     # Phone verification fields
     phone_verified = db.Column(db.Boolean, default=False)  # Whether phone number is verified
     phone_verification_code = db.Column(db.String(6))  # OTP code for phone verification
@@ -6052,6 +6056,7 @@ def register():
 
         # user_type already validated above
         # Create new user with SOCSO compliance fields
+        consent_timestamp = datetime.utcnow()
         new_user = User(
             username=data['username'],
             email=email,
@@ -6063,8 +6068,11 @@ def register():
             ic_number=ic_number_clean,
             socso_registered=False, # Explicitly set boolean
             socso_consent=bool(socso_consent) if user_type in ['freelancer', 'both'] else False,
-            socso_consent_date=datetime.utcnow() if socso_consent else None,
+            socso_consent_date=consent_timestamp if socso_consent else None,
             socso_data_complete=bool(ic_number_clean and socso_consent) if user_type in ['freelancer', 'both'] else False,
+            privacy_consent=True,
+            privacy_consent_date=consent_timestamp,
+            privacy_policy_version='1.0',
             email_verification_token=verification_token,
             email_verification_expires=verification_expires,
             is_verified=False,  # User needs to verify email
