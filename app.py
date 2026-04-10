@@ -33,6 +33,7 @@ from halal_compliance import (
     HALAL_APPROVED_CATEGORY_SLUGS
 )
 from groq_moderation import ai_halal_moderation, get_cached_moderation
+from encryption_service import EncryptedString, encrypt_bytes, decrypt_bytes
 import qrcode
 import io
 import base64
@@ -2582,7 +2583,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=True)  # Nullable for OAuth users
-    phone = db.Column(db.String(20))
+    phone = db.Column(EncryptedString)  # PDPA: encrypted at rest
     full_name = db.Column(db.String(120))
     user_type = db.Column(db.String(20), default='freelancer')  # freelancer, client, both
     location = db.Column(db.String(100))
@@ -2608,11 +2609,11 @@ class User(UserMixin, db.Model):
     admin_permissions = db.Column(db.Text)  # JSON string of specific permissions
     is_deleted = db.Column(db.Boolean, default=False)  # soft-delete; preserves data for audit
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
-    ic_number = db.Column(db.String(20))
+    ic_number = db.Column(EncryptedString)  # PDPA: encrypted at rest
     # Bank account details for payment transfers
     bank_name = db.Column(db.String(100))
-    bank_account_number = db.Column(db.String(30))
-    bank_account_holder = db.Column(db.String(120))
+    bank_account_number = db.Column(EncryptedString)  # PDPA: encrypted at rest
+    bank_account_holder = db.Column(EncryptedString)  # PDPA: encrypted at rest
     # Stripe customer ID for saved payment methods
     stripe_customer_id = db.Column(db.String(100))  # Stripe customer ID (cus_xxx)
     # Stripe Connect fields for instant payouts
@@ -3049,8 +3050,8 @@ class Payout(db.Model):
     socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution (1.25% of amount)
     net_amount = db.Column(db.Float, nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)  # bank_transfer, fpx, touch_n_go, grab_pay, boost
-    account_number = db.Column(db.String(100))
-    account_name = db.Column(db.String(200))
+    account_number = db.Column(EncryptedString)  # PDPA: encrypted at rest
+    account_name = db.Column(EncryptedString)    # PDPA: encrypted at rest
     bank_name = db.Column(db.String(100))
     status = db.Column(db.String(20), default='pending')  # pending, processing, completed, failed, cancelled
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -3670,8 +3671,8 @@ class IdentityVerification(db.Model):
     """Model for IC/MyKad identity verification requests"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    ic_number = db.Column(db.String(12), nullable=False)
-    full_name = db.Column(db.String(200), nullable=False)
+    ic_number = db.Column(EncryptedString, nullable=False)  # PDPA: encrypted at rest
+    full_name = db.Column(EncryptedString, nullable=False)  # PDPA: encrypted at rest
     ic_front_image = db.Column(db.String(500))
     ic_back_image = db.Column(db.String(500))
     selfie_image = db.Column(db.String(500))
@@ -5911,8 +5912,11 @@ def upload_verification_documents():
         front_filename = f"ic_front_{timestamp}.{front_ext}"
         back_filename = f"ic_back_{timestamp}.{back_ext}"
         
-        ic_front.save(os.path.join(verification_folder, front_filename))
-        ic_back.save(os.path.join(verification_folder, back_filename))
+        # Encrypt files at rest (PDPA: biometric data)
+        with open(os.path.join(verification_folder, front_filename), 'wb') as fh:
+            fh.write(encrypt_bytes(ic_front.read()))
+        with open(os.path.join(verification_folder, back_filename), 'wb') as fh:
+            fh.write(encrypt_bytes(ic_back.read()))
         
         # Check if user already has pending verification
         existing = IdentityVerification.query.filter_by(user_id=user_id, status='pending').first()
@@ -8542,8 +8546,18 @@ def serve_verification_photo(filename):
         file_path = os.path.join(UPLOAD_FOLDER, 'verification', safe_filename)
         if not os.path.exists(file_path):
             return jsonify({'error': 'File not found'}), 404
-        
-        return send_from_directory(os.path.join(UPLOAD_FOLDER, 'verification'), safe_filename)
+
+        # Decrypt encrypted verification image before serving
+        import mimetypes
+        from flask import Response as FlaskResponse
+        with open(file_path, 'rb') as fh:
+            raw = fh.read()
+        try:
+            data = decrypt_bytes(raw)
+        except Exception:
+            data = raw  # Legacy unencrypted file — serve as-is
+        content_type = mimetypes.guess_type(safe_filename)[0] or 'application/octet-stream'
+        return FlaskResponse(data, mimetype=content_type)
     except Exception as e:
         app.logger.error(f"Serve verification photo error: {str(e)}")
         return jsonify({'error': 'Failed to load photo'}), 500
@@ -13515,6 +13529,252 @@ def delete_review(review_id):
         db.session.rollback()
         app.logger.error(f"Delete review error: {str(e)}")
         return jsonify({'error': 'Failed to delete review'}), 500
+
+# ============================================================
+# PDSR — Personal Data Subject Rights (PDPA 2010 ss.30 & 34)
+# ============================================================
+
+@app.route('/api/user/export-data', methods=['GET'])
+@login_required
+def export_user_data():
+    """
+    PDPA s.30 — Right of Access.
+    Returns a full JSON export of all personal data held for the caller.
+    """
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Transactions (as payer or payee)
+        from sqlalchemy import or_
+        transactions = []
+        try:
+            from app import Transaction
+            txns = Transaction.query.filter(
+                or_(Transaction.freelancer_id == user_id,
+                    Transaction.client_id == user_id)
+            ).order_by(Transaction.created_at.desc()).limit(500).all()
+            for t in txns:
+                transactions.append({
+                    'id': t.id,
+                    'amount': t.amount,
+                    'status': t.status,
+                    'created_at': t.created_at.isoformat() if t.created_at else None,
+                })
+        except Exception:
+            pass
+
+        # Payouts
+        payouts = []
+        try:
+            for p in Payout.query.filter_by(freelancer_id=user_id).order_by(Payout.requested_at.desc()).limit(200).all():
+                payouts.append({
+                    'payout_number': p.payout_number,
+                    'amount': p.amount,
+                    'net_amount': p.net_amount,
+                    'bank_name': p.bank_name,
+                    'account_number': '****' + (p.account_number or '')[-4:],
+                    'status': p.status,
+                    'requested_at': p.requested_at.isoformat() if p.requested_at else None,
+                })
+        except Exception:
+            pass
+
+        # Identity verifications
+        verifications = []
+        try:
+            for v in IdentityVerification.query.filter_by(user_id=user_id).all():
+                verifications.append({
+                    'status': v.status,
+                    'ic_number': (v.ic_number or '')[:4] + '****' + (v.ic_number or '')[-4:],
+                    'created_at': v.created_at.isoformat() if v.created_at else None,
+                    'expires_at': v.expires_at.isoformat() if v.expires_at else None,
+                })
+        except Exception:
+            pass
+
+        # Email logs sent to this user
+        email_logs = []
+        try:
+            for e in EmailSendLog.query.filter_by(recipient_user_id=user_id).order_by(EmailSendLog.sent_at.desc()).limit(100).all():
+                email_logs.append({
+                    'email_type': e.email_type,
+                    'subject': e.subject,
+                    'sent_at': e.sent_at.isoformat() if e.sent_at else None,
+                })
+        except Exception:
+            pass
+
+        export = {
+            'exported_at': datetime.utcnow().isoformat() + 'Z',
+            'data_controller': 'Calmic Sdn Bhd (1466852W / 202201021155)',
+            'profile': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'full_name': user.full_name,
+                'phone': user.phone,
+                'ic_number': (user.ic_number or '')[:4] + '****' + (user.ic_number or '')[-4:] if user.ic_number else None,
+                'user_type': user.user_type,
+                'location': user.location,
+                'bio': user.bio,
+                'bank_name': user.bank_name,
+                'bank_account_number': '****' + (user.bank_account_number or '')[-4:] if user.bank_account_number else None,
+                'bank_account_holder': user.bank_account_holder,
+                'socso_registered': user.socso_registered,
+                'socso_membership_number': user.socso_membership_number,
+                'date_of_birth': user.date_of_birth.isoformat() if user.date_of_birth else None,
+                'gender': user.gender,
+                'nationality': user.nationality,
+                'address_line1': user.address_line1,
+                'address_line2': user.address_line2,
+                'postcode': user.postcode,
+                'city': user.city,
+                'state': user.state,
+                'country': user.country,
+                'oauth_provider': user.oauth_provider,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
+                'is_verified': user.is_verified,
+                'totp_enabled': user.totp_enabled,
+            },
+            'transactions': transactions,
+            'payouts': payouts,
+            'identity_verifications': verifications,
+            'email_logs': email_logs,
+            'note': (
+                'Sensitive fields (IC, bank account) are partially masked in this export. '
+                'Contact privacy@gighala.my for a full unmasked copy via secure channel.'
+            ),
+        }
+
+        return jsonify(export), 200
+
+    except Exception as e:
+        app.logger.error(f"Export user data error: {str(e)}")
+        return jsonify({'error': 'Failed to export data'}), 500
+
+
+@app.route('/api/user/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    """
+    PDPA-compliant hard delete.
+    - Scrubs all PII from the User record.
+    - Anonymises Payout bank details.
+    - Deletes uploaded files (profile photo, verification images).
+    - Retains financial record shells for 7-year legal hold (amounts, dates,
+      IDs) but strips personal identifiers from those records.
+    - Clears the session.
+    """
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        data = request.get_json(silent=True) or {}
+        confirm = data.get('confirm', False)
+        if not confirm:
+            return jsonify({
+                'error': 'Confirmation required',
+                'message': 'Pass {"confirm": true} to proceed with account deletion.'
+            }), 400
+
+        # ----------------------------------------------------------------
+        # 1. Delete uploaded files
+        # ----------------------------------------------------------------
+        # Profile photo
+        if user.profile_photo:
+            photo_path = os.path.join(UPLOAD_FOLDER, 'profile_photos', user.profile_photo)
+            if os.path.exists(photo_path):
+                os.remove(photo_path)
+
+        # Verification images
+        for iv in IdentityVerification.query.filter_by(user_id=user_id).all():
+            for img_attr in ('ic_front_image', 'ic_back_image', 'selfie_image'):
+                img_path = getattr(iv, img_attr, None)
+                if img_path:
+                    # Stored as URL /uploads/verification/<file> or relative path
+                    fname = img_path.replace('/uploads/verification/', '').lstrip('/')
+                    full_path = os.path.join(UPLOAD_FOLDER, 'verification', os.path.basename(fname))
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+
+        # ----------------------------------------------------------------
+        # 2. Anonymise Payout bank details (financial records kept for 7yr)
+        # ----------------------------------------------------------------
+        for p in Payout.query.filter_by(freelancer_id=user_id).all():
+            p.account_number = None
+            p.account_name = None
+            p.bank_name = '[deleted]'
+
+        # ----------------------------------------------------------------
+        # 3. Scrub PII from User record (mark as permanently deleted)
+        # ----------------------------------------------------------------
+        anon_email = f'deleted_{user_id}@deleted.gighala.my'
+        user.email = anon_email
+        user.username = f'deleted_{user_id}'
+        user.full_name = None
+        user.phone = None
+        user.ic_number = None
+        user.bank_name = None
+        user.bank_account_number = None
+        user.bank_account_holder = None
+        user.profile_photo = None
+        user.bio = None
+        user.skills = None
+        user.location = None
+        user.latitude = None
+        user.longitude = None
+        user.address_line1 = None
+        user.address_line2 = None
+        user.postcode = None
+        user.city = None
+        user.state = None
+        user.date_of_birth = None
+        user.gender = None
+        user.race = None
+        user.marital_status = None
+        user.nationality = None
+        user.socso_membership_number = None
+        user.totp_secret = None
+        user.totp_enabled = False
+        user.oauth_id = None
+        user.password_hash = None
+        user.is_deleted = True
+        user.password_reset_token = None
+        user.email_verification_token = None
+        user.phone_verification_code = None
+
+        # ----------------------------------------------------------------
+        # 4. Delete IdentityVerification records
+        # ----------------------------------------------------------------
+        IdentityVerification.query.filter_by(user_id=user_id).delete()
+
+        db.session.commit()
+
+        # ----------------------------------------------------------------
+        # 5. Clear session
+        # ----------------------------------------------------------------
+        session.clear()
+
+        app.logger.info(f"PDPA hard-delete completed for user_id={user_id}")
+        return jsonify({
+            'success': True,
+            'message': (
+                'Your account has been deleted and personal data scrubbed. '
+                'Financial transaction records are retained for 7 years as '
+                'required by Malaysian law (LHDN / Akta Syarikat 2016).'
+            )
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Delete account error: {str(e)}")
+        return jsonify({'error': 'Failed to delete account'}), 500
+
 
 @app.route('/api/profile', methods=['GET'])
 def get_profile():
@@ -24568,7 +24828,9 @@ def submit_verification():
                 if file and file.filename and allowed_file(file.filename):
                     filename = secure_filename(f"{user_id}_{field}_{uuid.uuid4().hex}_{file.filename}")
                     file_path = os.path.join(verification_folder, filename)
-                    file.save(file_path)
+                    # Encrypt at rest (PDPA: biometric data)
+                    with open(file_path, 'wb') as fh:
+                        fh.write(encrypt_bytes(file.read()))
                     if field == 'ic_front':
                         ic_front = f'/uploads/verification/{filename}'
                     elif field == 'ic_back':
@@ -25687,7 +25949,7 @@ with app.app_context():
     init_database()
 
 # Initialize scheduled jobs (email digests, etc.)
-scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance)
+scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance, VisitorLog=VisitorLog, IdentityVerification=IdentityVerification)
 
 # Setup Google OAuth if credentials are available
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint

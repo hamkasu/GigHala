@@ -1,6 +1,9 @@
 # GigHala Dependencies
 # =====================
 
+# Field-level encryption (PDPA compliance)
+cryptography>=41.0.0
+
 # Core Flask and Web Framework
 Flask==3.0.0
 Flask-CORS==4.0.0
