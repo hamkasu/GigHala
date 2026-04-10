@@ -152,6 +152,39 @@
         .footer-links a:hover {
             text-decoration: underline;
         }
+        .consent-box {
+            background: #F0FDF4;
+            border: 2px solid #BBF7D0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .consent-box.warning {
+            background: #FFFBEB;
+            border-color: #FDE68A;
+        }
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+        }
+        .consent-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            margin-top: 2px;
+            accent-color: #0D7C66;
+            cursor: pointer;
+        }
+        .consent-label a {
+            color: #0D7C66;
+            font-weight: 600;
+            text-decoration: underline;
+        }
         .error-message {
             background: #FEE2E2;
             color: #DC2626;
@@ -311,6 +344,44 @@
 
             <input type="hidden" name="referral_code" id="referralCodeInput">
 
+            <!-- PDPA Consent Checkbox (PDPA 2010 s.6 — mandatory explicit consent) -->
+            <div class="consent-box">
+                <label class="consent-label">
+                    <input type="checkbox" id="privacyConsentCheckbox" required>
+                    <span>
+                        {% if lang == 'ms' %}
+                            Saya telah membaca dan <strong>bersetuju</strong> dengan
+                            <a href="/privasi" target="_blank">Dasar Privasi</a> GigHala.
+                            Saya faham bahawa maklumat peribadi saya dikumpul dan diproses
+                            mengikut Akta Perlindungan Data Peribadi 2010 (PDPA).
+                        {% else %}
+                            I have read and <strong>agree</strong> to GigHala's
+                            <a href="/privasi" target="_blank">Privacy Policy</a>.
+                            I understand my personal data is collected and processed
+                            in accordance with the Personal Data Protection Act 2010 (PDPA).
+                        {% endif %}
+                    </span>
+                </label>
+            </div>
+
+            <!-- SOCSO Consent Checkbox (Gig Workers Bill 2025 — mandatory for freelancers) -->
+            <div class="consent-box warning" id="socsoConsentBox">
+                <label class="consent-label">
+                    <input type="checkbox" id="socsoConsentCheckbox">
+                    <span>
+                        {% if lang == 'ms' %}
+                            Saya <strong>bersetuju</strong> dengan potongan caruman SOCSO wajib
+                            sebanyak <strong>1.25%</strong> daripada setiap bayaran gig saya,
+                            seperti yang dikehendaki oleh Rang Undang-Undang Pekerja Gig 2025.
+                        {% else %}
+                            I <strong>agree</strong> to mandatory SOCSO contribution deductions of
+                            <strong>1.25%</strong> from each gig payment, as required by the
+                            Gig Workers Bill 2025.
+                        {% endif %}
+                    </span>
+                </label>
+            </div>
+
             <button type="submit" class="btn-primary">
                 {% if lang == 'ms' %}Daftar Sekarang{% else %}Register Now{% endif %}
             </button>
@@ -334,11 +405,37 @@
             }
         })();
 
+        // Show/hide SOCSO consent box based on user_type selection
+        (function() {
+            const userTypeSelect = document.querySelector('select[name="user_type"]');
+            const socsoBox = document.getElementById('socsoConsentBox');
+            const socsoCheckbox = document.getElementById('socsoConsentCheckbox');
+
+            function updateSocsoVisibility() {
+                const val = userTypeSelect.value;
+                const isFreelancer = val === 'freelancer' || val === 'both';
+                socsoBox.style.display = isFreelancer ? 'block' : 'none';
+                socsoCheckbox.required = isFreelancer;
+            }
+
+            userTypeSelect.addEventListener('change', updateSocsoVisibility);
+            updateSocsoVisibility(); // run on page load
+        })();
+
         async function handleRegister(event) {
             event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
             const errorMessage = document.getElementById('errorMessage');
+
+            const privacyConsent = document.getElementById('privacyConsentCheckbox').checked;
+            const socsoConsent = document.getElementById('socsoConsentCheckbox').checked;
+
+            if (!privacyConsent) {
+                errorMessage.textContent = '{% if lang == "ms" %}Anda mesti bersetuju dengan Dasar Privasi untuk mendaftar.{% else %}You must agree to the Privacy Policy to register.{% endif %}';
+                errorMessage.style.display = 'block';
+                return false;
+            }
 
             // Combine first and last name
             const firstName = formData.get('first_name') || '';
@@ -355,8 +452,8 @@
                 location: formData.get('location') || 'Kuala Lumpur',
                 user_type: formData.get('user_type') || 'freelancer',
                 referral_code: formData.get('referral_code') || undefined,
-                privacy_consent: true,
-                socso_consent: true
+                privacy_consent: privacyConsent,
+                socso_consent: socsoConsent
             };
 
             try {
