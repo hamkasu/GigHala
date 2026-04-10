@@ -615,7 +615,81 @@ def send_worker_updates_digest(app, db, User, WorkerSpecialization, EmailDigestL
                 logger.error(f"Failed to log error: {str(log_error)}")
 
 
-def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance):
+# ---------------------------------------------------------------------------
+# PDPA Data Purge Jobs
+# ---------------------------------------------------------------------------
+
+def purge_old_email_logs(app, db, EmailSendLog):
+    """
+    PDPA s.5 — delete EmailSendLog records older than 1 year.
+    Runs nightly at 02:00 MYT.
+    """
+    with app.app_context():
+        try:
+            cutoff = datetime.utcnow() - timedelta(days=365)
+            deleted = db.session.query(EmailSendLog).filter(
+                EmailSendLog.sent_at < cutoff
+            ).delete(synchronize_session=False)
+            db.session.commit()
+            if deleted:
+                logger.info(f"PDPA purge: deleted {deleted} EmailSendLog rows older than 1 year")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"EmailSendLog purge failed: {e}")
+
+
+def purge_old_visitor_logs(app, db, VisitorLog):
+    """
+    PDPA s.5 — delete VisitorLog (IP address) records older than 90 days.
+    Runs nightly at 02:15 MYT.
+    """
+    with app.app_context():
+        try:
+            cutoff = datetime.utcnow() - timedelta(days=90)
+            deleted = db.session.query(VisitorLog).filter(
+                VisitorLog.timestamp < cutoff
+            ).delete(synchronize_session=False)
+            db.session.commit()
+            if deleted:
+                logger.info(f"PDPA purge: deleted {deleted} VisitorLog rows older than 90 days")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"VisitorLog purge failed: {e}")
+
+
+def purge_expired_verification_images(app, db, IdentityVerification):
+    """
+    PDPA s.5 — delete biometric image files for verifications that expired
+    more than 1 year ago. Runs nightly at 02:30 MYT.
+    """
+    import os
+    with app.app_context():
+        try:
+            from app import UPLOAD_FOLDER
+            cutoff = datetime.utcnow() - timedelta(days=365)
+            expired = IdentityVerification.query.filter(
+                IdentityVerification.expires_at < cutoff
+            ).all()
+            purged = 0
+            for iv in expired:
+                for attr in ('ic_front_image', 'ic_back_image', 'selfie_image'):
+                    img_path = getattr(iv, attr, None)
+                    if img_path:
+                        fname = img_path.replace('/uploads/verification/', '').lstrip('/')
+                        full_path = os.path.join(UPLOAD_FOLDER, 'verification', os.path.basename(fname))
+                        if os.path.exists(full_path):
+                            os.remove(full_path)
+                            purged += 1
+                        setattr(iv, attr, None)
+            db.session.commit()
+            if purged:
+                logger.info(f"PDPA purge: removed {purged} expired verification image files")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Verification image purge failed: {e}")
+
+
+def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPreference, EmailDigestLog, EmailSendLog, email_service, calculate_distance, VisitorLog=None, IdentityVerification=None):
     """
     Initialize APScheduler with all scheduled jobs
 
@@ -707,6 +781,35 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
         replace_existing=True
     )
 
+    # PDPA purge: EmailSendLog > 1 year — runs at 02:00 MYT
+    scheduler.add_job(
+        func=lambda: purge_old_email_logs(app, db, EmailSendLog),
+        trigger=CronTrigger(hour=2, minute=0, timezone=timezone),
+        id='purge_email_send_log',
+        name='PDPA purge: EmailSendLog older than 1 year (2:00 AM)',
+        replace_existing=True
+    )
+
+    # PDPA purge: VisitorLog > 90 days — runs at 02:15 MYT
+    if VisitorLog is not None:
+        scheduler.add_job(
+            func=lambda: purge_old_visitor_logs(app, db, VisitorLog),
+            trigger=CronTrigger(hour=2, minute=15, timezone=timezone),
+            id='purge_visitor_log',
+            name='PDPA purge: VisitorLog older than 90 days (2:15 AM)',
+            replace_existing=True
+        )
+
+    # PDPA purge: expired verification image files — runs at 02:30 MYT
+    if IdentityVerification is not None:
+        scheduler.add_job(
+            func=lambda: purge_expired_verification_images(app, db, IdentityVerification),
+            trigger=CronTrigger(hour=2, minute=30, timezone=timezone),
+            id='purge_verification_images',
+            name='PDPA purge: expired verification images (2:30 AM)',
+            replace_existing=True
+        )
+
     # Start the scheduler
     scheduler.start()
     logger.info(f"Scheduler started with timezone: {timezone}")
@@ -718,6 +821,9 @@ def init_scheduler(app, db, User, Gig, WorkerSpecialization, NotificationPrefere
     logger.info("  - AI-matched gigs email at 9:00 PM")
     logger.info("  - Referral bonus processing every hour")
     logger.info("  - SLA compliance check every 15 minutes")
+    logger.info("  - PDPA purge: EmailSendLog >1yr at 2:00 AM")
+    logger.info("  - PDPA purge: VisitorLog >90d at 2:15 AM")
+    logger.info("  - PDPA purge: expired verification images at 2:30 AM")
 
     # Shut down the scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
