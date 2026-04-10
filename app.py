@@ -22997,97 +22997,216 @@ def privasi():
     user = User.query.get(session.get('user_id')) if 'user_id' in session else None
     content = '''
     <div class="content-section">
-        <h2><span class="icon">🔒</span> Polisi Privasi</h2>
-        <p><em>Kemas kini terakhir: 15 Disember 2025</em></p>
-        
-        <h3>1. Maklumat Yang Kami Kumpul</h3>
-        <p>Kami mengumpul maklumat berikut:</p>
+        <h2><span class="icon">🔒</span> Dasar Privasi / Privacy Policy</h2>
+        <p><em>Kemas kini terakhir / Last updated: 10 April 2026</em></p>
+        <div class="highlight-box">
+            <p><strong>Ringkasan:</strong> GigHala (dikendalikan oleh Calmic Sdn Bhd) komited terhadap perlindungan data peribadi anda selaras dengan <strong>Akta Perlindungan Data Peribadi 2010 (PDPA)</strong> Malaysia. Dasar ini menerangkan bagaimana kami mengumpul, menggunakan, menyimpan dan melindungi maklumat peribadi anda.</p>
+            <p><em><strong>Summary:</strong> GigHala (operated by Calmic Sdn Bhd) is committed to protecting your personal data in accordance with Malaysia\'s Personal Data Protection Act 2010 (PDPA). This policy explains how we collect, use, store and protect your personal information.</em></p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🏢</span> 1. Maklumat Syarikat / Company Information</h2>
         <ul>
-            <li><strong>Maklumat Peribadi:</strong> Nama, email, nombor telefon, alamat</li>
-            <li><strong>Maklumat Akaun:</strong> Username, kata laluan (encrypted), foto profil</li>
-            <li><strong>Maklumat Kewangan:</strong> Butiran bank untuk pembayaran</li>
-            <li><strong>Data Penggunaan:</strong> Log aktiviti, alamat IP, jenis peranti</li>
+            <li><strong>Pengawal Data / Data Controller:</strong> Calmic Sdn Bhd</li>
+            <li><strong>No. Pendaftaran SSM:</strong> 1466852W / 202201021155</li>
+            <li><strong>Platform:</strong> GigHala (gighala.my)</li>
+            <li><strong>Pegawai Perlindungan Data (DPO):</strong> dpo@gighala.my</li>
+            <li><strong>E-mel Privasi / Privacy Email:</strong> privacy@gighala.my</li>
         </ul>
-        
-        <h3>2. Bagaimana Kami Menggunakan Maklumat</h3>
-        <p>Maklumat anda digunakan untuk:</p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📦</span> 2. Data Peribadi Yang Kami Kumpul / Personal Data We Collect</h2>
+
+        <h3>2.1 Data Identiti &amp; Hubungan</h3>
         <ul>
-            <li>Menyediakan dan mengekalkan perkhidmatan kami</li>
-            <li>Memproses transaksi dan pembayaran</li>
-            <li>Berkomunikasi dengan anda tentang akaun anda</li>
-            <li>Meningkatkan perkhidmatan kami</li>
-            <li>Mematuhi keperluan undang-undang</li>
+            <li>Nama penuh, nama pengguna, alamat e-mel, nombor telefon</li>
+            <li>Nombor Kad Pengenalan (IC/MyKad) atau nombor pasport</li>
+            <li>Tarikh lahir, jantina, bangsa, status perkahwinan, kewarganegaraan</li>
+            <li>Alamat tempat tinggal (untuk pendaftaran PERKESO)</li>
         </ul>
-        
-        <h3>3. Perkongsian Maklumat</h3>
-        <p>Kami TIDAK menjual maklumat peribadi anda. Kami mungkin berkongsi maklumat dengan:</p>
+
+        <h3>2.2 Data Kewangan</h3>
         <ul>
-            <li>Penyedia perkhidmatan pembayaran (untuk memproses transaksi)</li>
-            <li>Pihak berkuasa undang-undang (jika dikehendaki oleh undang-undang)</li>
-            <li>Pengguna lain (maklumat profil awam sahaja)</li>
+            <li>Nama bank, nombor akaun bank, nama pemegang akaun</li>
+            <li>ID pelanggan Stripe, kaedah pembayaran</li>
+            <li>Sejarah transaksi, pendapatan, no. keanggotaan PERKESO</li>
         </ul>
-        
-        <h3>4. Keselamatan Data</h3>
-        <p>Kami mengambil langkah keselamatan yang serius:</p>
+
+        <h3>2.3 Data Profil Profesional</h3>
         <ul>
-            <li>Enkripsi SSL untuk semua data dalam transit</li>
-            <li>Kata laluan di-hash menggunakan algoritma selamat</li>
-            <li>Akses terhad kepada data peribadi</li>
-            <li>Pemantauan keselamatan berterusan</li>
+            <li>Foto profil, video profil, URL portfolio, kemahiran, biodata</li>
+            <li>URL LinkedIn, sijil kelayakan, pengalaman kerja</li>
         </ul>
-        
-        <h3>5. Hak Anda</h3>
-        <p>Anda mempunyai hak untuk:</p>
+
+        <h3>2.4 Data Biometrik &amp; Pengesahan Identiti (Sensitive Personal Data)</h3>
         <ul>
-            <li>Mengakses maklumat peribadi anda</li>
-            <li>Membetulkan maklumat yang tidak tepat</li>
-            <li>Meminta pemadaman akaun</li>
-            <li>Menarik balik persetujuan untuk komunikasi pemasaran</li>
+            <li>Imej IC/MyKad (hadapan dan belakang) dan gambar selfie untuk pengesahan liveness</li>
+            <li>Data ini dikumpul dengan persetujuan eksplisit anda dan digunakan semata-mata untuk pengesahan identiti</li>
         </ul>
-        
-        <h3>6. Cookies</h3>
-        <p>Kami menggunakan cookies untuk:</p>
+
+        <h3>2.5 Data Lokasi</h3>
         <ul>
-            <li>Mengekalkan sesi log masuk anda</li>
-            <li>Mengingat pilihan bahasa anda</li>
-            <li>Menganalisis penggunaan laman web</li>
+            <li>Koordinat GPS (latitud/longitud) apabila anda bersetuju berkongsi lokasi</li>
         </ul>
-        
-        <h3>7. Penyimpanan Data</h3>
-        <p>Data anda disimpan selagi akaun anda aktif. Selepas pemadaman akaun, data dikekalkan selama 30 hari sebelum dipadam sepenuhnya.</p>
-        
-        <h3>8. Sumber Pengumpulan Data</h3>
-        <p>Kami mengumpul data peribadi anda secara langsung daripada anda apabila anda mendaftar atau menggunakan perkhidmatan kami, dan secara automatik melalui peranti anda (contoh: alamat IP dan log penggunaan).</p>
-        
-        <h3>9. Data Wajib</h3>
-        <p>Pemberian data peribadi tertentu (contoh: butiran hubungan dan pembayaran) adalah wajib untuk kami memproses pendaftaran dan transaksi anda. Kegagalan memberikan data tersebut mungkin bermakna kami tidak dapat menyediakan perkhidmatan yang diminta.</p>
-        
-        <h3>10. Pemindahan Data Antarabangsa</h3>
-        <p>Data anda mungkin dipindahkan dan disimpan dalam server di luar Malaysia (contoh: di Amerika Syarikat). Kami memastikan pemindahan mematuhi keperluan PDPA melalui perlindungan yang mencukupi atau kontrak yang sesuai.</p>
-        
-        <h3>11. Data Peribadi Sensitif</h3>
-        <p>Jika kami mengumpul data peribadi sensitif (seperti data biometrik atau maklumat kesihatan), kami akan mendapatkan persetujuan eksplisit anda secara berasingan.</p>
-        
-        <h3>12. Pemberitahuan Pelanggaran Data</h3>
-        <p>Sekiranya berlaku pelanggaran data peribadi yang boleh menyebabkan kemudaratan yang ketara, kami dikehendaki untuk memberitahu Pesuruhjaya Perlindungan Data Peribadi (JPDP) dalam masa 72 jam dan memaklumkan anda jika perlu.</p>
-        
-        <h3>13. Pegawai Perlindungan Data (DPO)</h3>
-        <p>Kami telah melantik Pegawai Perlindungan Data (DPO) yang bertanggungjawab untuk mengawasi pematuhan dengan PDPA.</p>
-        <p><strong>Hubungi DPO:</strong></p>
+
+        <h3>2.6 Data Penggunaan &amp; Teknikal</h3>
         <ul>
-            <li>Email: dpo@gighala.my</li>
-            <li>Telefon: +60 3-XXXX XXXX</li>
+            <li>Alamat IP, jenis pelayar web, halaman yang dilawati, masa akses</li>
+            <li>Sejarah perbualan dalam platform, log e-mel, maklumat sesi</li>
         </ul>
-        
-        <h3>14. Hubungi Kami</h3>
-        <p>Untuk soalan tentang privasi, hubungi: privacy@gighala.my</p>
+
+        <h3>2.7 Data Log Masuk Sosial (OAuth)</h3>
+        <ul>
+            <li>ID unik dari Google, Microsoft, Apple, Facebook, atau X/Twitter (jika anda memilih log masuk sosial)</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🎯</span> 3. Tujuan Pemprosesan Data / Purpose of Processing</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead>
+                <tr style="background:#f5f5f5;">
+                    <th style="padding:10px;border:1px solid #ddd;text-align:left;">Tujuan / Purpose</th>
+                    <th style="padding:10px;border:1px solid #ddd;text-align:left;">Asas Undang-undang</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Pendaftaran &amp; pengesahan akaun</td><td style="padding:8px;border:1px solid #ddd;">Persetujuan / Kontrak</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Pemprosesan pembayaran &amp; pencairan</td><td style="padding:8px;border:1px solid #ddd;">Kontrak / Kewajipan undang-undang</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Pematuhan PERKESO (Gig Workers Bill 2025)</td><td style="padding:8px;border:1px solid #ddd;">Kewajipan undang-undang</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Pengesahan identiti &amp; pencegahan penipuan</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah / Persetujuan</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Komunikasi &amp; notifikasi platform</td><td style="padding:8px;border:1px solid #ddd;">Kontrak / Persetujuan</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Moderasi kandungan halal (AI)</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Analisis &amp; penambahbaikan platform</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Pematuhan undang-undang &amp; audit</td><td style="padding:8px;border:1px solid #ddd;">Kewajipan undang-undang</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🤝</span> 4. Perkongsian Data dengan Pihak Ketiga / Third-Party Data Sharing</h2>
+        <p>Kami <strong>TIDAK menjual</strong> data peribadi anda. Data dikongsi hanya dengan pemproses berikut berdasarkan keperluan perkhidmatan:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead>
+                <tr style="background:#f5f5f5;">
+                    <th style="padding:10px;border:1px solid #ddd;text-align:left;">Perkhidmatan</th>
+                    <th style="padding:10px;border:1px solid #ddd;text-align:left;">Tujuan</th>
+                    <th style="padding:10px;border:1px solid #ddd;text-align:left;">Data Dikongsi</th>
+                    <th style="padding:10px;border:1px solid #ddd;text-align:left;">Lokasi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Brevo</strong></td><td style="padding:8px;border:1px solid #ddd;">Penghantaran e-mel</td><td style="padding:8px;border:1px solid #ddd;">Alamat e-mel, kandungan e-mel</td><td style="padding:8px;border:1px solid #ddd;">EU/USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Twilio</strong></td><td style="padding:8px;border:1px solid #ddd;">Penghantaran SMS/OTP</td><td style="padding:8px;border:1px solid #ddd;">Nombor telefon, kandungan SMS</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Meta (WhatsApp)</strong></td><td style="padding:8px;border:1px solid #ddd;">Notifikasi WhatsApp</td><td style="padding:8px;border:1px solid #ddd;">Nombor telefon, kandungan mesej</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Stripe</strong></td><td style="padding:8px;border:1px solid #ddd;">Pemprosesan pembayaran</td><td style="padding:8px;border:1px solid #ddd;">Data pembayaran, ID pelanggan</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Groq</strong></td><td style="padding:8px;border:1px solid #ddd;">Moderasi kandungan AI (Halal)</td><td style="padding:8px;border:1px solid #ddd;">Kandungan gig/deskripsi</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Railway</strong></td><td style="padding:8px;border:1px solid #ddd;">Hosting &amp; infrastruktur</td><td style="padding:8px;border:1px solid #ddd;">Semua data platform</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Google/Microsoft/Apple/Facebook/X</strong></td><td style="padding:8px;border:1px solid #ddd;">Log masuk sosial (OAuth)</td><td style="padding:8px;border:1px solid #ddd;">ID OAuth, e-mel (jika bersetuju)</td><td style="padding:8px;border:1px solid #ddd;">Pelbagai</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>PERKESO</strong></td><td style="padding:8px;border:1px solid #ddd;">Pendaftaran &amp; caruman PERKESO</td><td style="padding:8px;border:1px solid #ddd;">IC, nama, tarikh lahir, caruman</td><td style="padding:8px;border:1px solid #ddd;">Malaysia</td></tr>
+            </tbody>
+        </table>
+        <p style="margin-top:12px;font-size:0.9em;color:#666;">Pemindahan data ke luar Malaysia dilaksanakan atas keperluan operasi. Kami memastikan perlindungan yang mencukupi melalui Perjanjian Pemprosesan Data (DPA) dengan setiap pembekal.</p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">⏱️</span> 5. Tempoh Penyimpanan Data / Data Retention</h2>
+        <p>Kami menyimpan data peribadi hanya selama yang diperlukan. Lihat <a href="/dasar-penyimpanan-data" style="color:#00C853;font-weight:600;">Jadual Penyimpanan Data</a> kami untuk butiran lengkap.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:8px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:8px;border:1px solid #ddd;text-align:left;">Tempoh</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Data akaun aktif</td><td style="padding:8px;border:1px solid #ddd;">Selagi akaun aktif</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Data selepas penutupan akaun</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong> (keperluan Akta Syarikat 2016)</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Rekod transaksi &amp; PERKESO</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong> (keperluan LHDN &amp; PERKESO)</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log e-mel</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong></td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log pengunjung (alamat IP)</td><td style="padding:8px;border:1px solid #ddd;"><strong>90 hari</strong></td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Imej IC &amp; selfie (pengesahan identiti)</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong> selepas pengesahan tamat tempoh</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Token pengesahan e-mel/telefon</td><td style="padding:8px;border:1px solid #ddd;"><strong>24 jam</strong></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🔐</span> 6. Keselamatan Data / Data Security</h2>
+        <ul>
+            <li><strong>Kata laluan:</strong> Di-hash menggunakan PBKDF2 dengan garam — tidak disimpan dalam bentuk teks biasa</li>
+            <li><strong>Sambungan selamat:</strong> HTTPS/TLS dipaksakan; pengepala HSTS dikonfigurasikan</li>
+            <li><strong>Cookies selamat:</strong> HttpOnly, Secure, SameSite=Lax</li>
+            <li><strong>Kawalan akses:</strong> Kawalan akses berasaskan peranan (RBAC)</li>
+            <li><strong>Pengehadan kadar:</strong> Perlindungan brute-force pada log masuk</li>
+            <li><strong>2FA:</strong> Pengesahan dua faktor (TOTP) tersedia untuk semua pengguna</li>
+            <li><strong>Pengepala keselamatan:</strong> CSP, X-Frame-Options, X-XSS-Protection</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">⚖️</span> 7. Hak-Hak Anda Di Bawah PDPA / Your Rights Under PDPA 2010</h2>
+        <div class="step-list">
+            <div class="step-item"><strong>Hak Akses (Seksyen 30)</strong> — Minta salinan data peribadi anda: privacy@gighala.my</div>
+            <div class="step-item"><strong>Hak Pembetulan (Seksyen 34)</strong> — Betulkan data tidak tepat melalui tetapan profil atau privacy@gighala.my</div>
+            <div class="step-item"><strong>Hak Menghentikan Pemprosesan Pemasaran</strong> — Hentikan e-mel pemasaran pada bila-bila masa</div>
+            <div class="step-item"><strong>Hak Pemadaman Akaun</strong> — Minta penutupan akaun; sesetengah data dikekalkan untuk kewajipan undang-undang</div>
+            <div class="step-item"><strong>Hak Menarik Balik Persetujuan</strong> — Tarik balik persetujuan untuk pemprosesan tidak wajib pada bila-bila masa</div>
+        </div>
+        <p>Hantar permintaan ke <strong>privacy@gighala.my</strong> — kami akan bertindak balas dalam <strong>21 hari bekerja</strong>.</p>
+        <p>Aduan boleh difailkan kepada <strong>Jabatan Perlindungan Data Peribadi (JPDP)</strong>: <a href="https://www.pdp.gov.my" target="_blank" rel="noopener noreferrer" style="color:#00C853;">www.pdp.gov.my</a></p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🍪</span> 8. Cookies</h2>
+        <ul>
+            <li><strong>Cookies Penting:</strong> Mengekalkan sesi log masuk (wajib untuk fungsi platform)</li>
+            <li><strong>Cookies Keutamaan:</strong> Mengingat pilihan bahasa anda</li>
+            <li><strong>Cookies Perkhidmatan:</strong> Membolehkan PWA berfungsi</li>
+        </ul>
+        <p>Kami tidak menggunakan cookies penjejakan pihak ketiga untuk pengiklanan.</p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🔔</span> 9. Pemberitahuan Pelanggaran Data / Breach Notification</h2>
+        <ul>
+            <li>JPDP akan diberitahu dalam masa <strong>72 jam</strong> selepas pelanggaran dikenal pasti (jika menyebabkan kemudaratan yang ketara)</li>
+            <li>Pengguna yang terjejas akan dimaklumkan tanpa kelewatan yang tidak wajar</li>
+        </ul>
+        <p>Lihat <a href="/data-breach-response" style="color:#00C853;font-weight:600;">Pelan Tindak Balas Pelanggaran Data</a> kami untuk prosedur lengkap.</p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🌐</span> 10. Pemindahan Data Antarabangsa / International Transfers</h2>
+        <p>Beberapa pembekal kami menyimpan dan memproses data di luar Malaysia (USA/EU) atas keperluan perkhidmatan. Kami memastikan perlindungan yang mencukupi melalui DPA dengan setiap pembekal bersertifikat (ISO 27001, SOC 2, PCI-DSS).</p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">👨‍💼</span> 11. Pegawai Perlindungan Data (DPO)</h2>
+        <p>Calmic Sdn Bhd telah melantik DPO yang bertanggungjawab memantau pematuhan PDPA, mengendalikan aduan privasi, dan bekerjasama dengan JPDP.</p>
+        <ul>
+            <li><strong>E-mel DPO:</strong> dpo@gighala.my</li>
+            <li><strong>E-mel Privasi:</strong> privacy@gighala.my</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📝</span> 12. Perubahan Dasar Ini / Policy Changes</h2>
+        <p>Perubahan ketara akan dimaklumkan melalui notifikasi dalam platform dan e-mel kepada pengguna berdaftar. Tarikh "Kemas kini terakhir" di atas akan dikemas kini.</p>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📞</span> 13. Hubungi Kami / Contact Us</h2>
+        <div class="contact-grid">
+            <div class="contact-card"><h4>Pertanyaan Privasi</h4><p>privacy@gighala.my</p></div>
+            <div class="contact-card"><h4>Pegawai Perlindungan Data</h4><p>dpo@gighala.my</p></div>
+            <div class="contact-card"><h4>Sokongan Umum</h4><p>support@gighala.my</p></div>
+        </div>
+        <p style="margin-top:16px;font-size:0.9em;color:#666;"><strong>Calmic Sdn Bhd</strong> (1466852W / 202201021155) — GigHala Platform, gighala.my</p>
     </div>
     '''
-    return render_template('static_page.html', 
-                         user=user, 
+    return render_template('static_page.html',
+                         user=user,
                          active_page='privasi',
-                         page_title='Polisi Privasi',
-                         page_subtitle='Bagaimana kami melindungi maklumat anda',
+                         page_title='Dasar Privasi / Privacy Policy',
+                         page_subtitle='Bagaimana kami melindungi data peribadi anda | How we protect your personal data',
                          content=content)
 
 @app.route('/halal-compliance')
@@ -23267,6 +23386,311 @@ def gig_workers_bill():
                          page_title='Gig Workers Bill',
                          page_subtitle='Hak-hak dan perlindungan untuk pekerja gig',
                          content=content)
+
+@app.route('/data-breach-response')
+def data_breach_response():
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">🚨</span> Pelan Tindak Balas Pelanggaran Data</h2>
+        <p><em>Data Breach Response Plan</em></p>
+        <p><em>Kemas kini terakhir / Last updated: 10 April 2026</em></p>
+        <div class="highlight-box">
+            <p>Dokumen ini menerangkan prosedur GigHala (Calmic Sdn Bhd) dalam mengenal pasti, mengurus, dan bertindak balas terhadap pelanggaran data peribadi selaras dengan <strong>Akta Perlindungan Data Peribadi 2010 (PDPA)</strong> Malaysia.</p>
+            <p><em>This document outlines GigHala\'s procedures for identifying, managing, and responding to personal data breaches under Malaysia\'s PDPA 2010.</em></p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📖</span> 1. Definisi Pelanggaran Data / Definition</h2>
+        <p>Pelanggaran data peribadi merujuk kepada sebarang insiden yang mengakibatkan:</p>
+        <ul>
+            <li><strong>Pendedahan tidak sah:</strong> Data diakses atau dilihat oleh pihak yang tidak diberi kuasa</li>
+            <li><strong>Perolehan tidak sah:</strong> Data disalin, dicuri atau diperoleh secara haram</li>
+            <li><strong>Pengubahsuaian tidak sah:</strong> Data diubah tanpa kebenaran</li>
+            <li><strong>Kehilangan atau pemusnahan:</strong> Data hilang atau dimusnahkan secara tidak sengaja</li>
+        </ul>
+        <h3>Contoh Insiden:</h3>
+        <ul>
+            <li>Capaian tidak sah ke pangkalan data pengguna</li>
+            <li>Kebocoran bukti kelayakan (e-mel/kata laluan)</li>
+            <li>Serangan siber (SQL injection, ransomware, phishing)</li>
+            <li>Pembekal pihak ketiga yang terdedah</li>
+            <li>Konfigurasi pelayan yang salah menyebabkan pendedahan data</li>
+            <li>Penghantaran e-mel kepada penerima yang salah</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">👥</span> 2. Pasukan Tindak Balas Insiden / Incident Response Team</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Peranan</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tanggungjawab</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Hubungan</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Pegawai Perlindungan Data (DPO)</strong></td><td style="padding:8px;border:1px solid #ddd;">Mengetuai tindak balas; pemberitahuan JPDP; komunikasi dengan pengguna terjejas</td><td style="padding:8px;border:1px solid #ddd;">dpo@gighala.my</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Pasukan Teknikal</strong></td><td style="padding:8px;border:1px solid #ddd;">Analisis pelanggaran; pemulihan teknikal; menampal kelemahan</td><td style="padding:8px;border:1px solid #ddd;">security@gighala.my</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Pengurusan Kanan</strong></td><td style="padding:8px;border:1px solid #ddd;">Meluluskan keputusan pemberitahuan; pengurusan risiko perniagaan</td><td style="padding:8px;border:1px solid #ddd;">contact@gighala.my</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Penasihat Undang-undang</strong></td><td style="padding:8px;border:1px solid #ddd;">Panduan pematuhan undang-undang; penilaian kewajipan pemberitahuan</td><td style="padding:8px;border:1px solid #ddd;">legal@gighala.my</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">⏱️</span> 3. Garis Masa Tindak Balas / Response Timeline</h2>
+        <div class="step-list">
+            <div class="step-item">
+                <strong>Dalam masa 1 jam — Pengesanan &amp; Pengandungan</strong>
+                <ul>
+                    <li>Mengenal pasti dan mengesahkan insiden</li>
+                    <li>Mengandungi pelanggaran (blok akses, padam sesi, karantinkan sistem)</li>
+                    <li>Memaklumkan pasukan tindak balas insiden</li>
+                    <li>Memulakan log insiden</li>
+                </ul>
+            </div>
+            <div class="step-item">
+                <strong>Dalam masa 24 jam — Penilaian</strong>
+                <ul>
+                    <li>Menilai skop dan tahap keterukan pelanggaran</li>
+                    <li>Mengenal pasti data dan pengguna yang terjejas</li>
+                    <li>Menentukan punca pelanggaran dan mendokumentasikan bukti</li>
+                </ul>
+            </div>
+            <div class="step-item">
+                <strong>Dalam masa 72 jam — Pemberitahuan JPDP (Mandatori)</strong>
+                <ul>
+                    <li>Melaporkan kepada Jabatan Perlindungan Data Peribadi (JPDP) jika pelanggaran berkemungkinan menyebabkan kemudaratan yang ketara</li>
+                    <li>Maklumat yang disertakan: jenis data terjejas, bilangan pengguna terjejas, langkah diambil, maklumat DPO</li>
+                    <li>Laman web JPDP: <a href="https://www.pdp.gov.my" target="_blank" rel="noopener noreferrer" style="color:#00C853;">www.pdp.gov.my</a></li>
+                </ul>
+            </div>
+            <div class="step-item">
+                <strong>Sesegera mungkin — Pemberitahuan Pengguna</strong>
+                <ul>
+                    <li>Memberitahu pengguna terjejas melalui e-mel dan notifikasi dalam platform</li>
+                    <li>Menerangkan: apa yang berlaku, data yang terjejas, risiko yang mungkin, tindakan yang diambil, langkah yang pengguna boleh ambil</li>
+                </ul>
+            </div>
+            <div class="step-item">
+                <strong>Dalam masa 30 hari — Pemulihan &amp; Laporan Akhir</strong>
+                <ul>
+                    <li>Melaksanakan pembaikan teknikal dan keselamatan</li>
+                    <li>Menjalankan semula pengujian keselamatan</li>
+                    <li>Menyediakan laporan insiden penuh dan mengemas kini prosedur</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🔍</span> 4. Penilaian Risiko / Risk Assessment</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tahap Risiko</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Kriteria</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tindakan</th></tr></thead>
+            <tbody>
+                <tr style="background:#fff3f3;"><td style="padding:8px;border:1px solid #ddd;"><strong>🔴 Kritikal</strong></td><td style="padding:8px;border:1px solid #ddd;">IC/MyKad, data kewangan atau biometrik terdedah; &gt;1,000 pengguna terjejas</td><td style="padding:8px;border:1px solid #ddd;">Beritahu JPDP + pengguna; komunikasi awam; pertimbangkan tindakan undang-undang</td></tr>
+                <tr style="background:#fffaf0;"><td style="padding:8px;border:1px solid #ddd;"><strong>🟡 Tinggi</strong></td><td style="padding:8px;border:1px solid #ddd;">E-mel atau telefon terdedah; 100–1,000 pengguna terjejas</td><td style="padding:8px;border:1px solid #ddd;">Beritahu JPDP; beritahu pengguna; perkuat kawalan keselamatan</td></tr>
+                <tr style="background:#f5fff5;"><td style="padding:8px;border:1px solid #ddd;"><strong>🟢 Sederhana</strong></td><td style="padding:8px;border:1px solid #ddd;">Maklumat profil awam terdedah; &lt;100 pengguna terjejas</td><td style="padding:8px;border:1px solid #ddd;">Penilaian DPO; beritahu pengguna jika perlu; catat dalam log insiden</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>⚪ Rendah</strong></td><td style="padding:8px;border:1px solid #ddd;">Insiden terkandung segera; tiada data sensitif terdedah</td><td style="padding:8px;border:1px solid #ddd;">Catat dalam log; perbaiki kelemahan; tiada pemberitahuan luar</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📋</span> 5. Kandungan Pemberitahuan Pengguna / User Notification Content</h2>
+        <p>Setiap pemberitahuan kepada pengguna yang terjejas akan menyatakan:</p>
+        <ul>
+            <li>Apa yang berlaku dan bila</li>
+            <li>Data peribadi yang terlibat</li>
+            <li>Risiko yang mungkin timbul</li>
+            <li>Langkah pemulihan yang telah kami ambil</li>
+            <li>Tindakan yang disyorkan kepada pengguna (contoh: tukar kata laluan, pantau akaun bank)</li>
+            <li>Maklumat hubungan untuk soalan lanjut</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🛡️</span> 6. Langkah Pencegahan / Preventive Measures</h2>
+        <ul>
+            <li>Audit keselamatan berkala dan pengujian penembusan (penetration testing)</li>
+            <li>Pemantauan log akses berterusan</li>
+            <li>Pengurusan tampalan (patch management) yang ketat</li>
+            <li>Latihan kesedaran keselamatan untuk semua kakitangan</li>
+            <li>Kawalan akses minimum (principle of least privilege)</li>
+            <li>Penilaian risiko pembekal pihak ketiga secara berkala</li>
+            <li>Penilaian Impak Perlindungan Data (DPIA) untuk pemprosesan berisiko tinggi</li>
+        </ul>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📞</span> 7. Laporkan Insiden Keselamatan / Report an Incident</h2>
+        <div class="highlight-box">
+            <p>Jika anda mengesyaki pelanggaran keselamatan atau menemui kelemahan dalam platform kami, sila hubungi kami <strong>dengan segera</strong>:</p>
+            <ul>
+                <li><strong>E-mel Keselamatan:</strong> security@gighala.my</li>
+                <li><strong>DPO:</strong> dpo@gighala.my</li>
+            </ul>
+            <p>Kami menghargai pendedahan yang bertanggungjawab (responsible disclosure) dan akan bertindak balas dalam masa <strong>48 jam</strong>.</p>
+        </div>
+        <p style="font-size:0.9em;color:#666;margin-top:16px;"><strong>Calmic Sdn Bhd</strong> (1466852W / 202201021155) — GigHala Platform</p>
+    </div>
+    '''
+    return render_template('static_page.html',
+                         user=user,
+                         active_page='data-breach-response',
+                         page_title='Pelan Tindak Balas Pelanggaran Data',
+                         page_subtitle='Data Breach Response Plan | Prosedur tindak balas insiden keselamatan data',
+                         content=content)
+
+
+@app.route('/dasar-penyimpanan-data')
+def dasar_penyimpanan_data():
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    content = '''
+    <div class="content-section">
+        <h2><span class="icon">📅</span> Jadual Penyimpanan Data / Data Retention Schedule</h2>
+        <p><em>Kemas kini terakhir / Last updated: 10 April 2026</em></p>
+        <div class="highlight-box">
+            <p>Dokumen ini menetapkan tempoh penyimpanan data peribadi yang dikumpul oleh GigHala (Calmic Sdn Bhd), selaras dengan <strong>Akta Perlindungan Data Peribadi 2010 (PDPA)</strong> dan keperluan undang-undang Malaysia yang lain. Data hanya disimpan selama yang diperlukan untuk tujuan yang ditetapkan — tidak lebih.</p>
+            <p><em>This document establishes personal data retention periods in compliance with Malaysia\'s PDPA 2010 and other applicable laws. Data is retained only as long as necessary for its stated purpose.</em></p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">👤</span> 1. Data Akaun Pengguna / User Account Data</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh Penyimpanan</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Justifikasi</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Data profil aktif (nama, e-mel, telefon, kata laluan hashed)</td><td style="padding:8px;border:1px solid #ddd;">Selagi akaun aktif</td><td style="padding:8px;border:1px solid #ddd;">Keperluan kontrak</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Data selepas penutupan akaun</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Akta Syarikat 2016</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Nombor IC/MyKad</td><td style="padding:8px;border:1px solid #ddd;">Selagi aktif + <strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Keperluan PERKESO &amp; LHDN</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Data lokasi (GPS)</td><td style="padding:8px;border:1px solid #ddd;">Selagi akaun aktif</td><td style="padding:8px;border:1px solid #ddd;">Padanan gig sahaja</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Token pengesahan e-mel/telefon</td><td style="padding:8px;border:1px solid #ddd;"><strong>24 jam</strong></td><td style="padding:8px;border:1px solid #ddd;">Tamat tempoh automatik</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Token set semula kata laluan</td><td style="padding:8px;border:1px solid #ddd;"><strong>2 jam</strong></td><td style="padding:8px;border:1px solid #ddd;">Tamat tempoh automatik</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Kunci rahsia 2FA (TOTP)</td><td style="padding:8px;border:1px solid #ddd;">Selagi 2FA aktif</td><td style="padding:8px;border:1px solid #ddd;">Padam apabila dinyahaktifkan</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">💳</span> 2. Data Kewangan &amp; Transaksi / Financial &amp; Transaction Data</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Justifikasi</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Rekod transaksi, invois, resit</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Akta Cukai Pendapatan 1967 (keperluan LHDN)</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Nombor akaun bank / nama bank</td><td style="padding:8px;border:1px solid #ddd;">Selagi aktif + <strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Keperluan audit kewangan</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Rekod caruman PERKESO</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Akta PERKESO 1969</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">ID pelanggan Stripe</td><td style="padding:8px;border:1px solid #ddd;">Selagi aktif + <strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Keperluan audit pembayaran</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🪪</span> 3. Data Pengesahan Identiti (Biometrik) / Identity Verification Data</h2>
+        <div class="highlight-box">
+            <p><strong>Nota Penting:</strong> Imej IC dan selfie adalah data peribadi sensitif dan dikendalikan dengan perlindungan yang lebih ketat.</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Kaedah Pemadaman</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Imej IC/MyKad (hadapan &amp; belakang)</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong> selepas pengesahan tamat tempoh, atau apabila akaun ditutup (mana yang lebih awal)</td><td style="padding:8px;border:1px solid #ddd;">Padam fail dari disk + padam rekod pangkalan data</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Gambar selfie (liveness check)</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong> selepas pengesahan tamat tempoh, atau apabila akaun ditutup</td><td style="padding:8px;border:1px solid #ddd;">Padam fail dari disk + padam rekod pangkalan data</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Rekod status pengesahan (tarikh, diluluskan oleh)</td><td style="padding:8px;border:1px solid #ddd;">Selagi aktif + <strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Padam automatik</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📧</span> 4. Data Log Komunikasi / Communication Log Data</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Justifikasi</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log e-mel (EmailSendLog) — kandungan penuh</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Audit &amp; penyahpepijatan perkhidmatan</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Sejarah perubahan e-mel (EmailHistory)</td><td style="padding:8px;border:1px solid #ddd;"><strong>2 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Audit keselamatan &amp; pencegahan penipuan</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Mesej dalam platform (chat)</td><td style="padding:8px;border:1px solid #ddd;">Selagi kedua-dua pengguna aktif + <strong>1 tahun</strong> selepas penutupan akaun</td><td style="padding:8px;border:1px solid #ddd;">Penyelesaian pertikaian kontrak</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log penghantaran SMS/WhatsApp</td><td style="padding:8px;border:1px solid #ddd;"><strong>90 hari</strong></td><td style="padding:8px;border:1px solid #ddd;">Penyahpepijatan perkhidmatan</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🌐</span> 5. Data Log Sistem &amp; Pengunjung / System &amp; Visitor Logs</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Justifikasi</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log pengunjung (VisitorLog) — IP, user agent, laluan</td><td style="padding:8px;border:1px solid #ddd;"><strong>90 hari</strong></td><td style="padding:8px;border:1px solid #ddd;">Analitik &amp; keselamatan; tiada keperluan lebih lama</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log keselamatan (percubaan log masuk gagal)</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Pemantauan keselamatan &amp; forensik siber</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Rekod sesi log masuk aktif</td><td style="padding:8px;border:1px solid #ddd;"><strong>24 jam</strong></td><td style="padding:8px;border:1px solid #ddd;">Tamat tempoh sesi automatik</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🖼️</span> 6. Fail Media &amp; Dokumen / Media Files</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#f5f5f5;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Jenis Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Foto profil pengguna</td><td style="padding:8px;border:1px solid #ddd;">Selagi akaun aktif; padam apabila akaun ditutup</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Gambar gig</td><td style="padding:8px;border:1px solid #ddd;">Selagi gig aktif; padam apabila gig atau akaun dipadam</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Dokumen sokongan yang dimuat naik</td><td style="padding:8px;border:1px solid #ddd;">Selagi akaun aktif; atau atas permintaan pengguna</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📊</span> 7. Ringkasan Jadual / Retention Summary</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+            <thead><tr style="background:#00C853;color:white;"><th style="padding:10px;border:1px solid #ddd;text-align:left;">Kategori Data</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Tempoh Maksimum</th><th style="padding:10px;border:1px solid #ddd;text-align:left;">Rujukan Undang-undang</th></tr></thead>
+            <tbody>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Rekod kewangan / transaksi / PERKESO</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Akta Cukai Pendapatan 1967; Akta PERKESO 1969</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Data akaun pengguna (selepas penutupan)</td><td style="padding:8px;border:1px solid #ddd;"><strong>7 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">Akta Syarikat 2016</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log e-mel</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong></td><td style="padding:8px;border:1px solid #ddd;">PDPA 2010 Seksyen 5 (had tujuan)</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Imej IC/selfie biometrik</td><td style="padding:8px;border:1px solid #ddd;"><strong>1 tahun</strong> selepas pengesahan tamat</td><td style="padding:8px;border:1px solid #ddd;">PDPA 2010 Seksyen 5; data sensitif</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Log pengunjung (IP/user agent)</td><td style="padding:8px;border:1px solid #ddd;"><strong>90 hari</strong></td><td style="padding:8px;border:1px solid #ddd;">PDPA 2010 Seksyen 5</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Token pengesahan / kata laluan</td><td style="padding:8px;border:1px solid #ddd;"><strong>24 jam / 2 jam</strong></td><td style="padding:8px;border:1px solid #ddd;">Amalan terbaik keselamatan</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">🗑️</span> 8. Prosedur Pemadaman / Deletion Procedures</h2>
+        <h3>Pemadaman Automatik:</h3>
+        <ul>
+            <li>Pekerjaan terjadual (cron jobs) dijalankan setiap malam untuk memadam data yang telah melebihi tempoh penyimpanan</li>
+            <li>Token yang tamat tempoh dibersihkan dalam masa 24 jam</li>
+            <li>Log pengunjung lama dipadam secara bergilir-gilir (rolling deletion setiap 90 hari)</li>
+        </ul>
+        <h3>Pemadaman Atas Permintaan:</h3>
+        <ul>
+            <li>Pengguna boleh memohon pemadaman data: <strong>privacy@gighala.my</strong></li>
+            <li>Permintaan diproses dalam masa <strong>21 hari bekerja</strong></li>
+            <li>Sesetengah data mungkin tidak boleh dipadam atas kewajipan undang-undang; kami akan memaklumkan anda tentang data yang dikekalkan</li>
+        </ul>
+        <h3>Urutan Pemadaman Selepas Penutupan Akaun:</h3>
+        <div class="step-list">
+            <div class="step-item"><strong>Segera:</strong> Akaun ditandakan tidak aktif; akses dihalang; sesi dipadam</div>
+            <div class="step-item"><strong>Dalam 30 hari:</strong> Foto profil dan fail media yang tidak diperlukan dipadam dari disk</div>
+            <div class="step-item"><strong>Dalam 90 hari:</strong> Log pengunjung yang berkaitan dipadam</div>
+            <div class="step-item"><strong>Dalam 1 tahun:</strong> Imej IC dan selfie pengesahan identiti dipadam</div>
+            <div class="step-item"><strong>Selepas 7 tahun:</strong> Rekod kewangan dan data akaun minimum dipadam sepenuhnya</div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h2><span class="icon">📞</span> 9. Hubungi Kami / Contact Us</h2>
+        <p>Untuk pertanyaan tentang penyimpanan data atau untuk memohon pemadaman:</p>
+        <ul>
+            <li><strong>E-mel Privasi:</strong> privacy@gighala.my</li>
+            <li><strong>DPO:</strong> dpo@gighala.my</li>
+        </ul>
+        <p>Dokumen ini disemak semula setiap tahun atau apabila ada perubahan keperluan undang-undang.</p>
+        <p style="font-size:0.9em;color:#666;margin-top:16px;"><strong>Calmic Sdn Bhd</strong> (1466852W / 202201021155) — GigHala Platform, gighala.my</p>
+    </div>
+    '''
+    return render_template('static_page.html',
+                         user=user,
+                         active_page='dasar-penyimpanan-data',
+                         page_title='Jadual Penyimpanan Data',
+                         page_subtitle='Data Retention Schedule | Tempoh simpanan data peribadi pengguna',
+                         content=content)
+
 
 # ============================================
 # PORTFOLIO ROUTES
