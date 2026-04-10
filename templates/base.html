@@ -2236,7 +2236,7 @@
 
     {% block extra_scripts %}{% endblock %}
 
-    {% if current_user and current_user.is_authenticated %}
+    {% if user %}
     <!-- ===== Live Support Chat Widget ===== -->
     <style>
         #support-chat-btn {
