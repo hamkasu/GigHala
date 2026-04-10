@@ -203,53 +203,6 @@
         }
     }
 
-    .doc-footer {
-        background: #000000;
-        color: white;
-        padding: 48px 32px 24px;
-        margin-top: 48px;
-    }
-
-    .doc-footer-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 40px;
-        margin-bottom: 32px;
-    }
-
-    .doc-footer-col h4 {
-        font-size: 16px;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 16px;
-    }
-
-    .doc-footer-col ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .doc-footer-col ul li a {
-        color: rgba(255, 255, 255, 0.7);
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.3s;
-    }
-
-    .doc-footer-col ul li a:hover {
-        color: #D4AF37;
-    }
-
-    @media (max-width: 768px) {
-        .doc-footer-grid {
-            grid-template-columns: 1fr;
-            gap: 28px;
-        }
-    }
 </style>
 {% endblock %}
 
@@ -390,45 +343,6 @@
         {% endif %}
     </div>
 </main>
-
-<!-- Footer -->
-<footer class="doc-footer">
-    <div class="doc-footer-grid">
-        <!-- Platform -->
-        <div class="doc-footer-col">
-            <h4>Platform</h4>
-            <ul>
-                <li><a href="/about">{% if lang == 'ms' %}Tentang Kami{% else %}About Us{% endif %}</a></li>
-                <li><a href="/gigs">{% if lang == 'ms' %}Cari Gig{% else %}Find Gigs{% endif %}</a></li>
-                <li><a href="/kategori">{% if lang == 'ms' %}Kategori{% else %}Categories{% endif %}</a></li>
-                <li><a href="/cara-kerja">{% if lang == 'ms' %}Cara Kerja{% else %}How It Works{% endif %}</a></li>
-                <li><a href="/pricing">Pricing</a></li>
-            </ul>
-        </div>
-
-        <!-- Resources -->
-        <div class="doc-footer-col">
-            <h4>Resources</h4>
-            <ul>
-                <li><a href="/support">Blog</a></li>
-                <li><a href="/panduan-freelancer">{% if lang == 'ms' %}Panduan Freelancer{% else %}Freelancer Guide{% endif %}</a></li>
-                <li><a href="/faq">FAQ</a></li>
-                <li><a href="/support">Support</a></li>
-            </ul>
-        </div>
-
-        <!-- Legal -->
-        <div class="doc-footer-col">
-            <h4>Legal</h4>
-            <ul>
-                <li><a href="/syarat-terma">{% if lang == 'ms' %}Syarat & Terma{% else %}Terms & Conditions{% endif %}</a></li>
-                <li><a href="/privasi">{% if lang == 'ms' %}Dasar Privasi{% else %}Privacy Policy{% endif %}</a></li>
-                <li><a href="/halal-compliance">{% if lang == 'ms' %}Kepatuhan Halal{% else %}Halal Compliance{% endif %}</a></li>
-                <li><a href="/gig-workers-bill">{% if lang == 'ms' %}Rang Undang-Undang Pekerja Gig{% else %}Gig Worker Law{% endif %}</a></li>
-            </ul>
-        </div>
-    </div>
-</footer>
 
 <script>
 function showTab(tabName) {
