@@ -6962,6 +6962,21 @@ def set_language():
         app.logger.error(f"Error setting language: {str(e)}")
         return jsonify({'error': 'Failed to set language'}), 500
 
+def _oauth_post_login_redirect(user):
+    """
+    After OAuth login/signup, redirect the user to the appropriate page.
+    - New users without PDPA consent → /consent (PDPA 2010 s.6)
+    - Users needing phone/email setup → /dashboard?show_phone_prompt=true
+    - Everyone else → /dashboard
+    """
+    if not user.privacy_consent:
+        return redirect('/consent')
+    placeholder = user.email.endswith('@x.placeholder') or user.email.endswith('@facebook.placeholder')
+    if not user.phone or not user.phone_verified or placeholder:
+        return redirect('/dashboard?show_phone_prompt=true')
+    return redirect('/dashboard')
+
+
 # OAuth Login Routes
 @app.route('/api/auth/google')
 def google_login():
@@ -7018,12 +7033,7 @@ def google_callback():
         session['user_id'] = user.id
         session.permanent = True
 
-        # Check if user needs phone setup (Phase 1: Optional but encouraged)
-        if not user.phone or not user.phone_verified:
-            # Redirect OAuth users to dashboard with phone prompt
-            return redirect('/dashboard?show_phone_prompt=true')
-
-        return redirect('/dashboard')
+        return _oauth_post_login_redirect(user)
     except Exception as e:
         app.logger.error(f"Google OAuth error: {str(e)}")
         return redirect('/?error=google_auth_failed')
@@ -7081,12 +7091,7 @@ def microsoft_callback():
         session['user_id'] = user.id
         session.permanent = True
 
-        # Check if user needs phone setup (Phase 1: Optional but encouraged)
-        if not user.phone or not user.phone_verified:
-            # Redirect OAuth users to dashboard with phone prompt
-            return redirect('/dashboard?show_phone_prompt=true')
-
-        return redirect('/dashboard')
+        return _oauth_post_login_redirect(user)
     except Exception as e:
         app.logger.error(f"Microsoft OAuth error: {str(e)}")
         return redirect('/?error=microsoft_auth_failed')
@@ -7151,12 +7156,7 @@ def apple_callback():
         session['user_id'] = user.id
         session.permanent = True
 
-        # Check if user needs phone setup (Phase 1: Optional but encouraged)
-        if not user.phone or not user.phone_verified:
-            # Redirect OAuth users to dashboard with phone prompt
-            return redirect('/dashboard?show_phone_prompt=true')
-
-        return redirect('/dashboard')
+        return _oauth_post_login_redirect(user)
     except Exception as e:
         app.logger.error(f"Apple OAuth error: {str(e)}")
         return redirect('/?error=apple_auth_failed')
@@ -7210,11 +7210,7 @@ def x_callback():
         session['user_id'] = user.id
         session.permanent = True
 
-        # Check if user needs phone/email setup
-        if not user.phone or not user.phone_verified or user.email.endswith('@x.placeholder'):
-            return redirect('/dashboard?show_phone_prompt=true')
-
-        return redirect('/dashboard')
+        return _oauth_post_login_redirect(user)
     except Exception as e:
         app.logger.error(f"X OAuth error: {str(e)}")
         return redirect('/?error=x_auth_failed')
@@ -7290,11 +7286,7 @@ def facebook_callback():
         session['user_id'] = user.id
         session.permanent = True
 
-        # Prompt for phone setup or email if placeholder
-        if not user.phone or not user.phone_verified or user.email.endswith('@facebook.placeholder'):
-            return redirect('/dashboard?show_phone_prompt=true')
-
-        return redirect('/dashboard')
+        return _oauth_post_login_redirect(user)
     except Exception as e:
         app.logger.error(f"Facebook OAuth error: {str(e)}")
         return redirect('/?error=facebook_auth_failed')
@@ -23259,6 +23251,37 @@ def syarat_terma():
                          page_title='Syarat & Terma',
                          page_subtitle='Terma perkhidmatan GigHala',
                          content=content)
+
+@app.route('/consent')
+def consent_page():
+    """PDPA consent gate for OAuth users who haven't explicitly agreed yet."""
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    if not user:
+        return redirect('/login')
+    if user.privacy_consent:
+        return redirect('/dashboard')
+    lang = session.get('lang', 'en')
+    return render_template('consent.html', user=user, lang=lang)
+
+
+@app.route('/api/consent', methods=['POST'])
+def record_consent():
+    """Record explicit PDPA consent for OAuth-registered users."""
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    if not user:
+        return jsonify({'error': 'Not logged in'}), 401
+
+    data = request.json or {}
+    if not data.get('privacy_consent'):
+        return jsonify({'error': 'You must agree to the Privacy Policy to continue'}), 400
+
+    user.privacy_consent = True
+    user.privacy_consent_date = datetime.utcnow()
+    user.privacy_policy_version = '1.0'
+    db.session.commit()
+
+    return jsonify({'success': True, 'redirect': '/dashboard'})
+
 
 @app.route('/privasi')
 def privasi():

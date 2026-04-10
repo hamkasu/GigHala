@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if lang == 'ms' %}Persetujuan Privasi{% else %}Privacy Consent{% endif %} - GigHala</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0D7C66 0%, #41B3A3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .consent-container {
+            background: white;
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 560px;
+            width: 90%;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 800;
+            color: #0D7C66;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+            margin: 0 0 8px 0;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+        .policy-summary {
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .policy-summary ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+        .policy-summary li {
+            margin-bottom: 4px;
+        }
+        .consent-box {
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        .consent-box:has(input:checked) {
+            border-color: #0D7C66;
+            background: #F0FDF4;
+        }
+        .consent-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+        }
+        .consent-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            margin-top: 2px;
+            accent-color: #0D7C66;
+            cursor: pointer;
+        }
+        .consent-label a {
+            color: #0D7C66;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        .error-message {
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: #0D7C66;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #095a4d;
+        }
+        .btn-primary:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+        .provider-badge {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #6B7280;
+        }
+        .provider-badge span {
+            background: #F3F4F6;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="consent-container">
+        <div class="logo">GigHala</div>
+
+        <h1>
+            {% if lang == 'ms' %}Satu Langkah Lagi{% else %}One More Step{% endif %}
+        </h1>
+        <p class="subtitle">
+            {% if lang == 'ms' %}
+                Kami perlu persetujuan anda sebelum meneruskan.
+            {% else %}
+                We need your agreement before we can continue.
+            {% endif %}
+        </p>
+
+        <div class="provider-badge">
+            {% if lang == 'ms' %}Mendaftar masuk sebagai{% else %}Signing in as{% endif %}
+            <span>{{ user.email }}</span>
+        </div>
+
+        <div class="policy-summary">
+            <strong>{% if lang == 'ms' %}Apa yang kami kumpul:{% else %}What we collect:{% endif %}</strong>
+            <ul>
+                <li>{% if lang == 'ms' %}Nama, emel, nombor telefon{% else %}Name, email, phone number{% endif %}</li>
+                <li>{% if lang == 'ms' %}No. IC / Pasport (untuk pengesahan identiti){% else %}IC / Passport number (for identity verification){% endif %}</li>
+                <li>{% if lang == 'ms' %}Maklumat akaun bank (untuk pembayaran){% else %}Bank account details (for payouts){% endif %}</li>
+            </ul>
+            <br>
+            {% if lang == 'ms' %}
+                Semua data dilindungi mengikut <strong>Akta Perlindungan Data Peribadi 2010 (PDPA)</strong>.
+                Anda boleh meminta salinan atau pemadaman data anda bila-bila masa.
+            {% else %}
+                All data is protected under the <strong>Personal Data Protection Act 2010 (PDPA)</strong>.
+                You may request a copy or deletion of your data at any time.
+            {% endif %}
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="consent-box">
+            <label class="consent-label">
+                <input type="checkbox" id="privacyConsent">
+                <span>
+                    {% if lang == 'ms' %}
+                        Saya telah membaca dan <strong>bersetuju</strong> dengan
+                        <a href="/privasi" target="_blank">Dasar Privasi</a> GigHala,
+                        dan memahami bagaimana data peribadi saya dikumpul dan digunakan
+                        mengikut PDPA 2010.
+                    {% else %}
+                        I have read and <strong>agree</strong> to GigHala's
+                        <a href="/privasi" target="_blank">Privacy Policy</a>,
+                        and understand how my personal data is collected and used
+                        under PDPA 2010.
+                    {% endif %}
+                </span>
+            </label>
+        </div>
+
+        <button class="btn-primary" id="continueBtn" onclick="submitConsent()" disabled>
+            {% if lang == 'ms' %}Teruskan ke Papan Pemuka{% else %}Continue to Dashboard{% endif %}
+        </button>
+    </div>
+
+    <script>
+        const checkbox = document.getElementById('privacyConsent');
+        const btn = document.getElementById('continueBtn');
+
+        checkbox.addEventListener('change', function() {
+            btn.disabled = !this.checked;
+        });
+
+        async function submitConsent() {
+            if (!checkbox.checked) return;
+            btn.disabled = true;
+            btn.textContent = '{% if lang == "ms" %}Menyimpan...{% else %}Saving...{% endif %}';
+
+            const errorDiv = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch('/api/consent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ privacy_consent: true })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    window.location.href = result.redirect || '/dashboard';
+                } else {
+                    errorDiv.textContent = result.error || 'An error occurred.';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = '{% if lang == "ms" %}Teruskan ke Papan Pemuka{% else %}Continue to Dashboard{% endif %}';
+                }
+            } catch (e) {
+                errorDiv.textContent = '{% if lang == "ms" %}Ralat rangkaian. Sila cuba lagi.{% else %}Network error. Please try again.{% endif %}';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = '{% if lang == "ms" %}Teruskan ke Papan Pemuka{% else %}Continue to Dashboard{% endif %}';
+            }
+        }
+    </script>
+</body>
+</html>
