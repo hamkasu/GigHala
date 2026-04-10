@@ -22426,6 +22426,75 @@ def _apply_column_migrations():
         app.logger.warning(f"Column migrations failed (non-fatal): {e}")
 
 
+def _ensure_public_schema_create_privilege():
+    """Grant CREATE on the public schema to the current DB user.
+
+    PostgreSQL 15+ revoked the default CREATE privilege on the public schema
+    from the PUBLIC role.  db.create_all() therefore fails with
+    'permission denied for schema public' unless the app user is the schema
+    owner or has been explicitly granted CREATE.
+
+    Tries in order:
+      1. Direct GRANT USAGE, CREATE ON SCHEMA public TO CURRENT_USER
+         (works when the app user owns the schema or is a superuser).
+      2. Via SUPERUSER_DATABASE_URL if the env var is set
+         (for managed Postgres where the app user is not a superuser).
+      3. Log actionable instructions and continue (graceful degradation).
+    """
+    from sqlalchemy import text as _t
+
+    db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if 'postgres' not in db_url:
+        return  # SQLite – no schema privilege concept
+
+    # Strategy 1: direct grant (works when app user owns public or is superuser)
+    try:
+        with db.engine.connect() as _c:
+            _c.execute(_t('GRANT USAGE, CREATE ON SCHEMA public TO CURRENT_USER'))
+            _c.commit()
+        app.logger.info('[DB] Granted CREATE on schema public to current user.')
+        return
+    except Exception as _e:
+        app.logger.debug(f'[DB] Direct schema grant failed (will try superuser URL): {_e}')
+
+    # Strategy 2: via SUPERUSER_DATABASE_URL
+    su_url = os.environ.get('SUPERUSER_DATABASE_URL', '').strip()
+    if su_url:
+        try:
+            from sqlalchemy import create_engine as _ce
+            if su_url.startswith('postgres://'):
+                su_url = su_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+            # Point superuser connection at the same database as the app
+            app_db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+            if app_db_url:
+                from urllib.parse import urlparse as _up, urlunparse as _uu
+                _su_parsed = _up(su_url)
+                _app_parsed = _up(app_db_url)
+                if _app_parsed.path and _app_parsed.path != _su_parsed.path:
+                    su_url = _uu(_su_parsed._replace(path=_app_parsed.path))
+            su_engine = _ce(su_url)
+            with su_engine.connect() as _sc:
+                # Determine the app user
+                _app_user = _up(app_db_url).username if app_db_url else None
+                if _app_user:
+                    _sc.execute(_t(f'GRANT USAGE, CREATE ON SCHEMA public TO "{_app_user}"'))
+                    _sc.commit()
+                    app.logger.info(
+                        f'[DB] Granted CREATE on schema public to {_app_user} via superuser URL.'
+                    )
+                    return
+        except Exception as _e:
+            app.logger.warning(f'[DB] Superuser schema grant failed: {_e}')
+
+    # Strategy 3: log helpful instructions and continue
+    app.logger.error(
+        '[DB] Cannot grant CREATE on schema public automatically. '
+        'On PostgreSQL 15+ you must run this as a superuser:\n'
+        '  GRANT USAGE, CREATE ON SCHEMA public TO <your_app_user>;\n'
+        'Or set SUPERUSER_DATABASE_URL and restart the app.'
+    )
+
+
 def init_database():
     """Initialize database with tables, categories, and sample data (lazy loading)"""
     global _db_initialized
@@ -22433,6 +22502,10 @@ def init_database():
         return
 
     try:
+        # PostgreSQL 15+ revoked CREATE on public schema from PUBLIC; ensure the
+        # app user has it before attempting to create tables.
+        _ensure_public_schema_create_privilege()
+
         db.create_all()
 
         # On PostgreSQL, fix permissions if tables are owned by a different role
