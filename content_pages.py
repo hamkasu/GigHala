@@ -107,7 +107,7 @@ def register_content_routes(app):
             there is no waiting 30–60 days for an invoice to be processed.</li>
         <li><strong>Dispute evidence trail</strong> — All messages, files, and milestones
             are recorded, giving you solid proof if a dispute arises.</li>
-        <li><strong>Halal-compliant structure</strong> — GigHala's escrow does not charge
+        <li><strong>Syariah Compliant structure</strong> — GigHala's escrow does not charge
             or earn interest on held funds, keeping the arrangement riba-free.</li>
     </ul>
 </div>
@@ -386,9 +386,9 @@ def register_content_routes(app):
         user = _get_user()
         content = """
 <div class="content-section">
-    <h2><span class="icon">🌙</span> What Makes a Service Marketplace "Halal-Friendly"?</h2>
+    <h2><span class="icon">🌙</span> What Makes a Service Marketplace "Syariah Compliant"?</h2>
     <p>
-        A halal-friendly service marketplace is one where the <strong>platform
+        A Syariah Compliant service marketplace is one where the <strong>platform
         design, financial mechanics, and permitted service categories</strong> all
         comply with Islamic principles. This goes beyond simply avoiding haram
         content — it means the entire transaction structure is built to be
@@ -409,16 +409,16 @@ def register_content_routes(app):
 </div>
 
 <div class="content-section">
-    <h2><span class="icon">🔍</span> GigHala's Halal Compliance System</h2>
+    <h2><span class="icon">🔍</span> GigHala's Syariah Compliant System</h2>
     <p>
         Every gig posted on GigHala passes through an automated compliance check
         that scans the title, description, and category against a curated list of
-        halal guidelines. Gigs that raise concerns are flagged for manual review
+        Syariah Compliant guidelines. Gigs that raise concerns are flagged for manual review
         before going live.
     </p>
     <div class="highlight-box">
-        <p><strong>Halal Verified badge:</strong> Workers who complete GigHala's
-        optional halal verification process earn a badge on their profile,
+        <p><strong>Syariah Compliant Verified badge:</strong> Workers who complete GigHala's
+        optional Syariah Compliant verification process earn a badge on their profile,
         signalling to clients that their services meet Islamic ethical standards.</p>
     </div>
     <p>The compliance system checks for:</p>
@@ -450,14 +450,14 @@ def register_content_routes(app):
     <h2><span class="icon">🇲🇾</span> Why This Matters in Malaysia</h2>
     <p>
         Malaysia has over 20 million Muslim citizens, and Islamic finance principles
-        are central to many Malaysians' financial decisions. A halal-friendly
+        are central to many Malaysians' financial decisions. A Syariah Compliant
         marketplace means Muslim freelancers and business owners can participate in
         the gig economy with full confidence that their earnings and spending are
         ethically compliant.
     </p>
     <p>
         GigHala is the <strong>first gig marketplace in Malaysia</strong> to
-        integrate a dedicated halal compliance layer — making it the platform
+        integrate a dedicated Syariah Compliant compliance layer — making it the platform
         of choice for faith-conscious professionals and SMEs alike.
     </p>
     <div class="highlight-box">
@@ -470,8 +470,8 @@ def register_content_routes(app):
             'static_page.html',
             user=user,
             active_page='content',
-            page_title='How Halal-Friendly Service Marketplaces Work',
-            page_subtitle='Explore what makes GigHala Malaysia\'s first truly halal-compliant gig marketplace.',
+            page_title='How Syariah Compliant Service Marketplaces Work',
+            page_subtitle='Explore what makes GigHala Malaysia\'s first truly Syariah Compliant gig marketplace.',
             content=content,
         )
 
@@ -598,7 +598,7 @@ def register_content_routes(app):
             if deliverables do not meet the agreed scope.</li>
         <li><strong>Verified freelancers</strong> — Identity and skills are
             verified to reduce the risk of dealing with unqualified workers.</li>
-        <li><strong>Halal compliance</strong> — All services on GigHala are
+        <li><strong>Syariah Compliant compliance</strong> — All services on GigHala are
             screened to meet ethical business standards.</li>
     </ul>
     <div class="highlight-box">
