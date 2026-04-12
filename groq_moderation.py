@@ -109,7 +109,7 @@ STRICT PROHIBITION CRITERIA - Reject ANY content involving:
 You must respond with ONLY a valid JSON object (no markdown, no extra text):
 
 {
-  "is_Syariah Compliant": true/false,
+  "is_halal": true/false,
   "confidence": 0.0-1.0,
   "reason": "Brief explanation in English (1-2 sentences). If it's a test, mention it's harmless.",
   "violations": ["list", "of", "specific", "violations"] or [],
@@ -117,8 +117,8 @@ You must respond with ONLY a valid JSON object (no markdown, no extra text):
 }
 
 **DECISION RULES:**
-- is_Syariah Compliant: true if no prohibited elements are detected.
-- is_Syariah Compliant: false ONLY if a clear prohibited element (alcohol, pork, riba, etc.) is detected.
+- is_halal: true if no prohibited elements are detected.
+- is_halal: false ONLY if a clear prohibited element (alcohol, pork, riba, etc.) is detected.
 - confidence: Your confidence level (0.0 = not confident, 1.0 = absolutely certain)
 - action:
   * "approve" - Clear Syariah Compliant or harmless content, high confidence (≥80%)
@@ -165,7 +165,7 @@ def ai_halal_moderation(title: str, description: str) -> Dict:
         Dict containing:
         {
             'success': bool,           # Whether API call succeeded
-            'is_Syariah Compliant': bool,          # AI's Syariah Compliant determination
+            'is_halal': bool,          # AI's Syariah Compliant determination
             'confidence': float,       # Confidence score (0.0-1.0)
             'reason': str,            # AI's explanation
             'violations': List[str],  # List of violations found
@@ -254,7 +254,7 @@ Determine if this gig is Syariah Compliant according to Islamic Shariah principl
                 raise ValueError("AI response missing required fields or has invalid values")
 
             # Determine final action (may override AI's suggested action)
-            final_action = _determine_action(ai_result['is_Syariah Compliant'], ai_result['confidence'])
+            final_action = _determine_action(ai_result['is_halal'], ai_result['confidence'])
 
             # Extract token usage if available
             tokens_used = response_data.get('usage', {}).get('total_tokens', 0)
@@ -262,7 +262,7 @@ Determine if this gig is Syariah Compliant according to Islamic Shariah principl
             # Build successful response
             result = {
                 'success': True,
-                'is_Syariah Compliant': ai_result['is_Syariah Compliant'],
+                'is_halal': ai_result['is_halal'],
                 'confidence': float(ai_result['confidence']),
                 'reason': ai_result['reason'],
                 'violations': ai_result.get('violations', []),
@@ -312,14 +312,14 @@ def _validate_ai_response(ai_result: Dict) -> bool:
     Returns:
         bool: True if valid, False otherwise
     """
-    required_fields = ['is_Syariah Compliant', 'confidence', 'reason', 'action']
+    required_fields = ['is_halal', 'confidence', 'reason', 'action']
 
     # Check all required fields exist
     if not all(field in ai_result for field in required_fields):
         return False
 
     # Validate types
-    if not isinstance(ai_result['is_Syariah Compliant'], bool):
+    if not isinstance(ai_result['is_halal'], bool):
         return False
 
     if not isinstance(ai_result['confidence'], (int, float)):
@@ -334,25 +334,25 @@ def _validate_ai_response(ai_result: Dict) -> bool:
     return True
 
 
-def _determine_action(is_Syariah Compliant: bool, confidence: float) -> str:
+def _determine_action(is_halal: bool, confidence: float) -> str:
     """
     Determine the final moderation action based on AI assessment.
 
     Decision logic:
-    - If is_Syariah Compliant=True and confidence ≥ 0.90: AUTO-APPROVE
-    - If is_Syariah Compliant=False and confidence ≥ 0.85: AUTO-REJECT
+    - If is_halal=True and confidence ≥ 0.90: AUTO-APPROVE
+    - If is_halal=False and confidence ≥ 0.85: AUTO-REJECT
     - Otherwise: FLAG for manual review
 
     Args:
-        is_Syariah Compliant: Whether AI determined content is Syariah Compliant
+        is_halal: Whether AI determined content is Syariah Compliant
         confidence: AI confidence score (0.0 to 1.0)
 
     Returns:
         str: 'approve', 'flag', or 'reject'
     """
-    if is_Syariah Compliant and confidence >= CONFIDENCE_THRESHOLD_AUTO_APPROVE:
+    if is_halal and confidence >= CONFIDENCE_THRESHOLD_AUTO_APPROVE:
         return 'approve'
-    elif not is_Syariah Compliant and confidence >= CONFIDENCE_THRESHOLD_AUTO_REJECT:
+    elif not is_halal and confidence >= CONFIDENCE_THRESHOLD_AUTO_REJECT:
         return 'reject'
     else:
         # When in doubt, flag for human review
@@ -375,7 +375,7 @@ def _create_fallback_response(error_message: str, flag: bool = True) -> Dict:
     """
     return {
         'success': False,
-        'is_Syariah Compliant': None,  # Unknown due to error
+        'is_halal': None,  # Unknown due to error
         'confidence': 0.0,
         'reason': f'AI moderation unavailable: {error_message}',
         'violations': [],

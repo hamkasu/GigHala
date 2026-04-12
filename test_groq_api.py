@@ -51,7 +51,7 @@ def test_halal_content():
 
     print(f"\n📊 Result:")
     print(f"  Success: {result['success']}")
-    print(f"  Is Syariah Compliant: {result.get('is_Syariah Compliant', 'N/A')}")
+    print(f"  Is Syariah Compliant: {result.get('is_halal', 'N/A')}")
     print(f"  Confidence: {result.get('confidence', 0):.2f}")
     print(f"  Action: {result['action']}")
     print(f"  Reason: {result['reason']}")
@@ -85,7 +85,7 @@ def test_haram_content():
 
     print(f"\n📊 Result:")
     print(f"  Success: {result['success']}")
-    print(f"  Is Syariah Compliant: {result.get('is_Syariah Compliant', 'N/A')}")
+    print(f"  Is Syariah Compliant: {result.get('is_halal', 'N/A')}")
     print(f"  Confidence: {result.get('confidence', 0):.2f}")
     print(f"  Action: {result['action']}")
     print(f"  Reason: {result['reason']}")
@@ -120,7 +120,7 @@ def test_borderline_content():
 
     print(f"\n📊 Result:")
     print(f"  Success: {result['success']}")
-    print(f"  Is Syariah Compliant: {result.get('is_Syariah Compliant', 'N/A')}")
+    print(f"  Is Syariah Compliant: {result.get('is_halal', 'N/A')}")
     print(f"  Confidence: {result.get('confidence', 0):.2f}")
     print(f"  Action: {result['action']}")
     print(f"  Reason: {result['reason']}")

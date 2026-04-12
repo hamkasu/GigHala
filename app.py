@@ -7859,7 +7859,7 @@ def check_halal_compliance():
         # Require at least title or description
         if not title and not description:
             return jsonify({
-                'is_Syariah Compliant': True,
+                'is_halal': True,
                 'action': 'approve',
                 'reason': 'No content to check',
                 'keyword_check': {'is_compliant': True, 'violations': []},
@@ -7884,7 +7884,7 @@ def check_halal_compliance():
         # If keyword check fails, return immediately (no need for AI check)
         if not keyword_is_compliant:
             return jsonify({
-                'is_Syariah Compliant': False,
+                'is_halal': False,
                 'action': 'reject',
                 'reason': keyword_result.get('message_en', 'Contains prohibited keywords'),
                 'reason_ms': keyword_result.get('message_ms', 'Mengandungi kata kunci yang dilarang'),
@@ -7903,7 +7903,7 @@ def check_halal_compliance():
             ai_result = get_cached_moderation(title, description)
 
             return jsonify({
-                'is_Syariah Compliant': ai_result.get('is_Syariah Compliant', None),
+                'is_halal': ai_result.get('is_halal', None),
                 'action': ai_result.get('action', 'flag'),
                 'reason': ai_result.get('reason', ''),
                 'violations': ai_result.get('violations', []),
@@ -7913,7 +7913,7 @@ def check_halal_compliance():
                     'violations': []
                 },
                 'ai_check': {
-                    'is_Syariah Compliant': ai_result.get('is_Syariah Compliant', None),
+                    'is_halal': ai_result.get('is_halal', None),
                     'confidence': ai_result.get('confidence', 0),
                     'reason': ai_result.get('reason', ''),
                     'violations': ai_result.get('violations', []),
@@ -7925,7 +7925,7 @@ def check_halal_compliance():
         else:
             # Not enough content for AI check
             return jsonify({
-                'is_Syariah Compliant': True,
+                'is_halal': True,
                 'action': 'approve',
                 'reason': 'Content too short for AI analysis',
                 'keyword_check': {
@@ -7940,7 +7940,7 @@ def check_halal_compliance():
         app.logger.error(f"Syariah Compliant compliance check error: {str(e)}")
         # On error, fail safe by flagging for review
         return jsonify({
-            'is_Syariah Compliant': None,
+            'is_halal': None,
             'action': 'flag',
             'reason': 'Unable to verify compliance. Please submit for review.',
             'error': str(e),
@@ -15738,7 +15738,7 @@ def admin_stats():
             db.func.sum(db.case((Gig.status == 'open', 1), else_=0)).label('open'),
             db.func.sum(db.case((Gig.status == 'in_progress', 1), else_=0)).label('in_progress'),
             db.func.sum(db.case((Gig.status == 'completed', 1), else_=0)).label('completed'),
-            db.func.sum(db.case((Gig.halal_compliant == True, 1), else_=0)).label('Syariah Compliant')
+            db.func.sum(db.case((Gig.halal_compliant == True, 1), else_=0)).label('halal')
         ).first()
 
         total_gigs = gig_stats.total or 0
@@ -17344,7 +17344,7 @@ def admin_get_ai_flagged_gigs():
                 'created_at': gig.created_at.isoformat(),
                 'ai_moderation': {
                     'action': ai_result.get('action', 'unknown'),
-                    'is_Syariah Compliant': ai_result.get('is_Syariah Compliant', None),
+                    'is_halal': ai_result.get('is_halal', None),
                     'confidence': ai_result.get('confidence', 0),
                     'reason': ai_result.get('reason', ''),
                     'violations': ai_result.get('violations', []),
