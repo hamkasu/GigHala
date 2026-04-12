@@ -767,7 +767,7 @@
             <!-- Specialization Title -->
             <div class="form-group">
                 <label class="form-label">Tajuk Kepakaran (Pilihan)</label>
-                <input type="text" id="specialization-title" class="form-input" placeholder="Contoh: Guru Quran Bertauliah, Chef Halal Bersijil" maxlength="100">
+                <input type="text" id="specialization-title" class="form-input" placeholder="Contoh: Guru Quran Bertauliah, Chef Syariah Compliant Bersijil" maxlength="100">
                 <p class="form-hint">Tajuk khusus yang dipaparkan kepada klien (contoh: "Senior Quran Tutor")</p>
             </div>
 
@@ -1026,7 +1026,7 @@
                             ('fractional-cso',   'Fractional Sales Director / CSO'),
                             ('fractional-cio',   'Fractional CIO'),
                             ('fractional-esg',   'Fractional ESG / Sustainability Officer'),
-                            ('fractional-halal', 'Fractional Halal Compliance Officer'),
+                            ('fractional-halal', 'Fractional Syariah Compliance Officer'),
                         ] %}
                         {% for val, label in role_opts %}
                         <option value="{{ val }}" {% if user.fractional_role_type == val %}selected{% endif %}>{{ label }}</option>
