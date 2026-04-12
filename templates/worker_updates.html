@@ -574,7 +574,7 @@ function buildCard(item) {
         : `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(w.username || '')}`;
     const fallback   = avatarInitials(w.username, w.name);
     const verified   = w.is_verified    ? `<span class="v-icon">✓</span>` : '';
-    const halal      = w.halal_verified ? `<span style="font-size:10px;color:#0d7c66;" title="Halal Verified">☪</span>` : '';
+    const Syariah Compliant      = w.halal_verified ? `<span style="font-size:10px;color:#0d7c66;" title="Syariah Compliant Verified">☪</span>` : '';
     const premium    = item.has_premium ? `<span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-weight:700;">PREMIUM</span>` : '';
     const skills     = Array.isArray(item.skills) ? item.skills : [];
     const skillsHtml = skills.map(s => `<span class="skill-chip">${esc(s)}</span>`).join('');
@@ -601,7 +601,7 @@ function buildCard(item) {
            style="object-fit:cover;border-radius:50%;"
            onerror="this.onerror=null;this.src='${fallback}';">
       <div class="update-worker-info">
-        <div class="update-worker-name">${name} ${verified} ${halal}</div>
+        <div class="update-worker-name">${name} ${verified} ${Syariah Compliant}</div>
         <div class="update-worker-time">${timeAgo(item.updated_at)}</div>
       </div>
       ${ratingHtml}

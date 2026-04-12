@@ -1,8 +1,8 @@
 """
-Halal Compliance System for GigHala
+Syariah Compliant Compliance System for GigHala
 ====================================
 
-This module enforces strict Halal compliance for all gigs posted on the platform.
+This module enforces strict Syariah Compliant compliance for all gigs posted on the platform.
 It ensures that only Shariah-compliant work is allowed, protecting the integrity
 of the platform and serving the Muslim community in Malaysia.
 
@@ -15,7 +15,7 @@ Purpose:
 Islamic Principles:
 - Better to reject borderline cases than allow potentially haram content
 - Protect users from inadvertently participating in haram activities
-- Maintain platform integrity as a trusted halal marketplace
+- Maintain platform integrity as a trusted Syariah Compliant marketplace
 """
 
 import re
@@ -30,24 +30,24 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'design',
         'name_en': 'Graphic Design',
         'name_ms': 'Reka Bentuk Grafik',
-        'description_en': 'Logo design, branding, flyers, posters (halal content only)',
-        'description_ms': 'Reka bentuk logo, jenama, risalah, poster (kandungan halal sahaja)',
+        'description_en': 'Logo design, branding, flyers, posters (Syariah Compliant content only)',
+        'description_ms': 'Reka bentuk logo, jenama, risalah, poster (kandungan Syariah Compliant sahaja)',
         'icon': '🎨'
     },
     {
         'slug': 'writing',
         'name_en': 'Writing & Translation',
         'name_ms': 'Penulisan & Terjemahan',
-        'description_en': 'Content writing, copywriting, translation (halal topics only)',
-        'description_ms': 'Penulisan kandungan, penulisan iklan, terjemahan (topik halal sahaja)',
+        'description_en': 'Content writing, copywriting, translation (Syariah Compliant topics only)',
+        'description_ms': 'Penulisan kandungan, penulisan iklan, terjemahan (topik Syariah Compliant sahaja)',
         'icon': '✍️'
     },
     {
         'slug': 'video',
         'name_en': 'Video & Animation',
         'name_ms': 'Video & Animasi',
-        'description_en': 'Video editing, animation, motion graphics (halal content only)',
-        'description_ms': 'Penyuntingan video, animasi, grafik bergerak (kandungan halal sahaja)',
+        'description_en': 'Video editing, animation, motion graphics (Syariah Compliant content only)',
+        'description_ms': 'Penyuntingan video, animasi, grafik bergerak (kandungan Syariah Compliant sahaja)',
         'icon': '🎬'
     },
     {
@@ -62,32 +62,32 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'content',
         'name_en': 'Content Creation',
         'name_ms': 'Penciptaan Kandungan',
-        'description_en': 'Social media content, blog posts, newsletters (halal topics only)',
-        'description_ms': 'Kandungan media sosial, catatan blog, surat berita (topik halal sahaja)',
+        'description_en': 'Social media content, blog posts, newsletters (Syariah Compliant topics only)',
+        'description_ms': 'Kandungan media sosial, catatan blog, surat berita (topik Syariah Compliant sahaja)',
         'icon': '📱'
     },
     {
         'slug': 'web',
         'name_en': 'Web Development',
         'name_ms': 'Pembangunan Web',
-        'description_en': 'Website development, web apps (halal businesses only)',
-        'description_ms': 'Pembangunan laman web, aplikasi web (perniagaan halal sahaja)',
+        'description_en': 'Website development, web apps (Syariah Compliant businesses only)',
+        'description_ms': 'Pembangunan laman web, aplikasi web (perniagaan Syariah Compliant sahaja)',
         'icon': '💻'
     },
     {
         'slug': 'programming',
         'name_en': 'Programming & Tech',
         'name_ms': 'Pengaturcaraan & Teknologi',
-        'description_en': 'Software development, mobile apps, automation (halal purposes only)',
-        'description_ms': 'Pembangunan perisian, aplikasi mudah alih, automasi (tujuan halal sahaja)',
+        'description_en': 'Software development, mobile apps, automation (Syariah Compliant purposes only)',
+        'description_ms': 'Pembangunan perisian, aplikasi mudah alih, automasi (tujuan Syariah Compliant sahaja)',
         'icon': '⚙️'
     },
     {
         'slug': 'marketing',
         'name_en': 'Digital Marketing',
         'name_ms': 'Pemasaran Digital',
-        'description_en': 'SEO, social media marketing, ads (halal products/services only)',
-        'description_ms': 'SEO, pemasaran media sosial, iklan (produk/perkhidmatan halal sahaja)',
+        'description_en': 'SEO, social media marketing, ads (Syariah Compliant products/services only)',
+        'description_ms': 'SEO, pemasaran media sosial, iklan (produk/perkhidmatan Syariah Compliant sahaja)',
         'icon': '📈'
     },
     {
@@ -102,8 +102,8 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'delivery',
         'name_en': 'Delivery Services',
         'name_ms': 'Perkhidmatan Penghantaran',
-        'description_en': 'Food delivery (halal only), parcel delivery, courier',
-        'description_ms': 'Penghantaran makanan (halal sahaja), penghantaran bungkusan, kurier',
+        'description_en': 'Food delivery (Syariah Compliant only), parcel delivery, courier',
+        'description_ms': 'Penghantaran makanan (Syariah Compliant sahaja), penghantaran bungkusan, kurier',
         'icon': '🚗'
     },
     {
@@ -126,16 +126,16 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'photography',
         'name_en': 'Photography & Videography',
         'name_ms': 'Fotografi & Videografi',
-        'description_en': 'Event photography, product photography (halal events/products only)',
-        'description_ms': 'Fotografi acara, fotografi produk (acara/produk halal sahaja)',
+        'description_en': 'Event photography, product photography (Syariah Compliant events/products only)',
+        'description_ms': 'Fotografi acara, fotografi produk (acara/produk Syariah Compliant sahaja)',
         'icon': '📷'
     },
     {
         'slug': 'consulting',
         'name_en': 'Business Consulting',
         'name_ms': 'Perundingan Perniagaan',
-        'description_en': 'Business strategy, Islamic finance consulting, halal certification',
-        'description_ms': 'Strategi perniagaan, perundingan kewangan Islam, pensijilan halal',
+        'description_en': 'Business strategy, Islamic finance consulting, Syariah Compliant certification',
+        'description_ms': 'Strategi perniagaan, perundingan kewangan Islam, pensijilan Syariah Compliant',
         'icon': '💼'
     },
     {
@@ -150,8 +150,8 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'events',
         'name_en': 'Event Planning',
         'name_ms': 'Perancangan Acara',
-        'description_en': 'Wedding planning (Islamic), corporate events, halal catering',
-        'description_ms': 'Perancangan perkahwinan (Islam), acara korporat, katering halal',
+        'description_en': 'Wedding planning (Islamic), corporate events, Syariah Compliant catering',
+        'description_ms': 'Perancangan perkahwinan (Islam), acara korporat, katering Syariah Compliant',
         'icon': '🎉'
     },
     {
@@ -190,8 +190,8 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'pets',
         'name_en': 'Pet Care',
         'name_ms': 'Penjagaan Haiwan',
-        'description_en': 'Pet sitting, grooming (halal pets: cats, birds, fish only)',
-        'description_ms': 'Penjagaan haiwan, dandanan (haiwan halal: kucing, burung, ikan sahaja)',
+        'description_en': 'Pet sitting, grooming (Syariah Compliant pets: cats, birds, fish only)',
+        'description_ms': 'Penjagaan haiwan, dandanan (haiwan Syariah Compliant: kucing, burung, ikan sahaja)',
         'icon': '🐱'
     },
     {
@@ -214,16 +214,16 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'tours',
         'name_en': 'Tour Guide & Travel',
         'name_ms': 'Pemandu Pelancong & Pelancongan',
-        'description_en': 'Halal tourism, umrah guidance, local tours',
-        'description_ms': 'Pelancongan halal, panduan umrah, lawatan tempatan',
+        'description_en': 'Syariah Compliant tourism, umrah guidance, local tours',
+        'description_ms': 'Pelancongan Syariah Compliant, panduan umrah, lawatan tempatan',
         'icon': '🧳'
     },
     {
         'slug': 'online-selling',
         'name_en': 'Online Selling & E-commerce',
         'name_ms': 'Jualan Online & E-dagang',
-        'description_en': 'Product listing, marketplace management (halal products only)',
-        'description_ms': 'Penyenaraian produk, pengurusan pasaran (produk halal sahaja)',
+        'description_en': 'Product listing, marketplace management (Syariah Compliant products only)',
+        'description_ms': 'Penyenaraian produk, pengurusan pasaran (produk Syariah Compliant sahaja)',
         'icon': '🛒'
     },
     {
@@ -238,8 +238,8 @@ HALAL_APPROVED_CATEGORIES = [
         'slug': 'micro-tasks',
         'name_en': 'Micro-Tasks',
         'name_ms': 'Tugas Mikro',
-        'description_en': 'Simple online tasks, surveys, app testing (halal only)',
-        'description_ms': 'Tugas dalam talian ringkas, tinjauan, ujian aplikasi (halal sahaja)',
+        'description_en': 'Simple online tasks, surveys, app testing (Syariah Compliant only)',
+        'description_ms': 'Tugas dalam talian ringkas, tinjauan, ujian aplikasi (Syariah Compliant sahaja)',
         'icon': '✅'
     },
     {
@@ -266,7 +266,7 @@ HALAL_APPROVED_CATEGORIES = [
             'Fractional CSO/Sales Director (revenue, partnerships), '
             'Fractional CIO (IT governance, digital transformation), '
             'Fractional ESG/Sustainability Officer, '
-            'Fractional Halal Compliance Officer. '
+            'Fractional Syariah Compliant Compliance Officer. '
             'Halal-compliant engagements only — structured monthly retainer, min 3-month commitment.'
         ),
         'description_ms': (
@@ -281,8 +281,8 @@ HALAL_APPROVED_CATEGORIES = [
             'Pengarah Jualan/CSO Pecahan (hasil, perkongsian), '
             'CIO Pecahan (tadbir urus IT, transformasi digital), '
             'Pegawai Kelestarian/ESG Pecahan, '
-            'Pegawai Pematuhan Halal Pecahan. '
-            'Penglibatan mematuhi halal sahaja — retainer bulanan berstruktur, komitmen minimum 3 bulan.'
+            'Pegawai Pematuhan Syariah Compliant Pecahan. '
+            'Penglibatan mematuhi Syariah Compliant sahaja — retainer bulanan berstruktur, komitmen minimum 3 bulan.'
         ),
         'icon': '🤝',
         'sub_roles': [
@@ -296,15 +296,15 @@ HALAL_APPROVED_CATEGORIES = [
             {'slug': 'fractional-cso',    'name_en': 'Fractional Sales Director / CSO', 'name_ms': 'Pengarah Jualan Pecahan'},
             {'slug': 'fractional-cio',    'name_en': 'Fractional CIO',                  'name_ms': 'CIO Pecahan'},
             {'slug': 'fractional-esg',    'name_en': 'Fractional ESG / Sustainability Officer', 'name_ms': 'Pegawai ESG / Kelestarian Pecahan'},
-            {'slug': 'fractional-halal',  'name_en': 'Fractional Halal Compliance Officer', 'name_ms': 'Pegawai Pematuhan Halal Pecahan'},
+            {'slug': 'fractional-halal',  'name_en': 'Fractional Syariah Compliant Compliance Officer', 'name_ms': 'Pegawai Pematuhan Syariah Compliant Pecahan'},
         ],
     },
     {
         'slug': 'creative-other',
         'name_en': 'Other Creative Services',
         'name_ms': 'Perkhidmatan Kreatif Lain',
-        'description_en': 'Other halal creative work not listed above',
-        'description_ms': 'Kerja kreatif halal lain yang tidak disenaraikan di atas',
+        'description_en': 'Other Syariah Compliant creative work not listed above',
+        'description_ms': 'Kerja kreatif Syariah Compliant lain yang tidak disenaraikan di atas',
         'icon': '🎭'
     },
 ]
@@ -380,7 +380,7 @@ PROHIBITED_KEYWORDS = {
     'pork': [
         'pork', 'babi', 'pig', 'ham', 'bacon', 'bekon', 'sausage babi',
         'pork chop', 'char siew', 'char siu', 'bak kut teh', 'non-halal meat',
-        'daging tidak halal', 'lard', 'lemak babi', 'gelatin babi'
+        'daging tidak Syariah Compliant', 'lard', 'lemak babi', 'gelatin babi'
     ],
 
     # Adult & Sexual Content (الفاحشة)
@@ -464,7 +464,7 @@ for category, keywords in PROHIBITED_KEYWORDS.items():
     ALL_PROHIBITED_KEYWORDS.extend(keywords)
 
 # =============================================================================
-# HALAL COMPLIANCE VALIDATION FUNCTIONS
+# Syariah Compliant COMPLIANCE VALIDATION FUNCTIONS
 # =============================================================================
 
 def check_prohibited_keywords(text: str) -> Tuple[bool, List[str]]:
@@ -521,9 +521,9 @@ def validate_category(category: str) -> Tuple[bool, str]:
 
     if category not in HALAL_APPROVED_CATEGORY_SLUGS:
         return False, (
-            f"Category '{category}' is not in the approved halal category list. "
+            f"Category '{category}' is not in the approved Syariah Compliant category list. "
             f"Please select from the approved categories. / "
-            f"Kategori '{category}' tidak dalam senarai kategori halal yang diluluskan. "
+            f"Kategori '{category}' tidak dalam senarai kategori Syariah Compliant yang diluluskan. "
             f"Sila pilih daripada kategori yang diluluskan."
         )
 
@@ -537,7 +537,7 @@ def validate_gig_halal_compliance(
     skills: str = None
 ) -> Tuple[bool, Dict[str, any]]:
     """
-    Complete halal compliance validation for a gig.
+    Complete Syariah Compliant compliance validation for a gig.
 
     This is the main validation function that should be called when creating
     or editing a gig. It performs comprehensive checks:
@@ -623,13 +623,13 @@ def validate_gig_halal_compliance(
     # Generate comprehensive error messages
     if not result['is_compliant']:
         result['message_en'] = (
-            "This gig cannot be posted because it contains non-halal elements. "
-            "GigHala is a strictly halal-compliant platform. "
+            "This gig cannot be posted because it contains non-Syariah Compliant elements. "
+            "GigHala is a strictly Syariah Compliant platform. "
             "Please review the prohibited content guidelines and modify your gig."
         )
         result['message_ms'] = (
-            "Gig ini tidak boleh dipos kerana mengandungi elemen yang tidak halal. "
-            "GigHala adalah platform yang mematuhi halal secara ketat. "
+            "Gig ini tidak boleh dipos kerana mengandungi elemen yang tidak Syariah Compliant. "
+            "GigHala adalah platform yang mematuhi Syariah Compliant secara ketat. "
             "Sila semak garis panduan kandungan yang dilarang dan ubah suai gig anda."
         )
 
@@ -699,19 +699,19 @@ def get_category_display_name(category_slug: str, language: str = 'en') -> str:
 
 def get_halal_guidelines_text() -> Dict[str, str]:
     """
-    Get halal compliance guidelines text in both languages.
+    Get Syariah Compliant compliance guidelines text in both languages.
 
     Returns:
         Dictionary with 'en' and 'ms' keys containing guidelines text
     """
     return {
         'en': """
-GigHala Halal Compliance Guidelines:
+GigHala Syariah Compliant Compliance Guidelines:
 
 STRICTLY PROHIBITED:
 ❌ Alcohol, tobacco, drugs, or intoxicants
 ❌ Gambling, betting, or games of chance
-❌ Pork or non-halal meat products
+❌ Pork or non-Syariah Compliant meat products
 ❌ Adult content, pornography, or sexual services
 ❌ Interest-based finance (riba) or usury
 ❌ Fraud, scams, or deceptive schemes
@@ -720,21 +720,21 @@ STRICTLY PROHIBITED:
 ❌ Any haram activities prohibited by Islamic law
 
 REQUIREMENTS:
-✅ Select from approved halal categories only
+✅ Select from approved Syariah Compliant categories only
 ✅ Ensure all content is Shariah-compliant
 ✅ Use respectful and modest language
-✅ Confirm your gig serves halal purposes
-✅ Report any violations to halal@gighala.my
+✅ Confirm your gig serves Syariah Compliant purposes
+✅ Report any violations to Syariah Compliant@gighala.my
 
-When in doubt, contact our Halal Compliance Team.
+When in doubt, contact our Syariah Compliant Compliance Team.
         """,
         'ms': """
-Garis Panduan Pematuhan Halal GigHala:
+Garis Panduan Pematuhan Syariah Compliant GigHala:
 
 DILARANG SAMA SEKALI:
 ❌ Alkohol, tembakau, dadah, atau bahan memabukkan
 ❌ Judi, pertaruhan, atau permainan nasib
-❌ Daging babi atau produk daging tidak halal
+❌ Daging babi atau produk daging tidak Syariah Compliant
 ❌ Kandungan dewasa, pornografi, atau perkhidmatan seksual
 ❌ Kewangan berasaskan faedah (riba) atau riba
 ❌ Penipuan, skim, atau rancangan menipu
@@ -743,13 +743,13 @@ DILARANG SAMA SEKALI:
 ❌ Sebarang aktiviti haram yang dilarang oleh undang-undang Islam
 
 KEPERLUAN:
-✅ Pilih daripada kategori halal yang diluluskan sahaja
+✅ Pilih daripada kategori Syariah Compliant yang diluluskan sahaja
 ✅ Pastikan semua kandungan mematuhi Syariah
 ✅ Gunakan bahasa yang sopan dan sederhana
-✅ Sahkan gig anda untuk tujuan halal
-✅ Laporkan sebarang pelanggaran ke halal@gighala.my
+✅ Sahkan gig anda untuk tujuan Syariah Compliant
+✅ Laporkan sebarang pelanggaran ke Syariah Compliant@gighala.my
 
-Jika ragu-ragu, hubungi Pasukan Pematuhan Halal kami.
+Jika ragu-ragu, hubungi Pasukan Pematuhan Syariah Compliant kami.
         """
     }
 
@@ -766,9 +766,9 @@ def log_halal_violation(
     ip_address: str = None
 ):
     """
-    Log halal compliance violations for admin review and security audit.
+    Log Syariah Compliant compliance violations for admin review and security audit.
 
-    This function should be called whenever a gig fails halal validation.
+    This function should be called whenever a gig fails Syariah Compliant validation.
     It creates an audit trail for compliance monitoring and pattern detection.
 
     Args:

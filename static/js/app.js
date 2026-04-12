@@ -260,7 +260,7 @@ const app = {
         
         grid.innerHTML = this.gigs.map(gig => {
             const badges = [];
-            if (gig.halal_verified) badges.push('<span class="badge badge-halal">☪ HALAL</span>');
+            if (gig.halal_verified) badges.push('<span class="badge badge-halal">☪ Syariah Compliant</span>');
             if (gig.is_instant_payout) badges.push('<span class="badge badge-instant">⚡ INSTANT</span>');
             if (gig.is_brand_partnership) badges.push('<span class="badge badge-brand">🌟 BRAND</span>');
             if (gig.is_remote) badges.push('<span class="badge badge-remote">🌐 REMOTE</span>');
@@ -300,7 +300,7 @@ const app = {
             const details = document.getElementById('gigDetails');
             
             const badges = [];
-            if (gig.halal_verified) badges.push('<span class="badge badge-halal">☪ HALAL VERIFIED</span>');
+            if (gig.halal_verified) badges.push('<span class="badge badge-halal">☪ Syariah Compliant VERIFIED</span>');
             if (gig.is_instant_payout) badges.push('<span class="badge badge-instant">⚡ INSTANT PAYOUT</span>');
             if (gig.is_brand_partnership) badges.push('<span class="badge badge-brand">🌟 BRAND PARTNERSHIP</span>');
             if (gig.is_remote) badges.push('<span class="badge badge-remote">🌐 REMOTE</span>');
@@ -469,7 +469,7 @@ const app = {
             locationFilter.addEventListener('change', () => this.applyFilters());
         }
         
-        // Halal filter
+        // Syariah Compliant filter
         const halalFilter = document.getElementById('halalFilter');
         if (halalFilter) {
             halalFilter.addEventListener('change', () => this.applyFilters());
@@ -502,8 +502,8 @@ const app = {
         const location = document.getElementById('locationFilter');
         if (location && location.value) filters.location = location.value;
         
-        const halal = document.getElementById('halalFilter');
-        if (halal) filters.halal_only = halal.checked ? 'true' : 'false';
+        const syariahFilter = document.getElementById('halalFilter');
+        if (syariahFilter) filters.halal_only = syariahFilter.checked ? 'true' : 'false';
         
         this.loadGigs(filters);
     },

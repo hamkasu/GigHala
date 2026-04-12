@@ -101,13 +101,13 @@ fun GigDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Status + Halal badge
+                    // Status + Syariah Compliant badge
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AssistChip(onClick = {}, label = { Text(gig.status.replaceFirstChar { it.uppercase() }) })
                         if (gig.isHalalVerified) {
                             AssistChip(
                                 onClick = {},
-                                label = { Text("Halal Verified") },
+                                label = { Text("Syariah Compliant Verified") },
                                 leadingIcon = { Icon(Icons.Filled.CheckCircle, null, Modifier.size(16.dp)) }
                             )
                         }

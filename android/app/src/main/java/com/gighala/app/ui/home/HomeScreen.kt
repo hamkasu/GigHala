@@ -166,7 +166,7 @@ fun GigCard(gig: GigDto, onClick: () -> Unit) {
                 if (gig.isHalalVerified) {
                     Icon(
                         Icons.Filled.CheckCircle,
-                        contentDescription = "Halal Verified",
+                        contentDescription = "Syariah Compliant Verified",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )

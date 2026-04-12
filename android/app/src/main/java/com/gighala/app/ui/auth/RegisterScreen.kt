@@ -50,7 +50,7 @@ fun RegisterScreen(
     ) {
         Spacer(Modifier.height(24.dp))
         Text("Create Account", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-        Text("Join GigHala — halal work, blessed earnings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Join GigHala — Syariah Compliant work, blessed earnings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
 
         // Social sign-up buttons
@@ -204,7 +204,7 @@ fun RegisterScreen(
 
         Spacer(Modifier.height(8.dp))
         Text(
-            "By registering, you agree to GigHala's halal-compliant terms of service.",
+            "By registering, you agree to GigHala's Syariah Compliant terms of service.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

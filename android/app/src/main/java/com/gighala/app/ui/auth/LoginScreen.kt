@@ -70,7 +70,7 @@ fun LoginScreen(
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            "Malaysia's Halal Gig Economy",
+            "Malaysia's Syariah Compliant Gig Economy",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

@@ -73,7 +73,7 @@ fun GigHalaDrawerContent(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Malaysia's Halal Gig Economy",
+                    "Malaysia's Syariah Compliant Gig Economy",
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
                     fontSize = 12.sp
                 )

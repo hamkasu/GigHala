@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Cari Gig & Kerja Freelance Halal di Malaysia{% endblock %}
-{% block meta_description %}Layari ribuan gig halal di Malaysia. Kerja freelance disahkan, bayaran escrow selamat, SOCSO dilindungi. Mohon dan mulakan jana pendapatan hari ini — GigHala.{% endblock %}
-{% block meta_keywords %}gig malaysia, kerja freelance malaysia, cari kerja sampingan, gig halal, freelance halal malaysia, kerja sambilan malaysia{% endblock %}
+{% block title %}Cari Gig & Kerja Freelance Syariah Compliant di Malaysia{% endblock %}
+{% block meta_description %}Layari ribuan gig Syariah Compliant di Malaysia. Kerja freelance disahkan, bayaran escrow selamat, SOCSO dilindungi. Mohon dan mulakan jana pendapatan hari ini — GigHala.{% endblock %}
+{% block meta_keywords %}gig malaysia, kerja freelance malaysia, cari kerja sampingan, gig Syariah Compliant, freelance Syariah Compliant malaysia, kerja sambilan malaysia{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -667,7 +667,7 @@
 
                 <div class="gig-meta">
                     ${gig.status ? `<span class="status-badge ${gig.status}">${statusLabel}</span>` : ''}
-                    ${gig.halal_verified ? '<span class="gig-badge halal">✓ Halal Verified</span>' : ''}
+                    ${gig.halal_verified ? '<span class="gig-badge Syariah Compliant">✓ Syariah Compliant Verified</span>' : ''}
                     ${gig.is_instant_payout ? '<span class="gig-badge instant">⚡ Instant Payout</span>' : ''}
                     ${gig.is_remote ? '<span class="gig-badge">🌐 Remote</span>' : ''}
                     ${gig.location ? `<span class="gig-badge">📍 ${escapeHtml(gig.location)}</span>` : ''}

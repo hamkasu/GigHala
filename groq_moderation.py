@@ -1,10 +1,10 @@
 """
-AI-Powered Halal Compliance Moderation using Groq API
+AI-Powered Syariah Compliant Compliance Moderation using Groq API
 =====================================================
 
-This module provides AI-based halal compliance checking for gig postings using
+This module provides AI-based Syariah Compliant compliance checking for gig postings using
 the Groq API with Llama-3-70b-8192 model. It enforces strict Islamic Shariah
-principles to ensure all content on GigHala is 100% halal compliant.
+principles to ensure all content on GigHala is 100% Syariah Compliant compliant.
 
 The AI moderation works alongside existing keyword-based filtering to provide
 an additional layer of protection against haram content.
@@ -34,7 +34,7 @@ CONFIDENCE_THRESHOLD_AUTO_REJECT = 0.90   # Increased from 0.85 to require highe
 # Between 80-90% or <80% → flag for manual review
 
 # System prompt for strict Islamic Shariah compliance checking
-HALAL_COMPLIANCE_SYSTEM_PROMPT = """You are an expert Islamic Shariah compliance officer for GigHala, Malaysia's first 100% halal gig economy platform. Your role is to analyze gig postings (job listings) and determine if they comply with strict Islamic Shariah principles.
+HALAL_COMPLIANCE_SYSTEM_PROMPT = """You are an expert Islamic Shariah compliance officer for GigHala, Malaysia's first 100% Syariah Compliant gig economy platform. Your role is to analyze gig postings (job listings) and determine if they comply with strict Islamic Shariah principles.
 
 STRICT PROHIBITION CRITERIA - Reject ANY content involving:
 
@@ -44,11 +44,11 @@ STRICT PROHIBITION CRITERIA - Reject ANY content involving:
    - Wine tasting, bartending, mixology services
    - Any business or activity involving alcoholic beverages
 
-2. **Pork & Non-Halal Meat**
+2. **Pork & Non-Syariah Compliant Meat**
    - Pork products, bacon, ham, lard, or pork-based ingredients
-   - Non-halal slaughtered meat (not zabihah)
+   - Non-Syariah Compliant slaughtered meat (not zabihah)
    - Restaurants or businesses serving pork
-   - Any food business without clear halal certification
+   - Any food business without clear Syariah Compliant certification
 
 3. **Interest-Based Finance (Riba)**
    - Conventional loans with interest
@@ -109,7 +109,7 @@ STRICT PROHIBITION CRITERIA - Reject ANY content involving:
 You must respond with ONLY a valid JSON object (no markdown, no extra text):
 
 {
-  "is_halal": true/false,
+  "is_Syariah Compliant": true/false,
   "confidence": 0.0-1.0,
   "reason": "Brief explanation in English (1-2 sentences). If it's a test, mention it's harmless.",
   "violations": ["list", "of", "specific", "violations"] or [],
@@ -117,23 +117,23 @@ You must respond with ONLY a valid JSON object (no markdown, no extra text):
 }
 
 **DECISION RULES:**
-- is_halal: true if no prohibited elements are detected.
-- is_halal: false ONLY if a clear prohibited element (alcohol, pork, riba, etc.) is detected.
+- is_Syariah Compliant: true if no prohibited elements are detected.
+- is_Syariah Compliant: false ONLY if a clear prohibited element (alcohol, pork, riba, etc.) is detected.
 - confidence: Your confidence level (0.0 = not confident, 1.0 = absolutely certain)
 - action:
-  * "approve" - Clear halal or harmless content, high confidence (≥80%)
+  * "approve" - Clear Syariah Compliant or harmless content, high confidence (≥80%)
   * "flag" - Uncertain, borderline, or generic but not clearly haram content.
   * "reject" - Clear haram content with very high confidence (≥90%).
-- violations: List specific Shariah violations found (empty if halal)
+- violations: List specific Shariah violations found (empty if Syariah Compliant)
 - reason: Explain your decision briefly and clearly. If it's a test, mention it's harmless.
 
 **IMPORTANT:** Be fair but firm. Harmless "test" content should NOT be rejected. Protect the integrity of the platform without blocking valid or harmless testing activity.
 
-Examples of HALAL gigs (approve):
-- "Need graphic designer for halal restaurant menu"
+Examples of Syariah Compliant gigs (approve):
+- "Need graphic designer for Syariah Compliant restaurant menu"
 - "Looking for web developer for Islamic education app"
 - "Tutor needed for Quran recitation and tajweed"
-- "Content writer for halal food blog"
+- "Content writer for Syariah Compliant food blog"
 
 Examples of HARAM gigs (reject):
 - "Bartender needed for nightclub"
@@ -143,7 +143,7 @@ Examples of HARAM gigs (reject):
 
 Examples to FLAG for review (uncertain):
 - "Photographer for wedding" (depends on gender mixing, music, etc.)
-- "Marketing consultant for restaurant" (depends if restaurant is halal)
+- "Marketing consultant for restaurant" (depends if restaurant is Syariah Compliant)
 - "Event planner for birthday party" (depends on event activities)
 
 Remember: When uncertain, ALWAYS flag for manual review. Never approve questionable content."""
@@ -151,10 +151,10 @@ Remember: When uncertain, ALWAYS flag for manual review. Never approve questiona
 
 def ai_halal_moderation(title: str, description: str) -> Dict:
     """
-    Perform AI-powered halal compliance checking using Groq API.
+    Perform AI-powered Syariah Compliant compliance checking using Groq API.
 
     This function sends the gig title and description to Groq's Llama model
-    for semantic analysis of halal compliance. The AI evaluates the content
+    for semantic analysis of Syariah Compliant compliance. The AI evaluates the content
     against Islamic Shariah principles and returns a structured decision.
 
     Args:
@@ -165,7 +165,7 @@ def ai_halal_moderation(title: str, description: str) -> Dict:
         Dict containing:
         {
             'success': bool,           # Whether API call succeeded
-            'is_halal': bool,          # AI's halal determination
+            'is_Syariah Compliant': bool,          # AI's Syariah Compliant determination
             'confidence': float,       # Confidence score (0.0-1.0)
             'reason': str,            # AI's explanation
             'violations': List[str],  # List of violations found
@@ -186,13 +186,13 @@ def ai_halal_moderation(title: str, description: str) -> Dict:
         return _create_fallback_response("API key not configured", flag=True)
 
     # Construct user prompt
-    user_prompt = f"""Analyze this gig posting for halal compliance:
+    user_prompt = f"""Analyze this gig posting for Syariah Compliant compliance:
 
 **Title:** {title}
 
 **Description:** {description}
 
-Determine if this gig is halal-compliant according to Islamic Shariah principles. Respond ONLY with valid JSON."""
+Determine if this gig is Syariah Compliant according to Islamic Shariah principles. Respond ONLY with valid JSON."""
 
     # Prepare API request payload
     payload = {
@@ -254,7 +254,7 @@ Determine if this gig is halal-compliant according to Islamic Shariah principles
                 raise ValueError("AI response missing required fields or has invalid values")
 
             # Determine final action (may override AI's suggested action)
-            final_action = _determine_action(ai_result['is_halal'], ai_result['confidence'])
+            final_action = _determine_action(ai_result['is_Syariah Compliant'], ai_result['confidence'])
 
             # Extract token usage if available
             tokens_used = response_data.get('usage', {}).get('total_tokens', 0)
@@ -262,7 +262,7 @@ Determine if this gig is halal-compliant according to Islamic Shariah principles
             # Build successful response
             result = {
                 'success': True,
-                'is_halal': ai_result['is_halal'],
+                'is_Syariah Compliant': ai_result['is_Syariah Compliant'],
                 'confidence': float(ai_result['confidence']),
                 'reason': ai_result['reason'],
                 'violations': ai_result.get('violations', []),
@@ -312,14 +312,14 @@ def _validate_ai_response(ai_result: Dict) -> bool:
     Returns:
         bool: True if valid, False otherwise
     """
-    required_fields = ['is_halal', 'confidence', 'reason', 'action']
+    required_fields = ['is_Syariah Compliant', 'confidence', 'reason', 'action']
 
     # Check all required fields exist
     if not all(field in ai_result for field in required_fields):
         return False
 
     # Validate types
-    if not isinstance(ai_result['is_halal'], bool):
+    if not isinstance(ai_result['is_Syariah Compliant'], bool):
         return False
 
     if not isinstance(ai_result['confidence'], (int, float)):
@@ -334,25 +334,25 @@ def _validate_ai_response(ai_result: Dict) -> bool:
     return True
 
 
-def _determine_action(is_halal: bool, confidence: float) -> str:
+def _determine_action(is_Syariah Compliant: bool, confidence: float) -> str:
     """
     Determine the final moderation action based on AI assessment.
 
     Decision logic:
-    - If is_halal=True and confidence ≥ 0.90: AUTO-APPROVE
-    - If is_halal=False and confidence ≥ 0.85: AUTO-REJECT
+    - If is_Syariah Compliant=True and confidence ≥ 0.90: AUTO-APPROVE
+    - If is_Syariah Compliant=False and confidence ≥ 0.85: AUTO-REJECT
     - Otherwise: FLAG for manual review
 
     Args:
-        is_halal: Whether AI determined content is halal
+        is_Syariah Compliant: Whether AI determined content is Syariah Compliant
         confidence: AI confidence score (0.0 to 1.0)
 
     Returns:
         str: 'approve', 'flag', or 'reject'
     """
-    if is_halal and confidence >= CONFIDENCE_THRESHOLD_AUTO_APPROVE:
+    if is_Syariah Compliant and confidence >= CONFIDENCE_THRESHOLD_AUTO_APPROVE:
         return 'approve'
-    elif not is_halal and confidence >= CONFIDENCE_THRESHOLD_AUTO_REJECT:
+    elif not is_Syariah Compliant and confidence >= CONFIDENCE_THRESHOLD_AUTO_REJECT:
         return 'reject'
     else:
         # When in doubt, flag for human review
@@ -364,7 +364,7 @@ def _create_fallback_response(error_message: str, flag: bool = True) -> Dict:
     Create a fallback response when AI moderation fails.
 
     Default behavior: Flag for manual review to ensure safety.
-    We never auto-approve on failure to maintain strict halal compliance.
+    We never auto-approve on failure to maintain strict Syariah Compliant compliance.
 
     Args:
         error_message: Description of the error
@@ -375,7 +375,7 @@ def _create_fallback_response(error_message: str, flag: bool = True) -> Dict:
     """
     return {
         'success': False,
-        'is_halal': None,  # Unknown due to error
+        'is_Syariah Compliant': None,  # Unknown due to error
         'confidence': 0.0,
         'reason': f'AI moderation unavailable: {error_message}',
         'violations': [],
@@ -452,7 +452,7 @@ def check_groq_api_health() -> Tuple[bool, str]:
         # Simple test request
         test_result = ai_halal_moderation(
             "Test gig",
-            "This is a test for halal compliance checking"
+            "This is a test for Syariah Compliant compliance checking"
         )
 
         if test_result['success']:
@@ -466,13 +466,13 @@ def check_groq_api_health() -> Tuple[bool, str]:
 
 if __name__ == '__main__':
     # Test the moderation system
-    print("Testing AI Halal Moderation System\n" + "="*50)
+    print("Testing AI Syariah Compliant Moderation System\n" + "="*50)
 
-    # Test case 1: Clear halal content
-    print("\n✅ Test 1: Halal content")
+    # Test case 1: Clear Syariah Compliant content
+    print("\n✅ Test 1: Syariah Compliant content")
     result = ai_halal_moderation(
-        "Graphic Designer for Halal Restaurant",
-        "We need a talented graphic designer to create a new menu for our halal-certified restaurant. The design should be modern and appealing to Muslim customers."
+        "Graphic Designer for Syariah Compliant Restaurant",
+        "We need a talented graphic designer to create a new menu for our Syariah Compliant certified restaurant. The design should be modern and appealing to Muslim customers."
     )
     print(json.dumps(result, indent=2))
 

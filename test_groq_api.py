@@ -35,9 +35,9 @@ def test_api_key_configured():
         return False
 
 def test_halal_content():
-    """Test 2: Test with clear halal content"""
+    """Test 2: Test with clear Syariah Compliant content"""
     print_separator()
-    print("TEST 2: Halal Content Detection")
+    print("TEST 2: Syariah Compliant Content Detection")
     print_separator()
 
     title = "Quran Teacher for Children"
@@ -51,7 +51,7 @@ def test_halal_content():
 
     print(f"\n📊 Result:")
     print(f"  Success: {result['success']}")
-    print(f"  Is Halal: {result.get('is_halal', 'N/A')}")
+    print(f"  Is Syariah Compliant: {result.get('is_Syariah Compliant', 'N/A')}")
     print(f"  Confidence: {result.get('confidence', 0):.2f}")
     print(f"  Action: {result['action']}")
     print(f"  Reason: {result['reason']}")
@@ -59,13 +59,13 @@ def test_halal_content():
     print(f"  Tokens Used: {result.get('tokens_used', 0)}")
 
     if result['success'] and result['action'] == 'approve':
-        print("\n✅ PASSED: Halal content correctly identified")
+        print("\n✅ PASSED: Syariah Compliant content correctly identified")
         return True
     elif not result['success']:
         print(f"\n❌ FAILED: API call failed - {result.get('error', 'Unknown error')}")
         return False
     else:
-        print(f"\n⚠️  WARNING: Unexpected action '{result['action']}' for halal content")
+        print(f"\n⚠️  WARNING: Unexpected action '{result['action']}' for Syariah Compliant content")
         return False
 
 def test_haram_content():
@@ -85,7 +85,7 @@ def test_haram_content():
 
     print(f"\n📊 Result:")
     print(f"  Success: {result['success']}")
-    print(f"  Is Halal: {result.get('is_halal', 'N/A')}")
+    print(f"  Is Syariah Compliant: {result.get('is_Syariah Compliant', 'N/A')}")
     print(f"  Confidence: {result.get('confidence', 0):.2f}")
     print(f"  Action: {result['action']}")
     print(f"  Reason: {result['reason']}")
@@ -120,7 +120,7 @@ def test_borderline_content():
 
     print(f"\n📊 Result:")
     print(f"  Success: {result['success']}")
-    print(f"  Is Halal: {result.get('is_halal', 'N/A')}")
+    print(f"  Is Syariah Compliant: {result.get('is_Syariah Compliant', 'N/A')}")
     print(f"  Confidence: {result.get('confidence', 0):.2f}")
     print(f"  Action: {result['action']}")
     print(f"  Reason: {result['reason']}")
@@ -166,7 +166,7 @@ def main():
 
     print()
 
-    # Test 2: Halal Content
+    # Test 2: Syariah Compliant Content
     if test_halal_content():
         tests_passed += 1
 

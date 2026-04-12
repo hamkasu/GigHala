@@ -1249,7 +1249,7 @@
         // Name & badges
         const name = escapeHtml(worker.name || worker.full_name || worker.username || 'Worker');
         const verifiedBadge = worker.is_verified ? '<span class="verified-badge" title="Verified">✓</span>' : '';
-        const halalBadge = worker.halal_verified ? '<span class="halal-badge">&#9670; Halal Verified</span>' : '';
+        const halalBadge = worker.halal_verified ? '<span class="halal-badge">&#9670; Syariah Compliant Verified</span>' : '';
         document.getElementById('modalName').innerHTML = `${name} ${verifiedBadge} ${halalBadge}`;
 
         // Meta row

@@ -1,14 +1,14 @@
 """
-GigHala Blog Articles - SEO-optimised content targeting Malaysian freelance & halal gig keywords.
+GigHala Blog Articles - SEO-optimised content targeting Malaysian freelance & Syariah Compliant gig keywords.
 
 Target keywords:
   - kerja freelance Malaysia
-  - platform halal gig Malaysia
+  - platform Syariah Compliant gig Malaysia
   - SOCSO gig worker Malaysia 2025
   - cara mulakan freelance Malaysia
   - pekerja gig Malaysia
-  - kerja sambilan halal
-  - platform freelance halal
+  - kerja sambilan Syariah Compliant
+  - platform freelance Syariah Compliant
   - pendapatan freelancer Malaysia
 """
 
@@ -101,7 +101,7 @@ BLOG_ARTICLES = [
         <tbody>
             <tr>
                 <td style="padding: 12px; border: 1px solid var(--border);"><strong>GigHala</strong></td>
-                <td style="padding: 12px; border: 1px solid var(--border);">Malaysia, Halal</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Malaysia, Syariah Compliant</td>
                 <td style="padding: 12px; border: 1px solid var(--border);">15% tetap</td>
                 <td style="padding: 12px; border: 1px solid var(--border);">Bayaran segera 24 jam, SOCSO, padanan AI</td>
             </tr>
@@ -179,20 +179,20 @@ BLOG_ARTICLES = [
     },
     {
         "slug": "platform-gig-halal-terbaik-malaysia",
-        "title": "Platform Gig Halal Terbaik di Malaysia 2025: Panduan Lengkap",
-        "subtitle": "Kenapa pekerja gig Muslim Malaysia perlu berhati-hati memilih platform — dan apa yang menjadikan platform gig halal berbeza.",
-        "meta_description": "Cari platform gig halal terbaik di Malaysia? Bandingkan pilihan terbaik untuk Muslim Malaysia yang ingin kerja freelance mengikut prinsip Islam.",
-        "meta_keywords": "platform halal gig Malaysia, platform freelance halal, gig halal Malaysia, kerja freelance halal, platform gig Muslim Malaysia",
+        "title": "Platform Gig Syariah Compliant Terbaik di Malaysia 2025: Panduan Lengkap",
+        "subtitle": "Kenapa pekerja gig Muslim Malaysia perlu berhati-hati memilih platform — dan apa yang menjadikan platform gig Syariah Compliant berbeza.",
+        "meta_description": "Cari platform gig Syariah Compliant terbaik di Malaysia? Bandingkan pilihan terbaik untuk Muslim Malaysia yang ingin kerja freelance mengikut prinsip Islam.",
+        "meta_keywords": "platform Syariah Compliant gig Malaysia, platform freelance Syariah Compliant, gig Syariah Compliant Malaysia, kerja freelance Syariah Compliant, platform gig Muslim Malaysia",
         "category": "Perbandingan",
         "category_en": "Comparison",
         "read_time": 6,
         "published_date": "2025-01-20",
         "icon": "🕌",
-        "excerpt": "Tidak semua platform gig sesuai untuk Muslim Malaysia. Ketahui apa yang menjadikan sebuah platform benar-benar 'halal' dan mengapa ini penting untuk pendapatan anda.",
+        "excerpt": "Tidak semua platform gig sesuai untuk Muslim Malaysia. Ketahui apa yang menjadikan sebuah platform benar-benar 'Syariah Compliant' dan mengapa ini penting untuk pendapatan anda.",
         "content": """
 <div class="content-section">
-    <h2><span class="section-icon">🕌</span> Apakah Platform Gig Halal?</h2>
-    <p>Bagi Muslim Malaysia, bukan sahaja makanan yang perlu halal — pendapatan juga perlu datang dari sumber yang bersih dan sesuai dengan prinsip Islam. Platform gig halal memastikan bahawa:</p>
+    <h2><span class="section-icon">🕌</span> Apakah Platform Gig Syariah Compliant?</h2>
+    <p>Bagi Muslim Malaysia, bukan sahaja makanan yang perlu Syariah Compliant — pendapatan juga perlu datang dari sumber yang bersih dan sesuai dengan prinsip Islam. Platform gig Syariah Compliant memastikan bahawa:</p>
     <ul>
         <li>Gig yang tersenarai tidak melibatkan aktiviti haram (riba, judi, arak, pornografi, dsb.)</li>
         <li>Kontrak dan bayaran telus tanpa unsur penipuan (gharar)</li>
@@ -206,7 +206,7 @@ BLOG_ARTICLES = [
 
 <div class="content-section">
     <h2><span class="section-icon">❌</span> Masalah dengan Platform Global Biasa</h2>
-    <p>Platform global seperti Fiverr dan Upwork tidak mempunyai tapisan halal. Ini bermakna anda boleh terjumpa gig yang berkaitan dengan:</p>
+    <p>Platform global seperti Fiverr dan Upwork tidak mempunyai tapisan Syariah Compliant. Ini bermakna anda boleh terjumpa gig yang berkaitan dengan:</p>
     <ul>
         <li>Penulisan kandungan dewasa atau tidak senonoh</li>
         <li>Pemasaran minuman beralkohol atau produk haram</li>
@@ -224,13 +224,13 @@ BLOG_ARTICLES = [
 </div>
 
 <div class="content-section">
-    <h2><span class="section-icon">✅</span> Ciri-ciri Platform Gig Halal Sebenar</h2>
-    <p>Platform gig yang benar-benar halal perlu mempunyai ciri-ciri berikut:</p>
+    <h2><span class="section-icon">✅</span> Ciri-ciri Platform Gig Syariah Compliant Sebenar</h2>
+    <p>Platform gig yang benar-benar Syariah Compliant perlu mempunyai ciri-ciri berikut:</p>
     <div class="step-list">
         <div class="step-item">
             <div class="step-number">1</div>
             <div class="step-content">
-                <h4>Sistem pengesahan halal berlapis</h4>
+                <h4>Sistem pengesahan Syariah Compliant berlapis</h4>
                 <p>Bukan sekadar label — perlu ada pengesahan aktif melalui tapisan kata kunci, semakan AI, dan ulasan pentadbir manusia terlatih.</p>
             </div>
         </div>
@@ -238,7 +238,7 @@ BLOG_ARTICLES = [
             <div class="step-number">2</div>
             <div class="step-content">
                 <h4>Kategori yang diluluskan</h4>
-                <p>Senarai kategori yang jelas dan telah disemak untuk memastikan hanya perkhidmatan halal tersenarai.</p>
+                <p>Senarai kategori yang jelas dan telah disemak untuk memastikan hanya perkhidmatan Syariah Compliant tersenarai.</p>
             </div>
         </div>
         <div class="step-item">
@@ -259,11 +259,11 @@ BLOG_ARTICLES = [
 </div>
 
 <div class="content-section">
-    <h2><span class="section-icon">🏆</span> GigHala: Platform Gig Halal #1 Malaysia</h2>
-    <p>GigHala adalah satu-satunya platform gig di Malaysia yang dibina khusus dengan kepatuhan halal sebagai teras utama — bukan sebagai tambahan selepas fakta.</p>
-    <p>Sistem kepatuhan halal GigHala merangkumi:</p>
+    <h2><span class="section-icon">🏆</span> GigHala: Platform Gig Syariah Compliant #1 Malaysia</h2>
+    <p>GigHala adalah satu-satunya platform gig di Malaysia yang dibina khusus dengan kepatuhan Syariah Compliant sebagai teras utama — bukan sebagai tambahan selepas fakta.</p>
+    <p>Sistem kepatuhan Syariah Compliant GigHala merangkumi:</p>
     <ul>
-        <li><strong>29 kategori halal diluluskan</strong> — setiap kategori telah disemak dan diluluskan</li>
+        <li><strong>29 kategori Syariah Compliant diluluskan</strong> — setiap kategori telah disemak dan diluluskan</li>
         <li><strong>200+ kata kunci haram diblock</strong> — dalam Bahasa Melayu dan Inggeris</li>
         <li><strong>Pengesahan AI melalui Groq</strong> — semakan automatik setiap gig baru</li>
         <li><strong>Semakan pentadbir manusia</strong> — lapisan pengesahan akhir oleh pasukan terlatih</li>
@@ -281,7 +281,7 @@ BLOG_ARTICLES = [
         </thead>
         <tbody>
             <tr>
-                <td style="padding: 12px; border: 1px solid var(--border);">Pengesahan halal</td>
+                <td style="padding: 12px; border: 1px solid var(--border);">Pengesahan Syariah Compliant</td>
                 <td style="padding: 12px; text-align: center; border: 1px solid var(--border);">✅ Penuh</td>
                 <td style="padding: 12px; text-align: center; border: 1px solid var(--border);">❌</td>
                 <td style="padding: 12px; text-align: center; border: 1px solid var(--border);">❌</td>
@@ -319,7 +319,7 @@ BLOG_ARTICLES = [
         </tbody>
     </table>
     <div style="text-align: center; margin: 32px 0;">
-        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Daftar GigHala — Percuma &amp; Halal ✓</a>
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Daftar GigHala — Percuma &amp; Syariah Compliant ✓</a>
     </div>
 </div>
 """
@@ -457,21 +457,21 @@ BLOG_ARTICLES = [
     },
     {
         "slug": "kerja-sambilan-halal-malaysia",
-        "title": "10 Kerja Sambilan Halal Terbaik di Malaysia 2025 (Jana RM500–RM3,000 Sebulan)",
-        "subtitle": "Peluang kerja sambilan halal yang boleh anda mulakan dengan kemahiran yang sedia ada — tanpa modal besar.",
-        "meta_description": "Cari kerja sambilan halal di Malaysia? Senarai 10 peluang terbaik yang halal, menguntungkan, dan boleh dilakukan dari rumah pada 2025.",
-        "meta_keywords": "kerja sambilan halal Malaysia, kerja sampingan halal, side hustle halal Malaysia, kerja dari rumah halal, pendapatan tambahan halal Malaysia",
+        "title": "10 Kerja Sambilan Syariah Compliant Terbaik di Malaysia 2025 (Jana RM500–RM3,000 Sebulan)",
+        "subtitle": "Peluang kerja sambilan Syariah Compliant yang boleh anda mulakan dengan kemahiran yang sedia ada — tanpa modal besar.",
+        "meta_description": "Cari kerja sambilan Syariah Compliant di Malaysia? Senarai 10 peluang terbaik yang Syariah Compliant, menguntungkan, dan boleh dilakukan dari rumah pada 2025.",
+        "meta_keywords": "kerja sambilan Syariah Compliant Malaysia, kerja sampingan Syariah Compliant, side hustle Syariah Compliant Malaysia, kerja dari rumah Syariah Compliant, pendapatan tambahan Syariah Compliant Malaysia",
         "category": "Inspirasi",
         "category_en": "Inspiration",
         "read_time": 5,
         "published_date": "2025-02-18",
         "icon": "💡",
-        "excerpt": "Mencari sumber pendapatan tambahan yang halal? Berikut 10 kerja sambilan halal yang boleh dilakukan dari rumah dan boleh jana RM500 hingga RM3,000 sebulan.",
+        "excerpt": "Mencari sumber pendapatan tambahan yang Syariah Compliant? Berikut 10 kerja sambilan Syariah Compliant yang boleh dilakukan dari rumah dan boleh jana RM500 hingga RM3,000 sebulan.",
         "content": """
 <div class="content-section">
-    <h2><span class="section-icon">💡</span> Kenapa Kerja Sambilan Halal Penting?</h2>
-    <p>Bagi Muslim Malaysia, sumber pendapatan bukan sekadar soal wang — ia soal keberkatan. Pendapatan dari sumber yang halal membawa barakah dalam kehidupan, manakala pendapatan dari sumber yang syubhah atau haram boleh menjejaskan keberkatan rezeki.</p>
-    <p>Kerja sambilan halal yang sesuai adalah yang:</p>
+    <h2><span class="section-icon">💡</span> Kenapa Kerja Sambilan Syariah Compliant Penting?</h2>
+    <p>Bagi Muslim Malaysia, sumber pendapatan bukan sekadar soal wang — ia soal keberkatan. Pendapatan dari sumber yang Syariah Compliant membawa barakah dalam kehidupan, manakala pendapatan dari sumber yang syubhah atau haram boleh menjejaskan keberkatan rezeki.</p>
+    <p>Kerja sambilan Syariah Compliant yang sesuai adalah yang:</p>
     <ul>
         <li>Tidak melibatkan produk atau perkhidmatan haram</li>
         <li>Tidak mengandungi unsur riba, gharar, atau maisir</li>
@@ -481,7 +481,7 @@ BLOG_ARTICLES = [
 </div>
 
 <div class="content-section">
-    <h2><span class="section-icon">🏆</span> 10 Kerja Sambilan Halal Terbaik 2025</h2>
+    <h2><span class="section-icon">🏆</span> 10 Kerja Sambilan Syariah Compliant Terbaik 2025</h2>
 
     <div class="step-list">
         <div class="step-item">
@@ -559,9 +559,9 @@ BLOG_ARTICLES = [
         <div class="step-item">
             <div class="step-number">10</div>
             <div class="step-content">
-                <h4>Jualan Produk Halal &amp; Homemade</h4>
+                <h4>Jualan Produk Syariah Compliant &amp; Homemade</h4>
                 <p><strong>Potensi pendapatan: Tidak terhad</strong></p>
-                <p>Jual produk buatan tangan, makanan halal, atau produk kecantikan halal melalui platform gig. Pasaran produk halal global bernilai trilion dolar.</p>
+                <p>Jual produk buatan tangan, makanan Syariah Compliant, atau produk kecantikan Syariah Compliant melalui platform gig. Pasaran produk Syariah Compliant global bernilai trilion dolar.</p>
             </div>
         </div>
     </div>
@@ -569,12 +569,12 @@ BLOG_ARTICLES = [
 
 <div class="content-section">
     <h2><span class="section-icon">🚀</span> Cara Mula Hari Ini</h2>
-    <p>Kesemua kerja sambilan di atas boleh anda tawarkan melalui GigHala — platform gig halal Malaysia yang memastikan setiap perkhidmatan mematuhi prinsip Islam.</p>
+    <p>Kesemua kerja sambilan di atas boleh anda tawarkan melalui GigHala — platform gig Syariah Compliant Malaysia yang memastikan setiap perkhidmatan mematuhi prinsip Islam.</p>
     <div class="highlight-box">
         <p><strong>Kelebihan GigHala:</strong> Sistem padanan AI kami akan mencadangkan gig yang sesuai untuk anda dua kali sehari — 9 pagi dan 9 malam. Anda tidak perlu cari kerja sendiri; kerja datang kepada anda.</p>
     </div>
     <div style="text-align: center; margin: 32px 0;">
-        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Mulakan Kerja Sambilan Halal Anda →</a>
+        <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Mulakan Kerja Sambilan Syariah Compliant Anda →</a>
     </div>
 </div>
 """
@@ -1018,7 +1018,7 @@ BLOG_ARTICLES = [
     <div class="highlight-box">
         <p><strong>Contoh:</strong> Jika anda menghabiskan 10 jam seminggu untuk pengurusan media sosial, dan masa anda bernilai RM100/jam — kos anda sebenarnya RM1,000/minggu. Seorang freelancer media sosial berpengalaman boleh dibayar RM800–RM1,500 sebulan. Penjimatan: RM2,500+ sebulan, tambah masa anda bebas untuk fokus pada jualan.</p>
     </div>
-    <p>GigHala mempunyai lebih 500 freelancer disahkan merentasi 29 kategori halal — sedia untuk bantu PKS anda berkembang.</p>
+    <p>GigHala mempunyai lebih 500 freelancer disahkan merentasi 29 kategori Syariah Compliant — sedia untuk bantu PKS anda berkembang.</p>
     <div style="text-align: center; margin: 32px 0;">
         <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Cari Freelancer untuk Perniagaan Anda →</a>
     </div>
@@ -1330,10 +1330,10 @@ BLOG_ARTICLES = [
 
     {
         "slug": "manfaat-hire-freelancer-halal-malaysia",
-        "title": "Mengapa Perniagaan Anda Patut Hire Freelancer dari Platform Halal",
-        "subtitle": "Bukan sekadar patuh syariah — hire dari platform gig halal memberi nilai tambah sebenar kepada perniagaan Muslim Malaysia.",
-        "meta_description": "Kenapa perniagaan Muslim Malaysia perlu hire freelancer dari platform halal. Manfaat, keselamatan, dan nilai jenama yang datang bersama platform gig halal.",
-        "meta_keywords": "hire freelancer halal Malaysia, platform freelancer halal untuk perniagaan, gig halal untuk syarikat Malaysia, outsource halal Malaysia, freelancer Muslim Malaysia",
+        "title": "Mengapa Perniagaan Anda Patut Hire Freelancer dari Platform Syariah Compliant",
+        "subtitle": "Bukan sekadar patuh syariah — hire dari platform gig Syariah Compliant memberi nilai tambah sebenar kepada perniagaan Muslim Malaysia.",
+        "meta_description": "Kenapa perniagaan Muslim Malaysia perlu hire freelancer dari platform Syariah Compliant. Manfaat, keselamatan, dan nilai jenama yang datang bersama platform gig Syariah Compliant.",
+        "meta_keywords": "hire freelancer Syariah Compliant Malaysia, platform freelancer Syariah Compliant untuk perniagaan, gig Syariah Compliant untuk syarikat Malaysia, outsource Syariah Compliant Malaysia, freelancer Muslim Malaysia",
         "category": "Untuk Klien",
         "category_en": "For Clients",
         "read_time": 5,
@@ -1342,61 +1342,61 @@ BLOG_ARTICLES = [
         "excerpt": "Jika perniagaan anda beroperasi mengikut prinsip Islam, platform gig yang anda gunakan seharusnya turut mencerminkan nilai yang sama. Inilah mengapa ini penting.",
         "content": """
 <div class="content-section">
-    <h2><span class="section-icon">🌙</span> Tanggungjawab Perniagaan Halal Bermula dari Sumber</h2>
-    <p>Sebagai pemilik perniagaan Muslim, anda mungkin sudah memastikan produk atau perkhidmatan anda halal. Anda mungkin ada sijil halal, guna bahan halal, dan ikut prosedur yang dibenarkan syarak.</p>
-    <p>Tapi pernahkah anda fikirkan: adakah <em>cara anda dapatkan perkhidmatan sokongan</em> turut halal?</p>
-    <p>Jika anda hire freelancer dari platform global tanpa tapisan halal, anda berisiko mendapatkan:</p>
+    <h2><span class="section-icon">🌙</span> Tanggungjawab Perniagaan Syariah Compliant Bermula dari Sumber</h2>
+    <p>Sebagai pemilik perniagaan Muslim, anda mungkin sudah memastikan produk atau perkhidmatan anda Syariah Compliant. Anda mungkin ada sijil Syariah Compliant, guna bahan Syariah Compliant, dan ikut prosedur yang dibenarkan syarak.</p>
+    <p>Tapi pernahkah anda fikirkan: adakah <em>cara anda dapatkan perkhidmatan sokongan</em> turut Syariah Compliant?</p>
+    <p>Jika anda hire freelancer dari platform global tanpa tapisan Syariah Compliant, anda berisiko mendapatkan:</p>
     <ul>
         <li>Freelancer yang juga menyediakan perkhidmatan haram kepada klien lain</li>
         <li>Kandungan yang mungkin mengandungi elemen syubhah tanpa sedar anda</li>
-        <li>Rantaian bekalan yang tidak selari dengan nilai jenama halal anda</li>
+        <li>Rantaian bekalan yang tidak selari dengan nilai jenama Syariah Compliant anda</li>
     </ul>
 </div>
 
 <div class="content-section">
-    <h2><span class="section-icon">✅</span> 5 Manfaat Hire dari Platform Gig Halal</h2>
+    <h2><span class="section-icon">✅</span> 5 Manfaat Hire dari Platform Gig Syariah Compliant</h2>
     <div class="step-list">
         <div class="step-item">
             <div class="step-number">1</div>
             <div class="step-content">
                 <h4>Jaminan kandungan yang selamat</h4>
-                <p>Freelancer yang beroperasi dalam ekosistem halal lebih memahami had dan garis panduan konten yang sesuai untuk jenama Muslim. Mereka tidak akan menghasilkan kandungan yang bertentangan dengan nilai anda.</p>
+                <p>Freelancer yang beroperasi dalam ekosistem Syariah Compliant lebih memahami had dan garis panduan konten yang sesuai untuk jenama Muslim. Mereka tidak akan menghasilkan kandungan yang bertentangan dengan nilai anda.</p>
             </div>
         </div>
         <div class="step-item">
             <div class="step-number">2</div>
             <div class="step-content">
                 <h4>Konsistensi nilai jenama</h4>
-                <p>Apabila perniagaan anda dan freelancer anda berkongsi nilai yang sama, kualiti dan nada kerja lebih konsisten. Freelancer Muslim yang bekerja dalam ekosistem halal lebih memahami audiens dan sensitiviti budaya anda.</p>
+                <p>Apabila perniagaan anda dan freelancer anda berkongsi nilai yang sama, kualiti dan nada kerja lebih konsisten. Freelancer Muslim yang bekerja dalam ekosistem Syariah Compliant lebih memahami audiens dan sensitiviti budaya anda.</p>
             </div>
         </div>
         <div class="step-item">
             <div class="step-number">3</div>
             <div class="step-content">
                 <h4>Kepercayaan pelanggan anda</h4>
-                <p>Pelanggan Muslim semakin sedar dan prihatin dengan siapa dan bagaimana perniagaan beroperasi. Dapat dikatakan bahawa anda "outsource kepada ekosistem halal" boleh menjadi titik nilai tambah kepada jenama anda.</p>
+                <p>Pelanggan Muslim semakin sedar dan prihatin dengan siapa dan bagaimana perniagaan beroperasi. Dapat dikatakan bahawa anda "outsource kepada ekosistem Syariah Compliant" boleh menjadi titik nilai tambah kepada jenama anda.</p>
             </div>
         </div>
         <div class="step-item">
             <div class="step-number">4</div>
             <div class="step-content">
                 <h4>Transaksi yang bersih dari unsur riba</h4>
-                <p>Platform gig halal seperti GigHala memastikan sistem bayaran menggunakan escrow yang adil — tanpa caj faedah, tanpa penalti riba, dan dengan struktur yang telus untuk kedua-dua pihak.</p>
+                <p>Platform gig Syariah Compliant seperti GigHala memastikan sistem bayaran menggunakan escrow yang adil — tanpa caj faedah, tanpa penalti riba, dan dengan struktur yang telus untuk kedua-dua pihak.</p>
             </div>
         </div>
         <div class="step-item">
             <div class="step-number">5</div>
             <div class="step-content">
                 <h4>Sokongan kepada komuniti Muslim</h4>
-                <p>Setiap projek yang anda beri kepada freelancer Muslim melalui GigHala adalah sumbangan kepada ekonomi umat. Anda membantu seseorang mendapat rezeki halal — dan itu sendiri adalah amal yang bernilai.</p>
+                <p>Setiap projek yang anda beri kepada freelancer Muslim melalui GigHala adalah sumbangan kepada ekonomi umat. Anda membantu seseorang mendapat rezeki Syariah Compliant — dan itu sendiri adalah amal yang bernilai.</p>
             </div>
         </div>
     </div>
 </div>
 
 <div class="content-section">
-    <h2><span class="section-icon">🏆</span> GigHala: Platform Gig Halal untuk Perniagaan Malaysia</h2>
-    <p>GigHala bukan sekadar platform gig dengan label "halal". Kami mempunyai sistem kepatuhan halal yang menyeluruh:</p>
+    <h2><span class="section-icon">🏆</span> GigHala: Platform Gig Syariah Compliant untuk Perniagaan Malaysia</h2>
+    <p>GigHala bukan sekadar platform gig dengan label "Syariah Compliant". Kami mempunyai sistem kepatuhan Syariah Compliant yang menyeluruh:</p>
     <ul>
         <li>29 kategori perkhidmatan yang telah disemak dan diluluskan</li>
         <li>Pengesahan AI automatik untuk setiap gig yang dipostkan</li>
@@ -1404,9 +1404,9 @@ BLOG_ARTICLES = [
         <li>Sistem laporan komuniti yang aktif</li>
         <li>Pengesahan identiti (IC/MyKad) untuk semua pengguna</li>
     </ul>
-    <p>Apabila anda hire melalui GigHala, anda tahu bahawa perkhidmatan yang anda terima datang dari ekosistem yang telah ditapis dan dipantau untuk mematuhi prinsip halal.</p>
+    <p>Apabila anda hire melalui GigHala, anda tahu bahawa perkhidmatan yang anda terima datang dari ekosistem yang telah ditapis dan dipantau untuk mematuhi prinsip Syariah Compliant.</p>
     <div class="highlight-box">
-        <p><strong>Daftar sebagai majikan di GigHala hari ini</strong> — percuma, selamat, dan halal. Post gig pertama anda dalam masa 5 minit.</p>
+        <p><strong>Daftar sebagai majikan di GigHala hari ini</strong> — percuma, selamat, dan Syariah Compliant. Post gig pertama anda dalam masa 5 minit.</p>
     </div>
     <div style="text-align: center; margin: 32px 0;">
         <a href="/register" style="display: inline-block; background: var(--primary); color: white; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none;">Daftar sebagai Majikan di GigHala →</a>
@@ -1695,7 +1695,7 @@ BLOG_ARTICLES = [
         <li><strong>Response time</strong> — active freelancers respond within hours</li>
         <li><strong>Completed jobs</strong> — more completed gigs = more reliable</li>
     </ul>
-    <p>On <strong>GigHala</strong>, every freelancer is identity-verified (Malaysian IC) and their services are screened for halal compliance, giving you an added layer of trust unavailable on global platforms.</p>
+    <p>On <strong>GigHala</strong>, every freelancer is identity-verified (Malaysian IC) and their services are screened for Syariah Compliant compliance, giving you an added layer of trust unavailable on global platforms.</p>
 </div>
 
 <div class="content-section">
@@ -1748,7 +1748,7 @@ BLOG_ARTICLES = [
         "slug": "freelance-jobs-malaysia-students",
         "title": "Kerja Freelance untuk Pelajar Malaysia 2025 — Jana Pendapatan Sambil Belajar",
         "subtitle": "Panduan lengkap kerja sambilan freelance untuk pelajar universiti dan sekolah menengah di Malaysia.",
-        "meta_description": "Cari kerja freelance untuk pelajar Malaysia? Panduan lengkap kerja sambilan halal yang boleh dilakukan dari rumah — jana RM200–RM1,500 sebulan sambil belajar.",
+        "meta_description": "Cari kerja freelance untuk pelajar Malaysia? Panduan lengkap kerja sambilan Syariah Compliant yang boleh dilakukan dari rumah — jana RM200–RM1,500 sebulan sambil belajar.",
         "meta_keywords": "kerja freelance pelajar malaysia, freelance jobs malaysia students, kerja sambilan pelajar, kerja part time pelajar malaysia, pendapatan sampingan pelajar",
         "category": "Panduan",
         "category_en": "Guide",
@@ -1822,7 +1822,7 @@ BLOG_ARTICLES = [
     <ul>
         <li>Antara muka dalam Bahasa Malaysia — lebih mudah difahami</li>
         <li>Bayaran dalam Ringgit Malaysia — terus ke akaun bank anda</li>
-        <li>Gig yang disahkan halal — sesuai untuk pelajar Muslim</li>
+        <li>Gig yang disahkan Syariah Compliant — sesuai untuk pelajar Muslim</li>
         <li>Tiada komisen tinggi — anda simpan lebih banyak pendapatan</li>
         <li>Perlindungan SOCSO — selamat walaupun masih belajar</li>
     </ul>
@@ -1906,7 +1906,7 @@ BLOG_ARTICLES = [
                 <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Platform</th>
                 <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Komisen</th>
                 <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Bayaran (RM)</th>
-                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Halal</th>
+                <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Syariah Compliant</th>
                 <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">SOCSO</th>
                 <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">BM Support</th>
             </tr>
@@ -1954,7 +1954,7 @@ BLOG_ARTICLES = [
     <ul>
         <li><strong>Fi pengeluaran wang</strong> — menukar USD ke RM melalui Payoneer atau PayPal mengenakan fi 2–4%</li>
         <li><strong>Tiada sokongan SOCSO</strong> — anda sendiri perlu urus perlindungan sosial</li>
-        <li><strong>Tiada pengesahan halal</strong> — anda mungkin terlibat dalam projek yang tidak halal tanpa sedar</li>
+        <li><strong>Tiada pengesahan Syariah Compliant</strong> — anda mungkin terlibat dalam projek yang tidak Syariah Compliant tanpa sedar</li>
         <li><strong>Sokongan pelanggan dalam English sahaja</strong> — sukar untuk pengguna BM yang tidak fasih</li>
     </ul>
     <p>GigHala menyelesaikan semua masalah ini — ia dibina khusus untuk pasaran Malaysia.</p>
@@ -1968,7 +1968,7 @@ BLOG_ARTICLES = [
     <ul>
         <li><strong>Terbaik untuk freelancer baru Malaysia:</strong> GigHala — mudah, bayaran cepat, sokongan BM</li>
         <li><strong>Terbaik untuk klien global dalam USD:</strong> Fiverr atau Upwork</li>
-        <li><strong>Terbaik untuk Muslim Malaysia:</strong> GigHala — satu-satunya platform dengan pengesahan halal</li>
+        <li><strong>Terbaik untuk Muslim Malaysia:</strong> GigHala — satu-satunya platform dengan pengesahan Syariah Compliant</li>
         <li><strong>Terbaik untuk pelajar:</strong> GigHala — tiada fi daftar, gig kecil tersedia</li>
         <li><strong>Terbaik untuk perlindungan pekerja:</strong> GigHala — SOCSO automatik, escrow selamat</li>
     </ul>

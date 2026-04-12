@@ -438,7 +438,7 @@ private fun VerificationTab(s: ProfileUiState) {
             }
         }
 
-        // Halal verified
+        // Syariah Compliant verified
         val halalVerified = s.profile?.halalVerified == true
         Card(
             colors = CardDefaults.cardColors(
@@ -453,10 +453,10 @@ private fun VerificationTab(s: ProfileUiState) {
             ) {
                 Text(if (halalVerified) "✅" else "⏳", style = MaterialTheme.typography.titleMedium)
                 Column {
-                    Text("Halal Verification", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text("Syariah Compliant Verification", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     Text(
-                        if (halalVerified) "Halal compliance verified."
-                        else "Not yet halal-verified.",
+                        if (halalVerified) "Syariah Compliant compliance verified."
+                        else "Not yet Syariah Compliant verified.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function() {
             badges += '<span class="user-badge verified">✓ Verified</span>';
         }
         if (user.halal_verified) {
-            badges += '<span class="user-badge halal">🌙 Halal Verified</span>';
+            badges += '<span class="user-badge Syariah Compliant">🌙 Syariah Compliant Verified</span>';
         }
 
         return `
@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let badges = '';
         if (gig.halal_compliant) {
-            badges += '<span class="gig-badge halal">🌙 HALAL</span>';
+            badges += '<span class="gig-badge Syariah Compliant">🌙 Syariah Compliant</span>';
         }
         if (gig.is_instant_payout) {
             badges += '<span class="gig-badge instant">⚡ INSTANT PAYOUT</span>';
