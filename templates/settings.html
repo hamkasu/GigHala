@@ -869,9 +869,24 @@
         {% endif %}
         {% endif %}
 
-        {% if not verification or verification.status in ['rejected'] %}
+        {% if verification and verification.status == 'approved' %}
+        <div style="background: #f9fafb; border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-gray);">
+            <strong style="color: var(--text-dark); display: block; margin-bottom: 6px;">Kemaskini Maklumat IC/Pasport (APDP 2010 s.34)</strong>
+            Jika anda perlu membetulkan nama, nombor IC, atau gambar yang disimpan, anda boleh menarik balik pengesahan semasa dan menghantar semula. <strong style="color: #dc2626;">Amaran:</strong> Badge Disahkan anda akan dibuang sehingga pengesahan baharu diluluskan.
+            <div style="margin-top: 12px;">
+                <button type="button" id="withdrawVerificationBtn"
+                        style="padding: 8px 16px; background: #fff; border: 1px solid #dc2626; border-radius: 6px; font-size: 13px; font-weight: 600; color: #dc2626; cursor: pointer;">
+                    Tarik Balik &amp; Kemaskini Maklumat
+                </button>
+            </div>
+        </div>
+
+        {% elif not verification or verification.status in ['rejected'] %}
         <div class="info-card">
             <p><strong>Keperluan:</strong> Muat naik gambar IC/MyKad atau pasport yang jelas (depan dan belakang). Pastikan semua maklumat boleh dibaca dengan jelas.</p>
+            {% if verification and verification.status == 'rejected' %}
+            <p style="margin-top: 6px; font-size: 13px; color: var(--text-gray);">Anda boleh membetulkan sebarang maklumat yang salah sebelum menghantar semula.</p>
+            {% endif %}
         </div>
 
         <form action="/settings/verification" method="POST" enctype="multipart/form-data">
@@ -912,8 +927,16 @@
         {% elif verification.status == 'pending' %}
         <div class="info-card">
             <p>Dokumen anda sedang disemak oleh pasukan kami. Proses ini biasanya mengambil masa 1-3 hari bekerja.</p>
+            <p style="margin-top: 8px; font-size: 13px; color: var(--text-gray);">
+                Jika anda perlu membetulkan maklumat yang salah (nama, nombor IC, atau gambar), anda boleh
+                <button type="button" id="withdrawVerificationBtn"
+                        style="background: none; border: none; color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; text-decoration: underline;">
+                    tarik balik permohonan ini
+                </button>
+                dan menghantar semula dengan maklumat yang betul.
+            </p>
         </div>
-        
+
         <form action="/settings/verification" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <h3 style="font-size: 16px; margin-bottom: 16px; color: var(--text-dark);">Muat Naik Semula (Jika Diperlukan)</h3>
@@ -1748,6 +1771,48 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
+
+    // PDPA s.34 — Withdraw verification (right of correction)
+    document.getElementById('withdrawVerificationBtn')?.addEventListener('click', async function() {
+        const confirmed = confirm(
+            'Adakah anda pasti ingin menarik balik pengesahan identiti ini?\n\n' +
+            'Tindakan ini akan:\n' +
+            '• Memadam imej IC/Pasport yang disimpan\n' +
+            '• Membuang status Disahkan anda (jika ada)\n\n' +
+            'Anda boleh menghantar semula dengan maklumat yang betul selepas ini.'
+        );
+        if (!confirmed) return;
+
+        const btn = this;
+        const csrfToken = document.querySelector('[name=csrf_token]')?.value || '';
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Memproses...';
+
+        try {
+            const resp = await fetch('/api/verification/withdraw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({})
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert('Pengesahan berjaya ditarik balik. Sila ke halaman Pengesahan Identiti untuk menghantar semula dengan maklumat yang betul.');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Gagal menarik balik. Sila cuba lagi.');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        } catch (e) {
+            alert('Ralat berlaku. Sila cuba lagi.');
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
 
     // PDPA s.30 — Data Access Request (IC/Passport images) via support ticket
     document.getElementById('dataAccessRequestBtn')?.addEventListener('click', async function() {
