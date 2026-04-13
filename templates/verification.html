@@ -162,6 +162,33 @@
         font-size: 14px;
         color: #dc2626;
     }
+    .privacy-notice {
+        background: #f9fafb;
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--primary);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-top: 28px;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: var(--text-gray);
+        line-height: 1.6;
+    }
+    .privacy-notice strong.notice-title {
+        color: var(--text-dark);
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .privacy-notice ul {
+        margin: 0 0 8px 18px;
+        padding: 0;
+    }
+    .privacy-notice a {
+        color: var(--primary);
+        text-decoration: underline;
+    }
 </style>
 {% endblock %}
 
@@ -254,6 +281,17 @@
                     <div class="file-upload-icon">🤳</div>
                     <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
                 </label>
+            </div>
+
+            <div class="privacy-notice">
+                <strong class="notice-title">Data Privacy Notice (PDPA 2010)</strong>
+                <ul>
+                    <li><strong>What we collect:</strong> IC/Passport number, full name, IC front &amp; back photos, selfie</li>
+                    <li><strong>Why:</strong> Identity verification only &mdash; not used for any other purpose</li>
+                    <li><strong>Who sees it:</strong> GigHala admin staff only; never shared with third parties</li>
+                    <li><strong>How long:</strong> Images deleted 1 year after verification expires; all data deleted upon account closure</li>
+                </ul>
+                <p style="margin: 0;">You have the right to access or correct your data. Contact <a href="mailto:privacy@gighala.my">privacy@gighala.my</a> or read our <a href="/privasi" target="_blank">Privacy Policy</a>.</p>
             </div>
 
             <button type="submit" class="btn-primary" id="submitBtn">Submit for Verification</button>
