@@ -46,6 +46,12 @@ if [ -f "migrations/051_fix_worker_specialization_permissions.py" ]; then
     python migrations/051_fix_worker_specialization_permissions.py || echo "Warning: Worker specialization permissions migration had warnings"
 fi
 
+# PDPA consent fields on identity_verification (migration 058)
+if [ -f "migrations/058_add_verification_consent.py" ]; then
+    echo "Running PDPA verification consent migration (058)..."
+    python migrations/058_add_verification_consent.py || echo "Warning: Migration 058 had warnings"
+fi
+
 echo ""
 echo "========================================="
 echo "Starting Gunicorn server..."
