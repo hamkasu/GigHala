@@ -948,6 +948,26 @@
             </div>
         </form>
         {% endif %}
+
+        <!-- PDPA s.30 — Data Rights Panel -->
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid var(--border);">
+        <div>
+            <h3 style="font-size: 16px; font-weight: 600; color: var(--text-dark); margin: 0 0 6px;">Hak Data Peribadi (APDP 2010)</h3>
+            <p style="font-size: 13px; color: var(--text-gray); margin: 0 0 20px;">Di bawah Akta Perlindungan Data Peribadi 2010 (s.30), anda berhak mengakses semua data peribadi yang kami simpan. Permohonan diproses dalam <strong>21 hari bekerja</strong>.</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="/api/user/export-data"
+                   style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-dark); text-decoration: none;">
+                    Muat Turun Data Saya (JSON)
+                </a>
+                <button type="button" id="dataAccessRequestBtn"
+                        style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-dark); cursor: pointer;">
+                    Mohon Akses Imej IC/Pasport
+                </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-gray); margin: 10px 0 0;">
+                Eksport JSON mengandungi semua data teks (nombor IC disamarkan sebahagian). Untuk salinan penuh termasuk imej IC/Pasport, klik "Mohon Akses Imej" &mdash; pasukan kami akan menghubungi anda melalui emel berdaftar dalam 21 hari bekerja.
+            </p>
+        </div>
     </div>
 
     <!-- Security Settings Section -->
@@ -1728,6 +1748,42 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
+
+    // PDPA s.30 — Data Access Request (IC/Passport images) via support ticket
+    document.getElementById('dataAccessRequestBtn')?.addEventListener('click', async function() {
+        const btn = this;
+        const csrfToken = document.querySelector('[name=csrf_token]')?.value || '';
+        btn.disabled = true;
+        btn.textContent = 'Menghantar...';
+        try {
+            const resp = await fetch('/api/support/ticket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    category: 'data_access',
+                    priority: 'medium',
+                    subject: 'Permohonan Akses Data APDP 2010 — Imej IC/Pasport',
+                    description: 'Saya memohon akses kepada salinan penuh data peribadi saya di bawah Akta Perlindungan Data Peribadi 2010 (s.30), termasuk imej IC/Pasport yang disimpan. Sila hantar kepada emel berdaftar saya melalui saluran selamat dalam 21 hari bekerja.',
+                    channel: 'web'
+                })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                alert('Permohonan berjaya dihantar! Nombor tiket: ' + (data.ticket_number || '') + '.\nKami akan menghubungi anda dalam 21 hari bekerja.');
+            } else {
+                alert(data.error || 'Gagal menghantar permohonan. Sila cuba lagi.');
+                btn.disabled = false;
+                btn.textContent = 'Mohon Akses Imej IC/Pasport';
+            }
+        } catch (e) {
+            alert('Ralat berlaku. Sila cuba lagi.');
+            btn.disabled = false;
+            btn.textContent = 'Mohon Akses Imej IC/Pasport';
+        }
+    });
 });
 </script>
 
