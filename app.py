@@ -3685,6 +3685,9 @@ class IdentityVerification(db.Model):
     verified_at = db.Column(db.DateTime)
     verified_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     expires_at = db.Column(db.DateTime)
+    verification_consent = db.Column(db.Boolean, default=False)  # PDPA: explicit consent recorded
+    verification_consent_date = db.Column(db.DateTime)
+    consent_policy_version = db.Column(db.String(10), default='1.0')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -5887,9 +5890,13 @@ def upload_verification_documents():
     user = User.query.get(user_id)
     
     try:
+        if request.form.get('verification_consent') != 'on':
+            flash('Anda perlu bersetuju dengan pemprosesan data untuk meneruskan.', 'error')
+            return redirect('/settings')
+
         ic_front = request.files.get('ic_front')
         ic_back = request.files.get('ic_back')
-        
+
         if not ic_front or not ic_back:
             flash('Sila muat naik kedua-dua gambar IC (depan dan belakang).', 'error')
             return redirect('/settings')
@@ -5931,6 +5938,9 @@ def upload_verification_documents():
             existing.ic_back_image = f"verification/{user_id}/{back_filename}"
             existing.ic_number = user.ic_number or ''
             existing.full_name = user.full_name or user.username
+            existing.verification_consent = True
+            existing.verification_consent_date = datetime.utcnow()
+            existing.consent_policy_version = '1.0'
             existing.updated_at = datetime.utcnow()
         else:
             # Create new verification request
@@ -5940,7 +5950,10 @@ def upload_verification_documents():
                 full_name=user.full_name or user.username,
                 ic_front_image=f"verification/{user_id}/{front_filename}",
                 ic_back_image=f"verification/{user_id}/{back_filename}",
-                status='pending'
+                status='pending',
+                verification_consent=True,
+                verification_consent_date=datetime.utcnow(),
+                consent_policy_version='1.0'
             )
             db.session.add(verification)
         
@@ -24912,12 +24925,15 @@ def submit_verification():
         if existing:
             return jsonify({'error': 'You already have a pending verification'}), 400
         
+        if request.form.get('verification_consent') != 'on':
+            return jsonify({'error': 'You must consent to data processing before submitting verification'}), 400
+
         ic_number = request.form.get('ic_number', '').strip()
         full_name = request.form.get('full_name', '').strip()
-        
+
         if not ic_number or not full_name:
             return jsonify({'error': 'IC number and full name are required'}), 400
-        
+
         if not re.match(r'^\d{12}$', ic_number):
             return jsonify({'error': 'Invalid IC number format (12 digits required)'}), 400
         
@@ -24948,7 +24964,10 @@ def submit_verification():
             full_name=full_name,
             ic_front_image=ic_front,
             ic_back_image=ic_back,
-            selfie_image=selfie
+            selfie_image=selfie,
+            verification_consent=True,
+            verification_consent_date=datetime.utcnow(),
+            consent_policy_version='1.0'
         )
         db.session.add(verification)
         db.session.commit()
