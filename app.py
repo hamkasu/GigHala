@@ -24980,6 +24980,79 @@ def submit_verification():
         app.logger.error(f"Verification submit error: {str(e)}")
         return jsonify({'error': 'Failed to submit verification'}), 500
 
+
+@app.route('/api/verification/withdraw', methods=['POST'])
+@login_required
+def withdraw_verification():
+    """
+    PDPA s.34 — Right of Correction.
+    Allows a user to withdraw their pending or approved verification record
+    so they can correct data and resubmit. Deletes encrypted images from disk
+    and resets the verified status if previously approved.
+    """
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+
+        verification = IdentityVerification.query.filter_by(
+            user_id=user_id
+        ).order_by(IdentityVerification.created_at.desc()).first()
+
+        if not verification:
+            return jsonify({'error': 'No verification record found'}), 404
+
+        if verification.status not in ('pending', 'approved'):
+            return jsonify({'error': 'Only pending or approved verifications can be withdrawn'}), 400
+
+        prior_status = verification.status
+
+        # Delete encrypted image files from disk (same pattern as account deletion)
+        for img_path in (verification.ic_front_image, verification.ic_back_image, verification.selfie_image):
+            if img_path:
+                fname = img_path.replace('/uploads/verification/', '').lstrip('/')
+                full_path = os.path.join(UPLOAD_FOLDER, 'verification', os.path.basename(fname))
+                try:
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+                except OSError as e:
+                    app.logger.warning(f"Could not delete verification image {full_path}: {e}")
+
+        # Audit trail
+        audit = AuditLog(
+            event_category='data_access',
+            event_type='verification_withdrawn',
+            severity='medium',
+            user_id=user_id,
+            username=user.username,
+            ip_address=request.remote_addr,
+            user_agent=request.headers.get('User-Agent', ''),
+            action=f'User withdrew identity verification (was: {prior_status})',
+            resource_type='identity_verification',
+            resource_id=str(verification.id),
+            status='success',
+            request_method=request.method,
+            request_path=request.path
+        )
+        db.session.add(audit)
+
+        # Revoke verified badge if was approved
+        if prior_status == 'approved':
+            user.is_verified = False
+
+        db.session.delete(verification)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Verification withdrawn. You may now resubmit with corrected information.'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Verification withdraw error: {str(e)}")
+        return jsonify({'error': 'Failed to withdraw verification'}), 500
+
+
 @app.route('/admin/verifications')
 @page_login_required
 def admin_verifications():
