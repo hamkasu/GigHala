@@ -13662,7 +13662,10 @@ def export_user_data():
             ),
         }
 
-        return jsonify(export), 200
+        response = jsonify(export)
+        filename = f"gighala_data_{user.username}_{datetime.utcnow().strftime('%Y%m%d')}.json"
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response, 200
 
     except Exception as e:
         app.logger.error(f"Export user data error: {str(e)}")
@@ -26271,6 +26274,7 @@ SUPPORT_CATEGORIES = {
     'gig_issue': 'Gig Issue',
     'dispute': 'Dispute Related',
     'technical': 'Technical Issue',
+    'data_access': 'Data Access Request (PDPA s.30)',
     'other': 'Other'
 }
 
