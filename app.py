@@ -4085,6 +4085,9 @@ class SupportTicketMessage(db.Model):
     message = db.Column(db.Text, nullable=False)
     is_admin_reply = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    attachment_url = db.Column(db.String(500))
+    attachment_filename = db.Column(db.String(255))
+    attachment_type = db.Column(db.String(20))  # 'image' or 'file'
 
     sender = db.relationship('User', foreign_keys=[sender_id])
 
@@ -24529,7 +24532,11 @@ def view_conversation(conversation_id):
 MESSAGE_IMAGE_FOLDER = os.path.join(UPLOAD_FOLDER, 'messages')
 os.makedirs(MESSAGE_IMAGE_FOLDER, exist_ok=True)
 
+SUPPORT_ATTACHMENT_FOLDER = os.path.join(UPLOAD_FOLDER, 'support_attachments')
+os.makedirs(SUPPORT_ATTACHMENT_FOLDER, exist_ok=True)
+
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_FILE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'doc', 'docx'}
 
 @app.route('/uploads/messages/<filename>')
 @login_required
@@ -24568,6 +24575,86 @@ def upload_message_image():
         app.logger.error(f"Message image upload error: {str(e)}")
         return jsonify({'error': 'Upload failed'}), 500
 
+
+@app.route('/api/messages/upload-file', methods=['POST'])
+@login_required
+def upload_message_file():
+    """Upload any allowed file (image or document) to be attached to a chat message"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        file = request.files['file']
+        if not file or not file.filename:
+            return jsonify({'error': 'No file provided'}), 400
+        original_name = file.filename
+        ext = original_name.rsplit('.', 1)[-1].lower() if '.' in original_name else ''
+        if ext not in ALLOWED_FILE_EXTENSIONS:
+            return jsonify({'error': 'File type not allowed. Allowed: images, PDF, DOC, DOCX'}), 400
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > MAX_FILE_SIZE:
+            return jsonify({'error': 'File exceeds 5 MB limit'}), 400
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        save_path = os.path.join(MESSAGE_IMAGE_FOLDER, filename)
+        if not os.path.abspath(save_path).startswith(os.path.abspath(MESSAGE_IMAGE_FOLDER)):
+            return jsonify({'error': 'Invalid path'}), 400
+        file.save(save_path)
+        is_image = ext in ALLOWED_IMAGE_EXTENSIONS
+        return jsonify({
+            'url': f'/uploads/messages/{filename}',
+            'filename': original_name,
+            'message_type': 'image' if is_image else 'file'
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Message file upload error: {str(e)}")
+        return jsonify({'error': 'Upload failed'}), 500
+
+
+@app.route('/api/support/upload-file', methods=['POST'])
+@login_required
+def upload_support_file():
+    """Upload a file to be attached to a support ticket message"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        file = request.files['file']
+        if not file or not file.filename:
+            return jsonify({'error': 'No file provided'}), 400
+        original_name = file.filename
+        ext = original_name.rsplit('.', 1)[-1].lower() if '.' in original_name else ''
+        if ext not in ALLOWED_FILE_EXTENSIONS:
+            return jsonify({'error': 'File type not allowed. Allowed: images, PDF, DOC, DOCX'}), 400
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+        if size > MAX_FILE_SIZE:
+            return jsonify({'error': 'File exceeds 5 MB limit'}), 400
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        save_path = os.path.join(SUPPORT_ATTACHMENT_FOLDER, filename)
+        if not os.path.abspath(save_path).startswith(os.path.abspath(SUPPORT_ATTACHMENT_FOLDER)):
+            return jsonify({'error': 'Invalid path'}), 400
+        file.save(save_path)
+        is_image = ext in ALLOWED_IMAGE_EXTENSIONS
+        return jsonify({
+            'url': f'/uploads/support_attachments/{filename}',
+            'filename': original_name,
+            'attachment_type': 'image' if is_image else 'file'
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Support file upload error: {str(e)}")
+        return jsonify({'error': 'Upload failed'}), 500
+
+
+@app.route('/uploads/support_attachments/<filename>')
+@login_required
+def serve_support_attachment(filename):
+    """Serve support ticket attachment files (authenticated users only)"""
+    safe_path = os.path.abspath(os.path.join(SUPPORT_ATTACHMENT_FOLDER, filename))
+    if not safe_path.startswith(os.path.abspath(SUPPORT_ATTACHMENT_FOLDER)):
+        return jsonify({'error': 'Forbidden'}), 403
+    return send_from_directory(SUPPORT_ATTACHMENT_FOLDER, filename)
+
 @app.route('/api/messages/send', methods=['POST'])
 @login_required
 def send_message():
@@ -24596,8 +24683,8 @@ def send_message():
         message = Message(
             conversation_id=conversation_id,
             sender_id=user_id,
-            content=content or '[Image]',
-            message_type=msg_type if msg_type in ('text', 'image') else 'text',
+            content=content or ('[Image]' if msg_type == 'image' else '[File]'),
+            message_type=msg_type if msg_type in ('text', 'image', 'file') else 'text',
             attachment_url=attachment_url or None
         )
         conv.last_message_at = datetime.utcnow()
@@ -26593,7 +26680,10 @@ def get_support_ticket(ticket_id):
         'message': m.message,
         'is_admin_reply': m.is_admin_reply,
         'sender_name': m.sender.full_name if m.sender else 'Support Team',
-        'created_at': m.created_at.isoformat() if m.created_at else None
+        'created_at': m.created_at.isoformat() if m.created_at else None,
+        'attachment_url': m.attachment_url,
+        'attachment_filename': m.attachment_filename,
+        'attachment_type': m.attachment_type
     } for m in ticket.messages]
     data = ticket.to_dict()
     data['messages'] = messages
@@ -26611,12 +26701,31 @@ def add_support_ticket_message(ticket_id):
     if ticket.status in ('resolved', 'closed'):
         return jsonify({'error': 'Ticket is closed'}), 400
 
-    data = request.json
-    message_text = sanitize_input(data.get('message', ''), max_length=2000)
-    if not message_text:
+    # Support both JSON and multipart form data
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        message_text = sanitize_input(request.form.get('message', ''), max_length=2000)
+        attachment_url = request.form.get('attachment_url', '').strip()
+        attachment_filename = request.form.get('attachment_filename', '').strip()
+        attachment_type = request.form.get('attachment_type', '').strip()
+    else:
+        data = request.json or {}
+        message_text = sanitize_input(data.get('message', ''), max_length=2000)
+        attachment_url = data.get('attachment_url', '').strip()
+        attachment_filename = data.get('attachment_filename', '').strip()
+        attachment_type = data.get('attachment_type', '').strip()
+
+    if not message_text and not attachment_url:
         return jsonify({'error': 'Message cannot be empty'}), 400
 
-    msg = SupportTicketMessage(ticket_id=ticket_id, sender_id=user_id, message=message_text, is_admin_reply=False)
+    msg = SupportTicketMessage(
+        ticket_id=ticket_id,
+        sender_id=user_id,
+        message=message_text or ('[Image]' if attachment_type == 'image' else '[File]'),
+        is_admin_reply=False,
+        attachment_url=attachment_url or None,
+        attachment_filename=attachment_filename or None,
+        attachment_type=attachment_type or None
+    )
     db.session.add(msg)
 
     if ticket.status == 'resolved':
@@ -26658,7 +26767,10 @@ def poll_support_ticket(ticket_id):
             'message': m.message,
             'is_admin_reply': m.is_admin_reply,
             'sender_name': m.sender.full_name if m.sender else 'Support Team',
-            'created_at': m.created_at.isoformat()
+            'created_at': m.created_at.isoformat(),
+            'attachment_url': m.attachment_url,
+            'attachment_filename': m.attachment_filename,
+            'attachment_type': m.attachment_type
         } for m in new_messages],
         'status': ticket.status,
         'server_time': datetime.utcnow().isoformat()
@@ -26774,19 +26886,32 @@ def admin_respond_to_ticket(ticket_id):
     try:
         admin_id = session['user_id']
         ticket = SupportTicket.query.get_or_404(ticket_id)
-        data = request.json
+
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            data = request.form
+            attachment_url = data.get('attachment_url', '').strip()
+            attachment_filename = data.get('attachment_filename', '').strip()
+            attachment_type = data.get('attachment_type', '').strip()
+        else:
+            data = request.json or {}
+            attachment_url = data.get('attachment_url', '').strip()
+            attachment_filename = data.get('attachment_filename', '').strip()
+            attachment_type = data.get('attachment_type', '').strip()
 
         message_text = sanitize_input(data.get('message', ''), max_length=2000)
         new_status = data.get('status', ticket.status)
         admin_notes = data.get('admin_notes', '').strip()
         ticket_user = User.query.get(ticket.user_id)
 
-        if message_text:
+        if message_text or attachment_url:
             msg = SupportTicketMessage(
                 ticket_id=ticket_id,
                 sender_id=admin_id,
-                message=message_text,
-                is_admin_reply=True
+                message=message_text or ('[Image]' if attachment_type == 'image' else '[File]'),
+                is_admin_reply=True,
+                attachment_url=attachment_url or None,
+                attachment_filename=attachment_filename or None,
+                attachment_type=attachment_type or None
             )
             db.session.add(msg)
 

@@ -402,6 +402,45 @@
         line-height: 1;
         padding: 0 4px;
     }
+    .attach-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-gray);
+        padding: 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s, color 0.15s;
+    }
+    .attach-btn:hover {
+        background: var(--bg-light);
+        color: var(--primary);
+    }
+    .message-file-attachment {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .message.sent .message-file-attachment {
+        color: white;
+        background: rgba(255,255,255,0.2);
+    }
+    .message.received .message-file-attachment {
+        color: var(--text-dark);
+        background: rgba(0,0,0,0.06);
+    }
+    .message-file-attachment svg {
+        flex-shrink: 0;
+    }
     /* Lightbox modal */
     .img-modal-overlay {
         display: none;
@@ -461,6 +500,11 @@
                         {% if msg.message_type == 'image' and msg.attachment_url %}
                             <img src="{{ msg.attachment_url }}" class="message-image" alt="Image" onclick="openImageModal(this.src)">
                             {% if msg.content and msg.content != '[Image]' %}<div class="image-caption">{{ msg.content }}</div>{% endif %}
+                        {% elif msg.message_type == 'file' and msg.attachment_url %}
+                            <a href="{{ msg.attachment_url }}" class="message-file-attachment" target="_blank" rel="noopener">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                                {{ msg.content if msg.content and msg.content != '[File]' else 'Download File' }}
+                            </a>
                         {% else %}
                             {{ msg.content }}
                         {% endif %}
@@ -480,12 +524,17 @@
     </div>
 
     <div class="image-paste-preview" id="imagePastePreview">
-        <img id="pastePreviewImg" src="" alt="Preview">
-        <span class="preview-label">Image ready to send</span>
+        <img id="pastePreviewImg" src="" alt="Preview" style="display:none;">
+        <svg id="pastePreviewFileIcon" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:none;flex-shrink:0;"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+        <span class="preview-label" id="pastePreviewLabel">File ready to send</span>
         <button class="remove-preview" id="removePasteBtn" title="Remove">&times;</button>
     </div>
     <form class="chat-input-area" id="messageForm">
         <div id="messageError" class="message-error" style="display: none;"></div>
+        <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx" style="display:none;">
+        <button type="button" class="attach-btn" id="attachBtn" title="Attach file">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+        </button>
         <input type="text" class="chat-input" id="messageInput" placeholder="{{ t('type_message') }}" autocomplete="off">
         <button type="submit" class="send-btn" id="sendBtn">{{ t('send_message') }}</button>
     </form>
@@ -508,12 +557,56 @@ const sendBtn = document.getElementById('sendBtn');
 
 messagesArea.scrollTop = messagesArea.scrollHeight;
 
-// --- Image paste support ---
-let pendingImageFile = null;
+// --- File attach & paste support ---
+let pendingFile = null;  // holds File object for any pending attachment
 
 const imagePastePreview = document.getElementById('imagePastePreview');
 const pastePreviewImg = document.getElementById('pastePreviewImg');
+const pastePreviewFileIcon = document.getElementById('pastePreviewFileIcon');
+const pastePreviewLabel = document.getElementById('pastePreviewLabel');
 const removePasteBtn = document.getElementById('removePasteBtn');
+const fileInput = document.getElementById('fileInput');
+const attachBtn = document.getElementById('attachBtn');
+
+function showFilePreview(file) {
+    const isImage = file.type.startsWith('image/');
+    if (isImage) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            pastePreviewImg.src = ev.target.result;
+            pastePreviewImg.style.display = '';
+            pastePreviewFileIcon.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        pastePreviewImg.style.display = 'none';
+        pastePreviewFileIcon.style.display = '';
+    }
+    pastePreviewLabel.textContent = file.name || 'File ready to send';
+    imagePastePreview.classList.add('visible');
+    messageInput.focus();
+}
+
+function clearFilePreview() {
+    pendingFile = null;
+    pastePreviewImg.src = '';
+    pastePreviewImg.style.display = 'none';
+    pastePreviewFileIcon.style.display = 'none';
+    pastePreviewLabel.textContent = 'File ready to send';
+    imagePastePreview.classList.remove('visible');
+    fileInput.value = '';
+}
+
+attachBtn.addEventListener('click', function() {
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', function() {
+    const file = fileInput.files[0];
+    if (!file) return;
+    pendingFile = file;
+    showFilePreview(file);
+});
 
 document.addEventListener('paste', function(e) {
     const items = e.clipboardData && e.clipboardData.items;
@@ -523,52 +616,44 @@ document.addEventListener('paste', function(e) {
             e.preventDefault();
             const file = item.getAsFile();
             if (!file) return;
-            pendingImageFile = file;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                pastePreviewImg.src = ev.target.result;
-                imagePastePreview.classList.add('visible');
-                messageInput.focus();
-            };
-            reader.readAsDataURL(file);
+            pendingFile = file;
+            showFilePreview(file);
             break;
         }
     }
 });
 
-removePasteBtn.addEventListener('click', function() {
-    pendingImageFile = null;
-    pastePreviewImg.src = '';
-    imagePastePreview.classList.remove('visible');
-});
+removePasteBtn.addEventListener('click', clearFilePreview);
 
 messageForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const content = messageInput.value.trim();
-    if (!content && !pendingImageFile) return;
+    if (!content && !pendingFile) return;
 
     sendBtn.disabled = true;
 
     try {
         let attachmentUrl = '';
+        let attachmentFilename = '';
         let messageType = 'text';
 
-        if (pendingImageFile) {
+        if (pendingFile) {
             const formData = new FormData();
-            formData.append('image', pendingImageFile);
-            const uploadRes = await fetch('/api/messages/upload-image', {
+            formData.append('file', pendingFile);
+            const uploadRes = await fetch('/api/messages/upload-file', {
                 method: 'POST',
                 body: formData
             });
             if (!uploadRes.ok) {
                 const err = await uploadRes.json();
-                showError(err.error || 'Image upload failed');
+                showError(err.error || 'File upload failed');
                 sendBtn.disabled = false;
                 return;
             }
             const uploadData = await uploadRes.json();
             attachmentUrl = uploadData.url;
-            messageType = 'image';
+            attachmentFilename = uploadData.filename || '';
+            messageType = uploadData.message_type || 'file';
         }
 
         const response = await fetch('/api/messages/send', {
@@ -576,7 +661,7 @@ messageForm.addEventListener('submit', async function(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 conversation_id: conversationId,
-                content: content,
+                content: content || attachmentFilename,
                 attachment_url: attachmentUrl,
                 message_type: messageType
             })
@@ -586,9 +671,7 @@ messageForm.addEventListener('submit', async function(e) {
             const data = await response.json();
             appendMessage(data.message, true);
             messageInput.value = '';
-            pendingImageFile = null;
-            pastePreviewImg.src = '';
-            imagePastePreview.classList.remove('visible');
+            clearFilePreview();
             lastMessageId = data.message.id;
             clearError();
         } else {
@@ -630,6 +713,10 @@ function appendMessage(msg, isSent) {
             ? `<div class="image-caption">${escapeHtml(msg.content)}</div>`
             : '';
         bubbleContent = `<img src="${escapeHtml(msg.attachment_url)}" class="message-image" alt="Image" onclick="openImageModal(this.src)">${caption}`;
+    } else if (msg.message_type === 'file' && msg.attachment_url) {
+        const label = (msg.content && msg.content !== '[File]') ? escapeHtml(msg.content) : 'Download File';
+        const fileIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
+        bubbleContent = `<a href="${escapeHtml(msg.attachment_url)}" class="message-file-attachment" target="_blank" rel="noopener">${fileIcon}${label}</a>`;
     } else {
         bubbleContent = escapeHtml(msg.content);
     }
