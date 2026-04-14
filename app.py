@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash, url_for
+import click
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, current_user
@@ -21766,7 +21767,7 @@ def accounting_update_user_role(user_id):
         new_permissions = data.get('admin_permissions')
 
         # Validate role
-        valid_roles = ['super_admin', 'billing', 'moderator', None]
+        valid_roles = ['super_admin', 'billing', 'moderator', 'support_agent', None]
         if new_role not in valid_roles:
             return jsonify({'error': 'Invalid role'}), 400
 
@@ -23206,7 +23207,7 @@ def support():
                 <p style="font-size: 12px; margin-top: 8px;">Isnin-Jumaat, 9am-6pm</p>
             </div>
             
-            <div class="contact-card">
+            <div class="contact-card" onclick="if(typeof scToggle==='function'){scToggle();}else{window.location='/login?next=/support';}" style="cursor:pointer;">
                 <div class="icon">💬</div>
                 <h4>Live Chat</h4>
                 <p>Chat dengan kami</p>
@@ -26154,6 +26155,60 @@ scheduler = init_scheduler(app, db, User, Gig, WorkerSpecialization, Notificatio
 # Note: Using Authlib OAuth routes in app.py instead of google_auth.py blueprint
 # The /api/auth/google and /api/auth/google/callback routes are defined above
 # Keeping this file for reference but not registering it to avoid conflicts
+
+
+@app.cli.command('make-support-agent')
+@click.argument('identifier')
+def make_support_agent_cmd(identifier):
+    """Promote an existing user to support_agent role, or create a new account.
+
+    IDENTIFIER can be an email address or username of an existing user.
+    If no matching user exists you will be prompted to create one.
+
+    Usage:
+      flask make-support-agent agent@example.com
+      flask make-support-agent agentusername
+    """
+    import sys
+    with app.app_context():
+        user = User.query.filter(
+            (User.email == identifier) | (User.username == identifier)
+        ).first()
+
+        if not user:
+            print(f'No user found with email/username "{identifier}".')
+            create = input('Create a new account? [y/N]: ').strip().lower()
+            if create != 'y':
+                print('Aborted.')
+                sys.exit(1)
+            username = input('Username: ').strip()
+            email = input('Email: ').strip()
+            password = input('Password: ').strip()
+            full_name = input('Full name (optional): ').strip() or None
+            if not username or not email or not password:
+                print('Username, email, and password are required.')
+                sys.exit(1)
+            from werkzeug.security import generate_password_hash
+            user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash(password),
+                full_name=full_name,
+                is_verified=True,
+                is_admin=True,
+                admin_role='support_agent',
+            )
+            db.session.add(user)
+            db.session.commit()
+            print(f'Created support agent account: {username} ({email})')
+        else:
+            user.is_admin = True
+            user.admin_role = 'support_agent'
+            db.session.commit()
+            print(f'Promoted {user.username} ({user.email}) to support_agent.')
+
+        print(f'Done. Agent can now log in and access /admin/support.')
+
 
 @app.cli.command('fix-db-permissions')
 def fix_db_permissions_cmd():
