@@ -16100,6 +16100,7 @@ def admin_get_users():
                 'is_verified': u.is_verified,
                 'halal_verified': u.halal_verified,
                 'is_admin': u.is_admin,
+                'admin_role': u.admin_role,
                 'ic_number': u.ic_number,
                 'created_at': u.created_at.isoformat()
             } for u in users.items],
@@ -16137,6 +16138,7 @@ def admin_get_user(user_id):
                 'is_verified': user.is_verified,
                 'halal_verified': user.halal_verified,
                 'is_admin': user.is_admin,
+                'admin_role': user.admin_role,
                 'bank_name': user.bank_name,
                 'bank_account_number': user.bank_account_number,
                 'bank_account_holder': user.bank_account_holder,
@@ -16168,6 +16170,17 @@ def admin_update_user(user_id):
         # Update admin status
         if 'is_admin' in data:
             user.is_admin = bool(data['is_admin'])
+
+        # Update admin role
+        if 'admin_role' in data:
+            valid_roles = ['super_admin', 'billing', 'moderator', 'support_agent', None]
+            new_role = data['admin_role'] or None
+            if new_role not in valid_roles:
+                return jsonify({'error': 'Invalid admin_role'}), 400
+            user.admin_role = new_role
+            # Automatically flag is_admin when assigning any role
+            if new_role:
+                user.is_admin = True
 
         # Update user type
         if 'user_type' in data and data['user_type'] in ['freelancer', 'client', 'both']:
