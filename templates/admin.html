@@ -1560,6 +1560,16 @@
                 <label for="edit-is-admin">Admin</label>
             </div>
         </div>
+        <div class="form-group">
+            <label>Role:</label>
+            <select id="edit-admin-role">
+                <option value="">— Regular user —</option>
+                <option value="support_agent">Support Agent</option>
+                <option value="moderator">Moderator</option>
+                <option value="billing">Billing</option>
+                <option value="super_admin">Super Admin</option>
+            </select>
+        </div>
         <div class="modal-actions">
             <button class="btn btn-primary" onclick="saveUserChanges()">Save Changes</button>
             <button class="btn btn-cancel" onclick="closeModal('edit-user-modal')">Cancel</button>
@@ -2538,6 +2548,8 @@
             if (userTypeField) userTypeField.value = user.user_type || 'freelancer';
             if (verifiedField) verifiedField.checked = user.is_verified || false;
             if (isAdminField) isAdminField.checked = user.is_admin || false;
+            const adminRoleField = document.getElementById('edit-admin-role');
+            if (adminRoleField) adminRoleField.value = user.admin_role || '';
             
             document.getElementById('edit-user-modal').classList.add('active');
         } catch (error) {
@@ -2688,10 +2700,12 @@
     async function saveUserChanges() {
         if (!currentEditUserId) return;
         
+        const adminRole = document.getElementById('edit-admin-role').value;
         const userData = {
             user_type: document.getElementById('edit-user-type').value,
             is_verified: document.getElementById('edit-verified').checked,
-            is_admin: document.getElementById('edit-is-admin').checked
+            is_admin: document.getElementById('edit-is-admin').checked,
+            admin_role: adminRole || null
         };
         
         try {
