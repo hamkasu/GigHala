@@ -697,9 +697,9 @@ TRANSLATIONS = {
         # Homepage - Hero Section
         'active_freelancers': '{} Freelancers Aktif',  # Format with actual count
         'earn_income': 'Jana Pendapatan',
-        'halal_blessed': 'Syariah Compliant & Berkah',
+        'halal_blessed': 'Syariah-Principled & Berkah',
         'from_home': 'dari Rumah',
-        'hero_description': 'Platform gig economy #1 Malaysia yang menawarkan peluang side hustle Syariah Compliant untuk raih RM800-RM4,000 sebulan. Tanpa modal, tanpa komitmen panjang.',
+        'hero_description': 'Platform gig economy #1 Malaysia yang menawarkan peluang side hustle Syariah-Principled untuk raih RM800-RM4,000 sebulan. Tanpa modal, tanpa komitmen panjang.',
         'active_gigs_stat': 'Gig Aktif',
         'paid_this_year': 'Dibayar Tahun Ini',
         'instant_payout': 'Pembayaran Segera',
@@ -716,7 +716,7 @@ TRANSLATIONS = {
         'search_gigs': 'Cari gig...',
         'all_categories': 'Semua Kategori',
         'all_locations': 'Semua Lokasi',
-        'halal_only': 'Syariah Compliant Sahaja',
+        'halal_only': 'Permissible-services only',
         'view_more': 'Lihat Lebih Banyak',
 
         # Homepage - How It Works
@@ -724,7 +724,7 @@ TRANSLATIONS = {
         'step_1_title': 'Daftar Percuma',
         'step_1_desc': 'Buat akaun dalam 2 minit. Tiada bayaran pendaftaran, tiada syarat rumit.',
         'step_2_title': 'Cari Gig Sesuai',
-        'step_2_desc': 'Pilih dari 2000+ gig Syariah Compliant mengikut skill, lokasi dan budget anda.',
+        'step_2_desc': 'Pilih dari 2000+ Permissible gig mengikut skill, lokasi dan budget anda.',
         'step_3_title': 'Apply & Kerja',
         'step_3_desc': 'Submit proposal anda atau buat video pitch 30 saat untuk menonjol.',
         'step_4_title': 'Terima Bayaran Selamat',
@@ -747,14 +747,14 @@ TRANSLATIONS = {
         'testimonial_3_earnings': 'Pendapatan: RM 1,900/bulan',
 
         # Homepage - CTA
-        'ready_to_earn': 'Siap untuk mula jana pendapatan Syariah Compliant?',
+        'ready_to_earn': 'Siap untuk mula jana pendapatan Syariah-Principled?',
         'join_freelancers': 'Join freelancers yang dah berjaya. Daftar percuma sekarang!',
         'register_now_free': 'Daftar Sekarang - 100% Percuma',
-        'cta_benefits': '✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Syariah Compliant',
+        'cta_benefits': '✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Syariah-Principled',
 
         # Homepage - Footer
-        'payhalal_notice': 'Pembayaran Selamat & Syariah Compliant dengan PayHalal – Gateway Pembayaran Shariah-Compliant Pertama di Dunia 🌙',
-        'footer_description': 'Platform gig economy Syariah Compliant #1 di Malaysia. Jana pendapatan berkah dari rumah.',
+        'payhalal_notice': 'Pembayaran Selamat & Syariah-Principled dengan PayHalal – Gateway Pembayaran Shariah-Compliant Pertama di Dunia 🌙',
+        'footer_description': 'Syariah-Principled Platform gig economy #1 di Malaysia. Jana pendapatan berkah dari rumah.',
         'about_us': 'Tentang Kami',
         'platform': 'Platform',
         'pricing': 'Pricing',
@@ -897,7 +897,7 @@ TRANSLATIONS = {
         'update_gig_subtitle': 'Kemaskini maklumat gig anda',
         'gig_information': 'Maklumat Gig',
         'gig_title': 'Tajuk Gig',
-        'gig_title_placeholder': 'e.g., Design logo untuk restoran Syariah Compliant saya',
+        'gig_title_placeholder': 'e.g., Design logo untuk restoran Syariah-Principled saya',
         'gig_title_hint': 'Tulis tajuk yang jelas dan menarik perhatian',
         'description': 'Penerangan',
         'description_placeholder': 'Terangkan projek anda dengan terperinci. Masukkan keperluan, deliverables, dan arahan khusus.',
@@ -934,7 +934,7 @@ TRANSLATIONS = {
         'additional_options': 'Pilihan Tambahan',
         'remote_work': 'Kerja Remote',
         'remote_work_desc': 'Freelancer boleh bekerja dari mana-mana',
-        'halal_compliant': 'Syariah Compliant',
+        'halal_compliant': 'Syariah-Principled',
         'halal_compliant_desc': 'Projek patuh syariah',
         'instant_payout_label': 'Instant Payout',
         'instant_payout_desc': 'Bayaran dalam 24 jam',
@@ -1089,9 +1089,9 @@ TRANSLATIONS = {
         # Homepage - Hero Section
         'active_freelancers': 'Active Freelancers',
         'earn_income': 'Earn Income',
-        'halal_blessed': 'Syariah Compliant & Blessed',
+        'halal_blessed': 'Syariah-Principled & Blessed',
         'from_home': 'from Home',
-        'hero_description': "Malaysia's #1 gig economy platform offering Syariah Compliant side hustle opportunities to earn RM800-RM4,000 per month. No capital required, no long-term commitment.",
+        'hero_description': "Malaysia's #1 gig economy platform offering Syariah-principled side hustle opportunities to earn RM800-RM4,000 per month. No capital required, no long-term commitment.",
         'active_gigs_stat': 'Active Gigs',
         'paid_this_year': 'Paid This Year',
         'instant_payout': 'Instant Payout',
@@ -1108,7 +1108,7 @@ TRANSLATIONS = {
         'search_gigs': 'Search gigs...',
         'all_categories': 'All Categories',
         'all_locations': 'All Locations',
-        'halal_only': 'Syariah Compliant Only',
+        'halal_only': 'Permissible-services only',
         'view_more': 'View More',
 
         # Homepage - How It Works
@@ -1116,7 +1116,7 @@ TRANSLATIONS = {
         'step_1_title': 'Register Free',
         'step_1_desc': 'Create an account in 2 minutes. No registration fees, no complicated requirements.',
         'step_2_title': 'Find Suitable Gigs',
-        'step_2_desc': 'Choose from 2000+ Syariah Compliant gigs based on your skills, location and budget.',
+        'step_2_desc': 'Choose from 2000+ Permissible gigs based on your skills, location and budget.',
         'step_3_title': 'Apply & Work',
         'step_3_desc': 'Submit your proposal or create a 30-second video pitch to stand out.',
         'step_4_title': 'Receive Secure Payment',
@@ -1139,14 +1139,14 @@ TRANSLATIONS = {
         'testimonial_3_earnings': 'Earnings: RM 1,900/month',
 
         # Homepage - CTA
-        'ready_to_earn': 'Ready to start earning Syariah Compliant income?',
+        'ready_to_earn': 'Ready to start earning Syariah-Principled income?',
         'join_freelancers': "Join freelancers who've already succeeded. Sign up free now!",
         'register_now_free': 'Sign Up Now - 100% Free',
-        'cta_benefits': '✓ No hidden fees  •  ✓ Instant payments  •  ✓ Syariah Compliant',
+        'cta_benefits': '✓ No hidden fees  •  ✓ Instant payments  •  ✓ Syariah-Principled',
 
         # Homepage - Footer
-        'footer_description': "Malaysia's #1 Syariah Compliant gig economy platform. Earn blessed income from home.",
-        'payhalal_notice': 'Secure & Syariah Compliant Payments with PayHalal – The World\'s First Shariah-Compliant Payment Gateway 🌙',
+        'footer_description': "Malaysia's #1 Syariah-Principled Platform. Earn blessed income from home.",
+        'payhalal_notice': 'Secure & Syariah-Principled Payments with PayHalal – The World\'s First Shariah-Compliant Payment Gateway 🌙',
         'about_us': 'About Us',
         'platform': 'Platform',
         'pricing': 'Pricing',
@@ -1264,7 +1264,7 @@ TRANSLATIONS = {
         'update_gig_subtitle': 'Update your gig information',
         'gig_information': 'Gig Information',
         'gig_title': 'Gig Title',
-        'gig_title_placeholder': 'e.g., Design a logo for my Syariah Compliant restaurant',
+        'gig_title_placeholder': 'e.g., Design a logo for my Syariah-Principled restaurant',
         'gig_title_hint': 'Write a clear and attention-grabbing title',
         'description': 'Description',
         'description_placeholder': 'Describe your project in detail. Include requirements, deliverables, and specific instructions.',
@@ -1301,7 +1301,7 @@ TRANSLATIONS = {
         'additional_options': 'Additional Options',
         'remote_work': 'Remote Work',
         'remote_work_desc': 'Freelancer can work from anywhere',
-        'halal_compliant': 'Syariah Compliant',
+        'halal_compliant': 'Syariah-Principled',
         'halal_compliant_desc': 'Sharia-compliant project',
         'instant_payout_label': 'Instant Payout',
         'instant_payout_desc': 'Payment within 24 hours',
@@ -1689,7 +1689,7 @@ def send_verification_email(user_email, token, username):
                     </p>
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="color: #999; font-size: 12px;">
-                        GigHala - Syariah Compliant Gig Economy Platform
+                        GigHala - Syariah-Principled Gig Economy Platform
                     </p>
                 </div>
             </body>
@@ -1870,7 +1870,7 @@ def send_password_reset_email(user_email, token, username):
                     </p>
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="color: #999; font-size: 12px;">
-                        GigHala - Syariah Compliant Gig Economy Platform
+                        GigHala - Syariah-Principled Gig Economy Platform
                     </p>
                 </div>
             </body>
@@ -2078,7 +2078,7 @@ def send_interaction_notification(user, subject, message, html_content=None, tex
                     <p>{message}</p>
                 </div>
                 <div class="footer">
-                    <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                    <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                     <p>This is an automated notification. Please do not reply to this email.</p>
                 </div>
             </div>
@@ -2087,7 +2087,7 @@ def send_interaction_notification(user, subject, message, html_content=None, tex
         """
 
     if not text_content:
-        text_content = f"{subject}\n\n{message}\n\n---\nGigHala - Your Trusted Syariah Compliant Gig Platform"
+        text_content = f"{subject}\n\n{message}\n\n---\nGigHala - Your Trusted Syariah-Principled Gig Platform"
 
     # Send email if user has email
     if user and user.email:
@@ -8873,7 +8873,7 @@ def accept_application(application_id):
                             <p>Good luck with your project!</p>
                         </div>
                         <div class="footer">
-                            <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                         </div>
                     </div>
                 </body>
@@ -8892,7 +8892,7 @@ Agreed Amount: RM {gig.agreed_amount if gig.agreed_amount else gig.budget_min}
 You can now start working on the project. Check your dashboard for more details.
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -9067,7 +9067,7 @@ def reject_application(application_id):
                             <p>Keep applying and showcasing your skills. Your next great project is just around the corner!</p>
                         </div>
                         <div class="footer">
-                            <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                         </div>
                     </div>
                 </body>
@@ -9086,7 +9086,7 @@ Unfortunately, your application was not selected for this project. Don't be disc
 Keep applying and showcasing your skills!
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -9610,7 +9610,7 @@ def submit_work(gig_id):
                             <p>Login to your dashboard to review the work.</p>
                         </div>
                         <div class="footer">
-                            <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                         </div>
                     </div>
                 </body>
@@ -9630,7 +9630,7 @@ Amount: MYR {amount:.2f}
 Please review the submitted work and either approve it or request revisions.
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -9773,7 +9773,7 @@ def approve_work(gig_id):
                             <p>Thank you for your excellent work!</p>
                         </div>
                         <div class="footer">
-                            <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                         </div>
                     </div>
                 </body>
@@ -9794,7 +9794,7 @@ Status: Completed
 The client will release payment soon. You will be notified when the payment is processed.
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -9933,7 +9933,7 @@ def request_revision(gig_id):
                             <p>Login to your dashboard to view the details and communicate with the client.</p>
                         </div>
                         <div class="footer">
-                            <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                         </div>
                     </div>
                 </body>
@@ -9952,7 +9952,7 @@ The client {client.full_name or client.username} has requested revisions for you
 Please review the feedback carefully, make the necessary changes, and resubmit your work.
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -11112,7 +11112,7 @@ Breakdown:
 The amount has been credited to your GigHala wallet.
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -11183,7 +11183,7 @@ Amount: MYR {escrow.amount:.2f}
 Thank you for using GigHala!
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -17481,7 +17481,7 @@ def admin_reject_flagged_gig(gig_id):
         gig.status = 'blocked'
         gig.blocked_at = datetime.utcnow()
         gig.blocked_by = session.get('user_id')
-        gig.block_reason = data.get('reason', 'Rejected after AI moderation review - violates Syariah Compliant compliance')
+        gig.block_reason = data.get('reason', 'Rejected after AI moderation review - violates Designed to uphold Syariah principles')
 
         # Update AI moderation result
         if gig.ai_moderation_result:
@@ -22619,7 +22619,7 @@ def init_database():
             Category(name='Travel Guide & Tours', slug='tours', description='Local guides, virtual tours, travel planning', icon='map-pin'),
             
             # Fractional Professional Roles
-            Category(name='Fractional Professional Roles', slug='fractional-roles', description='Part-time C-suite & senior executives for Malaysian SMEs: Fractional CFO, CMO, CTO, COO, HR Director, Legal Counsel, CDO, Sales Director, CIO, ESG Officer, Syariah Compliance Officer — monthly retainer, Syariah Compliant engagements', icon='handshake'),
+            Category(name='Fractional Professional Roles', slug='fractional-roles', description='Part-time C-suite & senior executives for Malaysian SMEs: Fractional CFO, CMO, CTO, COO, HR Director, Legal Counsel, CDO, Sales Director, CIO, ESG Officer, Syariah Compliance Officer — monthly retainer, Syariah-Principled engagements', icon='handshake'),
 
             # General
             Category(name='General Services', slug='general', description='General tasks, miscellaneous work, other services', icon='briefcase'),
@@ -22668,7 +22668,7 @@ def init_database():
                 user_type='freelancer',
                 location='Kuala Lumpur',
                 skills=json.dumps(['Graphic Design', 'Video Editing', 'Canva']),
-                bio='Experienced graphic designer specializing in Syariah Compliant branding',
+                bio='Experienced graphic designer specializing in Syariah-Principled branding',
                 rating=4.8,
                 total_earnings=2500.0,
                 completed_gigs=15,
@@ -22707,8 +22707,8 @@ def init_database():
             # Sample gigs
             sample_gigs = [
                 Gig(
-                    title='Design Logo for Syariah Compliant Restaurant',
-                    description='Need a modern logo for my new Syariah Compliant restaurant in KL. Should incorporate Islamic geometric patterns.',
+                    title='Design Logo for Syariah-Principled Restaurant',
+                    description='Need a modern logo for my new Syariah-Principled restaurant in KL. Should incorporate Islamic geometric patterns.',
                     category='logo-design',
                     budget_min=200,
                     budget_max=500,
@@ -22766,8 +22766,8 @@ def init_database():
                     deadline=datetime.utcnow() + timedelta(days=5)
                 ),
                 Gig(
-                    title='Create TikTok Content for Syariah Compliant Food Delivery App',
-                    description='Need 5 creative TikTok videos promoting our Syariah Compliant food delivery service. RM100 per approved video.',
+                    title='Create TikTok Content for Syariah-Principled Food Delivery App',
+                    description='Need 5 creative TikTok videos promoting our Syariah-Principled food delivery service. RM100 per approved video.',
                     category='social-media',
                     budget_min=500,
                     budget_max=800,
@@ -22789,8 +22789,8 @@ def init_database():
             # Sample microtasks
             microtasks = [
                 MicroTask(
-                    title='Review Syariah Compliant Restaurant on Google Maps',
-                    description='Visit and write honest review for Syariah Compliant restaurant',
+                    title='Review Syariah-Principled Restaurant on Google Maps',
+                    description='Visit and write honest review for Syariah-Principled restaurant',
                     reward=15.0,
                     task_type='review'
                 ),
@@ -22831,7 +22831,7 @@ def cara_kerja():
     content = '''
     <div class="content-section">
         <h2><span class="icon">🚀</span> Bagaimana GigHala Berfungsi</h2>
-        <p>GigHala menghubungkan freelancers dengan klien yang mencari perkhidmatan berkualiti. Platform kami memastikan semua transaksi adalah telus, selamat dan mematuhi prinsip Syariah Compliant.</p>
+        <p>GigHala menghubungkan freelancers dengan klien yang mencari perkhidmatan berkualiti. Platform kami memastikan semua transaksi adalah telus, selamat dan mematuhi prinsip Syariah.</p>
         
         <div class="step-list">
             <div class="step-item">
@@ -23144,7 +23144,7 @@ def faq():
         
         <div class="faq-item">
             <div class="faq-question">Apakah GigHala?</div>
-            <div class="faq-answer">GigHala adalah platform gig economy #1 di Malaysia yang menghubungkan freelancers dengan klien. Kami fokus kepada peluang kerja yang Syariah Compliant dan berkah.</div>
+            <div class="faq-answer">GigHala adalah platform gig economy #1 di Malaysia yang menghubungkan freelancers dengan klien. Kami fokus kepada peluang kerja yang berprinsip Syariah dan berkah.</div>
         </div>
         
         <div class="faq-item">
@@ -23163,8 +23163,8 @@ def faq():
         </div>
         
         <div class="faq-item">
-            <div class="faq-question">Apakah maksud "Syariah Compliant Verified"?</div>
-            <div class="faq-answer">Gig dengan label "Syariah Compliant Verified" telah disahkan mematuhi prinsip Syariah Compliant - tidak melibatkan aktiviti haram seperti judi, arak, atau kandungan tidak senonoh.</div>
+            <div class="faq-question">Apakah maksud "Syariah-Principled Verified"?</div>
+            <div class="faq-answer">Gig dengan label "Syariah-Principled Verified" telah disahkan mematuhi prinsip Syariah - tidak melibatkan aktiviti haram seperti judi, arak, atau kandungan tidak senonoh.</div>
         </div>
         
         <div class="faq-item">
@@ -23475,7 +23475,7 @@ def privasi():
                 <tr><td style="padding:8px;border:1px solid #ddd;">Pematuhan PERKESO (Gig Workers Bill 2025)</td><td style="padding:8px;border:1px solid #ddd;">Kewajipan undang-undang</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;">Pengesahan identiti &amp; pencegahan penipuan</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah / Persetujuan</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;">Komunikasi &amp; notifikasi platform</td><td style="padding:8px;border:1px solid #ddd;">Kontrak / Persetujuan</td></tr>
-                <tr><td style="padding:8px;border:1px solid #ddd;">Moderasi kandungan Syariah Compliant (AI)</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;">Moderasi kandungan Syariah-Principled (AI)</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;">Analisis &amp; penambahbaikan platform</td><td style="padding:8px;border:1px solid #ddd;">Kepentingan sah</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;">Pematuhan undang-undang &amp; audit</td><td style="padding:8px;border:1px solid #ddd;">Kewajipan undang-undang</td></tr>
             </tbody>
@@ -23499,7 +23499,7 @@ def privasi():
                 <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Twilio</strong></td><td style="padding:8px;border:1px solid #ddd;">Penghantaran SMS/OTP</td><td style="padding:8px;border:1px solid #ddd;">Nombor telefon, kandungan SMS</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Meta (WhatsApp)</strong></td><td style="padding:8px;border:1px solid #ddd;">Notifikasi WhatsApp</td><td style="padding:8px;border:1px solid #ddd;">Nombor telefon, kandungan mesej</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Stripe</strong></td><td style="padding:8px;border:1px solid #ddd;">Pemprosesan pembayaran</td><td style="padding:8px;border:1px solid #ddd;">Data pembayaran, ID pelanggan</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
-                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Groq</strong></td><td style="padding:8px;border:1px solid #ddd;">Moderasi kandungan AI (Syariah Compliant)</td><td style="padding:8px;border:1px solid #ddd;">Kandungan gig/deskripsi</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
+                <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Groq</strong></td><td style="padding:8px;border:1px solid #ddd;">Moderasi kandungan AI (Syariah-Principled)</td><td style="padding:8px;border:1px solid #ddd;">Kandungan gig/deskripsi</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Railway</strong></td><td style="padding:8px;border:1px solid #ddd;">Hosting &amp; infrastruktur</td><td style="padding:8px;border:1px solid #ddd;">Semua data platform</td><td style="padding:8px;border:1px solid #ddd;">USA</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;"><strong>Google/Microsoft/Apple/Facebook/X</strong></td><td style="padding:8px;border:1px solid #ddd;">Log masuk sosial (OAuth)</td><td style="padding:8px;border:1px solid #ddd;">ID OAuth, e-mel (jika bersetuju)</td><td style="padding:8px;border:1px solid #ddd;">Pelbagai</td></tr>
                 <tr><td style="padding:8px;border:1px solid #ddd;"><strong>PERKESO</strong></td><td style="padding:8px;border:1px solid #ddd;">Pendaftaran &amp; caruman PERKESO</td><td style="padding:8px;border:1px solid #ddd;">IC, nama, tarikh lahir, caruman</td><td style="padding:8px;border:1px solid #ddd;">Malaysia</td></tr>
@@ -23612,11 +23612,11 @@ def halal_compliance():
     content = '''
     <div class="content-section">
         <h2><span class="icon">☪️</span> Pematuhan Syariah</h2>
-        <p>GigHala komited untuk menyediakan platform yang mematuhi prinsip-prinsip Islam. Berikut adalah garis panduan pematuhan Syariah Compliant kami.</p>
+        <p>GigHala komited untuk menyediakan platform yang mematuhi prinsip-prinsip Islam. Berikut adalah garis panduan komitmen terhadap prinsip Syariah kami.</p>
     </div>
 
     <div class="content-section">
-        <h2><span class="icon">✅</span> Prinsip Syariah Compliant Kami</h2>
+        <h2><span class="icon">✅</span> Prinsip Syariah-Principled Kami</h2>
 
         <h3>1. Tiada Aktiviti Haram</h3>
         <p>Kami TIDAK membenarkan gig yang melibatkan:</p>
@@ -23629,16 +23629,16 @@ def halal_compliance():
             <li>Kandungan yang menghina agama</li>
         </ul>
         
-        <h3>2. Sistem Syariah Compliant Verified</h3>
-        <p>Gig dengan label "Syariah Compliant Verified" telah melalui proses semakan untuk memastikan:</p>
+        <h3>2. Sistem Syariah-Principled Verified</h3>
+        <p>Gig dengan label "Syariah-Principled Verified" telah melalui proses semakan untuk memastikan:</p>
         <ul>
             <li>Tidak melanggar prinsip syariah</li>
-            <li>Kandungan dan tujuan adalah Syariah Compliant</li>
-            <li>Klien dan produk/perkhidmatan adalah Syariah Compliant</li>
+            <li>Kandungan dan tujuan adalah Syariah-Principled</li>
+            <li>Klien dan produk/perkhidmatan adalah Syariah-Principled</li>
         </ul>
         
         <h3>3. Proses Pengesahan</h3>
-        <p>Untuk mendapat status Syariah Compliant Verified:</p>
+        <p>Untuk mendapat status Syariah-Principled Verified:</p>
         <ul>
             <li>Gig disemak oleh pasukan pematuhan kami</li>
             <li>Kategori dan deskripsi dinilai</li>
@@ -23656,7 +23656,7 @@ def halal_compliance():
             <li>✓ Penulisan & Terjemahan (bukan untuk kandungan haram)</li>
             <li>✓ Video & Animasi (kandungan yang sesuai)</li>
             <li>✓ Pembangunan Web (bukan untuk laman web haram)</li>
-            <li>✓ Pemasaran Digital (produk/perkhidmatan Syariah Compliant)</li>
+            <li>✓ Pemasaran Digital (produk/perkhidmatan Syariah-Principled)</li>
             <li>✓ Tunjuk Ajar & Pendidikan</li>
             <li>✓ Admin & Sokongan</li>
         </ul>
@@ -23675,15 +23675,15 @@ def halal_compliance():
         <h2><span class="icon">🤝</span> Komitmen Kami</h2>
         
         <div class="highlight-box">
-            <p><strong>Misi Kami:</strong> Menyediakan platform gig economy yang membolehkan umat Islam menjana pendapatan yang Syariah Compliant dan berkah, sambil memastikan semua aktiviti mematuhi prinsip syariah.</p>
+            <p><strong>Misi Kami:</strong> Menyediakan platform gig economy yang membolehkan umat Islam menjana pendapatan yang berprinsip Syariah dan berkah, sambil memastikan semua aktiviti mematuhi prinsip syariah.</p>
         </div>
         
-        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus mematuhi garis panduan Islam. Jika anda mempunyai sebarang soalan atau kebimbangan tentang pematuhan Syariah Compliant, sila hubungi kami di halal@gighala.my.</p>
+        <p>Kami bekerjasama dengan penasihat syariah untuk memastikan platform kami terus menjunjung prinsip Syariah. Jika anda mempunyai sebarang soalan atau kebimbangan tentang komitmen terhadap prinsip Syariah, sila hubungi kami di halal@gighala.my.</p>
     </div>
     
     <div class="content-section">
         <h2><span class="icon">📣</span> Laporkan Pelanggaran</h2>
-        <p>Jika anda menjumpai gig yang tidak mematuhi prinsip Syariah Compliant, sila laporkan kepada kami. Kami akan menyiasat dan mengambil tindakan yang sewajarnya.</p>
+        <p>Jika anda menjumpai gig yang tidak mematuhi prinsip Syariah, sila laporkan kepada kami. Kami akan menyiasat dan mengambil tindakan yang sewajarnya.</p>
         <p>Email: halal@gighala.my</p>
     </div>
     '''
@@ -23691,7 +23691,7 @@ def halal_compliance():
                          user=user, 
                          active_page='halal-compliance',
                          page_title='Syariah Compliance',
-                         page_subtitle='Komitmen kami terhadap pematuhan prinsip Syariah Compliant',
+                         page_subtitle='Komitmen kami terhadap pematuhan prinsip Syariah',
                          content=content)
 
 @app.route('/gig-workers-bill')
@@ -24740,7 +24740,7 @@ def send_message():
                             <p>Login to your dashboard to read and reply to this message.</p>
                         </div>
                         <div class="footer">
-                            <p>GigHala - Your Trusted Syariah Compliant Gig Platform</p>
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
                         </div>
                     </div>
                 </body>
@@ -24760,7 +24760,7 @@ Message Preview:
 Login to your dashboard to read and reply.
 
 ---
-GigHala - Your Trusted Syariah Compliant Gig Platform
+GigHala - Your Trusted Syariah-Principled Gig Platform
                 """.strip()
 
                 success, msg, status_code, details = email_service.send_single_email(
@@ -25942,21 +25942,21 @@ def llms_txt():
 
     content = """# GigHala
 
-> GigHala (gighala.my) is Malaysia's #1 Syariah Compliant freelancer platform, connecting Muslim freelancers and clients for ethical, Shariah-compliant work with AI-verified Syariah Compliant gigs, automatic SOCSO worker protection, and secure escrow payments. Built by Calmic Sdn Bhd, Kuala Lumpur.
+> GigHala (gighala.my) is Malaysia's #1 Syariah-Principled Platform, connecting Muslim freelancers and clients for ethical, Shariah-compliant work with AI-verified Permissible gigs, automatic SOCSO worker protection, and secure escrow payments. Built by Calmic Sdn Bhd, Kuala Lumpur.
 
 ## Platform Summary
 
 GigHala is a peer-to-peer gig marketplace where:
 - **Clients (Majikan)** post gigs/tasks and hire verified Malaysian freelancers
 - **Workers (Pekerja)** browse, apply, and get paid for completing gigs
-- All gigs are AI-screened for 100% Syariah Compliant compliance before going live
+- All gigs are AI-screened for 100% Designed to uphold Syariah principles before going live
 - Workers receive automatic SOCSO (social security) accident protection
 - Payments are handled via interest-free escrow with instant payout to Malaysian banks
 - Platform operates fully in Ringgit Malaysia (RM) with Bahasa Malaysia and English support
 
 ## Key Differentiators
 
-- **Syariah Compliant Verification**: Every gig is AI-moderated (Groq API) to comply with Islamic principles — no haram services, riba-free payments, no gambling or adult content
+- **Syariah-Principled Verification**: Every gig is AI-moderated (Groq API) to comply with Islamic principles — no haram services, riba-free payments, no gambling or adult content
 - **SOCSO Protection**: Malaysia's first gig platform with automatic SOCSO Employment Injury Scheme coverage for all workers
 - **Escrow Payments**: Funds held in escrow until work is approved — protects both client and worker, interest-free
 - **Malaysian-first**: All transactions in RM, instant payouts to Malaysian banks, Bahasa Malaysia support
@@ -25965,7 +25965,7 @@ GigHala is a peer-to-peer gig marketplace where:
 
 ## Target Audience
 
-- Malaysian Muslim freelancers seeking Syariah Compliant side income (RM800–RM4,000/month potential)
+- Malaysian Muslim freelancers seeking Syariah-Principled side income (RM800–RM4,000/month potential)
 - Students and fresh graduates looking for part-time freelance work
 - Small business owners and individuals needing short-term verified services
 - Employers wanting trusted, identity-verified gig workers in Malaysia
@@ -25980,7 +25980,7 @@ Design & Creative, Writing & Content, Video & Photography, Web Development, Prog
 - **Operator**: Calmic Sdn Bhd
 - **Founded**: 2022
 - **Location**: Kuala Lumpur, Malaysia
-- **Mission**: Empowering Malaysian Muslims through Syariah Compliant, dignified gig work with full worker protection
+- **Mission**: Empowering Malaysian Muslims through Syariah-Principled, dignified gig work with full worker protection
 
 ## Key URLs
 
@@ -26017,16 +26017,16 @@ Design & Creative, Writing & Content, Video & Photography, Web Development, Prog
 ## Frequently Asked Questions
 
 **Q: What is GigHala?**
-A: GigHala is Malaysia's #1 Syariah Compliant freelancer platform built by Calmic Sdn Bhd. It connects verified Malaysian freelancers with clients for Shariah-compliant work, with automatic SOCSO protection and secure escrow payments.
+A: GigHala is Malaysia's #1 Syariah-Principled Platform built by Calmic Sdn Bhd. It connects verified Malaysian freelancers with clients for Shariah-compliant work, with automatic SOCSO protection and secure escrow payments.
 
-**Q: What makes GigHala Syariah Compliant?**
-A: GigHala uses AI-powered moderation (Groq API) to screen every gig posting against Islamic principles. Prohibited services (alcohol, gambling, adult content, riba-based finance) are automatically rejected. All accepted gigs are Syariah Compliant Verified.
+**Q: What makes GigHala Syariah-Principled?**
+A: GigHala uses AI-powered moderation (Groq API) to screen every gig posting against Islamic principles. Prohibited services (alcohol, gambling, adult content, riba-based finance) are automatically rejected. All accepted gigs are Syariah-Principled Verified.
 
 **Q: How do payments work on GigHala?**
 A: Clients deposit payment into interest-free escrow when hiring. Funds are released to the worker only after the client approves the completed work. Payouts go directly to Malaysian bank accounts instantly.
 
 **Q: Is GigHala only for Muslims?**
-A: GigHala is open to all Malaysians but is specifically designed with Syariah Compliant compliance and Islamic values at its core, making it the preferred platform for Muslim workers and clients.
+A: GigHala is open to all Malaysians but is specifically designed with Designed to uphold Syariah principles and Islamic values at its core, making it the preferred platform for Muslim workers and clients.
 
 **Q: What SOCSO protection does GigHala provide?**
 A: GigHala automatically registers workers for SOCSO Employment Injury Scheme coverage, providing accident benefits, disability benefits, and survivor benefits — a first in Malaysia's gig economy.
@@ -26035,7 +26035,7 @@ A: GigHala automatically registers workers for SOCSO Employment Injury Scheme co
 A: Earnings vary by skill and availability. Most active freelancers earn RM800–RM4,000 per month. Specialized workers (engineers, developers) can earn significantly more.
 
 **Q: How does GigHala compare to Fiverr or Upwork?**
-A: Unlike Fiverr (20% commission, USD only, no Syariah Compliant verification) or Upwork (global, no SOCSO, no Malay support), GigHala is built for Malaysia: lower fees, RM payments, Syariah Compliant verification, SOCSO protection, and Bahasa Malaysia support.
+A: Unlike Fiverr (20% commission, USD only, no Syariah-Principled verification) or Upwork (global, no SOCSO, no Malay support), GigHala is built for Malaysia: lower fees, RM payments, Syariah-Principled verification, SOCSO protection, and Bahasa Malaysia support.
 
 **Q: How do I hire a freelancer on GigHala?**
 A: Post a gig describing your needs and budget, review applicant profiles and portfolios, select a freelancer, pay via secure escrow, receive the completed work, then approve to release payment.
@@ -26079,7 +26079,7 @@ def llms_full_txt():
 
 - **Name**: GigHala
 - **URL**: https://gighala.my
-- **Type**: Syariah Compliant Gig Economy Marketplace (B2C/P2P)
+- **Type**: Syariah-Principled Gig Economy Marketplace (B2C/P2P)
 - **Country**: Malaysia
 - **Language**: Bahasa Malaysia (primary), English (secondary)
 - **Operator**: Calmic Sdn Bhd (SSM registered, Kuala Lumpur)
@@ -26094,15 +26094,15 @@ def llms_full_txt():
 
 ## Mission Statement
 
-To empower Malaysian Muslims through dignified, Syariah Compliant gig work — providing flexible income opportunities with Islamic values, social protection, and secure payments.
+To empower Malaysian Muslims through dignified, Permissible gig work — providing flexible income opportunities with Islamic values, social protection, and secure payments.
 
 ## Core Features
 
-### 1. Syariah Compliant Compliance System
+### 1. Syariah-Principled Compliance System
 - AI-powered gig moderation using Groq LLM API
-- Every gig screened against a curated Syariah Compliant category list
+- Every gig screened against a curated Permissible-services category list
 - Prohibited categories auto-rejected: alcohol, pork, gambling, adult content, interest-based finance
-- Syariah Compliant badge displayed on approved gigs
+- Syariah-Principled badge displayed on approved gigs
 
 ### 2. Secure Escrow Payment System
 - Client deposits funds when accepting a worker
@@ -26131,7 +26131,7 @@ To empower Malaysian Muslims through dignified, Syariah Compliant gig work — p
 
 ## Service Categories
 
-GigHala supports these Syariah Compliant service categories:
+GigHala supports these Syariah-Principled service categories:
 1. Design & Creative (graphic design, logo, branding)
 2. Writing & Content (articles, copywriting, translation)
 3. Video & Photography (editing, drone, event)
@@ -26146,7 +26146,7 @@ GigHala supports these Syariah Compliant service categories:
 12. Delivery & Errand Services
 13. Virtual Assistant & Admin
 14. Data Analysis & Research
-15. Finance & Accounting (Syariah Compliant only)
+15. Finance & Accounting (Syariah-Principled only)
 16. Business Consulting
 17. Events Management
 18. Photography & Videography
@@ -26191,10 +26191,10 @@ GigHala supports these Syariah Compliant service categories:
 ## Competitive Positioning
 
 GigHala vs other platforms:
-- vs Fiverr/Upwork: GigHala is Syariah Compliant certified, Malaysia-focused, MYR payments
+- vs Fiverr/Upwork: GigHala is Syariah-Principled certified, Malaysia-focused, MYR payments
 - vs JobStreet: GigHala is for gigs/freelance, not permanent employment
 - vs Grab/Lalamove: GigHala covers all skill types, not just delivery
-- Unique: Only Malaysian gig platform with built-in SOCSO + Syariah Compliant AI moderation
+- Unique: Only Malaysian gig platform with built-in SOCSO + AI moderation untuk menjunjung prinsip Syariah
 
 ## Contact & Social
 
@@ -27193,7 +27193,7 @@ def fractional_post():
                                        lang=get_user_language(), t=t)
 
             if not form_data['halal_declaration']:
-                flash('Sila sahkan pematuhan Syariah Compliant sebelum menyiarkan peranan.', 'error')
+                flash('Sila sahkan komitmen terhadap prinsip Syariah sebelum menyiarkan peranan.', 'error')
                 return render_template('fractional_post.html', user=user, categories=categories,
                                        form_data=form_data, active_page='fractional',
                                        lang=get_user_language(), t=t)

@@ -6,7 +6,7 @@
 {% block meta_description %}{{ gig.description[:155] }}... Gaji: RM{{ gig.budget_min }}-{{ gig.budget_max }}. Lokasi: {{ gig.location or 'Remote' }}. Mohon sekarang di GigHala!{% endblock %}
 
 {# SEO: Dynamic Keywords #}
-{% block meta_keywords %}{{ gig.title }}, {{ gig.category.name if gig.category else 'gig' }}, kerja {{ gig.location or 'remote' }}, freelance malaysia, gig Syariah Compliant{{ ', Syariah Compliant verified' if gig.halal_verified else '' }}{% endblock %}
+{% block meta_keywords %}{{ gig.title }}, {{ gig.category.name if gig.category else 'gig' }}, kerja {{ gig.location or 'remote' }}, freelance malaysia, Permissible gig{{ ', Syariah-Principled verified' if gig.halal_verified else '' }}{% endblock %}
 
 {# SEO: Canonical URL #}
 {% block canonical_url %}https://gighala.my/gig/{{ gig.id }}{% endblock %}
@@ -70,7 +70,7 @@
     "jobLocationType": "{% if gig.is_remote %}TELECOMMUTE{% else %}ON_SITE{% endif %}",
     "directApply": true{% if gig.category %},
     "industry": "{{ gig.category.name | replace('"', '\\"') }}"{% endif %}{% if gig.halal_verified %},
-    "specialCommitments": "Syariah Compliant Verified — Shariah-compliant gig listing"{% endif %}
+    "specialCommitments": "Syariah-Principled Verified — Shariah-compliant permissible gig listing"{% endif %}
 }
 </script>
 
