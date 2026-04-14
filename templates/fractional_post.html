@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Siarkan Peranan Pecahan – Post Fractional Role | GigHala{% endblock %}
-{% block meta_description %}Siarkan peranan C-suite pecahan untuk PKS anda di GigHala — CFO, CMO, CTO, COO, HR Director dan lain-lain. Retainer bulanan, mematuhi Syariah Compliant.{% endblock %}
+{% block meta_description %}Siarkan peranan C-suite pecahan untuk PKS anda di GigHala — CFO, CMO, CTO, COO, HR Director dan lain-lain. Retainer bulanan, mematuhi Syariah-Principled.{% endblock %}
 {% block robots %}noindex, follow{% endblock %}
 
 {% block extra_styles %}
@@ -230,16 +230,16 @@
 
             <!-- Halal declaration -->
             <div class="form-section">
-                <div class="section-title">✅ {% if lang == 'ms' %}Pengisytiharan Syariah Compliant{% else %}Syariah Compliant Declaration{% endif %}</div>
+                <div class="section-title">✅ {% if lang == 'ms' %}Pengisytiharan Syariah-Principled{% else %}Syariah-Principled Declaration{% endif %}</div>
                 <div class="halal-box">
                     <input type="checkbox" id="halal_declaration" name="halal_declaration"
                            {% if form_data.get('halal_declaration') %}checked{% endif %}
                            style="margin-top:2px;accent-color:var(--primary,#00C853);" required>
                     <label for="halal_declaration">
                         {% if lang == 'ms' %}
-                        Saya mengesahkan bahawa peranan ini adalah untuk perniagaan yang mematuhi Syariah Compliant dan tidak melibatkan sebarang aktiviti haram mengikut prinsip Islam.
+                        Saya mengesahkan bahawa peranan ini adalah untuk perniagaan yang mematuhi Syariah-Principled dan tidak melibatkan sebarang aktiviti haram mengikut prinsip Islam.
                         {% else %}
-                        I confirm this role is for a Syariah Compliant business and does not involve any activities prohibited under Islamic principles.
+                        I confirm this role is for a Syariah-Principled business and does not involve any activities prohibited under Islamic principles.
                         {% endif %}
                     </label>
                 </div>

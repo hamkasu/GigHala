@@ -1577,13 +1577,13 @@
 
     function shareReferralWhatsApp(code) {
         const link = `${window.location.origin}/register?ref=${code}`;
-        const msg = encodeURIComponent(`Jom join GigHala — platform freelance Syariah Compliant Malaysia! Daftar guna pautan saya dan mula cari kerja atau post gig: ${link}`);
+        const msg = encodeURIComponent(`Jom join GigHala — Syariah-Principled Platform Freelance Malaysia! Daftar guna pautan saya dan mula cari kerja atau post gig: ${link}`);
         window.open(`https://wa.me/?text=${msg}`, '_blank');
     }
 
     function shareReferralTelegram(code) {
         const link = `${window.location.origin}/register?ref=${code}`;
-        const msg = encodeURIComponent(`Jom join GigHala — platform freelance Syariah Compliant Malaysia! Daftar guna pautan saya: ${link}`);
+        const msg = encodeURIComponent(`Jom join GigHala — Syariah-Principled Platform Freelance Malaysia! Daftar guna pautan saya: ${link}`);
         window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${msg}`, '_blank');
     }
 
