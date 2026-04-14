@@ -1771,6 +1771,9 @@
                     {% if user.is_admin %}
                     <a href="/admin" class="nav-link {% if active_page == 'admin' %}active{% endif %}">{{ t('nav_admin') }}</a>
                     {% endif %}
+                    {% if user.admin_role == 'support_agent' and not user.is_admin %}
+                    <a href="/admin/support" class="nav-link {% if active_page == 'admin_support' %}active{% endif %}">{% if lang == 'ms' %}Giliran Sokongan{% else %}Support Queue{% endif %}</a>
+                    {% endif %}
 
                     <div class="user-menu">
                         <div class="user-avatar" onclick="toggleUserDropdown()" style="overflow:hidden;">
@@ -1947,6 +1950,11 @@
             {% if user.is_admin %}
             <a href="/admin" class="mobile-nav-item {% if active_page == 'admin' %}active{% endif %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
                 <img src="/static/images/admin_icon.png" alt="Admin" style="width: 30px; height: 30px;">
+            </a>
+            {% endif %}
+            {% if user.admin_role == 'support_agent' and not user.is_admin %}
+            <a href="/admin/support" class="mobile-nav-item {% if active_page == 'admin_support' %}active{% endif %}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;" title="{% if lang == 'ms' %}Giliran Sokongan{% else %}Support Queue{% endif %}">
+                <i data-feather="headphones" style="width: 30px; height: 30px;"></i>
             </a>
             {% endif %}
             <a href="/billing" class="mobile-nav-item {% if active_page == 'billing' %}active{% endif %}">
@@ -2561,6 +2569,32 @@
         };
     })();
     </script>
+    {% else %}
+    <!-- Guest chat button — redirects to login -->
+    <style>
+        #guest-chat-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+        #guest-chat-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+    </style>
+    <a id="guest-chat-btn" href="/login?next=/support" title="{% if lang == 'ms' %}Log masuk untuk berbual{% else %}Log in to chat{% endif %}">💬</a>
     {% endif %}
 </body>
 </html>
