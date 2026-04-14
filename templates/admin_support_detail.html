@@ -44,7 +44,16 @@
                 {{ 'Support Team' if msg.is_admin_reply else ticket_user.full_name }} &bull; {{ msg.created_at.strftime('%d %b %Y, %H:%M') if msg.created_at else '' }}
             </div>
             <span style="display:inline-block;padding:10px 14px;border-radius:14px;font-size:14px;max-width:80%;line-height:1.5;{% if msg.is_admin_reply %}background:#7c3aed;color:white;{% else %}background:#f3f4f6;color:var(--text-dark);{% endif %}">
-                {{ msg.message }}
+                {% if msg.message and msg.message not in ('[Image]', '[File]') %}{{ msg.message }}{% endif %}
+                {% if msg.attachment_url %}
+                <div style="margin-top:{% if msg.message and msg.message not in ('[Image]', '[File]') %}6px{% else %}0{% endif %};">
+                    <a href="{{ msg.attachment_url }}" target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;text-decoration:none;padding:4px 8px;border-radius:6px;{% if msg.is_admin_reply %}background:rgba(255,255,255,0.2);color:white;{% else %}background:rgba(0,0,0,0.07);color:var(--text-dark);{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                        {{ msg.attachment_filename or 'Download File' }}
+                    </a>
+                </div>
+                {% endif %}
             </span>
         </div>
         {% else %}
@@ -56,7 +65,22 @@
     <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px;">
         <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;">Respond / Update</h3>
         <textarea id="replyMsg" rows="4" placeholder="Reply to user..." style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:12px;"></textarea>
+
+        <!-- File attachment area -->
+        <div id="adminFilePreview" style="display:none;align-items:center;gap:8px;padding:6px 10px;background:#f3f4f6;border-radius:8px;font-size:12px;color:var(--text-gray);margin-bottom:10px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+            <span id="adminFileName">file</span>
+            <button onclick="clearAdminFile()" style="background:none;border:none;cursor:pointer;color:var(--text-gray);font-size:16px;line-height:1;padding:0 2px;margin-left:auto;">&times;</button>
+        </div>
+        <input type="file" id="adminFileInput" accept="image/*,.pdf,.doc,.docx" style="display:none;" onchange="handleAdminFileSelect(this)">
+
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+            <button type="button" onclick="document.getElementById('adminFileInput').click()"
+                    style="padding:8px 12px;background:none;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;cursor:pointer;color:var(--text-gray);display:flex;align-items:center;gap:6px;"
+                    title="Attach file">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                Attach File
+            </button>
             <select id="statusSel" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:14px;font-family:inherit;">
                 <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
                 <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
@@ -85,10 +109,27 @@
 
 <script>
 const ticketId = {{ ticket.id }};
+let adminPendingFile = null;
 
 function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.content : '';
+}
+
+function handleAdminFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    adminPendingFile = file;
+    document.getElementById('adminFileName').textContent = file.name;
+    const preview = document.getElementById('adminFilePreview');
+    preview.style.display = 'flex';
+}
+
+function clearAdminFile() {
+    adminPendingFile = null;
+    document.getElementById('adminFileInput').value = '';
+    document.getElementById('adminFilePreview').style.display = 'none';
+    document.getElementById('adminFileName').textContent = 'file';
 }
 
 async function submitReply() {
@@ -97,11 +138,46 @@ async function submitReply() {
     const resolution_notes = document.getElementById('resolutionNotes').value.trim();
     const admin_notes = document.getElementById('adminNotes').value.trim();
 
+    if (!message && !adminPendingFile) {
+        alert('Please enter a message or attach a file.');
+        return;
+    }
+
     try {
+        let attachmentUrl = '';
+        let attachmentFilename = '';
+        let attachmentType = '';
+
+        if (adminPendingFile) {
+            const uploadForm = new FormData();
+            uploadForm.append('file', adminPendingFile);
+            const upRes = await fetch('/api/support/upload-file', {
+                method: 'POST',
+                body: uploadForm
+            });
+            if (!upRes.ok) {
+                const err = await upRes.json();
+                alert(err.error || 'File upload failed.');
+                return;
+            }
+            const upData = await upRes.json();
+            attachmentUrl = upData.url;
+            attachmentFilename = upData.filename || '';
+            attachmentType = upData.attachment_type || 'file';
+        }
+
         const res = await fetch(`/api/admin/support/ticket/${ticketId}/respond`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
-            body: JSON.stringify({message, status, resolution_notes, admin_notes})
+            body: JSON.stringify({
+                message,
+                status,
+                resolution_notes,
+                admin_notes,
+                attachment_url: attachmentUrl,
+                attachment_filename: attachmentFilename,
+                attachment_type: attachmentType
+            })
         });
         const data = await res.json();
         if (data.success) location.reload();
