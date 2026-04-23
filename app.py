@@ -1346,7 +1346,17 @@ TRANSLATIONS = {
 }
 
 def get_user_language():
-    """Get current user's language preference - locked to Malay"""
+    """Get current user's language preference (defaults to Malay)."""
+    try:
+        if 'user_id' in session:
+            user = User.query.get(session['user_id'])
+            if user and getattr(user, 'language', None) in ('ms', 'en'):
+                return user.language
+        lang = session.get('language')
+        if lang in ('ms', 'en'):
+            return lang
+    except Exception:
+        pass
     return 'ms'
 
 def t(key, **kwargs):
