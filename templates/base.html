@@ -1705,6 +1705,10 @@
                     <a href="/#cari-gig" class="pwa-auth-btn" title="Latest Gigs" style="background: #0d7c66; text-decoration: none; text-align: center; line-height: 1; padding: 7px 10px; font-size: 13px; border-radius: 9px; display: flex; align-items: center; gap: 4px;"><i data-feather="briefcase" style="width: 16px; height: 16px;"></i><span class="btn-text"> Gigs</span></a>
                     <button class="pwa-auth-btn" onclick="app.showLogin()" title="Log Masuk" style="padding: 7px 10px; font-size: 13px; border-radius: 9px; display: flex; align-items: center; gap: 4px;"><i data-feather="log-in" style="width: 16px; height: 16px;"></i><span class="btn-text"> Masuk</span></button>
                     <button class="pwa-auth-btn" onclick="app.showRegister()" title="Daftar" style="padding: 7px 10px; font-size: 13px; border-radius: 9px; display: flex; align-items: center; gap: 4px;"><i data-feather="user-plus" style="width: 16px; height: 16px;"></i><span class="btn-text"> Daftar</span></button>
+                    <div class="lang-switcher" role="group" aria-label="Language" style="display:inline-flex;align-items:center;gap:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:9px;overflow:hidden;">
+                        <button type="button" onclick="setLanguage('ms')" title="Bahasa Melayu" style="background:{% if lang == 'ms' %}#0d7c66{% else %}transparent{% endif %};color:#fff;border:none;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer;line-height:1;">MS</button>
+                        <button type="button" onclick="setLanguage('en')" title="English" style="background:{% if lang == 'en' %}#0d7c66{% else %}transparent{% endif %};color:#fff;border:none;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer;line-height:1;">EN</button>
+                    </div>
                     <div class="date-content" style="color: #ccc; font-size: 11px; margin-left: 12px; text-align: left; display: flex; flex-direction: column; line-height: 1.2;">
                         <span class="hijri-date" style="color: var(--primary);">{{ today_hijri }}</span>
                         <span class="gregorian-date">{{ today_gregorian }}</span>
@@ -1775,6 +1779,10 @@
                     <a href="/admin/support" class="nav-link {% if active_page == 'admin_support' %}active{% endif %}">{% if lang == 'ms' %}Giliran Sokongan{% else %}Support Queue{% endif %}</a>
                     {% endif %}
 
+                    <div class="lang-switcher" role="group" aria-label="Language" style="display:inline-flex;align-items:center;gap:0;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.12);border-radius:9px;overflow:hidden;margin-right:10px;">
+                        <button type="button" onclick="setLanguage('ms')" title="Bahasa Melayu" style="background:{% if lang == 'ms' %}#0d7c66{% else %}transparent{% endif %};color:{% if lang == 'ms' %}#fff{% else %}#333{% endif %};border:none;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer;line-height:1;">MS</button>
+                        <button type="button" onclick="setLanguage('en')" title="English" style="background:{% if lang == 'en' %}#0d7c66{% else %}transparent{% endif %};color:{% if lang == 'en' %}#fff{% else %}#333{% endif %};border:none;padding:6px 9px;font-size:12px;font-weight:600;cursor:pointer;line-height:1;">EN</button>
+                    </div>
                     <div class="user-menu">
                         <div class="user-avatar" onclick="toggleUserDropdown()" style="overflow:hidden;">
                             {% if user.profile_photo %}
@@ -1801,6 +1809,31 @@
         </div>
         
     </header>
+
+    <script>
+    function setLanguage(lang) {
+        try {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            var token = meta ? meta.getAttribute('content') : '';
+            fetch('/api/language', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': token,
+                    'X-CSRF-Token': token
+                },
+                body: JSON.stringify({ language: lang })
+            }).then(function() {
+                window.location.reload();
+            }).catch(function() {
+                window.location.reload();
+            });
+        } catch (e) {
+            window.location.reload();
+        }
+    }
+    </script>
 
     <!-- Immediate PWA Header Remove Script - Runs ASAP -->
     <script>

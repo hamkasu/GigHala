@@ -143,6 +143,10 @@ elif database_url.startswith('postgresql://'):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+from sqlalchemy.pool import NullPool
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'poolclass': NullPool,
+}
 
 # Secure session configuration for OAuth
 # For Railway/Production: use X-Forwarded-Proto header to detect HTTPS through proxy
@@ -22815,6 +22819,26 @@ def init_database():
             print("Sample data added successfully!")
         
         _db_initialized = True
+
+        # Close/dispose any session and pooled connections that may still hold
+        # AccessShareLocks from db.create_all() reflection or earlier queries.
+        # Without this, the ALTER TABLE statements in _apply_column_migrations()
+        # can self-deadlock against this worker's own idle connection.
+        try:
+            db.session.commit()
+        except Exception:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+        try:
+            db.session.remove()
+        except Exception:
+            pass
+        try:
+            db.engine.dispose()
+        except Exception:
+            pass
 
         # Apply incremental column migrations that db.create_all() won't handle
         _apply_column_migrations()
