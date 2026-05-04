@@ -336,6 +336,62 @@
         </div>
     </div>
 
+    <!-- ===== PERKESO SOCSO BANNER ===== -->
+    <div id="perkeso-toast" style="
+        display: none;
+        background: #fffbeb;
+        border-bottom: 3px solid #d97706;
+        border-left: 6px solid #d97706;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        padding: 14px 20px;
+        position: relative;
+        animation: perkesoBannerSlide 0.35s cubic-bezier(0.16,1,0.3,1) both;
+    ">
+        <style>
+            @keyframes perkesoBannerSlide {
+                from { opacity: 0; transform: translateY(-12px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+        <button onclick="dismissPerkesotoast()" aria-label="Dismiss" style="
+            position: absolute; top: 10px; right: 12px;
+            background: none; border: none; cursor: pointer;
+            font-size: 18px; color: #92400e; line-height: 1;
+        ">✕</button>
+        <div style="display: flex; gap: 14px; align-items: flex-start; max-width: 1400px; margin: 0 auto;">
+            <span style="font-size: 26px; line-height: 1; flex-shrink: 0;">⚠️</span>
+            <div>
+                <p style="margin: 0 0 4px 0; font-weight: 700; color: #92400e; font-size: 14px;">
+                    Integrasi PERKESO Sedang Berjalan &nbsp;|&nbsp; PERKESO Integration Ongoing
+                </p>
+                <p style="margin: 0 0 12px 0; color: #78350f; font-size: 13px; line-height: 1.5;">
+                    Sila kemaskini <strong>nombor SOCSO</strong> anda dalam profil sebelum sistem diaktifkan.<br>
+                    <span style="color: #92400e;">Please update your <strong>SOCSO number</strong> in your profile before the system goes live.</span>
+                </p>
+                <a href="/profile" style="
+                    display: inline-block;
+                    background: #d97706; color: white;
+                    padding: 7px 18px; border-radius: 7px;
+                    font-size: 13px; font-weight: 600;
+                    text-decoration: none;
+                ">Kemaskini Profil / Update Profile →</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            if (!localStorage.getItem('perkeso_toast_dismissed')) {
+                var toast = document.getElementById('perkeso-toast');
+                toast.style.display = 'block';
+            }
+        })();
+        function dismissPerkesotoast() {
+            document.getElementById('perkeso-toast').style.display = 'none';
+            localStorage.setItem('perkeso_toast_dismissed', '1');
+        }
+    </script>
+    <!-- ===== END PERKESO SOCSO BANNER ===== -->
+
     {% if is_raya %}
     <!-- ===== RAYA FESTIVE BANNER ===== -->
     <div id="raya-banner" style="background: linear-gradient(135deg, #0a3d20 0%, #1a6b3c 30%, #c8960c 60%, #f5c518 80%, #1a6b3c 100%); background-size: 300% 100%; color: white; padding: 16px 20px; text-align: center; position: relative; overflow: hidden; animation: rayaBannerSlide 6s ease infinite;">
@@ -1581,67 +1637,6 @@
         });
     </script>
     <!-- ===== END FRACTIONAL MODAL ===== -->
-    <!-- ===== PERKESO SOCSO TOAST ===== -->
-    <div id="perkeso-toast" style="
-        display: none;
-        position: fixed;
-        bottom: 28px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 9999;
-        width: min(540px, calc(100vw - 32px));
-        background: #fffbeb;
-        border: 2px solid #f59e0b;
-        border-left: 6px solid #d97706;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-        padding: 18px 20px 18px 20px;
-        animation: toastSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
-    ">
-        <style>
-            @keyframes toastSlideUp {
-                from { opacity: 0; transform: translateX(-50%) translateY(24px); }
-                to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-            }
-        </style>
-        <button onclick="dismissPerkesotoast()" aria-label="Dismiss" style="
-            position: absolute; top: 10px; right: 12px;
-            background: none; border: none; cursor: pointer;
-            font-size: 18px; color: #92400e; line-height: 1;
-        ">✕</button>
-        <div style="display: flex; gap: 14px; align-items: flex-start;">
-            <span style="font-size: 26px; line-height: 1; flex-shrink: 0;">⚠️</span>
-            <div>
-                <p style="margin: 0 0 4px 0; font-weight: 700; color: #92400e; font-size: 14px;">
-                    Integrasi PERKESO Sedang Berjalan &nbsp;|&nbsp; PERKESO Integration Ongoing
-                </p>
-                <p style="margin: 0 0 12px 0; color: #78350f; font-size: 13px; line-height: 1.5;">
-                    Sila kemaskini <strong>nombor SOCSO</strong> anda dalam profil sebelum sistem diaktifkan.<br>
-                    <span style="color: #92400e;">Please update your <strong>SOCSO number</strong> in your profile before the system goes live.</span>
-                </p>
-                <a href="/profile" style="
-                    display: inline-block;
-                    background: #d97706; color: white;
-                    padding: 7px 18px; border-radius: 7px;
-                    font-size: 13px; font-weight: 600;
-                    text-decoration: none;
-                ">Kemaskini Profil / Update Profile →</a>
-            </div>
-        </div>
-    </div>
-    <script>
-        (function() {
-            if (!localStorage.getItem('perkeso_toast_dismissed')) {
-                var toast = document.getElementById('perkeso-toast');
-                toast.style.display = 'block';
-            }
-        })();
-        function dismissPerkesotoast() {
-            document.getElementById('perkeso-toast').style.display = 'none';
-            localStorage.setItem('perkeso_toast_dismissed', '1');
-        }
-    </script>
-    <!-- ===== END PERKESO SOCSO TOAST ===== -->
 
 </body>
 </html>
