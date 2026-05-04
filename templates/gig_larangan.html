@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+
+{% block title %}Gig Larangan Syariah | Prohibited Gigs – GigHala{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .page-container {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+        border-radius: var(--radius-lg);
+        padding: 36px 40px;
+        margin-bottom: 32px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .page-header-icon {
+        font-size: 48px;
+        flex-shrink: 0;
+    }
+
+    .page-header h1 {
+        font-size: 26px;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .page-header p {
+        font-size: 14px;
+        opacity: 0.88;
+        line-height: 1.6;
+    }
+
+    .notice-box {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 4px solid #f97316;
+        border-radius: var(--radius-md);
+        padding: 16px 20px;
+        margin-bottom: 28px;
+        font-size: 14px;
+        color: #7c2d12;
+        line-height: 1.6;
+    }
+
+    .notice-box strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .category-card {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .category-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-light);
+        background: #fafafa;
+    }
+
+    .category-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .category-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a1a;
+        flex: 1;
+    }
+
+    .category-title span {
+        display: block;
+        font-size: 11px;
+        font-weight: 500;
+        color: #6b7280;
+        margin-top: 1px;
+        letter-spacing: 0.03em;
+    }
+
+    .hujah-badge {
+        font-size: 11px;
+        font-weight: 600;
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+        padding: 3px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    .category-items {
+        padding: 8px 0;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 11px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.15s;
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+    }
+
+    .item-row:hover {
+        background: #fef2f2;
+    }
+
+    .item-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #ef4444;
+        margin-top: 7px;
+        flex-shrink: 0;
+    }
+
+    .item-text {
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .region-tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 600;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 1px 7px;
+        border-radius: 10px;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+
+    .exception-note {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 3px;
+        font-style: italic;
+    }
+
+    .consequences-box {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 28px 32px;
+        margin-top: 28px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .consequences-box h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .consequence-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+        color: #374151;
+    }
+
+    .consequence-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .consequence-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #b91c1c;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .report-box {
+        background: linear-gradient(135deg, #0D7C66 0%, #41B3A2 100%);
+        border-radius: var(--radius-lg);
+        padding: 28px 32px;
+        margin-top: 20px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .report-box h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .report-box p {
+        font-size: 13px;
+        opacity: 0.88;
+    }
+
+    .report-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #0D7C66;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 12px 22px;
+        border-radius: var(--radius-md);
+        text-decoration: none;
+        white-space: nowrap;
+        transition: opacity 0.2s;
+    }
+
+    .report-btn:hover {
+        opacity: 0.9;
+    }
+
+    @media (max-width: 600px) {
+        .page-header {
+            padding: 24px 20px;
+            flex-direction: column;
+            text-align: center;
+        }
+        .category-header, .item-row {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        .consequences-box, .report-box {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-header-icon">🚫</div>
+        <div>
+            <h1>Gig Larangan Syariah</h1>
+            <p>
+                GigHala adalah platform gig berprinsip Syariah. Semua gig mesti mematuhi hukum Syariah Islam.<br>
+                <em>GigHala is a Syariah-principled platform. All gigs must comply with Islamic Syariah law.</em>
+            </p>
+        </div>
+    </div>
+
+    <!-- Notice -->
+    <div class="notice-box">
+        <strong>⚠️ Penting / Important</strong>
+        Senarai ini terpakai kepada <strong>klien yang menyiarkan gig</strong> dan <strong>freelancer yang menawarkan perkhidmatan</strong>. Pelanggaran akan mengakibatkan penggantungan atau pembuangan akaun.
+        <br><em>This list applies to both clients posting gigs and freelancers offering services. Violations result in suspension or permanent account removal.</em>
+    </div>
+
+    <!-- 1. Alcohol & Intoxicants -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🍷</div>
+            <div class="category-title">
+                Arak & Bahan Memabukkan
+                <span>Alcohol & Intoxicants</span>
+            </div>
+            <div class="hujah-badge">Khamar – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Menjual, menghantar, atau mempromosikan minuman beralkohol<div class="exception-note">Selling, delivering, or promoting alcoholic beverages</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Perkhidmatan bartending atau campuran minuman beralkohol<div class="exception-note">Bartending or alcoholic drink mixing services</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Kerja acara di bar, kelab malam, atau tempat yang menghidangkan alkohol<div class="exception-note">Event services at bars, nightclubs, or alcohol-serving venues</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Fotografi, videografi, atau pemasaran produk beralkohol<div class="exception-note">Photography, videography, or marketing of alcohol products</div></div></div>
+        </div>
+    </div>
+
+    <!-- 2. Non-Halal Food -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🐷</div>
+            <div class="category-title">
+                Makanan & Pengendalian Tidak Halal
+                <span>Non-Halal Food & Handling</span>
+            </div>
+            <div class="hujah-badge">Haram bi Zaatihi</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mengendalikan, menyediakan, atau menghantar produk babi<div class="exception-note">Handling, preparing, or delivering pork products</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Sembelihan tidak halal atau pemprosesan daging<div class="exception-note">Non-halal slaughter or meat processing</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Pemasaran atau promosi restoran/produk tidak halal<div class="exception-note">Marketing or promoting non-halal restaurants or products</div></div></div>
+        </div>
+    </div>
+
+    <!-- 3. Gambling -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🎰</div>
+            <div class="category-title">
+                Judi & Pertaruhan
+                <span>Gambling & Wagering</span>
+            </div>
+            <div class="hujah-badge">Maisir – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mempromosikan atau mengendalikan platform loteri, kasino, atau pertaruhan<div class="exception-note">Promoting or operating lottery, casino, or betting platforms</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Membina aplikasi atau laman web untuk perkhidmatan perjudian<div class="exception-note">Building apps or websites for gambling services</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Perkhidmatan perundingan pertaruhan sukan atau off-track<div class="exception-note">Sports wagering or off-track betting advisory services</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Promosi tiket loteri, cip kasino, atau sebarang bentuk wager<div class="exception-note">Promotion of lottery tickets, casino chips, or any form of wager</div></div></div>
+        </div>
+    </div>
+
+    <!-- 4. Riba -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">💸</div>
+            <div class="category-title">
+                Perkhidmatan Kewangan Berasaskan Riba
+                <span>Interest-Based Financial Services</span>
+            </div>
+            <div class="hujah-badge">Riba – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mempromosikan pinjaman konvensional, kad kredit, atau produk berasaskan faedah<div class="exception-note">Promoting conventional loans, credit cards, or interest-based products</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Menulis kandungan untuk produk kewangan berasaskan riba<div class="exception-note">Writing content for riba-based financial products</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Jana petunjuk (lead generation) untuk insurans konvensional atau perbankan riba<div class="exception-note">Lead generation for conventional insurance or riba-based banking</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Skim cepat kaya atau pelaburan yang tidak telus (Gharar berlebihan)<div class="exception-note">Get-rich-quick schemes or investments with excessive uncertainty</div></div></div>
+        </div>
+    </div>
+
+    <!-- 5. Black Magic -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🔮</div>
+            <div class="category-title">
+                Sihir, Bomoh & Ramalan
+                <span>Black Magic, Fortune Telling & Occult</span>
+            </div>
+            <div class="hujah-badge">Sihir & Khurafat – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Bacaan tarot, astrologi, atau perkhidmatan psikik<div class="exception-note">Tarot reading, astrology, or psychic services</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Penulisan tangkal, azimat, atau kandungan berkaitan ilmu hitam<div class="exception-note">Writing spells, charms, or black magic-related content</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Membuat bahan promosi untuk amalan okultisme atau sihir hitam<div class="exception-note">Creating promotional material for occult practices or black magic</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Perkhidmatan bomoh, pawang, atau semua yang melibatkan syirik<div class="exception-note">Bomoh, shaman services, or anything involving shirk (polytheism)</div></div></div>
+        </div>
+    </div>
+
+    <!-- 6. Adult Content -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🔞</div>
+            <div class="category-title">
+                Kandungan Dewasa & Tidak Senonoh
+                <span>Adult & Explicit Content</span>
+            </div>
+            <div class="hujah-badge">Fahishah – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mencipta, mengedit, atau mengedar kandungan pornografi<div class="exception-note">Creating, editing, or distributing pornographic content</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Promosi atau pemasaran hiburan dewasa<div class="exception-note">Adult entertainment promotion or marketing</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Perkhidmatan teman wanita/lelaki berbayar (escort/companionship)<div class="exception-note">Escort or paid companionship services</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Fotografi atau video yang bersifat seksual atau lucah<div class="exception-note">Suggestive or sexual photography/video content</div></div></div>
+        </div>
+    </div>
+
+    <!-- 7. Tobacco & Drugs -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🚬</div>
+            <div class="category-title">
+                Tembakau, Vape & Narkotik
+                <span>Tobacco, Vaping & Narcotics</span>
+            </div>
+            <div class="hujah-badge">Mudharat – Dilarang</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Pemasaran atau promosi produk tembakau dan vape<div class="exception-note">Marketing or promoting tobacco and vaping products</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Penghantaran atau penjualan semula dadah haram<div class="exception-note">Delivery or resale of illegal drugs or substances</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mencipta kandungan yang memuliakan atau mempromosikan penggunaan dadah<div class="exception-note">Creating content that glorifies or promotes drug use</div></div></div>
+        </div>
+    </div>
+
+    <!-- 8. Weapons -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🗡️</div>
+            <div class="category-title">
+                Senjata & Barangan Haram
+                <span>Weapons & Illegal Goods</span>
+            </div>
+            <div class="hujah-badge">Haram – Dilarang Undang-undang</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Senjata api haram, peluru, atau penjualan senjata tanpa lesen<div class="exception-note">Illegal firearms, ammunition, or unlicensed weapon sales</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Kandungan yang mempromosikan keganasan atau ekstremisme<div class="exception-note">Content promoting violence or extremism</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Perkhidmatan penyeludupan atau barangan tiruan<div class="exception-note">Smuggling or counterfeit goods services</div></div></div>
+        </div>
+    </div>
+
+    <!-- 9. Against Islamic Values -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🕌</div>
+            <div class="category-title">
+                Kandungan Bercanggah Nilai Islam
+                <span>Content Conflicting with Islamic Values</span>
+            </div>
+            <div class="hujah-badge">Munkar – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mempromosikan hubungan atau agenda yang bertentangan dengan hukum Islam<div class="exception-note">Promoting relationships or agendas that contradict Islamic law</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mencipta kandungan yang menghina Islam, al-Quran, atau Nabi Muhammad ﷺ<div class="exception-note">Creating content that mocks Islam, the Quran, or the Prophet ﷺ</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mempromosikan syirik, penyembahan berhala, atau agama yang bercanggah dengan Tauhid<div class="exception-note">Promoting shirk, idol worship, or beliefs that contradict Tawhid</div></div></div>
+        </div>
+    </div>
+
+    <!-- 10. Deception & Fraud -->
+    <div class="category-card">
+        <div class="category-header">
+            <div class="category-icon">🎭</div>
+            <div class="category-title">
+                Penipuan & Pemalsuan
+                <span>Deceptive & Fraudulent Services</span>
+            </div>
+            <div class="hujah-badge">Gharar & Ghish – Haram</div>
+        </div>
+        <div class="category-items">
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Ulasan palsu, testimoni rekaan, atau penglibatan media sosial buatan<div class="exception-note">Fake reviews, fabricated testimonials, or artificial social media engagement</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Perkhidmatan penyamaran identiti atau penipuan<div class="exception-note">Impersonation or identity fraud services</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Mencipta kandungan pemasaran yang mengelirukan atau memperdayakan pengguna<div class="exception-note">Creating misleading marketing or scam content</div></div></div>
+            <div class="item-row"><div class="item-dot"></div><div class="item-text">Diploma, sijil, atau kelayakan palsu<div class="exception-note">Fake diplomas, certificates, or credentials</div></div></div>
+        </div>
+    </div>
+
+    <!-- Consequences -->
+    <div class="consequences-box">
+        <h3>⚖️ Tindakan Pelanggaran / Consequences of Violations</h3>
+        <div class="consequence-item">
+            <div class="consequence-num">1</div>
+            <div>Gig akan dibuang serta-merta tanpa notis. <em>/ Gig will be removed immediately without notice.</em></div>
+        </div>
+        <div class="consequence-item">
+            <div class="consequence-num">2</div>
+            <div>Akaun boleh digantung sementara atau dibuang secara kekal. <em>/ Account may be suspended or permanently removed.</em></div>
+        </div>
+        <div class="consequence-item">
+            <div class="consequence-num">3</div>
+            <div>Bayaran yang dipegang dalam escrow boleh dikembalikan kepada klien. <em>/ Funds held in escrow may be returned to the client.</em></div>
+        </div>
+        <div class="consequence-item">
+            <div class="consequence-num">4</div>
+            <div>Pelanggaran serius boleh dilaporkan kepada pihak berkuasa yang berkenaan. <em>/ Serious violations may be reported to relevant authorities.</em></div>
+        </div>
+    </div>
+
+    <!-- Report Box -->
+    <div class="report-box">
+        <div>
+            <h3>🚩 Jumpa Gig yang Melanggar? / Spotted a Violation?</h3>
+            <p>Laporkan kepada kami dan kami akan menyiasat dalam masa 24 jam. / Report to us and we will investigate within 24 hours.</p>
+            <p style="margin-top:4px; font-size:12px; opacity:0.8;">halal@gighala.my</p>
+        </div>
+        <a href="mailto:halal@gighala.my" class="report-btn">
+            <i data-feather="flag" style="width:15px;height:15px;"></i>
+            Laporkan Sekarang
+        </a>
+    </div>
+
+</div>
+{% endblock %}
