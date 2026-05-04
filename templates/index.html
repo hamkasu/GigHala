@@ -264,29 +264,33 @@
             }
         }
         @media (min-width: 769px) {
-            .tagline-desktop { display: block !important; }
             .desktop-only-controls { display: flex !important; }
             .date-bar { padding: 4px 16px !important; }
+            .date-bar .logo-container { min-width: 160px !important; }
             .date-bar .logo-container img { width: 70px !important; height: 70px !important; }
             .date-bar .logo-container span { font-size: 28px !important; }
-            .tagline-desktop { margin-left: 80px !important; margin-top: -15px !important; font-size: 14px !important; }
+            .tagline-desktop { margin-left: 80px !important; margin-top: -15px !important; font-size: 14px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+            .tagline-desktop > div { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
             .desktop-only-controls .btn-primary {
                 padding: 8px 13px !important;
                 font-size: 15px !important;
             }
+        }
+        @media (min-width: 1200px) {
+            .tagline-desktop { display: block !important; }
         }
     </style>
     <!-- Islamic/Western Date Bar -->
     <div class="date-bar" style="background: transparent; padding: 4px 10px; font-size: 17px; color: black; border-bottom: 1px solid rgba(0,0,0,0.05);">
         <div style="display: flex; align-items: center; justify-content: space-between; max-width: 1400px; margin: 0 auto; gap: 8px;">
             <!-- Logo on the left -->
-            <div class="logo-container" style="flex-shrink: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0;">
+            <div class="logo-container" style="flex-shrink: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 0; min-width: 0; overflow: hidden;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <img src="/static/images/landing_logo_v2.png" alt="GigHala" style="width: 50px; height: 50px; display: block; flex-shrink: 0;" loading="lazy">
                     <span style="font-weight: 800; font-size: 23px; color: black; letter-spacing: 0.5px; white-space: nowrap;">GigHala</span>
                 </div>
-                <div style="margin-left: 58px; margin-top: -8px; display: none;" class="tagline-desktop">
-                    <div style="font-size: 13px; font-weight: 600; color: #0D7C66; letter-spacing: 0.2px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.1); white-space: nowrap;">
+                <div style="margin-left: 58px; margin-top: -8px; display: none; overflow: hidden; max-width: 100%;" class="tagline-desktop">
+                    <div style="font-size: 13px; font-weight: 600; color: #0D7C66; letter-spacing: 0.2px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         {% if lang == 'ms' %}Menuju Status Malaysia Digital (MDEC){% else %}Pursuing Malaysia Digital Status (MDEC){% endif %}
                     </div>
                     <div style="font-size: 13px; font-weight: 600; color: #FFD700; letter-spacing: 0.2px; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">
