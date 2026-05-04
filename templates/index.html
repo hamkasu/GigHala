@@ -384,15 +384,10 @@
         </div>
     </div>
     <script>
-        (function() {
-            if (!localStorage.getItem('perkeso_toast_dismissed')) {
-                document.getElementById('perkeso-toast-wrapper').style.display = 'block';
-                document.getElementById('perkeso-toast').style.display = 'block';
-            }
-        })();
+        document.getElementById('perkeso-toast-wrapper').style.display = 'block';
+        document.getElementById('perkeso-toast').style.display = 'block';
         function dismissPerkesotoast() {
             document.getElementById('perkeso-toast-wrapper').style.display = 'none';
-            localStorage.setItem('perkeso_toast_dismissed', '1');
         }
     </script>
     <!-- ===== END PERKESO SOCSO POPUP ===== -->
