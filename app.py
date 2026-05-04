@@ -16126,6 +16126,7 @@ def admin_get_users():
                 'is_admin': u.is_admin,
                 'admin_role': u.admin_role,
                 'ic_number': u.ic_number,
+                'socso_membership_number': u.socso_membership_number,
                 'created_at': u.created_at.isoformat()
             } for u in users.items],
             'total': users.total,
