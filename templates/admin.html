@@ -2568,6 +2568,11 @@
         }
     }
 
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
     async function loadApplications(page) {
         const loading = document.getElementById('applications-loading');
         const content = document.getElementById('applications-content');
@@ -2583,8 +2588,7 @@
 
             const tbody = document.getElementById('applications-tbody');
             tbody.innerHTML = data.applications.map(a => {
-                const statusColors = { pending: '#f59e0b', accepted: '#10b981', rejected: '#ef4444' };
-                const color = statusColors[a.status] || '#6b7280';
+                const safeStatus = ['pending','accepted','rejected'].includes(a.status) ? a.status : 'pending';
                 const applied = a.created_at ? new Date(a.created_at).toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' }) : 'N/A';
                 const price = a.proposed_price ? `RM ${parseFloat(a.proposed_price).toFixed(2)}` : '<span style="color:#9ca3af">—</span>';
                 const workSubmitted = a.work_submitted
@@ -2592,15 +2596,15 @@
                     : '<span style="color:#9ca3af">No</span>';
                 return `
                 <tr>
-                    <td>${a.id}</td>
-                    <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${a.gig.title}">${a.gig.title}</td>
-                    <td><code style="font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px;">${a.gig.gig_code || '—'}</code></td>
-                    <td>${a.client ? a.client.username : '—'}</td>
-                    <td><strong>${a.freelancer.username}</strong></td>
-                    <td style="font-size:13px;color:#6b7280;">${a.freelancer.email}</td>
+                    <td>${Number(a.id)}</td>
+                    <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(a.gig.title)}">${escapeHtml(a.gig.title)}</td>
+                    <td><code style="font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px;">${escapeHtml(a.gig.gig_code) || '—'}</code></td>
+                    <td>${a.client ? escapeHtml(a.client.username) : '—'}</td>
+                    <td><strong>${escapeHtml(a.freelancer.username)}</strong></td>
+                    <td style="font-size:13px;color:#6b7280;">${escapeHtml(a.freelancer.email)}</td>
                     <td>${price}</td>
                     <td style="text-align:center;">${workSubmitted}</td>
-                    <td><span class="badge ${a.status}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td>
+                    <td><span class="badge ${safeStatus}">${safeStatus.charAt(0).toUpperCase() + safeStatus.slice(1)}</span></td>
                     <td style="font-size:13px;white-space:nowrap;">${applied}</td>
                 </tr>`;
             }).join('');

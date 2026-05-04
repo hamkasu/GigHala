@@ -16972,8 +16972,8 @@ def admin_get_gigs():
 def admin_get_applications():
     """Get all gig applications for admin dashboard"""
     try:
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 20))
+        page = max(1, int(request.args.get('page', 1)))
+        per_page = min(max(1, int(request.args.get('per_page', 20))), 100)
         status_filter = request.args.get('status', '')
         search = sanitize_input(request.args.get('search', ''), max_length=100)
 
