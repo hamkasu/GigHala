@@ -15825,6 +15825,12 @@ def admin_stats():
             db.or_(User.user_type == 'freelancer', User.user_type == 'both')
         ).count()
 
+        socso_id_updated = User.query.filter(
+            User.socso_membership_number != None,
+            User.socso_membership_number != '',
+            db.or_(User.user_type == 'freelancer', User.user_type == 'both')
+        ).count()
+
         # Current month SOCSO
         current_month = datetime.utcnow().strftime('%Y-%m')
         current_month_socso = db.session.query(
@@ -15875,6 +15881,7 @@ def admin_stats():
                 'pending_remittance': float(total_socso_pending),
                 'current_month_collection': float(current_month_socso),
                 'registered_freelancers': socso_registered_freelancers,
+                'id_updated': socso_id_updated,
                 'compliance_rate': round((socso_registered_freelancers / total_freelancers * 100), 2) if total_freelancers > 0 else 0
             }
         }), 200

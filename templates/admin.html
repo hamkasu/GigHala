@@ -676,6 +676,11 @@
                 <div class="label" id="stat-socso-compliance">0% compliance rate</div>
             </div>
             <div class="stat-card">
+                <h3>SOSCO ID Updated</h3>
+                <div class="value" id="stat-socso-id-updated">0</div>
+                <div class="label">Freelancers with SOSCO membership number</div>
+            </div>
+            <div class="stat-card">
                 <h3>Current Month Collection</h3>
                 <div class="value" id="stat-socso-current-month">RM 0</div>
                 <div class="label">This month's SOCSO deductions</div>
@@ -980,7 +985,12 @@
             <div class="stat-card">
                 <h3>Registered Freelancers</h3>
                 <div class="value" id="stat-freelancers-socso">0</div>
-                <div class="label">With SOCSO consent</div>
+                <div class="label">With SOSCO consent</div>
+            </div>
+            <div class="stat-card">
+                <h3>SOSCO ID Updated</h3>
+                <div class="value" id="stat-socso-id-updated-tab">0</div>
+                <div class="label">With SOSCO membership number</div>
             </div>
             <div class="stat-card">
                 <h3>Compliance Rate</h3>
@@ -2537,6 +2547,9 @@
                 document.getElementById('stat-socso-remitted').textContent = `RM ${(data.socso.total_remitted || 0).toFixed(2)}`;
                 document.getElementById('stat-socso-pending').textContent = `RM ${(data.socso.pending_remittance || 0).toFixed(2)}`;
                 document.getElementById('stat-socso-registered').textContent = data.socso.registered_freelancers || 0;
+                document.getElementById('stat-socso-id-updated').textContent = data.socso.id_updated || 0;
+                document.getElementById('stat-freelancers-socso').textContent = data.socso.registered_freelancers || 0;
+                document.getElementById('stat-socso-id-updated-tab').textContent = data.socso.id_updated || 0;
                 document.getElementById('stat-socso-compliance').textContent = `${(data.socso.compliance_rate || 0).toFixed(1)}% compliance rate`;
                 document.getElementById('stat-socso-current-month').textContent = `RM ${(data.socso.current_month_collection || 0).toFixed(2)}`;
             }
