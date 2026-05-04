@@ -23819,6 +23819,16 @@ def halal_compliance():
     </div>
     
     <div class="content-section">
+        <h2><span class="icon">🚫</span> Senarai Gig Larangan Syariah</h2>
+        <p>GigHala menguatkuasakan senarai terperinci gig yang dilarang berdasarkan prinsip Syariah Islam. Senarai ini merangkumi 10 kategori utama termasuk alkohol, perjudian, riba, kandungan dewasa, sihir, dan penipuan.</p>
+        <div style="margin-top:16px;">
+            <a href="/gig-larangan" style="display:inline-flex;align-items:center;gap:8px;background:#b91c1c;color:white;font-weight:700;font-size:14px;padding:12px 22px;border-radius:8px;text-decoration:none;">
+                🚫 Lihat Senarai Penuh Gig Larangan →
+            </a>
+        </div>
+    </div>
+
+    <div class="content-section">
         <h2><span class="icon">📣</span> Laporkan Pelanggaran</h2>
         <p>Jika anda menjumpai gig yang tidak mematuhi prinsip Syariah, sila laporkan kepada kami. Kami akan menyiasat dan mengambil tindakan yang sewajarnya.</p>
         <p>Email: halal@gighala.my</p>
@@ -23830,6 +23840,15 @@ def halal_compliance():
                          page_title='Syariah Compliance',
                          page_subtitle='Komitmen kami terhadap pematuhan prinsip Syariah',
                          content=content)
+
+@app.route('/gig-larangan')
+def gig_larangan():
+    user = User.query.get(session.get('user_id')) if 'user_id' in session else None
+    return render_template('gig_larangan.html',
+                           user=user,
+                           active_page='gig-larangan',
+                           lang=get_user_language(),
+                           t=t)
 
 @app.route('/gig-workers-bill')
 def gig_workers_bill():
