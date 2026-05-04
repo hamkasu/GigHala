@@ -530,6 +530,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         Gigs
     </button>
+    <button class="tab-btn" onclick="switchTab('applications')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+        Applications
+    </button>
     <button class="tab-btn danger-btn" onclick="switchTab('gig-reports')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         Gig Reports
@@ -789,6 +793,45 @@
                 <tbody id="gigs-tbody"></tbody>
             </table>
             <div class="pagination" id="gigs-pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Applications Tab -->
+<div id="applications-tab" class="tab-content">
+    <div class="data-table">
+        <div class="table-header">
+            <h2>Gig Applications</h2>
+            <div style="display:flex;gap:10px;align-items:center;">
+                <input type="text" id="applications-search" placeholder="Search gig, applicant..." style="padding:10px;border-radius:8px;border:1px solid var(--border);min-width:220px;" oninput="loadApplications(1)">
+                <select id="applications-status-filter" style="padding:10px;border-radius:8px;border:1px solid var(--border);" onchange="loadApplications(1)">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+        </div>
+        <div id="applications-loading" class="loading">Loading applications...</div>
+        <div id="applications-content" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Gig</th>
+                        <th>Gig Code</th>
+                        <th>Client</th>
+                        <th>Applicant</th>
+                        <th>Email</th>
+                        <th>Proposed Price</th>
+                        <th>Work Submitted</th>
+                        <th>Status</th>
+                        <th>Applied</th>
+                    </tr>
+                </thead>
+                <tbody id="applications-tbody"></tbody>
+            </table>
+            <div class="pagination" id="applications-pagination"></div>
         </div>
     </div>
 </div>
@@ -1716,6 +1759,7 @@
         else if (tabName === 'analytics') loadAnalytics();
         else if (tabName === 'users') loadUsers(1);
         else if (tabName === 'gigs') loadGigs(1);
+        else if (tabName === 'applications') loadApplications(1);
         else if (tabName === 'payouts') loadPayouts();
         else if (tabName === 'reports') initReports();
         else if (tabName === 'socso') {
@@ -2521,6 +2565,65 @@
         } catch (error) {
             console.error('Error loading gigs:', error);
             loading.textContent = 'Error loading gigs';
+        }
+    }
+
+    async function loadApplications(page) {
+        const loading = document.getElementById('applications-loading');
+        const content = document.getElementById('applications-content');
+        const status = document.getElementById('applications-status-filter').value;
+        const search = document.getElementById('applications-search').value;
+
+        loading.style.display = 'block';
+        content.style.display = 'none';
+
+        try {
+            const response = await fetch(`/api/admin/applications?page=${page}&status=${encodeURIComponent(status)}&search=${encodeURIComponent(search)}`);
+            const data = await response.json();
+
+            const tbody = document.getElementById('applications-tbody');
+            tbody.innerHTML = data.applications.map(a => {
+                const statusColors = { pending: '#f59e0b', accepted: '#10b981', rejected: '#ef4444' };
+                const color = statusColors[a.status] || '#6b7280';
+                const applied = a.created_at ? new Date(a.created_at).toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' }) : 'N/A';
+                const price = a.proposed_price ? `RM ${parseFloat(a.proposed_price).toFixed(2)}` : '<span style="color:#9ca3af">—</span>';
+                const workSubmitted = a.work_submitted
+                    ? '<span style="color:#10b981;font-weight:600;">Yes</span>'
+                    : '<span style="color:#9ca3af">No</span>';
+                return `
+                <tr>
+                    <td>${a.id}</td>
+                    <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${a.gig.title}">${a.gig.title}</td>
+                    <td><code style="font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px;">${a.gig.gig_code || '—'}</code></td>
+                    <td>${a.client ? a.client.username : '—'}</td>
+                    <td><strong>${a.freelancer.username}</strong></td>
+                    <td style="font-size:13px;color:#6b7280;">${a.freelancer.email}</td>
+                    <td>${price}</td>
+                    <td style="text-align:center;">${workSubmitted}</td>
+                    <td><span class="badge ${a.status}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td>
+                    <td style="font-size:13px;white-space:nowrap;">${applied}</td>
+                </tr>`;
+            }).join('');
+
+            if (data.applications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#9ca3af;">No applications found</td></tr>';
+            }
+
+            const pagination = document.getElementById('applications-pagination');
+            pagination.innerHTML = '';
+            for (let i = 1; i <= data.pages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = i === data.current_page ? 'active' : '';
+                btn.onclick = () => loadApplications(i);
+                pagination.appendChild(btn);
+            }
+
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        } catch (error) {
+            console.error('Error loading applications:', error);
+            loading.textContent = 'Error loading applications';
         }
     }
 
