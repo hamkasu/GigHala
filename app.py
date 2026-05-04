@@ -16967,6 +16967,78 @@ def admin_get_gigs():
         app.logger.error(f"Admin get gigs error: {str(e)}")
         return jsonify({'error': 'Failed to retrieve gigs'}), 500
 
+@app.route('/api/admin/applications', methods=['GET'])
+@admin_required
+def admin_get_applications():
+    """Get all gig applications for admin dashboard"""
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+        per_page = min(max(1, int(request.args.get('per_page', 20))), 100)
+        status_filter = request.args.get('status', '')
+        search = sanitize_input(request.args.get('search', ''), max_length=100)
+
+        query = db.session.query(Application, Gig, User).join(
+            Gig, Application.gig_id == Gig.id
+        ).join(
+            User, Application.freelancer_id == User.id
+        )
+
+        if status_filter:
+            query = query.filter(Application.status == status_filter)
+
+        if search:
+            search_pattern = f'%{search}%'
+            query = query.filter(
+                (User.username.ilike(search_pattern)) |
+                (User.email.ilike(search_pattern)) |
+                (Gig.title.ilike(search_pattern))
+            )
+
+        total = query.count()
+        results = query.order_by(Application.created_at.desc()).offset(
+            (page - 1) * per_page
+        ).limit(per_page).all()
+
+        applications = []
+        for app_row, gig, freelancer in results:
+            client = User.query.get(gig.client_id)
+            applications.append({
+                'id': app_row.id,
+                'status': app_row.status,
+                'proposed_price': app_row.proposed_price,
+                'cover_letter': app_row.cover_letter,
+                'created_at': app_row.created_at.isoformat() if app_row.created_at else None,
+                'work_submitted': app_row.work_submitted,
+                'gig': {
+                    'id': gig.id,
+                    'title': gig.title,
+                    'gig_code': gig.gig_code,
+                    'status': gig.status,
+                    'category': gig.category,
+                },
+                'freelancer': {
+                    'id': freelancer.id,
+                    'username': freelancer.username,
+                    'email': freelancer.email,
+                    'full_name': freelancer.full_name,
+                },
+                'client': {
+                    'id': client.id,
+                    'username': client.username,
+                } if client else None,
+            })
+
+        pages = (total + per_page - 1) // per_page
+        return jsonify({
+            'applications': applications,
+            'total': total,
+            'pages': pages,
+            'current_page': page,
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Admin get applications error: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve applications'}), 500
+
 @app.route('/api/admin/gigs/<int:gig_id>', methods=['PUT'])
 @admin_required
 def admin_update_gig(gig_id):
