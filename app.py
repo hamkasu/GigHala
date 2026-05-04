@@ -18908,6 +18908,37 @@ def admin_mark_socso_remitted():
         app.logger.error(f"Mark SOCSO remitted error: {str(e)}")
         return jsonify({'error': 'Failed to mark contributions as remitted'}), 500
 
+@app.route('/api/admin/socso/settings', methods=['GET', 'POST'])
+@admin_required
+def api_admin_socso_settings():
+    """Get or update SOCSO employer settings."""
+    user = User.query.get(session['user_id'])
+
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        fields = {
+            'employer_code': ('socso_employer_code', 'SOCSO Employer Code'),
+            'ssm_number': ('socso_ssm_number', 'SSM Registration Number'),
+            'company_name': ('socso_company_name', 'Company Name'),
+            'company_address': ('socso_company_address', 'Company Address'),
+            'company_phone': ('socso_company_phone', 'Company Phone'),
+            'company_email': ('socso_company_email', 'Company Email'),
+        }
+        for key, (setting_key, description) in fields.items():
+            if key in data:
+                set_site_setting(setting_key, str(data[key]).strip(), description, user.id)
+        return jsonify({'success': True})
+
+    return jsonify({
+        'employer_code': get_site_setting('socso_employer_code', ''),
+        'ssm_number': get_site_setting('socso_ssm_number', ''),
+        'company_name': get_site_setting('socso_company_name', 'GigHala Sdn Bhd'),
+        'company_address': get_site_setting('socso_company_address', ''),
+        'company_phone': get_site_setting('socso_company_phone', ''),
+        'company_email': get_site_setting('socso_company_email', 'compliance@gighala.my'),
+    })
+
+
 @app.route('/api/admin/socso/borang-8a', methods=['GET'])
 @admin_required
 def admin_generate_borang_8a():
