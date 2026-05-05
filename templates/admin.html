@@ -825,7 +825,7 @@
                     <tr>
                         <th>#</th>
                         <th>Gig</th>
-                        <th>Gig Code</th>
+                        <th id="gig-code-header" onclick="toggleGigCodeSort()" style="cursor:pointer;user-select:none;white-space:nowrap;">Gig Code <span id="gig-code-sort-icon">&#8597;</span></th>
                         <th>Client</th>
                         <th>Applicant</th>
                         <th>Email</th>
@@ -2696,6 +2696,21 @@
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
+    let appsSortBy = '';
+    let appsSortDir = 'asc';
+
+    function toggleGigCodeSort() {
+        if (appsSortBy === 'gig_code') {
+            appsSortDir = appsSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            appsSortBy = 'gig_code';
+            appsSortDir = 'asc';
+        }
+        const icon = document.getElementById('gig-code-sort-icon');
+        if (icon) icon.innerHTML = appsSortDir === 'asc' ? '&#8593;' : '&#8595;';
+        loadApplications(1);
+    }
+
     async function loadApplications(page) {
         const loading = document.getElementById('applications-loading');
         const content = document.getElementById('applications-content');
@@ -2706,7 +2721,9 @@
         content.style.display = 'none';
 
         try {
-            const response = await fetch(`/api/admin/applications?page=${page}&status=${encodeURIComponent(status)}&search=${encodeURIComponent(search)}`);
+            let url = `/api/admin/applications?page=${page}&status=${encodeURIComponent(status)}&search=${encodeURIComponent(search)}`;
+            if (appsSortBy) url += `&sort_by=${encodeURIComponent(appsSortBy)}&sort_dir=${encodeURIComponent(appsSortDir)}`;
+            const response = await fetch(url);
             const data = await response.json();
 
             const tbody = document.getElementById('applications-tbody');

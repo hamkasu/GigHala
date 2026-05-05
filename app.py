@@ -17002,8 +17002,17 @@ def admin_get_applications():
                 (Gig.title.ilike(search_pattern))
             )
 
+        sort_by = request.args.get('sort_by', '')
+        sort_dir = request.args.get('sort_dir', 'asc')
+
+        if sort_by == 'gig_code':
+            order_col = Gig.gig_code
+            order_expr = order_col.asc() if sort_dir == 'asc' else order_col.desc()
+        else:
+            order_expr = Application.created_at.desc()
+
         total = query.count()
-        results = query.order_by(Application.created_at.desc()).offset(
+        results = query.order_by(order_expr).offset(
             (page - 1) * per_page
         ).limit(per_page).all()
 
