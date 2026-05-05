@@ -1682,6 +1682,22 @@
     </div>
 </div>
 
+<div id="message-user-modal" class="modal" onclick="closeModalOnBackdrop(event, 'message-user-modal')">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:480px;">
+        <button class="modal-close-btn" onclick="closeModal('message-user-modal')">&times;</button>
+        <h3>Send Message to <span id="message-user-name" style="color:#0D7C66;"></span></h3>
+        <div class="form-group" style="margin-top:16px;">
+            <label style="font-weight:600;display:block;margin-bottom:8px;">Message:</label>
+            <textarea id="message-user-text" rows="5" placeholder="Type your message here..." style="width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);font-size:14px;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
+        </div>
+        <div id="message-user-status" style="margin-top:8px;font-size:13px;"></div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="message-user-send-btn" onclick="sendMessageToUser()">Send Message</button>
+            <button class="btn btn-cancel" onclick="closeModal('message-user-modal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <div id="edit-gig-modal" class="modal" onclick="closeModalOnBackdrop(event, 'edit-gig-modal')">
     <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close-btn" onclick="closeModal('edit-gig-modal')">&times;</button>
@@ -2622,6 +2638,7 @@
                         <div class="action-btns">
                             <button class="btn-sm btn-view" onclick="viewUserDetails(${user.id})">View</button>
                             <button class="btn-sm btn-edit" onclick="editUser(${user.id})">Edit</button>
+                            <button class="btn-sm" style="background:#0D7C66;color:white;" onclick="openMessageUserModal(${user.id}, '${(user.username || '').replace(/'/g, "\\'")}')">Message</button>
                             <button class="btn-sm btn-delete" onclick="deleteUser(${user.id}, '${(user.username || '').replace(/'/g, "\\'")}')">Delete</button>
                         </div>
                     </td>
@@ -2892,6 +2909,53 @@
         }
     }
 
+    let currentMessageUserId = null;
+
+    function openMessageUserModal(userId, username) {
+        currentMessageUserId = userId;
+        document.getElementById('message-user-name').textContent = username;
+        document.getElementById('message-user-text').value = '';
+        document.getElementById('message-user-status').textContent = '';
+        document.getElementById('message-user-send-btn').disabled = false;
+        document.getElementById('message-user-send-btn').textContent = 'Send Message';
+        document.getElementById('message-user-modal').classList.add('active');
+        setTimeout(() => document.getElementById('message-user-text').focus(), 100);
+    }
+
+    async function sendMessageToUser() {
+        if (!currentMessageUserId) return;
+        const message = document.getElementById('message-user-text').value.trim();
+        if (!message) {
+            document.getElementById('message-user-status').innerHTML = '<span style="color:red;">Please enter a message.</span>';
+            return;
+        }
+        const btn = document.getElementById('message-user-send-btn');
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        document.getElementById('message-user-status').textContent = '';
+        try {
+            const response = await fetch('/api/admin/message-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ user_id: currentMessageUserId, message })
+            });
+            const data = await response.json();
+            if (response.ok && data.conversation_id) {
+                closeModal('message-user-modal');
+                window.open(`/messages/${data.conversation_id}`, '_blank');
+            } else {
+                document.getElementById('message-user-status').innerHTML = `<span style="color:red;">${data.error || 'Failed to send message.'}</span>`;
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+            }
+        } catch (error) {
+            document.getElementById('message-user-status').innerHTML = '<span style="color:red;">Network error. Please try again.</span>';
+            btn.disabled = false;
+            btn.textContent = 'Send Message';
+        }
+    }
+
     async function deleteGig(gigId, gigTitle) {
         if (!confirm(`Are you sure you want to delete the gig "${gigTitle}"?\n\nThis will permanently delete:\n- The gig and all its details\n- All applications\n- All photos and files\n- All reviews and ratings\n- All transactions and escrow records\n- All disputes and messages\n\nThis action CANNOT be undone!`)) {
             return;
@@ -2940,6 +3004,9 @@
             }
             if (document.getElementById('edit-gig-modal').classList.contains('active')) {
                 closeModal('edit-gig-modal');
+            }
+            if (document.getElementById('message-user-modal').classList.contains('active')) {
+                closeModal('message-user-modal');
             }
         }
     });

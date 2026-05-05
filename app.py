@@ -25076,6 +25076,61 @@ def message_admin():
         app.logger.error(f"Message admin error: {str(e)}")
         return jsonify({'error': 'Failed to start conversation'}), 500
 
+@app.route('/api/admin/message-user', methods=['POST'])
+@admin_required
+def admin_message_user():
+    """Admin sends a direct message to any user"""
+    try:
+        admin_id = session['user_id']
+        data = request.json
+        target_user_id = data.get('user_id')
+        message_text = (data.get('message') or '').strip()
+
+        if not target_user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+        if not message_text:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        if target_user_id == admin_id:
+            return jsonify({'error': 'Cannot message yourself'}), 400
+
+        target_user = User.query.get(target_user_id)
+        if not target_user or target_user.is_deleted:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Find or create conversation
+        existing = Conversation.query.filter(
+            ((Conversation.participant_1_id == admin_id) & (Conversation.participant_2_id == target_user_id)) |
+            ((Conversation.participant_1_id == target_user_id) & (Conversation.participant_2_id == admin_id)),
+            Conversation.gig_id == None
+        ).first()
+
+        if existing:
+            conv = existing
+        else:
+            conv = Conversation(participant_1_id=admin_id, participant_2_id=target_user_id)
+            db.session.add(conv)
+            db.session.flush()
+
+        msg = Message(conversation_id=conv.id, sender_id=admin_id, content=message_text)
+        conv.last_message_at = datetime.utcnow()
+        db.session.add(msg)
+
+        notif = Notification(
+            user_id=target_user_id,
+            notification_type='message',
+            title='New message from Admin',
+            message=message_text[:100] + ('...' if len(message_text) > 100 else ''),
+            link=f'/messages/{conv.id}'
+        )
+        db.session.add(notif)
+        db.session.commit()
+
+        return jsonify({'success': True, 'conversation_id': conv.id}), 200
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin message user error: {str(e)}")
+        return jsonify({'error': 'Failed to send message'}), 500
+
 @app.route('/api/messages/poll/<int:conversation_id>')
 @login_required
 def poll_messages(conversation_id):
