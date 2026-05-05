@@ -2673,7 +2673,7 @@
                     <td>${gig.category || 'N/A'}</td>
                     <td>RM ${gig.approved_budget || (gig.budget_min + '-' + gig.budget_max)}</td>
                     <td>${gig.applications || 0}</td>
-                    <td><span class="badge ${gig.status.replace('_', '-')}">${gig.status}</span></td>
+                    <td><a href="/gig/${gig.id}" target="_blank" style="text-decoration:none;"><span class="badge ${gig.status.replace('_', '-')}">${gig.status}</span></a></td>
                     <td>
                         <div class="action-btns">
                             <button class="btn-sm btn-edit" onclick="editGig(${gig.id})">Edit</button>
