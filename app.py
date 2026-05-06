@@ -15839,15 +15839,19 @@ def backfill_socso_from_ic():
 
         db.session.commit()
 
-        log_security_event(
-            user_id=session['user_id'],
-            action='socso_backfill_from_ic',
-            resource_type='bulk',
-            resource_id=None,
-            status='success',
-            message=f'Admin backfilled SOCSO numbers from IC for {len(updated)} user(s)',
-            severity='low'
-        )
+        try:
+            from security_logger import log_security_event
+            log_security_event(
+                user_id=session['user_id'],
+                action='socso_backfill_from_ic',
+                resource_type='bulk',
+                resource_id=None,
+                status='success',
+                message=f'Admin backfilled SOCSO numbers from IC for {len(updated)} user(s)',
+                severity='low'
+            )
+        except Exception:
+            pass
 
         return jsonify({
             'success': True,
