@@ -410,6 +410,22 @@
         <p>Register freelancers for Social Security Organisation (SOCSO) under the Self-Employment Social Security Scheme (SESKSO) - Gig Workers Bill 2025</p>
     </div>
 
+    <!-- Bulk Actions -->
+    <div class="section" style="margin-bottom: 24px;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Bulk Actions</h2>
+        </div>
+        <div class="section-body">
+            <p style="margin: 0 0 16px 0; font-size: 14px; color: var(--text-gray);">
+                Copy IC numbers into the SOCSO membership number field for all users who have an IC number but no SOCSO number assigned.
+            </p>
+            <button id="backfillBtn" class="btn btn-primary" onclick="backfillSocsoFromIc()" style="background: #8b5cf6;">
+                🔁 Copy IC → SOCSO Number
+            </button>
+            <div id="backfillResult" style="margin-top: 16px;"></div>
+        </div>
+    </div>
+
     <div class="section search-section">
         <div class="section-header">
             <h2>Search Freelancers</h2>
@@ -900,6 +916,41 @@
         } catch (error) {
             console.error('Unmark submission error:', error);
             alert('✗ An error occurred. Please try again.');
+        }
+    }
+
+    async function backfillSocsoFromIc() {
+        const btn = document.getElementById('backfillBtn');
+        const result = document.getElementById('backfillResult');
+
+        if (!confirm('Copy IC numbers into SOCSO number for all users who are missing a SOCSO number?\n\nThis will not overwrite existing SOCSO numbers.')) {
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Processing...';
+        result.innerHTML = '';
+
+        try {
+            const response = await fetch('/api/admin/socso/backfill-from-ic', { method: 'POST' });
+            const data = await response.json();
+
+            if (response.ok) {
+                let html = `<div class="alert-success">✓ Done. Updated <strong>${data.updated}</strong> user(s).`;
+                if (data.skipped > 0) {
+                    html += ` Skipped <strong>${data.skipped}</strong> user(s) whose IC was too long.`;
+                }
+                html += `</div>`;
+                result.innerHTML = html;
+            } else {
+                result.innerHTML = `<div class="alert-error">✗ Error: ${data.error || 'Backfill failed'}</div>`;
+            }
+        } catch (error) {
+            console.error('Backfill error:', error);
+            result.innerHTML = '<div class="alert-error">✗ An error occurred. Please try again.</div>';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🔁 Copy IC → SOCSO Number';
         }
     }
 
