@@ -441,6 +441,147 @@
     .message-file-attachment svg {
         flex-shrink: 0;
     }
+    /* Profile popout */
+    .profile-trigger {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+    }
+    .profile-trigger:hover .chat-user-info h2 {
+        color: var(--primary);
+    }
+    .profile-trigger:hover .avatar {
+        opacity: 0.85;
+    }
+    .profile-popout-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 9000;
+        align-items: center;
+        justify-content: center;
+    }
+    .profile-popout-overlay.open {
+        display: flex;
+    }
+    .profile-popout {
+        background: var(--bg-white);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        width: 100%;
+        max-width: 420px;
+        padding: 28px;
+        position: relative;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        animation: popout-in 0.18s ease;
+    }
+    @keyframes popout-in {
+        from { opacity: 0; transform: scale(0.95) translateY(8px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .profile-popout-close {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-gray);
+        line-height: 1;
+    }
+    .profile-popout-close:hover { color: var(--text-dark); }
+    .popout-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 700;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .popout-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .popout-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    .popout-name { font-size: 20px; font-weight: 700; color: var(--text-dark); margin: 0 0 2px; }
+    .popout-username { font-size: 13px; color: var(--text-gray); margin: 0 0 10px; }
+    .popout-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .popout-badge {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    .popout-badge-verified { background: #d1fae5; color: #065f46; }
+    .popout-badge-unverified { background: #fef3c7; color: #92400e; }
+    .popout-badge-type { background: var(--primary-light); color: var(--primary); }
+    .popout-stats {
+        display: flex;
+        gap: 0;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        margin: 16px 0;
+        padding: 14px 0;
+    }
+    .popout-stat {
+        flex: 1;
+        text-align: center;
+        border-right: 1px solid var(--border);
+        padding: 0 8px;
+    }
+    .popout-stat:last-child { border-right: none; }
+    .popout-stat-value { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+    .popout-stat-label { font-size: 11px; color: var(--text-gray); margin-top: 2px; }
+    .popout-bio {
+        font-size: 13px;
+        color: var(--text-gray);
+        line-height: 1.6;
+        margin-bottom: 18px;
+    }
+    .popout-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .popout-btn-primary {
+        background: var(--primary);
+        color: white;
+        padding: 9px 20px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .popout-btn-primary:hover { opacity: 0.85; }
+    .popout-btn-secondary {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        padding: 9px 20px;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .popout-btn-secondary:hover { background: var(--border); }
     /* Lightbox modal */
     .img-modal-overlay {
         display: none;
@@ -478,11 +619,19 @@
 <div class="chat-container">
     <div class="chat-header">
         <a href="/messages" class="back-btn">&larr;</a>
-        <div class="avatar">{{ other_user.username[0].upper() }}</div>
-        <div class="chat-user-info">
-            <h2>{{ other_user.full_name or other_user.username }}</h2>
-            <p>@{{ other_user.username }}{% if gig %} | Gig ID: {{ gig.gig_code or '#' ~ gig.id }}{% endif %}</p>
-        </div>
+        <button class="profile-trigger" onclick="openProfilePopout()" type="button" aria-label="View profile">
+            <div class="avatar">
+                {% if other_user.profile_photo %}
+                <img src="{{ other_user.profile_photo }}" alt="{{ other_user.full_name or other_user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">
+                {% else %}
+                {{ other_user.username[0].upper() }}
+                {% endif %}
+            </div>
+            <div class="chat-user-info">
+                <h2>{{ other_user.full_name or other_user.username }}</h2>
+                <p>@{{ other_user.username }}{% if gig %} | Gig ID: {{ gig.gig_code or '#' ~ gig.id }}{% endif %}</p>
+            </div>
+        </button>
         {% if gig %}
         <a href="/gig/{{ gig.id }}" class="chat-gig-badge">{{ gig.gig_code or 'GIG' }} - {{ gig.title[:25] }}{% if gig.title|length > 25 %}...{% endif %}</a>
         {% endif %}
@@ -543,6 +692,63 @@
 <div class="img-modal-overlay" id="imgModalOverlay" onclick="closeImageModal()">
     <button class="img-modal-close" onclick="closeImageModal()">&times;</button>
     <img id="imgModalImg" src="" alt="">
+</div>
+
+<div class="profile-popout-overlay" id="profilePopoutOverlay" onclick="closeProfilePopout(event)">
+    <div class="profile-popout" role="dialog" aria-modal="true" aria-label="{{ other_user.full_name or other_user.username }} profile">
+        <button class="profile-popout-close" onclick="closeProfilePopoutDirect()" aria-label="Close">&times;</button>
+
+        <div class="popout-header">
+            <div class="popout-avatar">
+                {% if other_user.profile_photo %}
+                <img src="{{ other_user.profile_photo }}" alt="{{ other_user.full_name or other_user.username }}" onerror="this.onerror=null;this.style.display='none'">
+                {% else %}
+                {{ other_user.username[0].upper() }}
+                {% endif %}
+            </div>
+            <div>
+                <h3 class="popout-name">{{ other_user.full_name or other_user.username }}</h3>
+                <p class="popout-username">@{{ other_user.username }}</p>
+                <div class="popout-badges">
+                    {% if other_user.is_verified %}
+                    <span class="popout-badge popout-badge-verified">✓ Verified</span>
+                    {% else %}
+                    <span class="popout-badge popout-badge-unverified">⚠ Unverified</span>
+                    {% endif %}
+                    <span class="popout-badge popout-badge-type">{{ other_user.user_type.title() }}</span>
+                    {% if other_user.location %}
+                    <span class="popout-badge popout-badge-type">📍 {{ other_user.location }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="popout-stats">
+            <div class="popout-stat">
+                <div class="popout-stat-value">⭐ {{ '%.1f'|format(other_user.rating) if other_user.rating else '0.0' }}</div>
+                <div class="popout-stat-label">{{ other_user.review_count or 0 }} reviews</div>
+            </div>
+            <div class="popout-stat">
+                <div class="popout-stat-value">{{ other_user.completed_gigs or 0 }}</div>
+                <div class="popout-stat-label">Gigs Done</div>
+            </div>
+            <div class="popout-stat">
+                <div class="popout-stat-value">{{ other_user.created_at.strftime('%b %Y') }}</div>
+                <div class="popout-stat-label">Member Since</div>
+            </div>
+        </div>
+
+        {% if other_user.bio %}
+        <p class="popout-bio">{{ other_user.bio }}</p>
+        {% endif %}
+
+        <div class="popout-actions">
+            <a href="/profile/{{ other_user.username }}" class="popout-btn-secondary">View Full Profile</a>
+            {% if user and user.id != other_user.id and other_user.user_type in ('freelancer', 'both') %}
+            <a href="/hire/{{ other_user.id }}" class="popout-btn-primary">Hire Now</a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <script>
@@ -768,8 +974,25 @@ function closeImageModal() {
 }
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeImageModal();
+    if (e.key === 'Escape') {
+        closeImageModal();
+        closeProfilePopoutDirect();
+    }
 });
+
+function openProfilePopout() {
+    document.getElementById('profilePopoutOverlay').classList.add('open');
+}
+
+function closeProfilePopoutDirect() {
+    document.getElementById('profilePopoutOverlay').classList.remove('open');
+}
+
+function closeProfilePopout(e) {
+    if (e.target === document.getElementById('profilePopoutOverlay')) {
+        closeProfilePopoutDirect();
+    }
+}
 
 function escapeHtml(text) {
     const div = document.createElement('div');
