@@ -8860,7 +8860,7 @@ def accept_application(application_id):
             # Send email notification
             try:
                 subject = "Application Accepted!"
-                message = f"Congratulations! Your application for '{gig.title}' has been accepted by the client. You can now start working on the project."
+                message = f"Congratulations! Your application for '{gig.title}' has been accepted. Work will begin once the client funds the escrow."
 
                 html_content = f"""
                 <!DOCTYPE html>
@@ -8871,20 +8871,23 @@ def accept_application(application_id):
                         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
                         .header {{ background-color: #2ecc71; color: white; padding: 20px; text-align: center; }}
                         .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .alert {{ background-color: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 4px; margin: 12px 0; }}
                         .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h2>🎉 Application Accepted!</h2>
+                            <h2>Application Accepted!</h2>
                         </div>
                         <div class="content">
                             <p>Hi {freelancer.full_name or freelancer.username},</p>
                             <p>Great news! Your application for <strong>"{gig.title}"</strong> has been accepted.</p>
                             <p><strong>Agreed Amount:</strong> RM {gig.agreed_amount if gig.agreed_amount else gig.budget_min}</p>
-                            <p>You can now start working on the project. Check your dashboard for more details and to communicate with the client.</p>
-                            <p>Good luck with your project!</p>
+                            <div class="alert">
+                                <strong>Next Step:</strong> The client needs to fund the escrow before work can begin. You will receive another notification once the payment is secured and you can start.
+                            </div>
+                            <p>Check your dashboard for more details and to communicate with the client.</p>
                         </div>
                         <div class="footer">
                             <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
@@ -8903,7 +8906,9 @@ Great news! Your application for "{gig.title}" has been accepted.
 
 Agreed Amount: RM {gig.agreed_amount if gig.agreed_amount else gig.budget_min}
 
-You can now start working on the project. Check your dashboard for more details.
+NEXT STEP: The client needs to fund the escrow before work can begin. You will receive another notification once the payment is secured and you can start working.
+
+Check your dashboard for more details.
 
 ---
 GigHala - Your Trusted Syariah-Principled Gig Platform
@@ -8938,7 +8943,7 @@ GigHala - Your Trusted Syariah-Principled Gig Platform
 
             # Send SMS notification if phone is verified
             if freelancer.phone and freelancer.phone_verified:
-                sms_message = f"GigHala: Congratulations! Your application for '{gig.title}' has been accepted. Check your dashboard to start working!"
+                sms_message = f"GigHala: Your application for '{gig.title}' has been accepted. Work begins once the client funds the escrow. You'll be notified when ready."
                 send_transaction_sms_notification(freelancer.phone, sms_message)
 
         # Build response message based on worker count
@@ -9508,6 +9513,15 @@ def submit_work(gig_id):
         # Gig must be in progress
         if gig.status != 'in_progress':
             return jsonify({'error': 'Gig must be in progress to submit work'}), 400
+
+        # Escrow must be funded before work can be submitted
+        funded_escrow = Escrow.query.filter_by(
+            gig_id=gig_id,
+            freelancer_id=user_id,
+            status='funded'
+        ).first()
+        if not funded_escrow:
+            return jsonify({'error': 'Work cannot be submitted until the client has funded the escrow for your payment'}), 400
 
         # Check if work photos were uploaded
         work_photos = WorkPhoto.query.filter_by(
@@ -10786,6 +10800,74 @@ def create_escrow():
         receipt = create_escrow_receipt(escrow, gig, 'direct')
 
         db.session.commit()
+
+        # Notify freelancer that escrow is funded and work can begin
+        freelancer = User.query.get(target_freelancer_id)
+        if freelancer:
+            try:
+                escrow_html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background-color: #2ecc71; color: white; padding: 20px; text-align: center; }}
+                        .content {{ padding: 20px; background-color: #f9f9f9; }}
+                        .highlight {{ background-color: #d4edda; border: 1px solid #28a745; padding: 12px; border-radius: 4px; margin: 12px 0; }}
+                        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #777; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>Escrow Funded — You Can Start Working!</h2>
+                        </div>
+                        <div class="content">
+                            <p>Hi {freelancer.full_name or freelancer.username},</p>
+                            <p>The client has secured payment via escrow for <strong>"{gig.title}"</strong>.</p>
+                            <div class="highlight">
+                                <strong>Escrow Amount:</strong> RM {escrow.amount:.2f}<br>
+                                <strong>Your Payout (after fees):</strong> RM {escrow.net_amount:.2f}<br>
+                                <strong>Escrow #:</strong> {escrow.escrow_number}
+                            </div>
+                            <p>Your payment is now protected. You can start working and submit your completed work through your dashboard.</p>
+                        </div>
+                        <div class="footer">
+                            <p>GigHala - Your Trusted Syariah-Principled Gig Platform</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                escrow_text = (
+                    f"Escrow Funded - Start Working!\n\n"
+                    f"Hi {freelancer.full_name or freelancer.username},\n\n"
+                    f"The client has funded escrow for \"{gig.title}\".\n"
+                    f"Amount: RM {escrow.amount:.2f} | Your payout: RM {escrow.net_amount:.2f}\n"
+                    f"Escrow #: {escrow.escrow_number}\n\n"
+                    f"Your payment is secured. You can now start and submit your work.\n\n"
+                    f"---\nGigHala - Your Trusted Syariah-Principled Gig Platform"
+                )
+                email_service.send_single_email(
+                    to_email=freelancer.email,
+                    to_name=freelancer.full_name or freelancer.username,
+                    subject="Escrow Funded — You Can Start Working!",
+                    html_content=escrow_html,
+                    text_content=escrow_text
+                )
+            except Exception as email_err:
+                app.logger.error(f"Failed to send escrow funded email to freelancer: {email_err}")
+
+            if freelancer.phone and freelancer.phone_verified:
+                try:
+                    sms_text = (
+                        f"GigHala: Payment secured for '{gig.title}' (Escrow #{escrow.escrow_number}). "
+                        f"RM {escrow.amount:.2f} held. You can now start working!"
+                    )
+                    send_transaction_sms_notification(freelancer.phone, sms_text)
+                except Exception:
+                    pass
 
         return jsonify({
             'message': 'Escrow funded successfully',
