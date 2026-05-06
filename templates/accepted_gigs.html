@@ -672,7 +672,7 @@
                     <td>
                         {% if item.role == 'freelancer' and item.gig.status == 'in_progress' %}
                         <button class="action-btn primary" onclick="markGigCompleted({{ item.gig.id }}, this)" style="margin-right: 8px;">
-                            {{ 'Tandai Selesai' if lang == 'ms' else 'Mark Completed' }}
+                            {{ 'Kerja Siap' if lang == 'ms' else 'Mark Completed' }}
                         </button>
                         {% endif %}
                         {% if item.role == 'client' %}
@@ -863,7 +863,7 @@
                     {{ 'Batal' if lang == 'ms' else 'Cancel' }}
                 </button>
                 <button type="button" class="modal-btn modal-btn-submit" id="submitCompletionBtn" onclick="submitCompletion()">
-                    {{ 'Hantar & Tandai Selesai' if lang == 'ms' else 'Submit & Mark Completed' }}
+                    {{ 'Hantar & Kerja Siap' if lang == 'ms' else 'Submit & Mark Completed' }}
                 </button>
             </div>
         </div>
@@ -1047,13 +1047,13 @@ async function submitCompletion() {
         } else {
             alert(data.error || '{{ "Ralat berlaku" if lang == "ms" else "An error occurred" }}');
             submitBtn.disabled = false;
-            submitBtn.textContent = '{{ "Hantar & Tandai Selesai" if lang == "ms" else "Submit & Mark Completed" }}';
+            submitBtn.textContent = '{{ "Hantar & Kerja Siap" if lang == "ms" else "Submit & Mark Completed" }}';
         }
     } catch (error) {
         console.error('Error:', error);
         alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
         submitBtn.disabled = false;
-        submitBtn.textContent = '{{ "Hantar & Tandai Selesai" if lang == "ms" else "Submit & Mark Completed" }}';
+        submitBtn.textContent = '{{ "Hantar & Kerja Siap" if lang == "ms" else "Submit & Mark Completed" }}';
     }
 }
 
