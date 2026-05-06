@@ -15807,6 +15807,63 @@ def unmark_socso_submitted():
         app.logger.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/admin/socso/backfill-from-ic', methods=['POST'])
+@admin_required
+def backfill_socso_from_ic():
+    """Copy decrypted ic_number into socso_membership_number for users who have IC but no SOCSO number."""
+    try:
+        users = (
+            User.query
+            .filter(
+                User.ic_number.isnot(None),
+                User.ic_number != '',
+                db.or_(
+                    User.socso_membership_number.is_(None),
+                    User.socso_membership_number == '',
+                ),
+            )
+            .all()
+        )
+
+        updated = []
+        skipped = []
+        for user in users:
+            ic = (user.ic_number or '').strip()
+            if not ic:
+                continue
+            if len(ic) > 20:
+                skipped.append({'id': user.id, 'username': user.username, 'reason': f'IC too long ({len(ic)} chars)'})
+                continue
+            user.socso_membership_number = ic
+            updated.append({'id': user.id, 'username': user.username})
+
+        db.session.commit()
+
+        log_security_event(
+            user_id=session['user_id'],
+            action='socso_backfill_from_ic',
+            resource_type='bulk',
+            resource_id=None,
+            status='success',
+            message=f'Admin backfilled SOCSO numbers from IC for {len(updated)} user(s)',
+            severity='low'
+        )
+
+        return jsonify({
+            'success': True,
+            'updated': len(updated),
+            'skipped': len(skipped),
+            'updated_users': updated,
+            'skipped_users': skipped,
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error backfilling SOCSO from IC: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/admin/check', methods=['GET'])
 def check_admin():
     """Check if current user is admin"""
