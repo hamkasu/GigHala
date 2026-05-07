@@ -33,6 +33,7 @@ from halal_compliance import (
     get_category_display_name,
     HALAL_APPROVED_CATEGORY_SLUGS
 )
+from services.perkeso_service import PERKESOService, PERKESOError
 from groq_moderation import ai_halal_moderation, get_cached_moderation
 from encryption_service import EncryptedString, encrypt_bytes, decrypt_bytes
 import qrcode
@@ -2317,6 +2318,28 @@ def create_socso_contribution(freelancer_id, gross_amount, platform_commission, 
     )
 
     db.session.add(contribution)
+
+    # Auto-submit to PERKESO GIG Workers API (replaces manual ASSIST Portal upload)
+    try:
+        perkeso = PERKESOService()
+        freelancer = User.query.get(freelancer_id)
+        gig = Gig.query.get(gig_id) if gig_id else None
+        if freelancer:
+            # Ensure worker is registered with PERKESO before submitting deduction
+            if not getattr(freelancer, 'perkeso_registered', False):
+                registered = perkeso.ensure_user_registered(freelancer)
+                if registered:
+                    freelancer.perkeso_registered = True
+                    freelancer.perkeso_registration_date = datetime.utcnow()
+            if getattr(freelancer, 'perkeso_registered', False):
+                contribution.perkeso_request_id = str(contribution.id) if contribution.id else None
+                contribution.perkeso_submitted_at = datetime.utcnow()
+                perkeso.submit_job_deduction(contribution, freelancer, gig or type('obj', (object,), {})())
+    except Exception as _perkeso_exc:
+        # PERKESO submission failures must not block payment processing
+        import logging as _log
+        _log.getLogger(__name__).error('PERKESO auto-submission error: %s', _perkeso_exc)
+
     return contribution
 
 def check_socso_compliance(user):
@@ -2678,6 +2701,10 @@ class User(UserMixin, db.Model):
     socso_submitted_to_portal = db.Column(db.Boolean, default=False)  # Whether submitted to SOCSO ASSIST Portal
     socso_portal_submission_date = db.Column(db.DateTime)  # When submitted to SOCSO portal
     socso_portal_reference_number = db.Column(db.String(50))  # Reference number from SOCSO portal (if any)
+    # PERKESO GIG Workers API (v2.1) — automated submission replacing ASSIST Portal
+    perkeso_registered = db.Column(db.Boolean, default=False)  # Registered via PERKESO API
+    perkeso_registration_date = db.Column(db.DateTime)  # Date of API registration
+    perkeso_sector_code = db.Column(db.String(10))  # PERKESO sector code (e.g. 'P' = Service Provider)
     # Profile photo
     profile_photo = db.Column(db.String(255))  # Filename of uploaded profile photo
     # External portfolio URL
@@ -3826,6 +3853,13 @@ class SocsoContribution(db.Model):
     remittance_reference = db.Column(db.String(100))  # ASSIST Portal reference number
     remittance_batch_id = db.Column(db.String(100))  # Batch upload identifier
 
+    # PERKESO GIG Workers API — automated deduction submission tracking
+    perkeso_request_id = db.Column(db.String(100))  # request_id sent to PERKESO
+    perkeso_deduction_id = db.Column(db.String(100))  # deduction_id from PERKESO callback
+    perkeso_submission_status = db.Column(db.String(50))  # ACCEPTED | PARTIAL_ACCEPTED | REJECTED | DUPLICATE_TRANSACTION
+    perkeso_submitted_at = db.Column(db.DateTime)  # When submitted to PERKESO API
+    perkeso_callback_received_at = db.Column(db.DateTime)  # When async callback arrived
+
     # Audit trail
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -3850,6 +3884,11 @@ class SocsoContribution(db.Model):
             'remittance_date': self.remittance_date.isoformat() if self.remittance_date else None,
             'remittance_reference': self.remittance_reference,
             'remittance_batch_id': self.remittance_batch_id,
+            'perkeso_request_id': self.perkeso_request_id,
+            'perkeso_deduction_id': self.perkeso_deduction_id,
+            'perkeso_submission_status': self.perkeso_submission_status,
+            'perkeso_submitted_at': self.perkeso_submitted_at.isoformat() if self.perkeso_submitted_at else None,
+            'perkeso_callback_received_at': self.perkeso_callback_received_at.isoformat() if self.perkeso_callback_received_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'notes': self.notes
@@ -11773,6 +11812,93 @@ def test_fund_escrow(gig_id):
         db.session.rollback()
         app.logger.error(f"Test fund escrow error: {str(e)}")
         return jsonify({'error': 'Failed to fund escrow', 'details': str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# PERKESO GIG Workers API — Async Callback Endpoints (API v2.1, Section 4)
+# PERKESO POSTs results here after processing batch registrations, deductions,
+# and contributions. Endpoints are CSRF-exempt (server-to-server calls).
+# ---------------------------------------------------------------------------
+
+@app.route('/api/perkeso/callback/batch-registration', methods=['POST'])
+@csrf.exempt
+def perkeso_callback_batch_registration():
+    """
+    Receive async batch-registration results from PERKESO (Section 4.1).
+    PERKESO sends an array of per-user success/fail/error objects.
+    """
+    data = request.get_json(silent=True) or {}
+    results = data.get('results', [])
+    updated = 0
+    for item in results:
+        status = item.get('status')
+        if status == 'success':
+            user_info = item.get('data', {}).get('user') or item.get('user', {})
+            ic_no = user_info.get('ic_no')
+            if ic_no:
+                freelancer = User.query.filter_by(ic_number=ic_no).first()
+                if freelancer and not freelancer.perkeso_registered:
+                    freelancer.perkeso_registered = True
+                    freelancer.perkeso_registration_date = datetime.utcnow()
+                    updated += 1
+    if updated:
+        db.session.commit()
+    return jsonify({'status': 'success', 'updated': updated}), 200
+
+
+@app.route('/api/perkeso/callback/deduction', methods=['POST'])
+@csrf.exempt
+def perkeso_callback_deduction():
+    """
+    Receive async deduction results from PERKESO (Section 4.2).
+    Updates SocsoContribution records with PERKESO's deduction status.
+    """
+    data = request.get_json(silent=True) or {}
+    request_obj = data.get('request', {})
+    request_id = request_obj.get('request_id')
+    deduction_data = data.get('data', {})
+    updated = 0
+
+    if request_id:
+        contribution = SocsoContribution.query.filter_by(
+            perkeso_request_id=str(request_id)
+        ).first()
+        if contribution:
+            contribution.perkeso_callback_received_at = datetime.utcnow()
+            # data is keyed by transaction_id
+            for transaction_id, result in deduction_data.items():
+                if isinstance(result, dict):
+                    contribution.perkeso_submission_status = result.get('status')
+                    contribution.perkeso_deduction_id = result.get('deduction_id')
+                else:
+                    # result is an error code string
+                    contribution.perkeso_submission_status = 'REJECTED'
+            # Mark as remitted if accepted
+            if contribution.perkeso_submission_status in ('ACCEPTED', 'PARTIAL_ACCEPTED'):
+                contribution.remitted_to_socso = True
+                contribution.remittance_date = datetime.utcnow()
+                contribution.remittance_reference = contribution.perkeso_deduction_id
+            updated = 1
+        db.session.commit()
+
+    return jsonify({'status': 'success', 'updated': updated}), 200
+
+
+@app.route('/api/perkeso/callback/contribution', methods=['POST'])
+@csrf.exempt
+def perkeso_callback_contribution():
+    """
+    Receive contribution confirmation from PERKESO (Section 4.3).
+    Triggered by PERKESO's scheduled process when monthly contributions are submitted.
+    Logs the confirmation; no direct action required on GigHala side.
+    """
+    data = request.get_json(silent=True) or {}
+    contributions = data.get('contributions', [])
+    import logging as _log
+    _log.getLogger(__name__).info(
+        'PERKESO contribution callback received: %d records', len(contributions)
+    )
+    return jsonify({'status': 'success'}), 200
 
 
 @app.route('/api/payhalal/escrow-webhook', methods=['POST'])
