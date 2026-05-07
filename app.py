@@ -27447,6 +27447,36 @@ def admin_resolve_ticket(ticket_id):
         return jsonify({'error': 'Failed to resolve ticket'}), 500
 
 
+@app.route('/api/chatbot/message', methods=['POST'])
+@login_required
+def chatbot_message():
+    """Chatbot support endpoint — answers FAQs or escalates to a ticket."""
+    try:
+        data = request.json or {}
+        message = sanitize_input(data.get('message', ''), max_length=500)
+        if not message:
+            return jsonify({'error': 'Message required'}), 400
+
+        history = data.get('history', [])
+        if not isinstance(history, list):
+            history = []
+
+        from chatbot_service import chat as _chatbot_chat
+        lang = get_user_language()
+        result = _chatbot_chat(message, history, lang)
+
+        return jsonify({
+            'success': True,
+            'reply': result['reply'],
+            'action': result['action'],
+            'suggested_category': result.get('suggested_category', 'other'),
+            'suggested_subject': result.get('suggested_subject', ''),
+        })
+    except Exception as e:
+        app.logger.error(f'Chatbot message error: {str(e)}')
+        return jsonify({'error': 'Failed to process message'}), 500
+
+
 # ============================================================
 # FRACTIONAL & RETAINED EXPERT ROUTES
 # ============================================================

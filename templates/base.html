@@ -2279,7 +2279,7 @@
     {% block extra_scripts %}{% endblock %}
 
     {% if user %}
-    <!-- ===== Live Support Chat Widget ===== -->
+    <!-- ===== Support Chatbot Widget (Phase 1) ===== -->
     <style>
         #support-chat-btn {
             position: fixed;
@@ -2322,7 +2322,7 @@
             bottom: 90px;
             right: 24px;
             width: 360px;
-            max-height: 520px;
+            max-height: 540px;
             background: white;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.18);
@@ -2350,8 +2350,9 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            min-height: 0;
         }
-        .sc-bubble { max-width: 82%; }
+        .sc-bubble { max-width: 84%; }
         .sc-bubble.user { align-self: flex-end; text-align: right; }
         .sc-bubble.agent { align-self: flex-start; }
         .sc-bubble .btext {
@@ -2361,10 +2362,57 @@
             font-size: 13px;
             line-height: 1.5;
             word-break: break-word;
+            text-align: left;
         }
         .sc-bubble.user .btext { background: #7c3aed; color: white; }
         .sc-bubble.agent .btext { background: #f3f4f6; color: #111827; }
         .sc-bubble .bmeta { font-size: 10px; color: #9ca3af; margin-top: 3px; }
+        /* Typing indicator */
+        .sc-typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 10px 13px;
+            background: #f3f4f6;
+            border-radius: 14px;
+            width: fit-content;
+            align-self: flex-start;
+        }
+        .sc-typing-dots span {
+            width: 6px; height: 6px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: scBounce 1.1s infinite;
+        }
+        .sc-typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+        .sc-typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+        @keyframes scBounce {
+            0%,60%,100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        /* Quick-reply chips */
+        .sc-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px 14px;
+            border-top: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+        .sc-chip {
+            padding: 5px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 16px;
+            font-size: 11px;
+            background: white;
+            cursor: pointer;
+            color: #374151;
+            transition: border-color 0.15s, color 0.15s;
+            font-family: inherit;
+        }
+        .sc-chip:hover { border-color: #7c3aed; color: #7c3aed; }
+        .sc-chip.primary { background: #7c3aed; color: white; border-color: #7c3aed; }
+        .sc-chip.primary:hover { background: #6d28d9; }
+        /* Input row */
         .sc-form {
             padding: 10px 14px;
             border-top: 1px solid #e5e7eb;
@@ -2383,8 +2431,7 @@
         }
         .sc-form input:focus { border-color: #7c3aed; }
         .sc-send {
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             border-radius: 50%;
             background: #7c3aed;
             color: white;
@@ -2396,14 +2443,17 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .sc-start {
+        /* Ticket form view */
+        .sc-tform {
             padding: 14px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            overflow-y: auto;
+            flex: 1;
         }
-        .sc-start p { font-size: 13px; color: #374151; margin: 0; }
-        .sc-start input, .sc-start select, .sc-start textarea {
+        .sc-tform p { font-size: 13px; color: #374151; margin: 0; }
+        .sc-tform select, .sc-tform input, .sc-tform textarea {
             width: 100%;
             padding: 9px 12px;
             border: 1px solid #d1d5db;
@@ -2412,17 +2462,28 @@
             font-family: inherit;
             box-sizing: border-box;
         }
-        .sc-start button {
-            background: #7c3aed;
-            color: white;
-            border: none;
-            padding: 10px;
+        .sc-tform select:focus, .sc-tform input:focus, .sc-tform textarea:focus {
+            outline: none; border-color: #7c3aed;
+        }
+        .sc-tform-btns { display: flex; gap: 8px; }
+        .sc-tform-btns button {
+            flex: 1;
+            padding: 9px;
             border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            font-family: inherit;
         }
+        .sc-tform-btns button.primary {
+            background: #7c3aed;
+            color: white;
+            border-color: #7c3aed;
+        }
+        /* Ticket chat view banner */
         .sc-ticket-num {
             font-size: 11px;
             color: #7c3aed;
@@ -2438,7 +2499,7 @@
         }
     </style>
 
-    <!-- Chat button -->
+    <!-- Floating chat button -->
     <button id="support-chat-btn" onclick="scToggle()" title="{% if lang == 'ms' %}Hubungi Sokongan{% else %}Contact Support{% endif %}">
         💬
         <span class="chat-badge" id="scBadge"></span>
@@ -2446,36 +2507,69 @@
 
     <!-- Chat panel -->
     <div id="support-chat-panel">
+
+        <!-- Header (shared across all views) -->
         <div class="sc-head">
             <div>
                 <div class="sc-head-title">{% if lang == 'ms' %}Sokongan GigHala{% else %}GigHala Support{% endif %}</div>
-                <div class="sc-head-sub" id="scStatus">{% if lang == 'ms' %}Kami sedia membantu{% else %}We're here to help{% endif %}</div>
+                <div class="sc-head-sub" id="scStatus">{% if lang == 'ms' %}Tanya Hala apa-apa sahaja{% else %}Ask Hala anything{% endif %}</div>
             </div>
             <button class="sc-close" onclick="scToggle()">×</button>
         </div>
 
-        <!-- Step 1: Start chat form -->
-        <div id="scStartView" class="sc-start">
-            <p>{% if lang == 'ms' %}Terangkan isu anda dan kami akan membalas secepat mungkin.{% else %}Describe your issue and we'll reply as soon as possible.{% endif %}</p>
-            <select id="scCategory">
-                <option value="billing">{% if lang == 'ms' %}Bil & Pembayaran{% else %}Billing & Payments{% endif %}</option>
-                <option value="account">{% if lang == 'ms' %}Isu Akaun{% else %}Account Issue{% endif %}</option>
-                <option value="gig_issue" selected>{% if lang == 'ms' %}Masalah Gig{% else %}Gig Issue{% endif %}</option>
-                <option value="dispute">{% if lang == 'ms' %}Pertikaian{% else %}Dispute{% endif %}</option>
-                <option value="technical">{% if lang == 'ms' %}Teknikal{% else %}Technical{% endif %}</option>
-                <option value="other">{% if lang == 'ms' %}Lain-lain{% else %}Other{% endif %}</option>
-            </select>
-            <input type="text" id="scSubject" placeholder="{% if lang == 'ms' %}Tajuk ringkas...{% else %}Brief subject...{% endif %}" maxlength="200">
-            <textarea id="scDesc" rows="3" placeholder="{% if lang == 'ms' %}Huraikan isu anda...{% else %}Describe your issue...{% endif %}"></textarea>
-            <button onclick="scStartChat()">{% if lang == 'ms' %}Mula Sembang{% else %}Start Chat{% endif %}</button>
+        <!-- View 1: Bot conversation (initial default view) -->
+        <div id="scBotView" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+            <div class="sc-body" id="scBotMessages"></div>
+            <div class="sc-chips" id="scChips">
+                <button class="sc-chip" onclick="scQuick('fees')">💰 {% if lang == 'ms' %}Yuran{% else %}Fees{% endif %}</button>
+                <button class="sc-chip" onclick="scQuick('escrow')">🔒 Escrow</button>
+                <button class="sc-chip" onclick="scQuick('payout')">💸 {% if lang == 'ms' %}Pengeluaran{% else %}Payout{% endif %}</button>
+                <button class="sc-chip" onclick="scQuick('halal')">☪ Halal</button>
+                <button class="sc-chip" onclick="scQuick('dispute')">⚖ {% if lang == 'ms' %}Pertikaian{% else %}Dispute{% endif %}</button>
+                <button class="sc-chip" onclick="scQuick('account')">👤 {% if lang == 'ms' %}Akaun{% else %}Account{% endif %}</button>
+                <button class="sc-chip" onclick="scQuick('socso')">🛡 SOCSO</button>
+            </div>
+            <div class="sc-form">
+                <input type="text" id="scBotInput"
+                    placeholder="{% if lang == 'ms' %}Taip soalan anda...{% else %}Type your question...{% endif %}"
+                    onkeydown="if(event.key==='Enter')scBotSend()">
+                <button class="sc-send" onclick="scBotSend()">➤</button>
+            </div>
         </div>
 
-        <!-- Step 2: Active chat view -->
-        <div id="scChatView" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <!-- View 2: Ticket creation form (shown after bot escalates) -->
+        <div id="scTicketFormView" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+            <div class="sc-tform">
+                <p>{% if lang == 'ms' %}Kami akan cipta tiket sokongan untuk anda. Sila semak butiran di bawah.{% else %}We'll create a support ticket for you. Please review the details below.{% endif %}</p>
+                <select id="scTCategory">
+                    <option value="billing">{% if lang == 'ms' %}Bil & Pembayaran{% else %}Billing & Payments{% endif %}</option>
+                    <option value="account">{% if lang == 'ms' %}Isu Akaun{% else %}Account Issue{% endif %}</option>
+                    <option value="gig_issue">{% if lang == 'ms' %}Masalah Gig{% else %}Gig Issue{% endif %}</option>
+                    <option value="dispute">{% if lang == 'ms' %}Pertikaian{% else %}Dispute{% endif %}</option>
+                    <option value="technical">{% if lang == 'ms' %}Teknikal{% else %}Technical{% endif %}</option>
+                    <option value="data_access">{% if lang == 'ms' %}Akses Data (PDPA){% else %}Data Access (PDPA){% endif %}</option>
+                    <option value="other">{% if lang == 'ms' %}Lain-lain{% else %}Other{% endif %}</option>
+                </select>
+                <input type="text" id="scTSubject" maxlength="200"
+                    placeholder="{% if lang == 'ms' %}Tajuk ringkas...{% else %}Brief subject...{% endif %}">
+                <textarea id="scTDesc" rows="4"
+                    placeholder="{% if lang == 'ms' %}Huraikan isu anda dengan terperinci...{% else %}Describe your issue in detail...{% endif %}"
+                    style="resize:vertical;"></textarea>
+                <div class="sc-tform-btns">
+                    <button onclick="scBackToBot()">{% if lang == 'ms' %}Kembali{% else %}Back{% endif %}</button>
+                    <button class="primary" onclick="scCreateTicket()">{% if lang == 'ms' %}Hantar Tiket{% else %}Submit Ticket{% endif %}</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Active ticket thread with polling (shown after ticket created) -->
+        <div id="scChatView" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
             <div id="scTicketNum" class="sc-ticket-num"></div>
             <div class="sc-body" id="scMessages"></div>
             <div class="sc-form">
-                <input type="text" id="scInput" placeholder="{% if lang == 'ms' %}Taip mesej...{% else %}Type a message...{% endif %}" onkeydown="if(event.key==='Enter')scSend()">
+                <input type="text" id="scInput"
+                    placeholder="{% if lang == 'ms' %}Taip mesej susulan...{% else %}Type a follow-up message...{% endif %}"
+                    onkeydown="if(event.key==='Enter')scSend()">
                 <button class="sc-send" onclick="scSend()">➤</button>
             </div>
         </div>
@@ -2483,37 +2577,234 @@
 
     <script>
     (function() {
+        var IS_MS = {{ 'true' if lang == 'ms' else 'false' }};
+
         var SC = {
+            state: 'bot',         // 'bot' | 'ticket-form' | 'ticket-chat'
+            open: false,
+            greeted: false,
+            history: [],          // [{role,content}] — bot conversation turns
+            botTurns: 0,
+            suggestedCategory: 'other',
+            suggestedSubject: '',
             ticketId: null,
             ticketNum: null,
             lastPollTime: null,
             pollTimer: null,
-            open: false
         };
 
-        function getCsrf() {
+        /* ── helpers ── */
+        function csrf() {
             var m = document.querySelector('meta[name="csrf-token"]');
             return m ? m.content : '';
         }
-
-        function escHtml(s) {
+        function esc(s) {
             if (!s) return '';
-            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         }
-
-        function fmtTime(iso) {
+        function hhmm(iso) {
             if (!iso) return '';
-            var d = new Date(iso);
-            return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            return new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         }
 
-        function appendBubble(msg) {
+        /* ── bot message bubbles ── */
+        function botBubble(text, isAgent) {
+            var box = document.getElementById('scBotMessages');
+            var wrap = document.createElement('div');
+            wrap.className = 'sc-bubble ' + (isAgent ? 'agent' : 'user');
+            wrap.innerHTML = '<div class="btext">' + esc(text) + '</div>' +
+                '<div class="bmeta">' + (isAgent ? 'Hala' : (IS_MS ? 'Anda' : 'You')) +
+                ' · ' + hhmm(new Date().toISOString()) + '</div>';
+            box.appendChild(wrap);
+            box.scrollTop = box.scrollHeight;
+            return wrap;
+        }
+
+        var _typingEl = null;
+        function showTyping() {
+            var box = document.getElementById('scBotMessages');
+            _typingEl = document.createElement('div');
+            _typingEl.className = 'sc-typing-dots';
+            _typingEl.innerHTML = '<span></span><span></span><span></span>';
+            box.appendChild(_typingEl);
+            box.scrollTop = box.scrollHeight;
+        }
+        function hideTyping() {
+            if (_typingEl) { _typingEl.remove(); _typingEl = null; }
+        }
+
+        /* ── escalation prompt (Yes/No buttons in a bubble) ── */
+        function showEscalatePrompt() {
+            var box = document.getElementById('scBotMessages');
+            var wrap = document.createElement('div');
+            wrap.className = 'sc-bubble agent';
+            var q = IS_MS
+                ? 'Adakah anda mahu saya cipta tiket sokongan supaya ejen kami dapat membantu anda?'
+                : 'Would you like me to create a support ticket so our team can assist you?';
+            wrap.innerHTML = '<div class="btext">' + esc(q) +
+                '<div style="display:flex;gap:8px;margin-top:8px;">' +
+                '<button class="sc-chip primary" onclick="scShowTicketForm()">' + (IS_MS ? 'Ya, buat tiket' : 'Yes, create ticket') + '</button>' +
+                '<button class="sc-chip" onclick="scContinueBot()">' + (IS_MS ? 'Tidak, teruskan' : 'No, continue') + '</button>' +
+                '</div></div>' +
+                '<div class="bmeta">Hala · ' + hhmm(new Date().toISOString()) + '</div>';
+            box.appendChild(wrap);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        /* ── nudge after many turns ── */
+        function showNudge() {
+            var q = IS_MS
+                ? 'Adakah isu anda telah selesai? Jika tidak, saya boleh hubungkan anda dengan pasukan sokongan.'
+                : "Has your issue been resolved? If not, I can connect you with our support team.";
+            var box = document.getElementById('scBotMessages');
+            var wrap = document.createElement('div');
+            wrap.className = 'sc-bubble agent';
+            wrap.innerHTML = '<div class="btext">' + esc(q) +
+                '<div style="display:flex;gap:8px;margin-top:8px;">' +
+                '<button class="sc-chip primary" onclick="scShowTicketForm()">' + (IS_MS ? 'Hubungi ejen' : 'Contact agent') + '</button>' +
+                '<button class="sc-chip" onclick="scContinueBot()">' + (IS_MS ? 'Tidak, terima kasih' : "No thanks") + '</button>' +
+                '</div></div>' +
+                '<div class="bmeta">Hala · ' + hhmm(new Date().toISOString()) + '</div>';
+            box.appendChild(wrap);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        /* ── bot send ── */
+        function sendToBot(msg) {
+            botBubble(msg, false);
+            document.getElementById('scChips').style.display = 'none';
+            SC.history.push({role: 'user', content: msg});
+            SC.botTurns++;
+            showTyping();
+
+            fetch('/api/chatbot/message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf()},
+                body: JSON.stringify({message: msg, history: SC.history.slice(0, -1)})
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                hideTyping();
+                if (d.success) {
+                    botBubble(d.reply, true);
+                    SC.history.push({role: 'assistant', content: d.reply});
+                    SC.suggestedCategory = d.suggested_category || 'other';
+                    SC.suggestedSubject = d.suggested_subject || msg.substring(0, 80);
+                    if (d.action === 'escalate') {
+                        showEscalatePrompt();
+                    } else if (SC.botTurns >= 6) {
+                        showNudge();
+                        SC.botTurns = 0; // reset so nudge doesn't repeat immediately
+                    }
+                } else {
+                    botBubble(IS_MS ? 'Maaf, ada masalah. Cuba lagi.' : 'Sorry, something went wrong. Please try again.', true);
+                }
+            })
+            .catch(function() {
+                hideTyping();
+                botBubble(IS_MS ? 'Ralat sambungan. Cuba lagi.' : 'Connection error. Please try again.', true);
+            });
+        }
+
+        /* ── public: send bot message from input ── */
+        window.scBotSend = function() {
+            var inp = document.getElementById('scBotInput');
+            var msg = inp.value.trim();
+            if (!msg) return;
+            inp.value = '';
+            sendToBot(msg);
+        };
+
+        /* ── public: quick-reply chip ── */
+        window.scQuick = function(topic) {
+            var map = {
+                fees: IS_MS ? 'Berapa yuran platform GigHala?' : 'What are GigHala platform fees?',
+                escrow: IS_MS ? 'Bagaimana sistem escrow berfungsi?' : 'How does the escrow system work?',
+                payout: IS_MS ? 'Bagaimana saya boleh keluarkan wang saya?' : 'How do I withdraw my earnings?',
+                halal: IS_MS ? 'Apakah gig yang dibenarkan dari segi syariah?' : 'What gigs are Syariah-compliant?',
+                dispute: IS_MS ? 'Bagaimana saya fail pertikaian?' : 'How do I file a dispute?',
+                account: IS_MS ? 'Saya tidak boleh log masuk akaun saya' : 'I cannot log into my account',
+                socso: IS_MS ? 'Apakah perlindungan SOCSO yang saya ada?' : 'What SOCSO coverage do I have?',
+            };
+            if (map[topic]) sendToBot(map[topic]);
+        };
+
+        /* ── public: continue bot (dismiss escalate prompt) ── */
+        window.scContinueBot = function() {
+            var q = IS_MS ? 'Okey, teruskan. Ada soalan lain?' : 'Okay, let\'s continue. Any other questions?';
+            botBubble(q, true);
+        };
+
+        /* ── public: switch to ticket form ── */
+        window.scShowTicketForm = function() {
+            document.getElementById('scBotView').style.display = 'none';
+            var v = document.getElementById('scTicketFormView');
+            v.style.display = 'flex';
+            document.getElementById('scTCategory').value = SC.suggestedCategory;
+            document.getElementById('scTSubject').value = SC.suggestedSubject;
+            // Pre-fill description from last user message if desc is empty
+            if (!document.getElementById('scTDesc').value && SC.history.length) {
+                var lastUser = SC.history.filter(function(h){ return h.role === 'user'; }).slice(-1)[0];
+                if (lastUser) document.getElementById('scTDesc').value = lastUser.content;
+            }
+            document.getElementById('scStatus').textContent = IS_MS ? 'Buat tiket sokongan' : 'Create support ticket';
+            SC.state = 'ticket-form';
+        };
+
+        /* ── public: back from ticket form to bot ── */
+        window.scBackToBot = function() {
+            document.getElementById('scTicketFormView').style.display = 'none';
+            document.getElementById('scBotView').style.display = 'flex';
+            document.getElementById('scStatus').textContent = IS_MS ? 'Tanya Hala apa-apa sahaja' : 'Ask Hala anything';
+            SC.state = 'bot';
+        };
+
+        /* ── public: submit ticket form ── */
+        window.scCreateTicket = function() {
+            var category = document.getElementById('scTCategory').value;
+            var subject = document.getElementById('scTSubject').value.trim();
+            var desc = document.getElementById('scTDesc').value.trim();
+            if (!subject || !desc) {
+                alert(IS_MS ? 'Sila isi tajuk dan huraian.' : 'Please fill in subject and description.');
+                return;
+            }
+            fetch('/api/support/ticket', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf()},
+                body: JSON.stringify({category: category, subject: subject, description: desc, channel: 'chat'})
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    SC.ticketId = d.ticket_id;
+                    SC.ticketNum = d.ticket_number;
+                    document.getElementById('scTicketFormView').style.display = 'none';
+                    var cv = document.getElementById('scChatView');
+                    cv.style.display = 'flex';
+                    cv.style.flexDirection = 'column';
+                    cv.style.flex = '1';
+                    cv.style.overflow = 'hidden';
+                    document.getElementById('scTicketNum').textContent = d.ticket_number;
+                    ticketBubble({message: desc, is_admin_reply: false, created_at: new Date().toISOString()});
+                    document.getElementById('scStatus').textContent = IS_MS ? 'Menunggu respons ejen...' : 'Waiting for agent...';
+                    SC.state = 'ticket-chat';
+                    startPolling();
+                } else {
+                    alert(d.error || (IS_MS ? 'Gagal mencipta tiket.' : 'Failed to create ticket.'));
+                }
+            })
+            .catch(function(){ alert(IS_MS ? 'Ralat sambungan.' : 'Connection error.'); });
+        };
+
+        /* ── ticket chat thread ── */
+        function ticketBubble(msg) {
             var box = document.getElementById('scMessages');
-            var div = document.createElement('div');
-            div.className = 'sc-bubble ' + (msg.is_admin_reply ? 'agent' : 'user');
-            div.innerHTML = '<div class="btext">' + escHtml(msg.message) + '</div>' +
-                '<div class="bmeta">' + (msg.is_admin_reply ? 'Support' : '{% if lang == "ms" %}Anda{% else %}You{% endif %}') + ' · ' + fmtTime(msg.created_at) + '</div>';
-            box.appendChild(div);
+            var wrap = document.createElement('div');
+            wrap.className = 'sc-bubble ' + (msg.is_admin_reply ? 'agent' : 'user');
+            wrap.innerHTML = '<div class="btext">' + esc(msg.message) + '</div>' +
+                '<div class="bmeta">' + (msg.is_admin_reply ? (IS_MS ? 'Pasukan Sokongan' : 'Support Team') : (IS_MS ? 'Anda' : 'You')) +
+                ' · ' + hhmm(msg.created_at) + '</div>';
+            box.appendChild(wrap);
             box.scrollTop = box.scrollHeight;
         }
 
@@ -2525,9 +2816,8 @@
                     .then(function(r){ return r.json(); })
                     .then(function(d) {
                         if (d.messages && d.messages.length > 0) {
-                            d.messages.forEach(appendBubble);
+                            d.messages.forEach(ticketBubble);
                             SC.lastPollTime = d.server_time || new Date().toISOString();
-                            // Show badge if panel closed
                             if (!SC.open) {
                                 var b = document.getElementById('scBadge');
                                 b.style.display = 'flex';
@@ -2535,71 +2825,45 @@
                             }
                         }
                         if (d.status === 'resolved' || d.status === 'closed') {
-                            document.getElementById('scStatus').textContent = '{% if lang == "ms" %}Tiket diselesaikan{% else %}Ticket resolved{% endif %}';
+                            document.getElementById('scStatus').textContent = IS_MS ? 'Tiket diselesaikan' : 'Ticket resolved';
                             clearInterval(SC.pollTimer);
                         }
                     }).catch(function(){});
             }, 4000);
         }
 
+        window.scSend = function() {
+            var inp = document.getElementById('scInput');
+            var msg = inp.value.trim();
+            if (!msg || !SC.ticketId) return;
+            inp.value = '';
+            ticketBubble({message: msg, is_admin_reply: false, created_at: new Date().toISOString()});
+            fetch('/api/support/ticket/' + SC.ticketId + '/message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf()},
+                body: JSON.stringify({message: msg})
+            }).catch(function(){});
+            SC.lastPollTime = new Date().toISOString();
+        };
+
+        /* ── toggle panel open/closed ── */
         window.scToggle = function() {
             SC.open = !SC.open;
             var panel = document.getElementById('support-chat-panel');
             if (SC.open) {
                 panel.classList.add('open');
                 document.getElementById('scBadge').style.display = 'none';
+                // Send greeting once on first open
+                if (!SC.greeted) {
+                    SC.greeted = true;
+                    var greet = IS_MS
+                        ? 'Halo! Saya Hala, pembantu sokongan GigHala. Bagaimana saya boleh membantu anda hari ini?'
+                        : "Hello! I'm Hala, GigHala's support assistant. How can I help you today?";
+                    botBubble(greet, true);
+                }
             } else {
                 panel.classList.remove('open');
             }
-        };
-
-        window.scStartChat = function() {
-            var category = document.getElementById('scCategory').value;
-            var subject = document.getElementById('scSubject').value.trim();
-            var desc = document.getElementById('scDesc').value.trim();
-            if (!subject || !desc) {
-                alert('{% if lang == "ms" %}Sila isi tajuk dan huraian.{% else %}Please fill in subject and description.{% endif %}');
-                return;
-            }
-            fetch('/api/support/ticket', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
-                body: JSON.stringify({category: category, subject: subject, description: desc, channel: 'chat', priority: 'medium'})
-            }).then(function(r){ return r.json(); })
-            .then(function(d) {
-                if (d.success) {
-                    SC.ticketId = d.ticket_id;
-                    SC.ticketNum = d.ticket_number;
-                    document.getElementById('scTicketNum').textContent = d.ticket_number;
-                    document.getElementById('scStartView').style.display = 'none';
-                    var cv = document.getElementById('scChatView');
-                    cv.style.display = 'flex';
-                    cv.style.flexDirection = 'column';
-                    cv.style.flex = '1';
-                    cv.style.overflow = 'hidden';
-                    // Show the original message as a bubble
-                    appendBubble({message: desc, is_admin_reply: false, created_at: new Date().toISOString()});
-                    document.getElementById('scStatus').textContent = '{% if lang == "ms" %}Menunggu respons ejen...{% else %}Waiting for agent...{% endif %}';
-                    startPolling();
-                } else {
-                    alert(d.error || '{% if lang == "ms" %}Gagal memulakan sembang.{% else %}Failed to start chat.{% endif %}');
-                }
-            }).catch(function(){ alert('{% if lang == "ms" %}Ralat sambungan.{% else %}Connection error.{% endif %}'); });
-        };
-
-        window.scSend = function() {
-            var inp = document.getElementById('scInput');
-            var msg = inp.value.trim();
-            if (!msg || !SC.ticketId) return;
-            inp.value = '';
-            // Optimistic UI
-            appendBubble({message: msg, is_admin_reply: false, created_at: new Date().toISOString()});
-            fetch('/api/support/ticket/' + SC.ticketId + '/message', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
-                body: JSON.stringify({message: msg})
-            }).catch(function(){});
-            SC.lastPollTime = new Date().toISOString();
         };
     })();
     </script>
