@@ -469,132 +469,216 @@
             }
         </script>
 
-        <!-- ===== Hala Chatbot Strip ===== -->
-        <div id="hala-strip" style="background:#ffffff;border-bottom:1px solid #e2f5ec;padding:10px 16px;">
-            <div style="max-width:860px;margin:0 auto;">
-
-                <!-- Collapsed bar (click to expand) -->
-                <div id="hala-bar" onclick="halaExpand()" style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
-                    <div style="width:36px;height:36px;background:#0D7C66;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🤖</div>
-                    <div style="flex:1;">
-                        <span style="font-weight:700;font-size:14px;color:#0D7C66;">Hala</span>
-                        <span style="font-size:13px;color:#374151;margin-left:8px;">{% if lang == 'ms' %}Tanya saya tentang GigHala — saya sedia bantu!{% else %}Ask me anything about GigHala — I'm here to help!{% endif %}</span>
-                    </div>
-                    <span id="hala-chevron" style="font-size:18px;color:#0D7C66;transition:transform 0.2s;">▼</span>
-                </div>
-
-                <!-- Expanded chat area (hidden by default) -->
-                <div id="hala-chat" style="display:none;margin-top:10px;">
-
-                    <!-- Message thread -->
-                    <div id="hala-messages" style="
-                        background:#f8fdf9;
-                        border:1px solid #d1fae5;
-                        border-radius:12px;
-                        padding:12px 14px;
-                        min-height:80px;
-                        max-height:260px;
-                        overflow-y:auto;
-                        display:flex;
-                        flex-direction:column;
-                        gap:8px;
-                        font-size:13px;
-                    "></div>
-
-                    <!-- Quick-reply chips -->
-                    <div id="hala-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
-                        <button class="hc" onclick="halaSend('{% if lang == "ms" %}Berapa yuran platform GigHala?{% else %}What are GigHala platform fees?{% endif %}')">💰 {% if lang == 'ms' %}Yuran{% else %}Fees{% endif %}</button>
-                        <button class="hc" onclick="halaSend('{% if lang == "ms" %}Bagaimana escrow berfungsi?{% else %}How does escrow work?{% endif %}')">🔒 Escrow</button>
-                        <button class="hc" onclick="halaSend('{% if lang == "ms" %}Apakah perlindungan SOCSO?{% else %}What is SOCSO coverage?{% endif %}')">🛡 SOCSO</button>
-                        <button class="hc" onclick="halaSend('{% if lang == "ms" %}Apakah gig yang dibenarkan syariah?{% else %}What gigs are Syariah-compliant?{% endif %}')">☪ Halal</button>
-                        <button class="hc" onclick="halaSend('{% if lang == "ms" %}Bagaimana cara saya mendaftar?{% else %}How do I sign up?{% endif %}')">👤 {% if lang == 'ms' %}Daftar{% else %}Sign up{% endif %}</button>
-                    </div>
-
-                    <!-- Input row -->
-                    <div style="display:flex;gap:8px;margin-top:8px;">
-                        <input id="hala-input" type="text"
-                            style="flex:1;padding:9px 13px;border:1px solid #d1d5db;border-radius:20px;font-size:13px;font-family:inherit;outline:none;"
-                            placeholder="{% if lang == 'ms' %}Tanya soalan anda...{% else %}Ask your question...{% endif %}"
-                            onkeydown="if(event.key==='Enter')halaSend()"
-                            onfocus="this.style.borderColor='#0D7C66'"
-                            onblur="this.style.borderColor='#d1d5db'">
-                        <button onclick="halaSend()"
-                            style="width:38px;height:38px;border-radius:50%;background:#0D7C66;color:white;border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">➤</button>
-                    </div>
-
-                    <!-- Login CTA — shown when bot escalates for a guest -->
-                    <div id="hala-cta" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin-top:10px;text-align:center;">
-                        <p style="margin:0 0 8px;font-size:13px;color:#065f46;font-weight:600;">{% if lang == 'ms' %}Untuk sokongan lanjut, log masuk atau daftar percuma.{% else %}For further support, log in or register for free.{% endif %}</p>
-                        <div style="display:flex;gap:8px;justify-content:center;">
-                            <a href="/login" style="padding:7px 18px;background:#0D7C66;color:white;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">{% if lang == 'ms' %}Log Masuk{% else %}Log In{% endif %}</a>
-                            <a href="/register" style="padding:7px 18px;background:white;color:#0D7C66;border:1px solid #0D7C66;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">{% if lang == 'ms' %}Daftar{% else %}Register{% endif %}</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- ===== Hala Floating Chatbot (Guest) ===== -->
         <style>
-            .hc {
-                padding: 5px 11px;
+            #hala-btn {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: #0D7C66;
+                color: white;
+                border: none;
+                cursor: pointer;
+                box-shadow: 0 4px 16px rgba(13,124,102,0.45);
+                font-size: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9000;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            #hala-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(13,124,102,0.55); }
+            #hala-panel {
+                display: none;
+                position: fixed;
+                bottom: 90px;
+                right: 24px;
+                width: 360px;
+                max-height: 520px;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+                z-index: 9001;
+                flex-direction: column;
+                overflow: hidden;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+            }
+            #hala-panel.open { display: flex; }
+            .hp-head {
+                background: #0D7C66;
+                color: white;
+                padding: 14px 18px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-shrink: 0;
+            }
+            .hp-head-title { font-weight: 700; font-size: 15px; }
+            .hp-head-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+            .hp-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+            .hp-body {
+                flex: 1;
+                overflow-y: auto;
+                padding: 14px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-height: 0;
+            }
+            .hb { max-width: 84%; }
+            .hb.bot { align-self: flex-start; }
+            .hb.usr { align-self: flex-end; text-align: right; }
+            .hb .hbt {
+                display: inline-block;
+                padding: 9px 13px;
+                border-radius: 14px;
+                font-size: 13px;
+                line-height: 1.5;
+                word-break: break-word;
+                text-align: left;
+            }
+            .hb.bot .hbt { background: #d1fae5; color: #064e3b; }
+            .hb.usr .hbt { background: #0D7C66; color: white; }
+            .hb .hbm { font-size: 10px; color: #9ca3af; margin-top: 3px; }
+            .hp-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 8px 14px;
+                border-top: 1px solid #e5e7eb;
+                flex-shrink: 0;
+            }
+            .hp-chip {
+                padding: 5px 10px;
                 border: 1px solid #a7f3d0;
                 border-radius: 16px;
-                font-size: 12px;
+                font-size: 11px;
                 background: white;
                 cursor: pointer;
                 color: #065f46;
                 font-family: inherit;
                 transition: background 0.15s, color 0.15s;
             }
-            .hc:hover { background: #0D7C66; color: white; border-color: #0D7C66; }
-            .hala-bubble { max-width: 85%; }
-            .hala-bubble.bot { align-self: flex-start; }
-            .hala-bubble.user { align-self: flex-end; text-align: right; }
-            .hala-bubble .hbtext {
-                display: inline-block;
-                padding: 8px 12px;
-                border-radius: 12px;
-                line-height: 1.5;
-                word-break: break-word;
-                text-align: left;
+            .hp-chip:hover { background: #0D7C66; color: white; border-color: #0D7C66; }
+            .hp-form {
+                padding: 10px 14px;
+                border-top: 1px solid #e5e7eb;
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
             }
-            .hala-bubble.bot  .hbtext { background: #d1fae5; color: #064e3b; }
-            .hala-bubble.user .hbtext { background: #0D7C66; color: white; }
-            .hala-bubble .hbmeta { font-size: 10px; color: #9ca3af; margin-top: 3px; }
-            .hala-typing { display:flex;gap:4px;padding:8px 12px;background:#d1fae5;border-radius:12px;width:fit-content;align-self:flex-start; }
-            .hala-typing span { width:5px;height:5px;background:#0D7C66;border-radius:50%;animation:htBounce 1.1s infinite; }
-            .hala-typing span:nth-child(2) { animation-delay:0.18s; }
-            .hala-typing span:nth-child(3) { animation-delay:0.36s; }
-            @keyframes htBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-4px)} }
+            .hp-form input {
+                flex: 1;
+                padding: 9px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 20px;
+                font-size: 13px;
+                font-family: inherit;
+                outline: none;
+            }
+            .hp-form input:focus { border-color: #0D7C66; }
+            .hp-send {
+                width: 36px; height: 36px;
+                border-radius: 50%;
+                background: #0D7C66;
+                color: white;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .hp-typing { display:flex;gap:4px;padding:9px 13px;background:#d1fae5;border-radius:14px;width:fit-content;align-self:flex-start; }
+            .hp-typing span { width:6px;height:6px;background:#0D7C66;border-radius:50%;animation:hpBounce 1.1s infinite; }
+            .hp-typing span:nth-child(2) { animation-delay:0.18s; }
+            .hp-typing span:nth-child(3) { animation-delay:0.36s; }
+            @keyframes hpBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+            .hp-cta {
+                margin: 8px 14px 12px;
+                background: #ecfdf5;
+                border: 1px solid #a7f3d0;
+                border-radius: 10px;
+                padding: 12px 14px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+            .hp-cta p { margin: 0 0 8px; font-size: 12px; color: #065f46; font-weight: 600; }
+            .hp-cta-btns { display: flex; gap: 8px; justify-content: center; }
+            .hp-cta-btns a {
+                padding: 6px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 700;
+                text-decoration: none;
+            }
+            .hp-cta-btns .cta-login { background: #0D7C66; color: white; }
+            .hp-cta-btns .cta-reg   { background: white; color: #0D7C66; border: 1px solid #0D7C66; }
+            @media (max-width: 480px) {
+                #hala-panel { width: calc(100vw - 24px); right: 12px; }
+            }
         </style>
+
+        <!-- Floating button -->
+        <button id="hala-btn" onclick="halaToggle()" title="{% if lang == 'ms' %}Tanya Hala{% else %}Ask Hala{% endif %}">💬</button>
+
+        <!-- Chat panel -->
+        <div id="hala-panel">
+            <div class="hp-head">
+                <div>
+                    <div class="hp-head-title">🤖 Hala — GigHala</div>
+                    <div class="hp-head-sub">{% if lang == 'ms' %}Tanya saya apa-apa sahaja{% else %}Ask me anything{% endif %}</div>
+                </div>
+                <button class="hp-close" onclick="halaToggle()">×</button>
+            </div>
+
+            <div class="hp-body" id="hala-messages"></div>
+
+            <div class="hp-chips" id="hala-chips">
+                <button class="hp-chip" onclick="halaQuick('fees')">💰 {% if lang == 'ms' %}Yuran{% else %}Fees{% endif %}</button>
+                <button class="hp-chip" onclick="halaQuick('escrow')">🔒 Escrow</button>
+                <button class="hp-chip" onclick="halaQuick('payout')">💸 {% if lang == 'ms' %}Pengeluaran{% else %}Payout{% endif %}</button>
+                <button class="hp-chip" onclick="halaQuick('socso')">🛡 SOCSO</button>
+                <button class="hp-chip" onclick="halaQuick('halal')">☪ Halal</button>
+                <button class="hp-chip" onclick="halaQuick('signup')">👤 {% if lang == 'ms' %}Daftar{% else %}Sign up{% endif %}</button>
+            </div>
+
+            <div class="hp-form">
+                <input type="text" id="hala-input"
+                    placeholder="{% if lang == 'ms' %}Taip soalan anda...{% else %}Type your question...{% endif %}"
+                    onkeydown="if(event.key==='Enter')halaKey()">
+                <button class="hp-send" onclick="halaKey()">➤</button>
+            </div>
+
+            <!-- Login CTA shown on escalation -->
+            <div class="hp-cta" id="hala-cta" style="display:none;">
+                <p>{% if lang == 'ms' %}Untuk sokongan lanjut, log masuk atau daftar percuma.{% else %}For further help, log in or register for free.{% endif %}</p>
+                <div class="hp-cta-btns">
+                    <a href="/login" class="cta-login">{% if lang == 'ms' %}Log Masuk{% else %}Log In{% endif %}</a>
+                    <a href="/register" class="cta-reg">{% if lang == 'ms' %}Daftar{% else %}Register{% endif %}</a>
+                </div>
+            </div>
+        </div>
 
         <script>
         (function() {
             var IS_MS = {{ 'true' if lang == 'ms' else 'false' }};
-            var expanded = false;
-            var greeted = false;
-            var history = [];
-            var botTurns = 0;
-            var typingEl = null;
+            var open = false, greeted = false, history = [], typingEl = null;
 
-            function csrf() {
-                var m = document.querySelector('meta[name="csrf-token"]');
-                return m ? m.content : '';
-            }
-            function esc(s) {
-                if (!s) return '';
-                return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-            }
-            function hhmm() {
-                return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            }
+            function csrf() { var m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : ''; }
+            function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+            function hhmm() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
 
             function bubble(text, isBot) {
                 var box = document.getElementById('hala-messages');
                 var w = document.createElement('div');
-                w.className = 'hala-bubble ' + (isBot ? 'bot' : 'user');
-                w.innerHTML = '<div class="hbtext">' + esc(text) + '</div>' +
-                    '<div class="hbmeta">' + (isBot ? 'Hala' : (IS_MS ? 'Anda' : 'You')) + ' · ' + hhmm() + '</div>';
+                w.className = 'hb ' + (isBot ? 'bot' : 'usr');
+                w.innerHTML = '<div class="hbt">' + esc(text) + '</div>' +
+                    '<div class="hbm">' + (isBot ? 'Hala' : (IS_MS ? 'Anda' : 'You')) + ' · ' + hhmm() + '</div>';
                 box.appendChild(w);
                 box.scrollTop = box.scrollHeight;
             }
@@ -602,45 +686,18 @@
             function showTyping() {
                 var box = document.getElementById('hala-messages');
                 typingEl = document.createElement('div');
-                typingEl.className = 'hala-typing';
+                typingEl.className = 'hp-typing';
                 typingEl.innerHTML = '<span></span><span></span><span></span>';
                 box.appendChild(typingEl);
                 box.scrollTop = box.scrollHeight;
             }
-            function hideTyping() {
-                if (typingEl) { typingEl.remove(); typingEl = null; }
-            }
+            function hideTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
 
-            window.halaExpand = function() {
-                expanded = !expanded;
-                document.getElementById('hala-chat').style.display = expanded ? 'block' : 'none';
-                document.getElementById('hala-chevron').style.transform = expanded ? 'rotate(180deg)' : '';
-                if (expanded && !greeted) {
-                    greeted = true;
-                    var g = IS_MS
-                        ? 'Halo! Saya Hala, pembantu GigHala. Tanya saya tentang yuran, escrow, SOCSO, pematuhan halal, atau apa-apa sahaja.'
-                        : "Hello! I'm Hala, GigHala's assistant. Ask me about fees, escrow, SOCSO, halal compliance, or anything else.";
-                    bubble(g, true);
-                    history.push({role: 'assistant', content: g});
-                }
-            };
-
-            window.halaSend = function(preset) {
-                var inp = document.getElementById('hala-input');
-                var msg = (typeof preset === 'string') ? preset : inp.value.trim();
-                if (!msg) return;
-                inp.value = '';
-
-                if (!expanded) { halaExpand(); }
-
-                // Hide chips after first interaction
+            function send(msg) {
                 document.getElementById('hala-chips').style.display = 'none';
-
                 bubble(msg, false);
                 history.push({role: 'user', content: msg});
-                botTurns++;
                 showTyping();
-
                 fetch('/api/chatbot/message', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf()},
@@ -656,18 +713,55 @@
                             document.getElementById('hala-cta').style.display = 'block';
                         }
                     } else {
-                        var err = IS_MS ? 'Maaf, ada masalah teknikal. Cuba lagi.' : 'Sorry, a technical error occurred. Please try again.';
-                        bubble(err, true);
+                        bubble(IS_MS ? 'Maaf, ada masalah. Cuba lagi.' : 'Sorry, something went wrong. Try again.', true);
                     }
                 })
                 .catch(function() {
                     hideTyping();
-                    var err = IS_MS ? 'Ralat sambungan. Cuba lagi.' : 'Connection error. Please try again.';
-                    bubble(err, true);
+                    bubble(IS_MS ? 'Ralat sambungan.' : 'Connection error.', true);
                 });
+            }
+
+            window.halaToggle = function() {
+                open = !open;
+                var panel = document.getElementById('hala-panel');
+                if (open) {
+                    panel.classList.add('open');
+                    if (!greeted) {
+                        greeted = true;
+                        var g = IS_MS
+                            ? 'Halo! Saya Hala, pembantu sokongan GigHala. Tanya saya tentang yuran, escrow, SOCSO, pematuhan halal, atau cara mendaftar.'
+                            : "Hello! I'm Hala, GigHala's assistant. Ask me about fees, escrow, SOCSO, halal compliance, or how to sign up.";
+                        bubble(g, true);
+                        history.push({role: 'assistant', content: g});
+                    }
+                } else {
+                    panel.classList.remove('open');
+                }
+            };
+
+            window.halaKey = function() {
+                var inp = document.getElementById('hala-input');
+                var msg = inp.value.trim();
+                if (!msg) return;
+                inp.value = '';
+                send(msg);
+            };
+
+            window.halaQuick = function(topic) {
+                var map = {
+                    fees:   IS_MS ? 'Berapa yuran platform GigHala?' : 'What are GigHala platform fees?',
+                    escrow: IS_MS ? 'Bagaimana sistem escrow berfungsi?' : 'How does the escrow system work?',
+                    payout: IS_MS ? 'Bagaimana cara saya keluarkan pendapatan saya?' : 'How do I withdraw my earnings?',
+                    socso:  IS_MS ? 'Apakah perlindungan SOCSO yang saya dapat?' : 'What SOCSO coverage do I get?',
+                    halal:  IS_MS ? 'Apakah gig yang dibenarkan dari segi syariah?' : 'What gigs are Syariah-compliant?',
+                    signup: IS_MS ? 'Bagaimana cara saya mendaftar di GigHala?' : 'How do I sign up for GigHala?',
+                };
+                if (map[topic]) send(map[topic]);
             };
         })();
         </script>
+
 
         <!-- Hero Section -->
         <style>
