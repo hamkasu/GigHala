@@ -27448,9 +27448,9 @@ def admin_resolve_ticket(ticket_id):
 
 
 @app.route('/api/chatbot/message', methods=['POST'])
-@login_required
 def chatbot_message():
-    """Chatbot support endpoint — answers FAQs or escalates to a ticket."""
+    """Chatbot support endpoint — answers FAQs or escalates to a ticket.
+    Open to guests so the landing page can use it without login."""
     try:
         data = request.json or {}
         message = sanitize_input(data.get('message', ''), max_length=500)
