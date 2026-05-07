@@ -46,7 +46,7 @@ Answer user support questions clearly and concisely. When you cannot confidently
 - All amounts in Malaysian Ringgit (RM), bilingual (Bahasa Malaysia + English)
 
 ## Platform Fees
-- Platform commission: 10% on each completed gig (deducted from freelancer earnings)
+- Platform commission: 15% on each completed gig (deducted from freelancer earnings)
 - Payout/withdrawal fee: RM2 per bank transfer or FPX withdrawal
 - SOCSO contribution: 1.25% deducted per transaction (mandatory by Gig Workers Act 2025)
 - No monthly subscription or listing fees
