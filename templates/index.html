@@ -722,6 +722,15 @@
                 });
             }
 
+            function resetWidget() {
+                greeted = false;
+                history = [];
+                if (typingEl) { typingEl.remove(); typingEl = null; }
+                document.getElementById('hala-messages').innerHTML = '';
+                document.getElementById('hala-chips').style.display = 'flex';
+                document.getElementById('hala-cta').style.display = 'none';
+            }
+
             window.halaToggle = function() {
                 open = !open;
                 var panel = document.getElementById('hala-panel');
@@ -737,6 +746,7 @@
                     }
                 } else {
                     panel.classList.remove('open');
+                    resetWidget();
                 }
             };
 
