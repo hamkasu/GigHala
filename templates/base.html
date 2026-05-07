@@ -2846,6 +2846,27 @@
             SC.lastPollTime = new Date().toISOString();
         };
 
+        /* ── reset to fresh bot state ── */
+        function resetChat() {
+            SC.greeted = false;
+            SC.history = [];
+            SC.botTurns = 0;
+            SC.suggestedCategory = 'other';
+            SC.suggestedSubject = '';
+            SC.state = 'bot';
+            SC.ticketId = null;
+            SC.ticketNum = null;
+            SC.lastPollTime = null;
+            if (SC.pollTimer) { clearInterval(SC.pollTimer); SC.pollTimer = null; }
+            if (_typingEl) { _typingEl.remove(); _typingEl = null; }
+            document.getElementById('scBotMessages').innerHTML = '';
+            document.getElementById('scChips').style.display = 'flex';
+            document.getElementById('scBotView').style.display = 'flex';
+            document.getElementById('scTicketFormView').style.display = 'none';
+            document.getElementById('scChatView').style.display = 'none';
+            document.getElementById('scStatus').textContent = IS_MS ? 'Tanya Hala apa-apa sahaja' : 'Ask Hala anything';
+        }
+
         /* ── toggle panel open/closed ── */
         window.scToggle = function() {
             SC.open = !SC.open;
@@ -2853,7 +2874,6 @@
             if (SC.open) {
                 panel.classList.add('open');
                 document.getElementById('scBadge').style.display = 'none';
-                // Send greeting once on first open
                 if (!SC.greeted) {
                     SC.greeted = true;
                     var greet = IS_MS
@@ -2863,6 +2883,7 @@
                 }
             } else {
                 panel.classList.remove('open');
+                resetChat();
             }
         };
     })();
