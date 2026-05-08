@@ -1222,6 +1222,54 @@
         background: #2563eb;
     }
 
+    .btn-shortlist {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-shortlist:hover {
+        background: #fef3c7;
+        color: #d97706;
+        border-color: #fde68a;
+    }
+
+    .btn-shortlist.active {
+        background: #fef3c7;
+        color: #d97706;
+        border-color: #fde68a;
+    }
+
+    .shortlist-star {
+        color: #f59e0b;
+        font-size: 15px;
+        line-height: 1;
+    }
+
+    .app-filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .app-filter-btn {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-light);
+        color: var(--text-gray);
+        transition: all 0.2s;
+    }
+
+    .app-filter-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
     .application-status {
         text-align: center;
     }
@@ -2040,6 +2088,15 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     {{ 'Permohonan' if lang == 'ms' else 'Applications' }} ({{ gig_applications|length }})
                 </h4>
+                {% set shortlisted_count = gig_applications | selectattr('is_shortlisted') | list | length %}
+                <div class="app-filter-tabs">
+                    <button class="app-filter-btn active" data-filter="all" onclick="filterApps('all', this)">
+                        {{ 'Semua' if lang == 'ms' else 'All' }} ({{ gig_applications|length }})
+                    </button>
+                    <button class="app-filter-btn" data-filter="shortlisted" onclick="filterApps('shortlisted', this)">
+                        ★ {{ 'Disenaraipendek' if lang == 'ms' else 'Shortlisted' }} ({{ shortlisted_count }})
+                    </button>
+                </div>
                 <div class="applications-list">
                     {% for app in gig_applications %}
                     <div class="application-item" id="application-{{ app.id }}">
@@ -2067,7 +2124,10 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="applicant-price">RM {{ "%.0f"|format(app.proposed_price) }}</div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                {% if app.is_shortlisted %}<span class="shortlist-star" title="{{ 'Disenaraipendek' if lang == 'ms' else 'Shortlisted' }}">★</span>{% endif %}
+                                <div class="applicant-price">RM {{ "%.0f"|format(app.proposed_price) }}</div>
+                            </div>
                         </div>
                         {% if app.freelancer_bio %}
                         <div class="applicant-bio">
@@ -2089,6 +2149,10 @@
                             <button class="btn-reject" onclick="rejectApplication({{ app.id }})">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 {{ 'Tolak' if lang == 'ms' else 'Reject' }}
+                            </button>
+                            <button class="btn-shortlist {% if app.is_shortlisted %}active{% endif %}" id="shortlist-btn-{{ app.id }}" onclick="shortlistApplication({{ app.id }}, this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="{% if app.is_shortlisted %}#d97706{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span class="btn-label">{{ ('Nyahsenarai' if app.is_shortlisted else 'Simpan') if lang == 'ms' else ('Unsave' if app.is_shortlisted else 'Shortlist') }}</span>
                             </button>
                             <button class="btn-message" onclick="messageApplicant({{ app.freelancer_id }}, {{ gig.id }}, '{{ app.freelancer_name }}')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -2780,6 +2844,68 @@
         .catch(error => {
             console.error('Error:', error);
             alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
+        });
+    }
+
+    function shortlistApplication(applicationId, btn) {
+        fetch('/api/applications/' + applicationId + '/shortlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            const shortlisted = data.is_shortlisted;
+            const isMs = '{{ lang }}' === 'ms';
+
+            // Toggle button style and label
+            btn.classList.toggle('active', shortlisted);
+            const star = btn.querySelector('svg');
+            if (star) star.setAttribute('fill', shortlisted ? '#d97706' : 'none');
+            const label = btn.querySelector('.btn-label');
+            if (label) label.textContent = isMs ? (shortlisted ? 'Nyahsenarai' : 'Simpan') : (shortlisted ? 'Unsave' : 'Shortlist');
+
+            // Toggle star indicator in the applicant header
+            const item = document.getElementById('application-' + applicationId);
+            let starBadge = item.querySelector('.shortlist-star');
+            if (shortlisted && !starBadge) {
+                starBadge = document.createElement('span');
+                starBadge.className = 'shortlist-star';
+                starBadge.title = isMs ? 'Disenaraipendek' : 'Shortlisted';
+                starBadge.textContent = '★';
+                const priceEl = item.querySelector('.applicant-price');
+                if (priceEl) priceEl.parentNode.insertBefore(starBadge, priceEl);
+            } else if (!shortlisted && starBadge) {
+                starBadge.remove();
+            }
+
+            // Update filter tab counts
+            const total = document.querySelectorAll('.application-item').length;
+            const shortlistedCount = document.querySelectorAll('.application-item .shortlist-star').length;
+            const allBtn = document.querySelector('.app-filter-btn[data-filter="all"]');
+            const slBtn = document.querySelector('.app-filter-btn[data-filter="shortlisted"]');
+            if (allBtn) allBtn.textContent = (isMs ? 'Semua' : 'All') + ' (' + total + ')';
+            if (slBtn) slBtn.textContent = '★ ' + (isMs ? 'Disenaraipendek' : 'Shortlisted') + ' (' + shortlistedCount + ')';
+
+            // Re-apply active filter
+            const activeFilter = document.querySelector('.app-filter-btn.active');
+            if (activeFilter) filterApps(activeFilter.dataset.filter, activeFilter);
+        })
+        .catch(() => alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}'));
+    }
+
+    function filterApps(type, btn) {
+        document.querySelectorAll('.app-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.application-item').forEach(item => {
+            if (type === 'all') {
+                item.style.display = '';
+            } else {
+                item.style.display = item.querySelector('.shortlist-star') ? '' : 'none';
+            }
         });
     }
 

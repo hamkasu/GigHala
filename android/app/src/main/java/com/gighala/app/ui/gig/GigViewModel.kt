@@ -2,7 +2,11 @@ package com.gighala.app.ui.gig
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gighala.app.data.api.models.*
+import com.gighala.app.data.api.models.ApplicationDto
+import com.gighala.app.data.api.models.ApplyGigRequest
+import com.gighala.app.data.api.models.CreateGigRequest
+import com.gighala.app.data.api.models.CreateGigResponse
+import com.gighala.app.data.api.models.GigDto
 import com.gighala.app.data.repository.GigRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -15,7 +19,9 @@ data class GigDetailUiState(
     val error: String? = null,
     val applySuccess: Boolean = false,
     val applyError: String? = null,
-    val isApplying: Boolean = false
+    val isApplying: Boolean = false,
+    val applications: List<ApplicationDto> = emptyList(),
+    val shortlistingId: Int? = null
 )
 
 data class PostGigUiState(
@@ -39,8 +45,36 @@ class GigViewModel @Inject constructor(
         viewModelScope.launch {
             _detailState.update { it.copy(isLoading = true, error = null) }
             gigRepository.getGig(gigId)
-                .onSuccess { gig -> _detailState.update { it.copy(gig = gig, isLoading = false) } }
+                .onSuccess { gig ->
+                    _detailState.update { it.copy(gig = gig, isLoading = false) }
+                    if (gig.isOwnGig) loadApplications(gigId)
+                }
                 .onFailure { e -> _detailState.update { it.copy(isLoading = false, error = e.message) } }
+        }
+    }
+
+    fun loadApplications(gigId: Int) {
+        viewModelScope.launch {
+            gigRepository.getApplications(gigId)
+                .onSuccess { apps -> _detailState.update { it.copy(applications = apps) } }
+        }
+    }
+
+    fun shortlistApplication(applicationId: Int) {
+        viewModelScope.launch {
+            _detailState.update { it.copy(shortlistingId = applicationId) }
+            gigRepository.shortlistApplication(applicationId)
+                .onSuccess { response ->
+                    _detailState.update { state ->
+                        state.copy(
+                            shortlistingId = null,
+                            applications = state.applications.map { app ->
+                                if (app.id == applicationId) app.copy(isShortlisted = response.isShortlisted) else app
+                            }
+                        )
+                    }
+                }
+                .onFailure { _detailState.update { it.copy(shortlistingId = null) } }
         }
     }
 
