@@ -718,6 +718,99 @@
                 </label>
             </div>
 
+            <!-- PERKESO PRIHATIN Profile Fields -->
+            <!-- Required for full profile sync via PERKESO GIG Workers API v2.1 -->
+            <div style="margin-top: 24px; padding: 20px; background: var(--bg-light); border-radius: var(--radius-md); border-left: 4px solid #2563eb;">
+                <h4 style="margin: 0 0 4px 0; font-size: 15px;">Maklumat PERKESO PRIHATIN</h4>
+                <p style="font-size: 13px; color: var(--text-gray); margin: 0 0 16px 0;">
+                    Diperlukan untuk pendaftaran dan penyerahan caruman secara automatik ke sistem PERKESO (Akta 789).
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Jenis Kad Pengenalan</label>
+                        <select name="ic_type" class="form-input">
+                            <option value="B" {% if (user.ic_type or 'B') == 'B' %}selected{% endif %}>MyKad Baru (B)</option>
+                            <option value="L" {% if user.ic_type == 'L' %}selected{% endif %}>IC Lama (L)</option>
+                            <option value="PR" {% if user.ic_type == 'PR' %}selected{% endif %}>Pemastautin Tetap (PR)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Status Peribadi</label>
+                        <select name="person_status" class="form-input">
+                            <option value="P" {% if (user.person_status or 'P') == 'P' %}selected{% endif %}>Awam (P)</option>
+                            <option value="RP" {% if user.person_status == 'RP' %}selected{% endif %}>Polis Bersara (RP)</option>
+                            <option value="RM" {% if user.person_status == 'RM' %}selected{% endif %}>Tentera Bersara (RM)</option>
+                            <option value="O" {% if user.person_status == 'O' %}selected{% endif %}>Lain-lain (O)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <label class="form-label">No. Telefon Rumah <span style="color: var(--text-gray); font-weight: normal;">(Pilihan)</span></label>
+                    <input type="tel" name="house_phone_no" class="form-input" value="{{ user.house_phone_no or '' }}" placeholder="Contoh: 603XXXXXXXX">
+                </div>
+
+                <h5 style="margin: 20px 0 12px 0; font-size: 14px; color: var(--text-dark);">Maklumat Waris / Orang Dipertanggungjawabkan</h5>
+                <p style="font-size: 12px; color: var(--text-gray); margin: -8px 0 12px 0;">Diperlukan oleh PERKESO untuk tujuan faedah dan perlindungan.</p>
+
+                <div class="form-group">
+                    <label class="form-label">Nama Waris</label>
+                    <input type="text" name="next_of_kin_name" class="form-input" value="{{ user.next_of_kin_name or '' }}" placeholder="Nama penuh waris" maxlength="255">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">No. Telefon Waris</label>
+                        <input type="tel" name="next_of_kin_mobile_no" class="form-input" value="{{ user.next_of_kin_mobile_no or '' }}" placeholder="Contoh: 601XXXXXXXX">
+                        <p class="form-hint">Sertakan kod negara 60.</p>
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Hubungan dengan Waris</label>
+                        <select name="next_of_kin_relation" class="form-input">
+                            <option value="" {% if not user.next_of_kin_relation %}selected{% endif %}>-- Pilih --</option>
+                            <option value="W" {% if user.next_of_kin_relation == 'W' %}selected{% endif %}>Isteri (W)</option>
+                            <option value="H" {% if user.next_of_kin_relation == 'H' %}selected{% endif %}>Suami (H)</option>
+                            <option value="C" {% if user.next_of_kin_relation == 'C' %}selected{% endif %}>Anak (C)</option>
+                            <option value="M" {% if user.next_of_kin_relation == 'M' %}selected{% endif %}>Ibu (M)</option>
+                            <option value="F" {% if user.next_of_kin_relation == 'F' %}selected{% endif %}>Bapa (F)</option>
+                            <option value="S" {% if user.next_of_kin_relation == 'S' %}selected{% endif %}>Adik-beradik (S)</option>
+                            <option value="O" {% if user.next_of_kin_relation == 'O' %}selected{% endif %}>Lain-lain (O)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h5 style="margin: 20px 0 12px 0; font-size: 14px; color: var(--text-dark);">ID Negeri &amp; Bandar PERKESO</h5>
+                <p style="font-size: 12px; color: var(--text-gray); margin: -8px 0 12px 0;">
+                    ID integer dari sistem PERKESO. Dapatkan dari <code>GET /api/v1/states</code> atau hubungi admin untuk pemetaan automatik.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">ID Negeri PERKESO</label>
+                        <input type="number" name="perkeso_state_id" class="form-input" value="{{ user.perkeso_state_id or '' }}" placeholder="Contoh: 1 (Johor)" min="1">
+                    </div>
+
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">ID Bandar PERKESO</label>
+                        <input type="number" name="perkeso_city_id" class="form-input" value="{{ user.perkeso_city_id or '' }}" placeholder="Contoh: 84" min="1">
+                    </div>
+                </div>
+
+                {% if user.perkeso_registered %}
+                <div style="margin-top: 12px; padding: 8px 12px; background: #dcfce7; border-radius: 6px; font-size: 13px; color: #166534;">
+                    ✓ Berdaftar dengan PERKESO PRIHATIN
+                    {% if user.perkeso_registration_date %} — {{ user.perkeso_registration_date.strftime('%d %b %Y') }}{% endif %}
+                </div>
+                {% else %}
+                <div style="margin-top: 12px; padding: 8px 12px; background: #fef9c3; border-radius: 6px; font-size: 13px; color: #854d0e;">
+                    ⚠ Belum berdaftar dengan PERKESO. Pendaftaran akan dilakukan secara automatik apabila kerja pertama diselesaikan.
+                </div>
+                {% endif %}
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
             </div>
