@@ -16098,6 +16098,7 @@ def admin_stats():
             db.func.count(User.id).label('total'),
             db.func.sum(db.case((User.user_type == 'freelancer', 1), else_=0)).label('freelancers'),
             db.func.sum(db.case((User.user_type == 'client', 1), else_=0)).label('clients'),
+            db.func.sum(db.case((User.user_type == 'both', 1), else_=0)).label('both'),
             db.func.sum(db.case((User.is_verified == True, 1), else_=0)).label('verified'),
             db.func.sum(db.case((User.halal_verified == True, 1), else_=0)).label('halal_verified')
         ).first()
@@ -16105,6 +16106,7 @@ def admin_stats():
         total_users = user_stats.total or 0
         total_freelancers = user_stats.freelancers or 0
         total_clients = user_stats.clients or 0
+        total_both = user_stats.both or 0
         verified_users = user_stats.verified or 0
         halal_verified_users = user_stats.halal_verified or 0
 
@@ -16195,6 +16197,7 @@ def admin_stats():
                 'total': total_users,
                 'freelancers': total_freelancers,
                 'clients': total_clients,
+                'both': total_both,
                 'verified': verified_users,
                 'halal_verified': halal_verified_users,
                 'recent_week': recent_users,

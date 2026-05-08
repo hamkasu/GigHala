@@ -603,6 +603,10 @@
                 <div class="value" id="stat-clients">0</div>
             </div>
             <div class="stat-card">
+                <h3>Both</h3>
+                <div class="value" id="stat-both">0</div>
+            </div>
+            <div class="stat-card">
                 <h3>Verified Users</h3>
                 <div class="value" id="stat-verified">0</div>
             </div>
@@ -2542,6 +2546,7 @@
                 document.getElementById('stat-recent-users').textContent = `${data.users.recent || 0} this week`;
                 document.getElementById('stat-freelancers').textContent = data.users.freelancers || 0;
                 document.getElementById('stat-clients').textContent = data.users.clients || 0;
+                document.getElementById('stat-both').textContent = data.users.both || 0;
                 document.getElementById('stat-verified').textContent = data.users.verified || 0;
             }
 
