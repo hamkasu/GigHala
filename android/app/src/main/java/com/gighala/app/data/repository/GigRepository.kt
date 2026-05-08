@@ -54,6 +54,12 @@ class GigRepository @Inject constructor(
 
     suspend fun getApplications(gigId: Int): Result<List<ApplicationDto>> = runCatching {
         val response = api.getGigApplications(gigId)
+        val body = response.body() ?: error("Empty response")
+        body
+    }
+
+    suspend fun shortlistApplication(applicationId: Int): Result<ShortlistResponse> = runCatching {
+        val response = api.shortlistApplication(applicationId)
         response.body() ?: error("Empty response")
     }
 }

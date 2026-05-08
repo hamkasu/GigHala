@@ -5,14 +5,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Star as StarOutlined
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gighala.app.data.api.models.ApplicationDto
 import com.gighala.app.util.toMyr
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -189,6 +193,16 @@ fun GigDetailScreen(
                         }
                     }
 
+                    // Applicants section (client view only)
+                    if (gig.isOwnGig && uiState.applications.isNotEmpty()) {
+                        HorizontalDivider()
+                        ApplicantsSection(
+                            applications = uiState.applications,
+                            shortlistingId = uiState.shortlistingId,
+                            onShortlist = { viewModel.shortlistApplication(it) }
+                        )
+                    }
+
                     Spacer(Modifier.height(80.dp))
                 }
             }
@@ -205,6 +219,127 @@ fun GigDetailScreen(
             onDismiss = { showApplySheet = false },
             onSubmit = { proposal, rate -> viewModel.applyToGig(gigId, proposal, rate) }
         )
+    }
+}
+
+@Composable
+private fun ApplicantsSection(
+    applications: List<ApplicationDto>,
+    shortlistingId: Int?,
+    onShortlist: (Int) -> Unit
+) {
+    val shortlisted = applications.filter { it.isShortlisted }
+    var showShortlistedOnly by remember { mutableStateOf(false) }
+    val displayed = if (showShortlistedOnly) shortlisted else applications
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Applicants (${applications.size})", style = MaterialTheme.typography.titleMedium)
+            if (shortlisted.isNotEmpty()) {
+                FilterChip(
+                    selected = showShortlistedOnly,
+                    onClick = { showShortlistedOnly = !showShortlistedOnly },
+                    label = { Text("★ Shortlisted (${shortlisted.size})") }
+                )
+            }
+        }
+
+        displayed.forEach { app ->
+            ApplicantCard(
+                application = app,
+                isShortlisting = shortlistingId == app.id,
+                onShortlist = { onShortlist(app.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ApplicantCard(
+    application: ApplicationDto,
+    isShortlisting: Boolean,
+    onShortlist: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (application.isShortlisted)
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            else MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Filled.AccountCircle, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                application.freelancer?.fullName ?: application.freelancer?.username ?: "Applicant",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            if (application.isShortlisted) {
+                                Text("★", color = Color(0xFFD97706), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        application.freelancer?.let { f ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Star, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.secondary)
+                                Text(" ${f.rating}", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+                application.proposedPrice?.let { price ->
+                    Text(price.toMyr(), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+
+            application.coverLetter?.takeIf { it.isNotBlank() }?.let { letter ->
+                Text(
+                    if (letter.length > 120) letter.take(120) + "…" else letter,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (application.status == "pending") {
+                OutlinedButton(
+                    onClick = onShortlist,
+                    enabled = !isShortlisting,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (application.isShortlisted) Color(0xFFD97706) else MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
+                    if (isShortlisting) {
+                        CircularProgressIndicator(Modifier.size(16.dp))
+                    } else {
+                        Icon(
+                            if (application.isShortlisted) Icons.Filled.Star else StarOutlined,
+                            null,
+                            Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(if (application.isShortlisted) "Remove from Shortlist" else "Shortlist")
+                    }
+                }
+            } else {
+                AssistChip(
+                    onClick = {},
+                    label = { Text(application.status.replaceFirstChar { it.uppercase() }) }
+                )
+            }
+        }
     }
 }
 

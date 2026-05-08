@@ -104,6 +104,9 @@ interface ApiService {
     @POST("api/applications/{id}/reject")
     suspend fun rejectApplication(@Path("id") applicationId: Int): Response<AuthResponse>
 
+    @POST("api/applications/{id}/shortlist")
+    suspend fun shortlistApplication(@Path("id") applicationId: Int): Response<ShortlistResponse>
+
     // ── Search ────────────────────────────────────────────────────────────────
 
     @GET("api/search")

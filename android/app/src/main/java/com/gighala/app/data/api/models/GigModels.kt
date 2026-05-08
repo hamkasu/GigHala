@@ -33,6 +33,7 @@ data class GigDto(
     val client: GigClientDto? = null,
     @Json(name = "application_count") val applicationCount: Int = 0,
     @Json(name = "user_has_applied") val userHasApplied: Boolean = false,
+    @Json(name = "is_own_gig") val isOwnGig: Boolean = false,
     @Json(name = "gig_photos") val gigPhotos: List<GigPhotoDto> = emptyList()
 )
 
@@ -91,10 +92,17 @@ data class ApplicationDto(
     val id: Int,
     @Json(name = "gig_id") val gigId: Int,
     val status: String,
-    @Json(name = "proposal_text") val proposalText: String? = null,
-    @Json(name = "applied_rate") val appliedRate: Double? = null,
+    @Json(name = "cover_letter") val coverLetter: String? = null,
+    @Json(name = "proposed_price") val proposedPrice: Double? = null,
+    @Json(name = "is_shortlisted") val isShortlisted: Boolean = false,
     @Json(name = "created_at") val createdAt: String? = null,
-    val worker: GigClientDto? = null
+    @Json(name = "freelancer") val freelancer: GigClientDto? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class ShortlistResponse(
+    val message: String,
+    @Json(name = "is_shortlisted") val isShortlisted: Boolean
 )
 
 @JsonClass(generateAdapter = true)

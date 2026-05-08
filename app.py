@@ -2934,6 +2934,7 @@ class Application(db.Model):
     proposed_price = db.Column(db.Float)
     video_pitch = db.Column(db.String(255))
     status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected
+    is_shortlisted = db.Column(db.Boolean, default=False)
     work_submitted = db.Column(db.Boolean, default=False)  # Track if work has been submitted
     work_submission_date = db.Column(db.DateTime)  # When work was submitted
     completion_notes = db.Column(db.Text)  # Freelancer's notes when marking work as completed
@@ -8809,6 +8810,7 @@ def get_gig_applications(gig_id):
                 'proposed_price': app.proposed_price,
                 'video_pitch': app.video_pitch,
                 'status': app.status,
+                'is_shortlisted': app.is_shortlisted,
                 'created_at': app.created_at.isoformat()
             })
 
@@ -9228,6 +9230,36 @@ GigHala - Your Trusted Syariah-Principled Gig Platform
         app.logger.error(f"Reject application error: {str(e)}")
         return jsonify({'error': 'Failed to reject application'}), 500
 
+@app.route('/api/applications/<int:application_id>/shortlist', methods=['POST'])
+def toggle_shortlist_application(application_id):
+    """Client toggles shortlist flag on a pending application"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        application = Application.query.get_or_404(application_id)
+        gig = Gig.query.get(application.gig_id)
+        user_id = session['user_id']
+
+        if gig.client_id != user_id:
+            return jsonify({'error': 'Only the gig owner can shortlist applications'}), 403
+
+        if application.status != 'pending':
+            return jsonify({'error': 'Can only shortlist pending applications'}), 400
+
+        application.is_shortlisted = not application.is_shortlisted
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Added to shortlist' if application.is_shortlisted else 'Removed from shortlist',
+            'is_shortlisted': application.is_shortlisted
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Toggle shortlist error: {str(e)}")
+        return jsonify({'error': 'Failed to update shortlist'}), 500
+
 @app.route('/api/gigs/<int:gig_id>', methods=['GET'])
 def get_gig_details(gig_id):
     """Get gig details with client information and photos"""
@@ -9259,6 +9291,7 @@ def get_gig_details(gig_id):
             'budget_min': gig.budget_min,
             'budget_max': gig.budget_max,
             'status': gig.status,
+            'is_own_gig': gig.client_id == user_id,
             'client': {
                 'id': client.id,
                 'username': client.username,
