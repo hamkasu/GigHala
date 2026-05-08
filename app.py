@@ -2705,6 +2705,15 @@ class User(UserMixin, db.Model):
     perkeso_registered = db.Column(db.Boolean, default=False)  # Registered via PERKESO API
     perkeso_registration_date = db.Column(db.DateTime)  # Date of API registration
     perkeso_sector_code = db.Column(db.String(10))  # PERKESO sector code (e.g. 'P' = Service Provider)
+    # PERKESO profile fields — required for Update User Details (PATCH /api/v1/obs/{ic_no})
+    ic_type = db.Column(db.String(5), default='B')  # B = New MyKad, L = Old IC, PR = Permanent Resident
+    person_status = db.Column(db.String(5), default='P')  # P = Public, RP = Retired Police, RM = Retired Military, O = Others
+    next_of_kin_name = db.Column(db.String(255))
+    next_of_kin_mobile_no = db.Column(db.String(20))
+    next_of_kin_relation = db.Column(db.String(5))  # W=Wife H=Husband C=Children M=Mother F=Father S=Sibling O=Others
+    house_phone_no = db.Column(db.String(20))  # Optional landline
+    perkeso_state_id = db.Column(db.Integer)  # PERKESO integer state ID from GET /api/v1/states
+    perkeso_city_id = db.Column(db.Integer)  # PERKESO integer city ID from GET /api/v1/states
     # Profile photo
     profile_photo = db.Column(db.String(255))  # Filename of uploaded profile photo
     # External portfolio URL
@@ -5747,6 +5756,38 @@ def update_profile_settings():
             user.socso_consent_date = datetime.utcnow()
         elif not socso_consent:
             user.socso_consent = False
+
+        # PERKESO profile fields (required for full PRIHATIN profile sync)
+        ic_type = request.form.get('ic_type', '').strip()
+        if ic_type in ('B', 'L', 'PR'):
+            user.ic_type = ic_type
+
+        person_status = request.form.get('person_status', '').strip()
+        if person_status in ('P', 'RP', 'RM', 'O'):
+            user.person_status = person_status
+
+        next_of_kin_name = request.form.get('next_of_kin_name', '').strip()
+        user.next_of_kin_name = next_of_kin_name or None
+
+        next_of_kin_mobile_no = request.form.get('next_of_kin_mobile_no', '').strip()
+        if next_of_kin_mobile_no and not next_of_kin_mobile_no.startswith('60'):
+            next_of_kin_mobile_no = '60' + next_of_kin_mobile_no.lstrip('0')
+        user.next_of_kin_mobile_no = next_of_kin_mobile_no or None
+
+        next_of_kin_relation = request.form.get('next_of_kin_relation', '').strip()
+        if next_of_kin_relation in ('W', 'H', 'C', 'M', 'F', 'S', 'O'):
+            user.next_of_kin_relation = next_of_kin_relation
+
+        house_phone_no = request.form.get('house_phone_no', '').strip()
+        user.house_phone_no = house_phone_no or None
+
+        perkeso_state_id = request.form.get('perkeso_state_id', '').strip()
+        if perkeso_state_id.isdigit():
+            user.perkeso_state_id = int(perkeso_state_id)
+
+        perkeso_city_id = request.form.get('perkeso_city_id', '').strip()
+        if perkeso_city_id.isdigit():
+            user.perkeso_city_id = int(perkeso_city_id)
 
         db.session.commit()
         if ic_just_verified:
