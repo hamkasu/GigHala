@@ -2302,6 +2302,10 @@ def create_socso_contribution(freelancer_id, gross_amount, platform_commission, 
     contribution_month = now.strftime('%Y-%m')
     contribution_year = now.year
 
+    # Generate stable request ID now, before the DB row exists, so it is
+    # never None when passed to the PERKESO API or matched by the callback.
+    perkeso_req_id = str(uuid.uuid4())
+
     contribution = SocsoContribution(
         freelancer_id=freelancer_id,
         transaction_id=transaction_id,
@@ -2317,6 +2321,7 @@ def create_socso_contribution(freelancer_id, gross_amount, platform_commission, 
         contribution_type=contribution_type
     )
 
+    contribution.perkeso_request_id = perkeso_req_id
     db.session.add(contribution)
 
     # Auto-submit to PERKESO GIG Workers API (replaces manual ASSIST Portal upload)
@@ -2332,7 +2337,6 @@ def create_socso_contribution(freelancer_id, gross_amount, platform_commission, 
                     freelancer.perkeso_registered = True
                     freelancer.perkeso_registration_date = datetime.utcnow()
             if getattr(freelancer, 'perkeso_registered', False):
-                contribution.perkeso_request_id = str(contribution.id) if contribution.id else None
                 contribution.perkeso_submitted_at = datetime.utcnow()
                 perkeso.submit_job_deduction(contribution, freelancer, gig or type('obj', (object,), {})())
     except Exception as _perkeso_exc:
@@ -11866,22 +11870,48 @@ def test_fund_escrow(gig_id):
 def perkeso_callback_batch_registration():
     """
     Receive async batch-registration results from PERKESO (Section 4.1).
-    PERKESO sends an array of per-user success/fail/error objects.
+    Schema: { "results": [ {status, data.user | data | message}, ... ] }
+
+    ic_number is stored as EncryptedString so it cannot be queried at the
+    SQL level. We load unregistered freelancers and compare decrypted values
+    in Python — correct and safe for all DB sizes GigHala will encounter.
     """
     data = request.get_json(silent=True) or {}
     results = data.get('results', [])
     updated = 0
+
+    # Load all unregistered freelancers once and build ic_no → user map
+    candidates = User.query.filter(
+        User.user_type.in_(['freelancer', 'both']),
+        User.perkeso_registered == False,  # noqa: E712
+        User.ic_number != None,            # noqa: E711
+    ).all()
+    ic_map = {u.ic_number.strip(): u for u in candidates if u.ic_number}
+
     for item in results:
         status = item.get('status')
+
         if status == 'success':
-            user_info = item.get('data', {}).get('user') or item.get('user', {})
-            ic_no = user_info.get('ic_no')
-            if ic_no:
-                freelancer = User.query.filter_by(ic_number=ic_no).first()
-                if freelancer and not freelancer.perkeso_registered:
-                    freelancer.perkeso_registered = True
-                    freelancer.perkeso_registration_date = datetime.utcnow()
-                    updated += 1
+            user_info = (item.get('data') or {}).get('user') or {}
+            ic_no = (user_info.get('ic_no') or '').strip()
+            if ic_no and ic_no in ic_map:
+                freelancer = ic_map[ic_no]
+                freelancer.perkeso_registered = True
+                freelancer.perkeso_registration_date = datetime.utcnow()
+                updated += 1
+
+        elif status == 'fail':
+            # Validation errors per field — log so ops can investigate
+            field_errors = item.get('data') or {}
+            app.logger.warning(
+                'PERKESO batch-registration FAIL for one record: %s', field_errors
+            )
+
+        elif status == 'error':
+            app.logger.error(
+                'PERKESO batch-registration ERROR: %s', item.get('message', '(no message)')
+            )
+
     if updated:
         db.session.commit()
     return jsonify({'status': 'success', 'updated': updated}), 200
@@ -11892,54 +11922,144 @@ def perkeso_callback_batch_registration():
 def perkeso_callback_deduction():
     """
     Receive async deduction results from PERKESO (Section 4.2).
-    Updates SocsoContribution records with PERKESO's deduction status.
+    Schema: { "request": {..., "request_id": "..."}, "data": {txn_id: obj|str, ...},
+              "received_at": "...", "processed_at": "..." }
+
+    The spec calls "data" an array but describes it with dynamic transaction-ID
+    keys, making it effectively an object. We handle both shapes defensively.
     """
     data = request.get_json(silent=True) or {}
-    request_obj = data.get('request', {})
-    request_id = request_obj.get('request_id')
-    deduction_data = data.get('data', {})
+    request_obj = data.get('request') or {}
+    request_id = (request_obj.get('request_id') or '').strip()
+    raw_data = data.get('data') or {}
     updated = 0
 
-    if request_id:
-        contribution = SocsoContribution.query.filter_by(
-            perkeso_request_id=str(request_id)
-        ).first()
-        if contribution:
-            contribution.perkeso_callback_received_at = datetime.utcnow()
-            # data is keyed by transaction_id
-            for transaction_id, result in deduction_data.items():
-                if isinstance(result, dict):
-                    contribution.perkeso_submission_status = result.get('status')
-                    contribution.perkeso_deduction_id = result.get('deduction_id')
-                else:
-                    # result is an error code string
-                    contribution.perkeso_submission_status = 'REJECTED'
-            # Mark as remitted if accepted
-            if contribution.perkeso_submission_status in ('ACCEPTED', 'PARTIAL_ACCEPTED'):
-                contribution.remitted_to_socso = True
-                contribution.remittance_date = datetime.utcnow()
-                contribution.remittance_reference = contribution.perkeso_deduction_id
-            updated = 1
-        db.session.commit()
+    if not request_id:
+        app.logger.warning('PERKESO deduction callback received with no request_id')
+        return jsonify({'status': 'success', 'updated': 0}), 200
 
-    return jsonify({'status': 'success', 'updated': updated}), 200
+    contribution = SocsoContribution.query.filter_by(
+        perkeso_request_id=request_id
+    ).first()
+
+    if not contribution:
+        app.logger.warning(
+            'PERKESO deduction callback: no SocsoContribution found for request_id=%s', request_id
+        )
+        return jsonify({'status': 'success', 'updated': 0}), 200
+
+    contribution.perkeso_callback_received_at = datetime.utcnow()
+
+    # Normalise: doc says "array" but uses dynamic keys — handle dict and list
+    if isinstance(raw_data, dict):
+        txn_items = raw_data.items()
+    elif isinstance(raw_data, list):
+        # Flatten: each list item may be {txn_id: result} or just a result object
+        txn_items = []
+        for entry in raw_data:
+            if isinstance(entry, dict):
+                txn_items.extend(entry.items())
+    else:
+        txn_items = []
+
+    for _txn_id, result in txn_items:
+        if isinstance(result, dict):
+            contribution.perkeso_submission_status = result.get('status')
+            deduction_id = result.get('deduction_id')
+            if deduction_id:
+                contribution.perkeso_deduction_id = str(deduction_id)
+            app.logger.info(
+                'PERKESO deduction txn=%s status=%s deduction_id=%s',
+                _txn_id, result.get('status'), deduction_id,
+            )
+        else:
+            # result is an error-code string
+            contribution.perkeso_submission_status = 'REJECTED'
+            app.logger.warning(
+                'PERKESO deduction txn=%s rejected with code: %s', _txn_id, result
+            )
+
+    # Sync remittance flag with PERKESO outcome
+    if contribution.perkeso_submission_status in ('ACCEPTED', 'PARTIAL_ACCEPTED'):
+        contribution.remitted_to_socso = True
+        contribution.remittance_date = datetime.utcnow()
+        contribution.remittance_reference = contribution.perkeso_deduction_id
+    elif contribution.perkeso_submission_status in ('REJECTED', 'DUPLICATE_TRANSACTION'):
+        contribution.remitted_to_socso = False
+
+    db.session.commit()
+    return jsonify({'status': 'success', 'updated': 1}), 200
 
 
 @app.route('/api/perkeso/callback/contribution', methods=['POST'])
 @csrf.exempt
 def perkeso_callback_contribution():
     """
-    Receive contribution confirmation from PERKESO (Section 4.3).
-    Triggered by PERKESO's scheduled process when monthly contributions are submitted.
-    Logs the confirmation; no direct action required on GigHala side.
+    Receive monthly contribution confirmations from PERKESO (Section 4.3).
+    Schema: { "contributions": [ {ic_no, plan, status, contribution_id,
+              coverage_started_at, coverage_ended_at, created_at, updated_at} ] }
+
+    Triggered by PERKESO's scheduler when it creates the actual insurance
+    contribution from the worker's PRIHATIN wallet. We notify the worker.
     """
     data = request.get_json(silent=True) or {}
-    contributions = data.get('contributions', [])
-    import logging as _log
-    _log.getLogger(__name__).info(
-        'PERKESO contribution callback received: %d records', len(contributions)
-    )
-    return jsonify({'status': 'success'}), 200
+    contributions = data.get('contributions') or []
+    app.logger.info('PERKESO contribution callback: %d records received', len(contributions))
+
+    if not contributions:
+        return jsonify({'status': 'success'}), 200
+
+    # Build ic_no → user map in one query (Python-level decryption, same as batch-reg)
+    freelancers = User.query.filter(
+        User.user_type.in_(['freelancer', 'both']),
+        User.ic_number != None,  # noqa: E711
+    ).all()
+    ic_map = {u.ic_number.strip(): u for u in freelancers if u.ic_number}
+
+    notified = 0
+    for record in contributions:
+        ic_no = (record.get('ic_no') or '').strip()
+        status = record.get('status', '')
+        contribution_id = record.get('contribution_id')
+        plan_name = (record.get('plan') or {}).get('name', '')
+        monthly_amount = (record.get('plan') or {}).get('monthly_amount', '')
+        coverage_start = record.get('coverage_started_at', '')
+        coverage_end = record.get('coverage_ended_at', '')
+
+        app.logger.info(
+            'PERKESO contribution: ic_no=%s status=%s contribution_id=%s plan=%s',
+            ic_no, status, contribution_id, plan_name,
+        )
+
+        worker = ic_map.get(ic_no)
+        if not worker:
+            app.logger.warning('PERKESO contribution callback: no user found for ic_no=%s', ic_no)
+            continue
+
+        # In-app notification so the worker sees their PERKESO coverage was activated
+        coverage_text = ''
+        if coverage_start and coverage_end:
+            coverage_text = f' (Liputan: {coverage_start[:10]} – {coverage_end[:10]})'
+
+        notification = Notification(
+            user_id=worker.id,
+            notification_type='payment',
+            title='Caruman PERKESO Berjaya',
+            message=(
+                f'Caruman PERKESO anda bagi {plan_name} (RM{monthly_amount}/bulan) '
+                f'telah berjaya diproses{coverage_text}. '
+                f'ID Caruman: {contribution_id}.'
+            ),
+            link='/billing/socso-statement',
+            related_id=None,
+        )
+        db.session.add(notification)
+        notified += 1
+
+    if notified:
+        db.session.commit()
+
+    return jsonify({'status': 'success', 'notified': notified}), 200
 
 
 @app.route('/api/payhalal/escrow-webhook', methods=['POST'])

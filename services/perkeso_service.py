@@ -331,8 +331,12 @@ class PERKESOService:
             if mobile_no and not mobile_no.startswith('60'):
                 mobile_no = '60' + mobile_no.lstrip('0')
 
+            ic_type = (getattr(user, 'ic_type', None) or 'B')
+            if ic_type not in ('B', 'L', 'PR'):
+                ic_type = 'B'
+
             self.register_user(
-                ic_type='B',  # Default: new NRIC
+                ic_type=ic_type,
                 ic_no=ic_no,
                 name=user.name or user.username or '',
                 email=user.email or '',
@@ -383,12 +387,16 @@ class PERKESOService:
 
         transacted_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
+        # perkeso_request_id is a UUID set before the DB row is committed,
+        # so it is always available here and matches the callback lookup key.
+        request_id = contribution.perkeso_request_id
+
         try:
             result = self.submit_deduction(
-                request_id=str(contribution.id),
+                request_id=request_id,
                 deductions=[{
                     'ic_no': ic_no,
-                    'transaction_id': str(contribution.id),
+                    'transaction_id': request_id,
                     'transacted_at': transacted_at,
                     'sector_code': sector_code,
                     'amount': round(contribution.socso_amount, 2),
@@ -399,8 +407,8 @@ class PERKESOService:
                 }],
             )
             logger.info(
-                'PERKESO deduction submitted for contribution %d (user %d, amount RM%.2f)',
-                contribution.id, user.id, contribution.socso_amount,
+                'PERKESO deduction submitted: request_id=%s user=%d amount=RM%.2f',
+                request_id, user.id, contribution.socso_amount,
             )
             return result
         except PERKESOError as exc:
