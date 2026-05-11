@@ -755,6 +755,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th style="cursor: pointer; user-select: none;" onclick="toggleUserSort()" id="users-id-header">ID <span id="users-sort-indicator"></span></th>
                         <th>Username</th>
                         <th>Email</th>
@@ -2630,8 +2631,9 @@
             }
 
             const tbody = document.getElementById('users-tbody');
-            tbody.innerHTML = users.map(user => `
+            tbody.innerHTML = users.map((user, index) => `
                 <tr>
+                    <td>${index + 1}</td>
                     <td>${user.id}</td>
                     <td>${user.username}</td>
                     <td>${user.email}</td>
