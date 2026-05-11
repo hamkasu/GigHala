@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
+from disposable_email_domains import is_disposable_email
 import os
 import secrets
 import json
@@ -6113,6 +6114,10 @@ def register():
             email = email_info.normalized
         except EmailNotValidError as e:
             return jsonify({'error': f'Invalid email: {str(e)}'}), 400
+
+        # Block disposable/temporary email addresses
+        if is_disposable_email(email):
+            return jsonify({'error': 'Disposable or temporary email addresses are not allowed. Please use a permanent email address.'}), 400
 
         # Validate username
         is_valid, message = validate_username(data['username'])
