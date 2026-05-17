@@ -2647,6 +2647,9 @@ class User(UserMixin, db.Model):
     admin_role = db.Column(db.String(50))  # super_admin, billing, moderator, etc.
     admin_permissions = db.Column(db.Text)  # JSON string of specific permissions
     is_deleted = db.Column(db.Boolean, default=False)  # soft-delete; preserves data for audit
+    is_flagged = db.Column(db.Boolean, default=False)
+    is_suspended = db.Column(db.Boolean, default=False)
+    worker_cancellation_count = db.Column(db.Integer, default=0)
     # IC Number (Malaysian Identity Card - 12 digits) or Passport Number (up to 20 chars)
     ic_number = db.Column(EncryptedString)  # PDPA: encrypted at rest
     # Bank account details for payment transfers
@@ -2855,6 +2858,8 @@ class Gig(db.Model):
     applications = db.Column(db.Integer, default=0)
     cancellation_reason = db.Column(db.Text)  # Reason for cancellation
     cancelled_at = db.Column(db.DateTime)  # When the gig was cancelled
+    cancelled_by = db.Column(db.String(10))  # 'client' or 'worker'
+    cancelled_worker_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Worker who cancelled, kept for review
     blocked_at = db.Column(db.DateTime)  # When the gig was blocked
     blocked_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Admin who blocked it
     block_reason = db.Column(db.Text)  # Reason for blocking
@@ -10176,6 +10181,7 @@ def cancel_gig(gig_id):
         # Store cancellation details
         gig.cancellation_reason = cancellation_reason
         gig.cancelled_at = datetime.utcnow()
+        gig.cancelled_by = 'client'
         old_status = gig.status
         gig.status = 'cancelled'
 
@@ -10299,6 +10305,173 @@ def cancel_gig(gig_id):
         db.session.rollback()
         app.logger.error(f"Cancel gig error: {str(e)}")
         return jsonify({'error': 'Failed to cancel gig'}), 500
+
+
+@app.route('/api/gigs/<int:gig_id>/worker-cancel', methods=['POST'])
+def worker_cancel_gig(gig_id):
+    """Worker cancels an assigned gig before work begins. Full refund issued to client."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json or {}
+        gig = Gig.query.get_or_404(gig_id)
+        user_id = session['user_id']
+
+        # Only the assigned worker can use this endpoint
+        if gig.freelancer_id != user_id:
+            return jsonify({'error': 'Only the assigned worker can cancel this gig'}), 403
+
+        # Can only cancel while in_progress (assigned but not yet submitted)
+        if gig.status != 'in_progress':
+            return jsonify({'error': 'You can only cancel a gig that is in progress'}), 400
+
+        # Require a meaningful cancellation reason
+        cancellation_reason = (data.get('reason') or '').strip()
+        if len(cancellation_reason) < 20:
+            return jsonify({'error': 'Please provide a reason of at least 20 characters'}), 400
+
+        worker = User.query.get(user_id)
+
+        # Increment cancellation count and apply escalating consequences
+        worker.worker_cancellation_count = (worker.worker_cancellation_count or 0) + 1
+        if worker.worker_cancellation_count >= 5:
+            worker.is_suspended = True
+        elif worker.worker_cancellation_count >= 3:
+            worker.is_flagged = True
+
+        # Reset gig so client can re-post or find another worker
+        gig.cancellation_reason = cancellation_reason
+        gig.cancelled_at = datetime.utcnow()
+        gig.cancelled_by = 'worker'
+        gig.cancelled_worker_id = user_id  # preserve for client review
+        gig.status = 'open'
+        gig.freelancer_id = None
+        gig.agreed_amount = None
+
+        # Full refund of escrow to client
+        escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=user_id).first()
+        if not escrow:
+            escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+
+        refund_processed = False
+        refund_amount = 0
+
+        if escrow and escrow.status in ['funded', 'in_progress']:
+            remaining_amount = escrow.amount - (escrow.refunded_amount or 0.0)
+
+            if remaining_amount > 0:
+                stripe_refund_id = None
+                if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+                    try:
+                        if stripe.api_key:
+                            refund = stripe.Refund.create(
+                                payment_intent=escrow.payment_reference,
+                                amount=int(remaining_amount * 100),
+                                reason='requested_by_customer',
+                                metadata={
+                                    'gig_id': str(gig_id),
+                                    'escrow_id': str(escrow.id),
+                                    'reason': f'Worker cancelled: {cancellation_reason}'
+                                }
+                            )
+                            stripe_refund_id = refund.id
+                    except Exception as stripe_error:
+                        app.logger.error(f"Stripe refund error on worker cancel: {str(stripe_error)}")
+
+                escrow.refunded_amount = escrow.amount
+                escrow.status = 'refunded'
+                escrow.refunded_at = datetime.utcnow()
+                note = f"Worker cancelled: {cancellation_reason}"
+                escrow.admin_notes = (escrow.admin_notes + '\n' + note) if escrow.admin_notes else note
+
+                client_wallet = Wallet.query.filter_by(user_id=gig.client_id).first()
+                if client_wallet:
+                    client_wallet.held_balance -= remaining_amount
+                    if escrow.payment_gateway != 'stripe':
+                        client_wallet.balance += remaining_amount
+
+                payment_history = PaymentHistory(
+                    user_id=gig.client_id,
+                    type='refund',
+                    amount=remaining_amount,
+                    balance_before=client_wallet.balance if client_wallet else 0,
+                    balance_after=client_wallet.balance if client_wallet else 0,
+                    description=f"Full refund — worker cancelled gig: {gig.title}",
+                    reference_number=stripe_refund_id or escrow.payment_reference,
+                    payment_gateway=escrow.payment_gateway,
+                    status='completed'
+                )
+                db.session.add(payment_history)
+                refund_processed = True
+                refund_amount = remaining_amount
+
+        # Notify client with the worker's reason and a prompt to rate the worker
+        client_notification = Notification(
+            user_id=gig.client_id,
+            notification_type='payment',
+            title='Worker Cancelled Your Gig',
+            message=(
+                f'{worker.full_name or worker.username} cancelled the gig "{gig.title}". '
+                f'Reason: {cancellation_reason}. '
+                f'A full refund has been processed. You can now rate the worker.'
+            ),
+            link=f'/gig/{gig_id}',
+            related_id=gig_id
+        )
+        db.session.add(client_notification)
+
+        # Notify worker of the consequences if flagged or suspended
+        if worker.is_suspended:
+            suspension_msg = 'Your account has been suspended due to repeated job cancellations.'
+        elif worker.is_flagged:
+            suspension_msg = (
+                f'Your account has been flagged after {worker.worker_cancellation_count} cancellations. '
+                'Further cancellations may result in suspension.'
+            )
+        else:
+            suspension_msg = None
+
+        if suspension_msg:
+            worker_notification = Notification(
+                user_id=user_id,
+                notification_type='application',
+                title='Account Status Update',
+                message=suspension_msg,
+                link='/profile'
+            )
+            db.session.add(worker_notification)
+
+        db.session.commit()
+
+        response_data = {
+            'message': 'Gig cancelled. The client has been notified and will receive a full refund.',
+            'gig': {
+                'id': gig.id,
+                'status': gig.status,
+                'cancellation_reason': cancellation_reason
+            },
+            'worker': {
+                'cancellation_count': worker.worker_cancellation_count,
+                'is_flagged': worker.is_flagged,
+                'is_suspended': worker.is_suspended
+            }
+        }
+
+        if refund_processed:
+            response_data['refund'] = {
+                'processed': True,
+                'amount': refund_amount,
+                'method': escrow.payment_gateway if escrow else None
+            }
+
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Worker cancel gig error: {str(e)}")
+        return jsonify({'error': 'Failed to cancel gig'}), 500
+
 
 # ============================================================================
 # MILESTONE PAYMENT API ENDPOINTS
@@ -13623,18 +13796,22 @@ def create_review(gig_id):
         data = request.json
         gig = Gig.query.get_or_404(gig_id)
 
-        # Validate gig is completed
-        if gig.status != 'completed':
-            return jsonify({'error': 'Can only review completed gigs'}), 400
+        user_id = session['user_id']
+
+        # Allow review when completed, or when a worker cancelled (client rating the worker only)
+        worker_cancelled = gig.cancelled_by == 'worker' and gig.cancelled_worker_id is not None
+        if gig.status != 'completed' and not worker_cancelled:
+            return jsonify({'error': 'Can only review completed gigs or worker-cancelled gigs'}), 400
 
         # Determine reviewer and reviewee based on user role in gig
-        user_id = session['user_id']
         if gig.client_id == user_id:
-            # Client reviewing freelancer
-            reviewee_id = gig.freelancer_id
-        elif gig.freelancer_id == user_id:
-            # Freelancer reviewing client
+            reviewee_id = gig.cancelled_worker_id if worker_cancelled else gig.freelancer_id
+            if not reviewee_id:
+                return jsonify({'error': 'Worker information is no longer available'}), 400
+        elif not worker_cancelled and gig.freelancer_id == user_id:
             reviewee_id = gig.client_id
+        elif worker_cancelled and gig.cancelled_worker_id == user_id:
+            return jsonify({'error': 'Workers cannot leave reviews on gigs they cancelled'}), 403
         else:
             return jsonify({'error': 'You are not part of this gig'}), 403
 
