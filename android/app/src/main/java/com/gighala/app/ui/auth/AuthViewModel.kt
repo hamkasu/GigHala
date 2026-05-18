@@ -67,6 +67,15 @@ class AuthViewModel @Inject constructor(
 
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
 
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState(isLoading = true)
+            authRepository.signInWithGoogle(idToken)
+                .onFailure { _uiState.value = AuthUiState(error = it.message) }
+                .onSuccess { _uiState.value = AuthUiState() }
+        }
+    }
+
     fun exchangeMobileToken(token: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)

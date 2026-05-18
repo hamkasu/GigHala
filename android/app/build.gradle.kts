@@ -19,6 +19,14 @@ android {
 
         // Base URL — override per build variant or via local.properties
         buildConfigField("String", "BASE_URL", "\"https://gighala.com\"")
+
+        // Google Web Client ID — set GOOGLE_WEB_CLIENT_ID in local.properties
+        val localProps = java.util.Properties().also { props ->
+            val f = rootProject.file("local.properties")
+            if (f.exists()) props.load(f.inputStream())
+        }
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID",
+            "\"${localProps.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
     }
 
     buildTypes {
@@ -101,4 +109,6 @@ dependencies {
     // DataStore (preferences)
     implementation(libs.androidx.datastore)
 
+    // Native Google Sign-In (no browser required)
+    implementation(libs.play.services.auth)
 }

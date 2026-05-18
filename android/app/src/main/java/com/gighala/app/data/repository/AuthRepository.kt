@@ -3,6 +3,7 @@ package com.gighala.app.data.repository
 import com.gighala.app.data.api.ApiService
 import com.gighala.app.data.api.models.AuthResponse
 import com.gighala.app.data.api.models.ExchangeTokenRequest
+import com.gighala.app.data.api.models.GoogleIdTokenRequest
 import com.gighala.app.data.api.models.LoginRequest
 import com.gighala.app.data.api.models.RegisterRequest
 import com.gighala.app.data.api.models.UserDto
@@ -101,6 +102,15 @@ class AuthRepository @Inject constructor(
     }
 
     fun currentUser(): UserDto? = (_authState.value as? AuthState.Authenticated)?.user
+
+    /** Signs in with a Google ID token from the native Google Sign-In SDK. */
+    suspend fun signInWithGoogle(idToken: String): Result<AuthResponse> = runCatching {
+        val response = api.verifyGoogleIdToken(GoogleIdTokenRequest(idToken))
+        val body = response.bodyOrError("Google sign-in failed")
+        if (body.user != null) _authState.value = AuthState.Authenticated(body.user)
+        else error(body.error ?: body.message ?: "Google sign-in failed")
+        body
+    }
 
     /** Redeems the bridge token issued after Android Custom Tabs OAuth. */
     suspend fun exchangeMobileToken(token: String): Result<AuthResponse> = runCatching {

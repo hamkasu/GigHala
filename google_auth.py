@@ -166,6 +166,65 @@ def setup_google_oauth(app, db):
             }
         })
 
+    @google_auth.route("/api/auth/google/verify-token", methods=["POST"])
+    def verify_google_id_token():
+        """Verify a Google ID token from the Android native Sign-In SDK."""
+        from app import User
+        data = request.get_json(silent=True) or {}
+        id_token = data.get('id_token', '')
+        if not id_token:
+            return jsonify({"error": "Missing id_token"}), 400
+
+        # Verify the token with Google's tokeninfo endpoint
+        token_resp = requests.get(
+            'https://oauth2.googleapis.com/tokeninfo',
+            params={'id_token': id_token},
+            timeout=10
+        )
+        if not token_resp.ok:
+            return jsonify({"error": "Invalid Google ID token"}), 401
+
+        info = token_resp.json()
+
+        # Confirm the token was issued for our app
+        if info.get('aud') != GOOGLE_CLIENT_ID:
+            return jsonify({"error": "Token audience mismatch"}), 401
+
+        if info.get('email_verified') != 'true' and info.get('email_verified') is not True:
+            return jsonify({"error": "Email not verified by Google"}), 401
+
+        try:
+            email_info = validate_email(info['email'], check_deliverability=False)
+            users_email = email_info.normalized
+        except (EmailNotValidError, KeyError):
+            return jsonify({"error": "Invalid email from Google"}), 400
+
+        users_name = info.get('given_name', info.get('name', users_email.split('@')[0]))
+        google_sub = info.get('sub', '')
+
+        user = User.query.filter_by(email=users_email).first()
+        if not user:
+            user = User(username=users_name, email=users_email, oauth_provider='google', oauth_id=google_sub)
+            db.session.add(user)
+            db.session.commit()
+
+        login_user(user)
+        return jsonify({
+            "success": True,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "user_type": user.user_type,
+                "profile_photo": user.profile_photo,
+                "is_verified": getattr(user, 'is_verified', False),
+                "is_admin": getattr(user, 'is_admin', False),
+                "halal_verified": getattr(user, 'halal_verified', False),
+                "totp_enabled": getattr(user, 'totp_enabled', False),
+            }
+        })
+
     @google_auth.route("/logout")
     def logout():
         logout_user()

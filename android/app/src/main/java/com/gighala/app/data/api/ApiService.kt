@@ -24,6 +24,9 @@ interface ApiService {
     @POST("api/auth/mobile/exchange")
     suspend fun exchangeMobileToken(@Body request: ExchangeTokenRequest): Response<AuthResponse>
 
+    @POST("api/auth/google/verify-token")
+    suspend fun verifyGoogleIdToken(@Body request: GoogleIdTokenRequest): Response<AuthResponse>
+
     @GET("api/me")
     suspend fun getCurrentUser(): Response<UserDto>
 

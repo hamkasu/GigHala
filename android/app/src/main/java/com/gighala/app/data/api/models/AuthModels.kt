@@ -74,6 +74,11 @@ data class ExchangeTokenRequest(
 )
 
 @JsonClass(generateAdapter = true)
+data class GoogleIdTokenRequest(
+    @Json(name = "id_token") val idToken: String
+)
+
+@JsonClass(generateAdapter = true)
 data class ForgotPasswordRequest(
     val email: String
 )

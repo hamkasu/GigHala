@@ -57,3 +57,4 @@ uploads/
 # Replit
 .cache/
 .upm/
+android/local.properties
