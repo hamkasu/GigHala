@@ -69,6 +69,11 @@ data class Verify2faRequest(
 )
 
 @JsonClass(generateAdapter = true)
+data class ExchangeTokenRequest(
+    val token: String
+)
+
+@JsonClass(generateAdapter = true)
 data class ForgotPasswordRequest(
     val email: String
 )

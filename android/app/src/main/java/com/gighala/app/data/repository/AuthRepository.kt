@@ -1,7 +1,12 @@
 package com.gighala.app.data.repository
 
 import com.gighala.app.data.api.ApiService
-import com.gighala.app.data.api.models.*
+import com.gighala.app.data.api.models.AuthResponse
+import com.gighala.app.data.api.models.ExchangeTokenRequest
+import com.gighala.app.data.api.models.LoginRequest
+import com.gighala.app.data.api.models.RegisterRequest
+import com.gighala.app.data.api.models.UserDto
+import com.gighala.app.data.api.models.Verify2faRequest
 import com.gighala.app.util.PersistentCookieJar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -97,9 +102,12 @@ class AuthRepository @Inject constructor(
 
     fun currentUser(): UserDto? = (_authState.value as? AuthState.Authenticated)?.user
 
-    /** Called after social OAuth in WebView — inject cookies then refresh user. */
-    suspend fun completeSocialLogin(host: String, rawCookies: String) {
-        cookieJar.injectRawCookies(host, rawCookies)
-        refreshCurrentUser()
+    /** Redeems the bridge token issued after Android Custom Tabs OAuth. */
+    suspend fun exchangeMobileToken(token: String): Result<AuthResponse> = runCatching {
+        val response = api.exchangeMobileToken(ExchangeTokenRequest(token))
+        val body = response.bodyOrError("Sign-in failed")
+        if (body.user != null) _authState.value = AuthState.Authenticated(body.user)
+        else error(body.error ?: body.message ?: "Sign-in failed")
+        body
     }
 }

@@ -21,6 +21,9 @@ interface ApiService {
     @POST("api/2fa/verify")
     suspend fun verify2fa(@Body request: Verify2faRequest): Response<AuthResponse>
 
+    @POST("api/auth/mobile/exchange")
+    suspend fun exchangeMobileToken(@Body request: ExchangeTokenRequest): Response<AuthResponse>
+
     @GET("api/me")
     suspend fun getCurrentUser(): Response<UserDto>
 
