@@ -101,6 +101,4 @@ dependencies {
     // DataStore (preferences)
     implementation(libs.androidx.datastore)
 
-    // Custom Tabs (OAuth in real browser instead of WebView)
-    implementation(libs.androidx.browser)
 }

@@ -1,7 +1,7 @@
 package com.gighala.app.ui.auth
 
+import android.content.Intent
 import android.net.Uri
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -32,13 +32,15 @@ fun SocialLoginScreen(
         if (authState is AuthState.Authenticated) onSuccess()
     }
 
-    // Launch Custom Tabs once when the screen appears
+    // Open OAuth in the real default browser (not Custom Tabs, which can fall back to
+    // an in-process WebView and trigger Google's disallowed_useragent block).
     LaunchedEffect(Unit) {
         val oauthUrl = "${BuildConfig.BASE_URL}/google_login?source=android"
-        CustomTabsIntent.Builder()
-            .setShowTitle(true)
-            .build()
-            .launchUrl(context, Uri.parse(oauthUrl))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(oauthUrl)).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
     }
 
     val providerLabel = when (provider) {
