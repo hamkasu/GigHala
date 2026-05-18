@@ -1,10 +1,15 @@
 import json
 import os
+import secrets
+import time
 import requests
-from flask import Blueprint, redirect, request, url_for
+from flask import Blueprint, jsonify, redirect, request, session, url_for
 from flask_login import login_user, logout_user
 from oauthlib.oauth2 import WebApplicationClient
 from email_validator import validate_email, EmailNotValidError
+
+# Short-lived bridge tokens for Android OAuth: {token: (user_id, expires_at)}
+_mobile_tokens: dict = {}
 
 def setup_google_oauth(app, db):
     """Setup Google OAuth blueprint. Call this from main app after app is initialized."""
@@ -43,12 +48,18 @@ def setup_google_oauth(app, db):
     def login():
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
-        
+
         # Build callback URL - works for both Replit and Railway
         callback_url = request.url_root.rstrip('/') + '/google_login/callback'
         if request.url_root.startswith('http://'):
             callback_url = callback_url.replace('http://', 'https://', 1)
-        
+
+        # Remember if this was initiated from the Android app
+        if request.args.get('source') == 'android':
+            session['oauth_source'] = 'android'
+        else:
+            session.pop('oauth_source', None)
+
         request_uri = client.prepare_request_uri(
             authorization_endpoint,
             redirect_uri=callback_url,
@@ -106,8 +117,55 @@ def setup_google_oauth(app, db):
             db.session.commit()
         
         login_user(user)
+
+        # Android: redirect via deep link with a short-lived bridge token
+        if session.pop('oauth_source', None) == 'android':
+            bridge_token = secrets.token_urlsafe(32)
+            _mobile_tokens[bridge_token] = (user.id, time.time() + 300)
+            return redirect(f'gighala://oauth/callback?token={bridge_token}')
+
         return redirect(url_for("index"))
-    
+
+    @google_auth.route("/api/auth/mobile/exchange", methods=["POST"])
+    def mobile_exchange():
+        from app import User
+        # Purge expired tokens opportunistically
+        now = time.time()
+        expired = [t for t, (_, exp) in _mobile_tokens.items() if now > exp]
+        for t in expired:
+            _mobile_tokens.pop(t, None)
+
+        data = request.get_json(silent=True) or {}
+        bridge_token = data.get('token', '')
+        entry = _mobile_tokens.pop(bridge_token, None)
+        if not entry:
+            return jsonify({"error": "Invalid or expired token"}), 401
+
+        user_id, expires_at = entry
+        if time.time() > expires_at:
+            return jsonify({"error": "Token expired"}), 401
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        login_user(user)
+        return jsonify({
+            "success": True,
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "user_type": user.user_type,
+                "profile_photo": user.profile_photo,
+                "is_verified": getattr(user, 'is_verified', False),
+                "is_admin": getattr(user, 'is_admin', False),
+                "halal_verified": getattr(user, 'halal_verified', False),
+                "totp_enabled": getattr(user, 'totp_enabled', False),
+            }
+        })
+
     @google_auth.route("/logout")
     def logout():
         logout_user()

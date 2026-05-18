@@ -67,7 +67,12 @@ class AuthViewModel @Inject constructor(
 
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
 
-    fun completeSocialLogin(host: String, rawCookies: String) {
-        viewModelScope.launch { authRepository.completeSocialLogin(host, rawCookies) }
+    fun exchangeMobileToken(token: String) {
+        viewModelScope.launch {
+            _uiState.value = AuthUiState(isLoading = true)
+            authRepository.exchangeMobileToken(token)
+                .onFailure { _uiState.value = AuthUiState(error = it.message) }
+                .onSuccess { _uiState.value = AuthUiState() }
+        }
     }
 }

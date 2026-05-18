@@ -1,24 +1,21 @@
 package com.gighala.app.ui.auth
 
-import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.net.http.SslError
-import android.webkit.*
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gighala.app.BuildConfig
+import com.gighala.app.data.repository.AuthState
 
-@SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SocialLoginScreen(
@@ -27,19 +24,22 @@ fun SocialLoginScreen(
     onBack: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(authState) {
-        if (authState is com.gighala.app.data.repository.AuthState.Authenticated) onSuccess()
+        if (authState is AuthState.Authenticated) onSuccess()
     }
 
-    val oauthUrl = "${BuildConfig.BASE_URL}/api/auth/$provider"
-    val baseHost = BuildConfig.BASE_URL
-        .removePrefix("https://")
-        .removePrefix("http://")
-        .substringBefore(":")
+    // Launch Custom Tabs once when the screen appears
+    LaunchedEffect(Unit) {
+        val oauthUrl = "${BuildConfig.BASE_URL}/google_login?source=android"
+        CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .build()
+            .launchUrl(context, Uri.parse(oauthUrl))
+    }
 
     val providerLabel = when (provider) {
         "google"   -> "Google"
@@ -63,110 +63,44 @@ fun SocialLoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentAlignment = Alignment.Center
         ) {
-            val error = errorMessage
-            if (error != null) {
-                // Error state
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        Icons.Filled.ErrorOutline,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(Modifier.height(16.dp))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(32.dp)
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator()
                     Text(
-                        "$providerLabel login is not available",
-                        style = MaterialTheme.typography.titleMedium,
+                        "Completing sign-in…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else if (uiState.error != null) {
+                    Text(
+                        "Sign-in failed",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        uiState.error!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(8.dp))
+                    Button(onClick = onBack) { Text("Go Back") }
+                } else {
+                    CircularProgressIndicator()
                     Text(
-                        "Social login requires the GigHala production server. " +
-                        "Please use email/password login for local development.",
-                        style = MaterialTheme.typography.bodySmall,
+                        "Waiting for $providerLabel sign-in…",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(Modifier.height(24.dp))
-                    Button(onClick = onBack) { Text("Go Back") }
-                }
-            } else {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { context ->
-                        WebView(context).apply {
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled  = true
-
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                                    isLoading = true
-                                }
-
-                                override fun onPageFinished(view: WebView, url: String) {
-                                    isLoading = false
-                                    if (url.contains("/dashboard")) {
-                                        val rawCookies = CookieManager.getInstance().getCookie(url) ?: ""
-                                        viewModel.completeSocialLogin(baseHost, rawCookies)
-                                    }
-                                }
-
-                                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                                    val url = request.url.toString()
-                                    if (url.contains("/dashboard")) {
-                                        val rawCookies = CookieManager.getInstance().getCookie(url) ?: ""
-                                        viewModel.completeSocialLogin(baseHost, rawCookies)
-                                        return true
-                                    }
-                                    return false
-                                }
-
-                                override fun onReceivedError(
-                                    view: WebView,
-                                    request: WebResourceRequest,
-                                    error: WebResourceError
-                                ) {
-                                    if (request.isForMainFrame) {
-                                        isLoading = false
-                                        errorMessage = error.description.toString()
-                                    }
-                                }
-
-                                override fun onReceivedHttpError(
-                                    view: WebView,
-                                    request: WebResourceRequest,
-                                    errorResponse: WebResourceResponse
-                                ) {
-                                    if (request.isForMainFrame && errorResponse.statusCode >= 500) {
-                                        isLoading = false
-                                        errorMessage = "Server error (${errorResponse.statusCode})"
-                                    }
-                                }
-
-                                @SuppressLint("WebViewClientOnReceivedSslError")
-                                override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
-                                    // Reject SSL errors — don't proceed
-                                    handler.cancel()
-                                    isLoading = false
-                                    errorMessage = "SSL error"
-                                }
-                            }
-
-                            loadUrl(oauthUrl)
-                        }
-                    }
-                )
-
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = onBack) { Text("Cancel") }
                 }
             }
         }
