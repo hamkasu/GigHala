@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -100,5 +101,12 @@ dependencies {
 
     // DataStore (preferences)
     implementation(libs.androidx.datastore)
+
+    // Chrome Custom Tabs (payment browser flow)
+    implementation(libs.androidx.browser)
+
+    // Firebase / FCM
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Star as StarOutlined
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,6 +26,7 @@ fun GigDetailScreen(
     gigId: Int,
     onBack: () -> Unit,
     onMessageClient: (Int) -> Unit,
+    onFundEscrow: (gigId: Int, gigTitle: String, gigAmount: Double) -> Unit = { _, _, _ -> },
     viewModel: GigViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.detailState.collectAsState()
@@ -74,6 +76,19 @@ fun GigDetailScreen(
                             ) {
                                 Text("Apply Now")
                             }
+                        }
+                    }
+                } else if (gig.isOwnGig && gig.status in listOf("open", "in_progress")) {
+                    Surface(shadowElevation = 8.dp) {
+                        Button(
+                            onClick = {
+                                onFundEscrow(gig.id, gig.title, gig.budgetMax ?: gig.budgetMin ?: 0.0)
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(16.dp)
+                        ) {
+                            Icon(Icons.Filled.Lock, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Fund Escrow")
                         }
                     }
                 } else if (gig.userHasApplied) {

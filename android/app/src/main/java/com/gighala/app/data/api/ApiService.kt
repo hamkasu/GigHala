@@ -1,6 +1,9 @@
 package com.gighala.app.data.api
 
 import com.gighala.app.data.api.models.*
+import com.gighala.app.data.api.models.CheckoutSessionRequest
+import com.gighala.app.data.api.models.CheckoutSessionResponse
+import com.gighala.app.data.api.models.EscrowDto
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -200,4 +203,17 @@ interface ApiService {
         @Query("per_page") perPage: Int = 50,
         @Query("year") year: Int? = null
     ): Response<SocsoContributionsResponse>
+
+    // ── FCM Push Tokens ───────────────────────────────────────────────────────
+
+    @POST("api/notifications/fcm-token")
+    suspend fun registerFcmToken(@Body request: Map<String, String>): Response<AuthResponse>
+
+    // ── Escrow / Payments ─────────────────────────────────────────────────────
+
+    @GET("api/escrow/{gigId}")
+    suspend fun getEscrow(@Path("gigId") gigId: Int): Response<EscrowDto>
+
+    @POST("api/stripe/create-checkout-session")
+    suspend fun createCheckoutSession(@Body request: CheckoutSessionRequest): Response<CheckoutSessionResponse>
 }

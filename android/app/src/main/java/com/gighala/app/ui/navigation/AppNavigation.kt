@@ -1,5 +1,6 @@
 package com.gighala.app.ui.navigation
 
+import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -22,7 +23,9 @@ import com.gighala.app.ui.documents.DocumentsScreen
 import com.gighala.app.ui.notifications.NotificationsScreen
 import com.gighala.app.ui.profile.ProfileScreen
 import com.gighala.app.ui.wallet.WalletScreen
+import com.gighala.app.ui.payment.EscrowScreen
 import com.gighala.app.ui.workers.WorkerUpdatesScreen
+import com.gighala.app.MainActivity.PaymentStateViewModel
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -46,6 +49,10 @@ sealed class Screen(val route: String) {
     object Wallet         : Screen("wallet")
     object Documents      : Screen("documents")
     object WorkerUpdates  : Screen("worker_updates")
+    object Escrow         : Screen("escrow/{gigId}/{gigTitle}/{gigAmount}") {
+        fun route(gigId: Int, gigTitle: String, gigAmount: Double) =
+            "escrow/$gigId/${Uri.encode(gigTitle)}/$gigAmount"
+    }
 }
 
 data class BottomNavItem(
@@ -64,10 +71,14 @@ val bottomNavItems = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
+fun AppNavigation(
+    authViewModel: AuthViewModel = hiltViewModel(),
+    paymentViewModel: PaymentStateViewModel? = null
+) {
     val navController = rememberNavController()
     val authState by authViewModel.authState.collectAsState()
     val isAuthenticated = authState is com.gighala.app.data.repository.AuthState.Authenticated
+    val paymentResult by paymentViewModel?.result?.collectAsState() ?: remember { mutableStateOf(null) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -169,7 +180,32 @@ fun AppNavigation(authViewModel: AuthViewModel = hiltViewModel()) {
                     GigDetailScreen(
                         gigId = backStack.arguments!!.getInt("gigId"),
                         onBack = { navController.popBackStack() },
-                        onMessageClient = { convId -> navController.navigate(Screen.Conversation.route(convId)) }
+                        onMessageClient = { convId -> navController.navigate(Screen.Conversation.route(convId)) },
+                        onFundEscrow = { gigId, gigTitle, gigAmount ->
+                            navController.navigate(Screen.Escrow.route(gigId, gigTitle, gigAmount))
+                        }
+                    )
+                }
+                composable(
+                    Screen.Escrow.route,
+                    arguments = listOf(
+                        navArgument("gigId")    { type = NavType.IntType },
+                        navArgument("gigTitle") { type = NavType.StringType },
+                        navArgument("gigAmount"){ type = NavType.FloatType }
+                    )
+                ) { backStack ->
+                    EscrowScreen(
+                        gigId     = backStack.arguments!!.getInt("gigId"),
+                        gigTitle  = backStack.arguments!!.getString("gigTitle") ?: "",
+                        gigAmount = backStack.arguments!!.getFloat("gigAmount").toDouble(),
+                        paymentResult = paymentResult,
+                        onBack    = { navController.popBackStack() },
+                        onPaymentSuccess = {
+                            paymentViewModel?.clear()
+                            navController.navigate(Screen.Dashboard.route) {
+                                popUpTo(Screen.Home.route) { saveState = true }
+                            }
+                        }
                     )
                 }
                 composable(Screen.PostGig.route) {
