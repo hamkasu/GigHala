@@ -2,7 +2,9 @@ package com.gighala.app.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -42,7 +44,9 @@ fun GigHalaDrawerContent(
     onClose: () -> Unit
 ) {
     ModalDrawerSheet(
-        modifier = Modifier.width(280.dp)
+        modifier = Modifier
+            .width(280.dp)
+            .navigationBarsPadding()
     ) {
         // Header
         Box(
@@ -80,44 +84,50 @@ fun GigHalaDrawerContent(
             }
         }
 
-        Spacer(Modifier.height(8.dp))
-
-        drawerItems.forEach { item ->
-            val selected = currentRoute == item.route && item.badge == null
-            NavigationDrawerItem(
-                icon = { Icon(item.icon, contentDescription = null) },
-                label = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(item.label)
-                        item.badge?.let { badge ->
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = if (badge == "!") MaterialTheme.colorScheme.error
-                                        else MaterialTheme.colorScheme.tertiary
-                            ) {
-                                Text(
-                                    badge,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onTertiary
-                                )
+        // Scrollable items — takes all remaining space so footer is always visible
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Spacer(Modifier.height(8.dp))
+            drawerItems.forEach { item ->
+                val selected = currentRoute == item.route && item.badge == null
+                NavigationDrawerItem(
+                    icon = { Icon(item.icon, contentDescription = null) },
+                    label = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(item.label)
+                            item.badge?.let { badge ->
+                                Surface(
+                                    shape = MaterialTheme.shapes.small,
+                                    color = if (badge == "!") MaterialTheme.colorScheme.error
+                                            else MaterialTheme.colorScheme.tertiary
+                                ) {
+                                    Text(
+                                        badge,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                }
                             }
                         }
-                    }
-                },
-                selected = selected,
-                onClick = {
-                    onNavigate(item.route)
-                    onClose()
-                },
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
+                    },
+                    selected = selected,
+                    onClick = {
+                        onNavigate(item.route)
+                        onClose()
+                    },
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
         }
 
-        Spacer(Modifier.weight(1f))
+        // Fixed footer — always visible above system nav bar
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         Spacer(Modifier.height(8.dp))
         NavigationDrawerItem(
@@ -137,6 +147,6 @@ fun GigHalaDrawerContent(
             onClick = onClose,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
-        Spacer(Modifier.navigationBarsPadding())
+        Spacer(Modifier.height(8.dp))
     }
 }
