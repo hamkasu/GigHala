@@ -24,8 +24,10 @@ import com.gighala.app.ui.notifications.NotificationsScreen
 import com.gighala.app.ui.profile.ProfileScreen
 import com.gighala.app.ui.wallet.WalletScreen
 import com.gighala.app.ui.payment.EscrowScreen
+import com.gighala.app.ui.settings.SettingsScreen
 import com.gighala.app.ui.workers.WorkerUpdatesScreen
 import com.gighala.app.MainActivity.PaymentStateViewModel
+import com.gighala.app.ui.theme.ThemeViewModel
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String) {
@@ -49,6 +51,7 @@ sealed class Screen(val route: String) {
     object Wallet         : Screen("wallet")
     object Documents      : Screen("documents")
     object WorkerUpdates  : Screen("worker_updates")
+    object Settings       : Screen("settings")
     object Escrow         : Screen("escrow/{gigId}/{gigTitle}/{gigAmount}") {
         fun route(gigId: Int, gigTitle: String, gigAmount: Double) =
             "escrow/$gigId/${Uri.encode(gigTitle)}/$gigAmount"
@@ -73,7 +76,8 @@ val bottomNavItems = listOf(
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel = hiltViewModel(),
-    paymentViewModel: PaymentStateViewModel? = null
+    paymentViewModel: PaymentStateViewModel? = null,
+    themeViewModel: ThemeViewModel? = null
 ) {
     val navController = rememberNavController()
     val authState by authViewModel.authState.collectAsState()
@@ -84,7 +88,7 @@ fun AppNavigation(
     val currentRoute = navBackStackEntry?.destination?.route
 
     val drawerRoutes = bottomNavItems.map { it.screen.route } +
-        listOf(Screen.Wallet.route, Screen.Documents.route, Screen.WorkerUpdates.route)
+        listOf(Screen.Wallet.route, Screen.Documents.route, Screen.WorkerUpdates.route, Screen.Settings.route)
     val showBottomBar = isAuthenticated && currentRoute in bottomNavItems.map { it.screen.route }
     val showDrawer = isAuthenticated && currentRoute in drawerRoutes
 
@@ -275,6 +279,14 @@ fun AppNavigation(
                             navController.navigate(Screen.Messages.route)
                         }
                     )
+                }
+                composable(Screen.Settings.route) {
+                    if (themeViewModel != null) {
+                        SettingsScreen(
+                            themeViewModel = themeViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }

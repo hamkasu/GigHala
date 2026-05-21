@@ -33,6 +33,7 @@ val drawerItems = listOf(
     DrawerItem(Icons.Filled.Update,        "Worker Updates", Screen.WorkerUpdates.route),
     DrawerItem(Icons.Filled.Star,          "Fractional",     Screen.Home.route, badge = "Pro"),
     DrawerItem(Icons.Filled.FlashOn,       "Urgent Help",    Screen.Home.route, badge = "!"),
+    DrawerItem(Icons.Filled.Settings,      "Settings",       Screen.Settings.route),
 )
 
 @Composable
