@@ -33,7 +33,6 @@ val drawerItems = listOf(
     DrawerItem(Icons.Filled.Update,        "Worker Updates", Screen.WorkerUpdates.route),
     DrawerItem(Icons.Filled.Star,          "Fractional",     Screen.Home.route, badge = "Pro"),
     DrawerItem(Icons.Filled.FlashOn,       "Urgent Help",    Screen.Home.route, badge = "!"),
-    DrawerItem(Icons.Filled.Settings,      "Settings",       Screen.Settings.route),
 )
 
 @Composable
@@ -121,6 +120,16 @@ fun GigHalaDrawerContent(
         Spacer(Modifier.weight(1f))
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         Spacer(Modifier.height(8.dp))
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Filled.Settings, null) },
+            label = { Text("Settings") },
+            selected = currentRoute == Screen.Settings.route,
+            onClick = {
+                onNavigate(Screen.Settings.route)
+                onClose()
+            },
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
         NavigationDrawerItem(
             icon = { Icon(Icons.Filled.Help, null) },
             label = { Text("Help & Support") },
