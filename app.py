@@ -4621,9 +4621,12 @@ def view_gig(gig_id):
                         'proposed_price': app_item.proposed_price,
                         'cover_letter': app_item.cover_letter,
                         'status': app_item.status,
+                        'is_shortlisted': app_item.is_shortlisted,
                         'created_at': app_item.created_at
                     })
-        
+
+        current_workers_count = GigWorker.query.filter_by(gig_id=gig_id, status='active').count()
+
         # Get reviews for this gig (for mutual rating display)
         gig_reviews = []
         user_has_reviewed = False
@@ -4708,6 +4711,7 @@ def view_gig(gig_id):
                               escrow=escrow,
                               gig_photos=gig_photos,
                               gig_applications=gig_applications,
+                              current_workers_count=current_workers_count,
                               gig_reviews=gig_reviews,
                               user_has_reviewed=user_has_reviewed,
                               user_review=user_review,

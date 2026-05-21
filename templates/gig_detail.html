@@ -1995,6 +1995,12 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     <span>{{ gig.applications }} {{ 'permohonan' if lang == 'ms' else 'applications' }}</span>
                 </div>
+                {% if gig.workers_needed > 1 %}
+                <div class="gig-stat">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                    <span>{{ current_workers_count }}/{{ gig.workers_needed }} {{ 'pekerja diambil' if lang == 'ms' else 'workers hired' }}</span>
+                </div>
+                {% endif %}
             </div>
 
             <div class="gig-section share-section">
@@ -2082,11 +2088,18 @@
                 {% endif %}
             </div>
 
-            {% if is_own_gig and gig.status == 'open' and gig_applications %}
+            {% if is_own_gig and (gig.status == 'open' or (gig.status == 'in_progress' and current_workers_count < gig.workers_needed)) and gig_applications %}
             <div class="sidebar-card applications-card">
+                {% set slots_full = current_workers_count >= gig.workers_needed %}
                 <h4 class="section-title" style="margin-bottom: 16px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     {{ 'Permohonan' if lang == 'ms' else 'Applications' }} ({{ gig_applications|length }})
+                    {% if gig.workers_needed > 1 %}
+                    <span style="margin-left: 8px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 12px; background: {% if slots_full %}#dcfce7{% else %}#fef3c7{% endif %}; color: {% if slots_full %}#15803d{% else %}#92400e{% endif %};">
+                        {{ current_workers_count }}/{{ gig.workers_needed }} {{ 'Diambil' if lang == 'ms' else 'Hired' }}
+                        {% if not slots_full %} &mdash; {{ gig.workers_needed - current_workers_count }} {{ 'slot terbuka' if lang == 'ms' else 'slot(s) open' }}{% endif %}
+                    </span>
+                    {% endif %}
                 </h4>
                 {% set shortlisted_count = gig_applications | selectattr('is_shortlisted') | list | length %}
                 <div class="app-filter-tabs">
@@ -2142,7 +2155,8 @@
                         <div class="application-date">{{ app.created_at.strftime('%d %b %Y') }}</div>
                         {% if app.status == 'pending' %}
                         <div class="application-actions">
-                            <button class="btn-accept" onclick="acceptApplication({{ app.id }})">
+                            <button class="btn-accept" onclick="acceptApplication({{ app.id }}, {{ gig.workers_needed }}, {{ current_workers_count }})"
+                                {% if slots_full %}disabled title="{{ 'Semua slot telah dipenuhi' if lang == 'ms' else 'All positions are filled' }}" style="opacity:0.45;cursor:not-allowed;"{% endif %}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 {{ 'Terima' if lang == 'ms' else 'Accept' }}
                             </button>
@@ -2799,8 +2813,27 @@
         }
     });
 
-    function acceptApplication(applicationId) {
-        if (!confirm('{{ "Adakah anda pasti mahu menerima permohonan ini? Permohonan lain akan ditolak secara automatik." if lang == "ms" else "Are you sure you want to accept this application? Other applications will be automatically rejected." }}')) {
+    function acceptApplication(applicationId, workersNeeded, currentCount) {
+        workersNeeded = workersNeeded || 1;
+        currentCount = currentCount || 0;
+        var remaining = workersNeeded - currentCount;
+        var isMulti = workersNeeded > 1;
+        var isLastSlot = remaining === 1;
+        var confirmMsg;
+        if ('{{ lang }}' === 'ms') {
+            confirmMsg = isMulti
+                ? (isLastSlot
+                    ? 'Terima permohonan ini? Ini akan mengisi slot terakhir. Permohonan lain yang belum diputuskan akan ditolak secara automatik.'
+                    : 'Terima permohonan ini? Masih ada ' + (remaining - 1) + ' slot lagi selepas ini.')
+                : 'Adakah anda pasti mahu menerima permohonan ini? Permohonan lain akan ditolak secara automatik.';
+        } else {
+            confirmMsg = isMulti
+                ? (isLastSlot
+                    ? 'Accept this application? This fills the last open slot. Remaining pending applications will be automatically rejected.'
+                    : 'Accept this application? ' + (remaining - 1) + ' slot(s) will still be open after this.')
+                : 'Are you sure you want to accept this application? Other applications will be automatically rejected.';
+        }
+        if (!confirm(confirmMsg)) {
             return;
         }
 
