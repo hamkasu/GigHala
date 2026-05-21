@@ -137,6 +137,6 @@ fun GigHalaDrawerContent(
             onClick = onClose,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.navigationBarsPadding())
     }
 }
