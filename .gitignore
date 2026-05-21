@@ -63,3 +63,4 @@ android/app/google-services.json
 android/local.properties
 *.keystore
 *.jks
+.gradle/
