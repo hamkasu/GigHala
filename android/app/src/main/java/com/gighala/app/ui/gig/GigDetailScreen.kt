@@ -6,7 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.outlined.Star as StarOutlined
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -340,7 +340,7 @@ private fun ApplicantCard(
                         CircularProgressIndicator(Modifier.size(16.dp))
                     } else {
                         Icon(
-                            if (application.isShortlisted) Icons.Filled.Star else StarOutlined,
+                            if (application.isShortlisted) Icons.Filled.Star else Icons.Outlined.Star,
                             null,
                             Modifier.size(16.dp)
                         )
