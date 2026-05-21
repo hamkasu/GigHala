@@ -54,7 +54,7 @@ class GigHalaFirebaseService : FirebaseMessagingService() {
             .build()
 
         getSystemService(NotificationManager::class.java)
-            .notify(System.currentTimeMillis().toInt(), notification)
+            .notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), notification)
     }
 
     companion object {
