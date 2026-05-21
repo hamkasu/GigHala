@@ -57,3 +57,9 @@ uploads/
 # Replit
 .cache/
 .upm/
+
+# Android secrets
+android/app/google-services.json
+android/local.properties
+*.keystore
+*.jks

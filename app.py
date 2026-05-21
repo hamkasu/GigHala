@@ -3729,6 +3729,17 @@ class NotificationPreference(db.Model):
     push_review = db.Column(db.Boolean, default=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class DeviceToken(db.Model):
+    """FCM device tokens for Android/iOS push notifications"""
+    __tablename__ = 'device_token'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    token = db.Column(db.String(500), nullable=False)
+    platform = db.Column(db.String(20), default='android')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    __table_args__ = (db.UniqueConstraint('user_id', 'token', name='uix_device_user_token'),)
+
 class IdentityVerification(db.Model):
     """Model for IC/MyKad identity verification requests"""
     id = db.Column(db.Integer, primary_key=True)
@@ -12715,8 +12726,13 @@ def create_stripe_checkout_session():
             if domain:
                 base_url = f"https://{domain}"
 
-        success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}"
-        cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
+        is_mobile = bool(data.get('mobile'))
+        if is_mobile:
+            success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}&mobile=1"
+            cancel_url = f"{base_url}/api/stripe/mobile-cancel?gig_id={gig_id}"
+        else:
+            success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}"
+            cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
 
         # Create Stripe Checkout session
         checkout_session = stripe.checkout.Session.create(
@@ -12849,7 +12865,17 @@ def stripe_checkout_success():
         app.logger.error(f"Checkout success error: {str(e)}")
         flash('Error processing payment. Please contact support.', 'error')
     
+    if request.args.get('mobile') == '1':
+        status = 'success' if request.args.get('session_id') else 'error'
+        return redirect(f"gighala://payment?status={status}&gig_id={gig_id or ''}")
     return redirect(f'/escrow?gig_id={gig_id}' if gig_id else '/escrow')
+
+
+@app.route('/api/stripe/mobile-cancel')
+def stripe_mobile_cancel():
+    """Redirect mobile payment cancellation back to the GigHala app via deep link"""
+    gig_id = request.args.get('gig_id', '')
+    return redirect(f"gighala://payment?status=cancelled&gig_id={gig_id}")
 
 
 @app.route('/api/stripe/webhook', methods=['POST'])
@@ -25732,6 +25758,27 @@ def mark_notifications_read():
         Notification.query.filter_by(user_id=user_id, is_read=False).update({'is_read': True, 'read_at': datetime.utcnow()})
     
     db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/notifications/fcm-token', methods=['POST'])
+@login_required
+def register_fcm_token():
+    """Register or refresh an Android/iOS FCM push token for the current user"""
+    user_id = session['user_id']
+    data = request.json or {}
+    token = data.get('token', '').strip()
+    platform = data.get('platform', 'android')
+
+    if not token:
+        return jsonify({'error': 'Token is required'}), 400
+
+    existing = DeviceToken.query.filter_by(user_id=user_id, token=token).first()
+    if not existing:
+        # Replace old tokens for this user/platform so only the latest is kept
+        DeviceToken.query.filter_by(user_id=user_id, platform=platform).delete()
+        db.session.add(DeviceToken(user_id=user_id, token=token, platform=platform))
+        db.session.commit()
+
     return jsonify({'success': True})
 
 @app.route('/api/notifications/preferences', methods=['GET', 'POST'])

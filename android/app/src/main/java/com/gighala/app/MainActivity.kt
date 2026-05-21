@@ -7,38 +7,65 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModel
+import com.gighala.app.data.api.models.PaymentResult
 import com.gighala.app.ui.auth.AuthViewModel
 import com.gighala.app.ui.navigation.AppNavigation
 import com.gighala.app.ui.theme.GigHalaTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+/** Holds the last payment deep-link result so EscrowScreen can react to it. */
+class PaymentStateViewModel : ViewModel() {
+    private val _result = MutableStateFlow<PaymentResult?>(null)
+    val result: StateFlow<PaymentResult?> = _result.asStateFlow()
+
+    fun set(status: String, gigId: Int?) { _result.value = PaymentResult(status, gigId) }
+    fun clear() { _result.value = null }
+}
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
+    private val paymentViewModel: PaymentStateViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        handleOAuthIntent(intent)
+        handleDeepLink(intent)
         setContent {
             GigHalaTheme {
-                AppNavigation(authViewModel = authViewModel)
+                AppNavigation(
+                    authViewModel = authViewModel,
+                    paymentViewModel = paymentViewModel
+                )
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleOAuthIntent(intent)
+        handleDeepLink(intent)
     }
 
-    private fun handleOAuthIntent(intent: Intent) {
+    private fun handleDeepLink(intent: Intent) {
         val data = intent.data ?: return
-        if (data.scheme == "gighala" && data.host == "oauth" && data.path == "/callback") {
-            val token = data.getQueryParameter("token") ?: return
-            authViewModel.exchangeMobileToken(token)
+        when (data.scheme) {
+            "gighala" -> when (data.host) {
+                "oauth" -> {
+                    val token = data.getQueryParameter("token") ?: return
+                    authViewModel.exchangeMobileToken(token)
+                }
+                "payment" -> {
+                    val status = data.getQueryParameter("status") ?: "error"
+                    val gigId  = data.getQueryParameter("gig_id")?.toIntOrNull()
+                    paymentViewModel.set(status, gigId)
+                }
+            }
         }
     }
 }
