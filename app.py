@@ -7511,6 +7511,8 @@ def get_gigs():
                 'duration': g.duration,
                 'views': g.views,
                 'applications': g.applications,
+                'workers_needed': g.workers_needed or 1,
+                'current_workers_count': GigWorker.query.filter_by(gig_id=g.id, status='active').count(),
                 'client_name': client_name,
                 'created_at': g.created_at.isoformat()
             })
