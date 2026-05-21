@@ -75,7 +75,9 @@ interface ApiService {
     suspend fun getGigs(
         @Query("category") category: String? = null,
         @Query("location") location: String? = null,
-        @Query("search") search: String? = null
+        @Query("search") search: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("work_type") workType: String? = null
     ): Response<List<GigDto>>
 
     @GET("api/gigs/{id}")
