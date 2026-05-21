@@ -263,6 +263,38 @@
         white-space: nowrap;
     }
 
+    .gig-slots-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+
+    .gig-stat-pill {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 99px;
+        white-space: nowrap;
+    }
+
+    .gig-stat-pill.applicants {
+        background: #ede9fe;
+        color: #5b21b6;
+    }
+
+    .gig-stat-pill.slots {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .gig-stat-pill.slots-open {
+        background: #dcfce7;
+        color: #166534;
+    }
+
     .load-more-section {
         text-align: center;
         margin-top: 32px;
@@ -678,6 +710,13 @@
                     <div class="gig-views">👁️ ${gig.views || 0}</div>
                     <div class="gig-client">by ${escapeHtml(gig.client_name)}</div>
                 </div>
+
+                <div class="gig-slots-row">
+                    <span class="gig-stat-pill applicants" title="Applicants">👥 ${gig.applications || 0} applicant${(gig.applications || 0) !== 1 ? 's' : ''}</span>
+                    ${(gig.workers_needed || 1) > 1 ? `
+                    <span class="gig-stat-pill slots" title="Slots filled / Total slots">🪑 ${gig.current_workers_count || 0}/${gig.workers_needed} slots filled</span>
+                    <span class="gig-stat-pill slots-open" title="Slots remaining">${(gig.workers_needed - (gig.current_workers_count || 0))} open</span>
+                    ` : ''}</div>
             </div>
         `;
     }
