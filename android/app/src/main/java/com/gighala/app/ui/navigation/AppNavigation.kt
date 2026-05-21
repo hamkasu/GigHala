@@ -26,7 +26,7 @@ import com.gighala.app.ui.wallet.WalletScreen
 import com.gighala.app.ui.payment.EscrowScreen
 import com.gighala.app.ui.settings.SettingsScreen
 import com.gighala.app.ui.workers.WorkerUpdatesScreen
-import com.gighala.app.MainActivity.PaymentStateViewModel
+import com.gighala.app.PaymentStateViewModel
 import com.gighala.app.ui.theme.ThemeViewModel
 import kotlinx.coroutines.launch
 
