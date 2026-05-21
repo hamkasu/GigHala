@@ -19,7 +19,7 @@ android {
         versionName = "1.0.0"
 
         // Base URL — override per build variant or via local.properties
-        buildConfigField("String", "BASE_URL", "\"https://gighala.com\"")
+        buildConfigField("String", "BASE_URL", "\"https://www.gighala.my\"")
     }
 
     buildTypes {
@@ -28,7 +28,7 @@ android {
             isDebuggable = true
         }
         release {
-            buildConfigField("String", "BASE_URL", "\"https://gighala.com\"")
+            buildConfigField("String", "BASE_URL", "\"https://www.gighala.my\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
