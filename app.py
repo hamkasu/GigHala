@@ -14412,36 +14412,6 @@ def update_profile():
         app.logger.error(f"Update profile error: {str(e)}")
         return jsonify({'error': 'Failed to update profile. Please try again.'}), 500
 
-@app.route('/api/language', methods=['POST'])
-def switch_language():
-    """Switch user's language preference"""
-    try:
-        data = request.json
-        language = data.get('language', 'ms')
-
-        # Validate language
-        if language not in ['ms', 'en']:
-            return jsonify({'error': 'Invalid language. Choose "ms" or "en"'}), 400
-
-        # Update user's language if logged in
-        if 'user_id' in session:
-            user = User.query.get(session['user_id'])
-            if user:
-                user.language = language
-                db.session.commit()
-        else:
-            # Store in session for non-logged in users
-            session['language'] = language
-
-        return jsonify({
-            'message': 'Language updated successfully',
-            'language': language
-        }), 200
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"Language switch error: {str(e)}")
-        return jsonify({'error': 'Failed to update language'}), 500
-
 @app.route('/api/admin/db-diagnostics', methods=['GET'])
 def db_diagnostics():
     """Diagnostic endpoint: shows DB user, table ownership, and privilege status.
