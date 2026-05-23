@@ -1,10 +1,11 @@
 """
-GigHala Support Chatbot — Phase 1
-==================================
-Groq-powered FAQ bot. Handles common support questions and escalates to a
+GigHala Support Chatbot
+=======================
+Claude-powered FAQ bot. Handles common support questions and escalates to a
 human-created support ticket when it cannot resolve the issue.
 
 Each call is stateless on the backend; the caller passes conversation history.
+Falls back to Groq if ANTHROPIC_API_KEY is not set.
 """
 
 import os
@@ -14,12 +15,14 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
 GROQ_TIMEOUT = 15
+CLAUDE_MODEL = 'claude-sonnet-4-6'
+CLAUDE_TIMEOUT = 20
 
-# Words that immediately trigger escalation regardless of bot confidence
 _ESCALATION_KEYWORDS = [
     # English
     'agent', 'human', 'person', 'real person', 'speak to someone',
@@ -153,7 +156,6 @@ Do NOT invent information. If unsure, escalate. Never promise specific outcomes 
 
 
 def _is_escalation_trigger(message: str) -> bool:
-    """Return True if the message contains an explicit human-escalation keyword."""
     lower = message.lower()
     return any(kw in lower for kw in _ESCALATION_KEYWORDS)
 
@@ -188,27 +190,66 @@ def _fallback(lang: str) -> dict:
     }
 
 
-def chat(message: str, history: list, lang: str = 'en') -> dict:
-    """
-    Process a user message and return a chatbot response.
+def _parse_response(content: str) -> dict:
+    """Parse and validate the JSON response from the AI model."""
+    result = json.loads(content)
 
-    Args:
-        message:  The user's current message (already sanitised by caller).
-        history:  List of {"role": "user"|"assistant", "content": str} — last N turns.
-                  Caller must cap this before passing (we also cap to 16 items here).
-        lang:     Language hint from the user's profile ('ms' or 'en').
+    reply = str(result.get('reply', '')).strip()
+    action = result.get('action', 'answer')
+    if action not in ('answer', 'escalate'):
+        action = 'answer'
 
-    Returns:
-        Dict with keys: reply, action, suggested_category, suggested_subject
-    """
-    if not GROQ_API_KEY:
-        logger.warning('GROQ_API_KEY not set — chatbot falling back to escalation')
-        return _fallback(lang)
+    category = result.get('suggested_category', 'other')
+    valid_cats = ('billing', 'account', 'gig_issue', 'dispute', 'technical', 'data_access', 'other')
+    if category not in valid_cats:
+        category = 'other'
 
-    if _is_escalation_trigger(message):
-        return _immediate_escalate(message, lang)
+    subject = str(result.get('suggested_subject', '')).strip()[:80]
 
-    # Build message list for Groq
+    if not reply:
+        raise ValueError('Empty reply from model')
+
+    return {
+        'reply': reply,
+        'action': action,
+        'suggested_category': category,
+        'suggested_subject': subject,
+    }
+
+
+def _chat_claude(message: str, history: list) -> dict:
+    """Send a message to Claude and return the parsed response."""
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    messages = []
+    for turn in history[-16:]:
+        role = turn.get('role', '')
+        content = turn.get('content', '')
+        if role in ('user', 'assistant') and content:
+            messages.append({'role': role, 'content': content})
+    messages.append({'role': 'user', 'content': message})
+
+    response = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=400,
+        system=SYSTEM_PROMPT,
+        messages=messages,
+        timeout=CLAUDE_TIMEOUT,
+    )
+
+    raw = response.content[0].text.strip()
+    # Strip markdown code fences if model wraps the JSON
+    if raw.startswith('```'):
+        raw = raw.split('```')[1]
+        if raw.startswith('json'):
+            raw = raw[4:]
+    return _parse_response(raw.strip())
+
+
+def _chat_groq(message: str, history: list) -> dict:
+    """Send a message to Groq and return the parsed response."""
     messages = [{'role': 'system', 'content': SYSTEM_PROMPT}]
     for turn in history[-16:]:
         role = turn.get('role', '')
@@ -229,34 +270,43 @@ def chat(message: str, history: list, lang: str = 'en') -> dict:
         'Content-Type': 'application/json',
     }
 
+    resp = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=GROQ_TIMEOUT)
+    resp.raise_for_status()
+    content = resp.json()['choices'][0]['message']['content']
+    return _parse_response(content)
+
+
+def chat(message: str, history: list, lang: str = 'en') -> dict:
+    """
+    Process a user message and return a chatbot response.
+
+    Args:
+        message:  The user's current message (already sanitised by caller).
+        history:  List of {"role": "user"|"assistant", "content": str} — last N turns.
+        lang:     Language hint from the user's profile ('ms' or 'en').
+
+    Returns:
+        Dict with keys: reply, action, suggested_category, suggested_subject
+    """
+    if not ANTHROPIC_API_KEY and not GROQ_API_KEY:
+        logger.warning('Neither ANTHROPIC_API_KEY nor GROQ_API_KEY set — chatbot falling back')
+        return _fallback(lang)
+
+    if _is_escalation_trigger(message):
+        return _immediate_escalate(message, lang)
+
+    # Prefer Claude; fall back to Groq
+    if ANTHROPIC_API_KEY:
+        try:
+            return _chat_claude(message, history)
+        except Exception as exc:
+            logger.warning(f'Claude chat failed, trying Groq fallback: {exc}')
+            if not GROQ_API_KEY:
+                logger.error('Groq fallback not available either')
+                return _fallback(lang)
+
     try:
-        resp = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=GROQ_TIMEOUT)
-        resp.raise_for_status()
-        content = resp.json()['choices'][0]['message']['content']
-        result = json.loads(content)
-
-        reply = str(result.get('reply', '')).strip()
-        action = result.get('action', 'answer')
-        if action not in ('answer', 'escalate'):
-            action = 'answer'
-
-        category = result.get('suggested_category', 'other')
-        valid_cats = ('billing', 'account', 'gig_issue', 'dispute', 'technical', 'data_access', 'other')
-        if category not in valid_cats:
-            category = 'other'
-
-        subject = str(result.get('suggested_subject', message))[:80]
-
-        if not reply:
-            return _fallback(lang)
-
-        return {
-            'reply': reply,
-            'action': action,
-            'suggested_category': category,
-            'suggested_subject': subject,
-        }
-
+        return _chat_groq(message, history)
     except Exception as exc:
-        logger.error(f'Chatbot Groq request failed: {exc}')
+        logger.error(f'Chatbot request failed: {exc}')
         return _fallback(lang)

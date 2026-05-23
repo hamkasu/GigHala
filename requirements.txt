@@ -47,6 +47,9 @@ brevo-python
 # AI / Groq
 groq
 
+# AI / Anthropic Claude
+anthropic>=0.40.0
+
 # Two-Factor Authentication
 pyotp>=2.9.0
 qrcode>=7.4.2

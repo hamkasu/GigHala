@@ -2889,31 +2889,239 @@
     })();
     </script>
     {% else %}
-    <!-- Guest chat button — redirects to login -->
+    <!-- Guest AI chatbot widget -->
     <style>
-        #guest-chat-btn {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #7c3aed;
-            color: white;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(124,58,237,0.4);
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9000;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
+        #gc-btn {
+            position: fixed; bottom: 24px; right: 24px;
+            width: 56px; height: 56px; border-radius: 50%;
+            background: linear-gradient(135deg, #0d7c66, #059669);
+            color: white; border: none; cursor: pointer;
+            box-shadow: 0 4px 16px rgba(13,124,102,0.45);
+            font-size: 24px; display: flex; align-items: center; justify-content: center;
+            z-index: 9000; transition: transform 0.2s, box-shadow 0.2s;
         }
-        #guest-chat-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+        #gc-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(13,124,102,0.6); }
+        #gc-panel {
+            display: none; position: fixed; bottom: 90px; right: 24px;
+            width: 340px; max-height: 520px;
+            background: white; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            flex-direction: column; z-index: 9001; overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        #gc-panel.open { display: flex; }
+        .gc-head {
+            background: linear-gradient(135deg, #0d7c66, #059669);
+            color: white; padding: 14px 16px;
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .gc-head-title { font-weight: 700; font-size: 15px; }
+        .gc-head-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+        .gc-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; line-height: 1; }
+        .gc-body {
+            flex: 1; padding: 12px; overflow-y: auto; min-height: 0;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .gc-bub { max-width: 85%; }
+        .gc-bub.bot { align-self: flex-start; }
+        .gc-bub.usr { align-self: flex-end; text-align: right; }
+        .gc-bub .bt {
+            padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.45;
+            display: inline-block; word-break: break-word;
+        }
+        .gc-bub.bot .bt { background: #d1fae5; color: #064e3b; }
+        .gc-bub.usr .bt { background: #0d7c66; color: white; }
+        .gc-bub .bm { font-size: 10px; color: #9ca3af; margin-top: 3px; }
+        .gc-chips {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            padding: 4px 12px 8px; flex-shrink: 0;
+        }
+        .gc-chip {
+            font-size: 12px; padding: 5px 10px; border-radius: 20px;
+            border: 1px solid #0d7c66; color: #0d7c66; background: white;
+            cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap;
+        }
+        .gc-chip:hover { background: #0d7c66; color: white; }
+        .gc-form {
+            display: flex; gap: 6px; padding: 8px 12px 12px; flex-shrink: 0;
+            border-top: 1px solid #f0f0f0;
+        }
+        .gc-form input {
+            flex: 1; padding: 8px 12px; border: 1px solid #d1d5db;
+            border-radius: 8px; font-size: 13px; font-family: inherit; outline: none;
+        }
+        .gc-form input:focus { border-color: #0d7c66; }
+        .gc-send {
+            background: #0d7c66; color: white; border: none; border-radius: 8px;
+            padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.15s;
+        }
+        .gc-send:hover { background: #059669; }
+        .gc-typing {
+            display: flex; gap: 4px; padding: 9px 13px;
+            background: #d1fae5; border-radius: 14px; width: fit-content; align-self: flex-start;
+        }
+        .gc-typing span {
+            width: 6px; height: 6px; background: #0d7c66; border-radius: 50%;
+            animation: gcBounce 1.1s infinite;
+        }
+        .gc-typing span:nth-child(2) { animation-delay: 0.18s; }
+        .gc-typing span:nth-child(3) { animation-delay: 0.36s; }
+        @keyframes gcBounce {
+            0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .gc-cta {
+            margin: 4px 12px 8px; padding: 10px 12px;
+            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+            text-align: center; flex-shrink: 0;
+        }
+        .gc-cta p { margin: 0 0 8px; font-size: 12px; color: #065f46; font-weight: 600; }
+        .gc-cta-btns { display: flex; gap: 8px; justify-content: center; }
+        .gc-cta-btns a {
+            padding: 6px 16px; border-radius: 8px; font-size: 13px;
+            font-weight: 600; text-decoration: none;
+        }
+        .gc-cta-btns .gc-login { background: #0d7c66; color: white; }
+        .gc-cta-btns .gc-reg { background: white; color: #0d7c66; border: 1px solid #0d7c66; }
+        @media (max-width: 480px) { #gc-panel { width: calc(100vw - 24px); right: 12px; } }
     </style>
-    <a id="guest-chat-btn" href="/login?next=/support" title="{% if lang == 'ms' %}Log masuk untuk berbual{% else %}Log in to chat{% endif %}">💬</a>
+
+    <button id="gc-btn" onclick="gcToggle()" title="{% if lang == 'ms' %}Tanya Hala{% else %}Ask Hala{% endif %}">💬</button>
+
+    <div id="gc-panel">
+        <div class="gc-head">
+            <div>
+                <div class="gc-head-title">🤖 Hala — GigHala</div>
+                <div class="gc-head-sub">{% if lang == 'ms' %}Tanya saya apa-apa sahaja{% else %}Ask me anything{% endif %}</div>
+            </div>
+            <button class="gc-close" onclick="gcToggle()">×</button>
+        </div>
+        <div class="gc-body" id="gc-messages"></div>
+        <div class="gc-chips" id="gc-chips">
+            <button class="gc-chip" onclick="gcQuick('fees')">💰 {% if lang == 'ms' %}Yuran{% else %}Fees{% endif %}</button>
+            <button class="gc-chip" onclick="gcQuick('escrow')">🔒 Escrow</button>
+            <button class="gc-chip" onclick="gcQuick('payout')">💸 {% if lang == 'ms' %}Bayaran{% else %}Payout{% endif %}</button>
+            <button class="gc-chip" onclick="gcQuick('socso')">🛡 SOCSO</button>
+            <button class="gc-chip" onclick="gcQuick('halal')">☪ Halal</button>
+            <button class="gc-chip" onclick="gcQuick('signup')">📝 {% if lang == 'ms' %}Daftar{% else %}Sign Up{% endif %}</button>
+        </div>
+        <div class="gc-cta" id="gc-cta" style="display:none;">
+            <p>{% if lang == 'ms' %}Untuk sokongan lanjut, log masuk atau daftar percuma.{% else %}For further help, log in or register for free.{% endif %}</p>
+            <div class="gc-cta-btns">
+                <a href="/login" class="gc-login">{% if lang == 'ms' %}Log Masuk{% else %}Log In{% endif %}</a>
+                <a href="/register" class="gc-reg">{% if lang == 'ms' %}Daftar{% else %}Register{% endif %}</a>
+            </div>
+        </div>
+        <div class="gc-form">
+            <input type="text" id="gc-input"
+                placeholder="{% if lang == 'ms' %}Taip soalan anda...{% else %}Type your question...{% endif %}"
+                onkeydown="if(event.key==='Enter')gcSend()">
+            <button class="gc-send" onclick="gcSend()">➤</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var IS_MS = {{ 'true' if lang == 'ms' else 'false' }};
+        var _open = false, _greeted = false, _history = [], _typingEl = null;
+
+        function csrf() { var m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : ''; }
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+        function hhmm() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+
+        function bubble(text, isBot) {
+            var box = document.getElementById('gc-messages');
+            var w = document.createElement('div');
+            w.className = 'gc-bub ' + (isBot ? 'bot' : 'usr');
+            w.innerHTML = '<div class="bt">' + esc(text) + '</div>' +
+                '<div class="bm">' + (isBot ? 'Hala' : (IS_MS ? 'Anda' : 'You')) + ' · ' + hhmm() + '</div>';
+            box.appendChild(w);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function showTyping() {
+            var box = document.getElementById('gc-messages');
+            _typingEl = document.createElement('div');
+            _typingEl.className = 'gc-typing';
+            _typingEl.innerHTML = '<span></span><span></span><span></span>';
+            box.appendChild(_typingEl);
+            box.scrollTop = box.scrollHeight;
+        }
+        function hideTyping() { if (_typingEl) { _typingEl.remove(); _typingEl = null; } }
+
+        function send(msg) {
+            document.getElementById('gc-chips').style.display = 'none';
+            bubble(msg, false);
+            _history.push({role: 'user', content: msg});
+            showTyping();
+            fetch('/api/chatbot/message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf()},
+                body: JSON.stringify({message: msg, history: _history.slice(0, -1)})
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                hideTyping();
+                if (d.success) {
+                    bubble(d.reply, true);
+                    _history.push({role: 'assistant', content: d.reply});
+                    if (d.action === 'escalate') {
+                        document.getElementById('gc-cta').style.display = 'block';
+                    }
+                } else {
+                    bubble(IS_MS ? 'Maaf, ada masalah. Cuba lagi.' : 'Sorry, something went wrong. Try again.', true);
+                }
+            })
+            .catch(function() {
+                hideTyping();
+                bubble(IS_MS ? 'Ralat sambungan.' : 'Connection error.', true);
+            });
+        }
+
+        window.gcToggle = function() {
+            _open = !_open;
+            var panel = document.getElementById('gc-panel');
+            if (_open) {
+                panel.classList.add('open');
+                if (!_greeted) {
+                    _greeted = true;
+                    var g = IS_MS
+                        ? 'Halo! Saya Hala, pembantu GigHala. Tanya saya tentang platform, yuran, SOCSO, escrow, atau cara mendaftar!'
+                        : "Hello! I'm Hala, GigHala's assistant. Ask me about fees, escrow, SOCSO, halal compliance, or how to sign up!";
+                    bubble(g, true);
+                    _history.push({role: 'assistant', content: g});
+                }
+            } else {
+                panel.classList.remove('open');
+                _greeted = false; _history = [];
+                if (_typingEl) { _typingEl.remove(); _typingEl = null; }
+                document.getElementById('gc-messages').innerHTML = '';
+                document.getElementById('gc-chips').style.display = 'flex';
+                document.getElementById('gc-cta').style.display = 'none';
+            }
+        };
+
+        window.gcSend = function() {
+            var inp = document.getElementById('gc-input');
+            var msg = inp.value.trim();
+            if (!msg) return;
+            inp.value = '';
+            send(msg);
+        };
+
+        window.gcQuick = function(topic) {
+            var map = {
+                fees:   IS_MS ? 'Berapa yuran platform GigHala?' : 'What are GigHala platform fees?',
+                escrow: IS_MS ? 'Bagaimana sistem escrow berfungsi?' : 'How does the escrow system work?',
+                payout: IS_MS ? 'Bagaimana cara saya keluarkan pendapatan saya?' : 'How do I withdraw my earnings?',
+                socso:  IS_MS ? 'Apakah perlindungan SOCSO yang saya dapat?' : 'What SOCSO coverage do I get?',
+                halal:  IS_MS ? 'Apakah gig yang dibenarkan dari segi syariah?' : 'What gigs are Syariah-compliant?',
+                signup: IS_MS ? 'Bagaimana cara saya mendaftar di GigHala?' : 'How do I sign up for GigHala?',
+            };
+            if (map[topic]) send(map[topic]);
+        };
+    })();
+    </script>
     {% endif %}
 </body>
 </html>
