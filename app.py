@@ -5257,6 +5257,25 @@ def dashboard():
         user.referral_code = generate_referral_code()
         db.session.commit()
 
+    # Build server-side WhatsApp & Telegram sharing URLs for referral buttons
+    wa_share_url = None
+    tg_share_url = None
+    if user.referral_code:
+        from urllib.parse import quote as _urlquote
+        _ref_link = f"{request.host_url.rstrip('/')}/register?ref={user.referral_code}"
+        _wa_text = (
+            f"Jom join GigHala — Syariah-Principled Platform Freelance Malaysia! "
+            f"Daftar guna pautan saya dan mula cari kerja atau post gig: {_ref_link}"
+        )
+        wa_share_url = f"https://wa.me/?text={_urlquote(_wa_text)}"
+        _tg_text = (
+            f"Jom join GigHala — Syariah-Principled Platform Freelance Malaysia! "
+            f"Daftar guna pautan saya: {_ref_link}"
+        )
+        tg_share_url = (
+            f"https://t.me/share/url?url={_urlquote(_ref_link)}&text={_urlquote(_tg_text)}"
+        )
+
     # Get wallet information
     wallet = Wallet.query.filter_by(user_id=user_id).first()
     if not wallet:
@@ -5405,6 +5424,8 @@ def dashboard():
                          recent_reviews=recent_reviews,
                          recent_invoices=invoices_with_gigs,
                          socso_data=socso_data,
+                         wa_share_url=wa_share_url,
+                         tg_share_url=tg_share_url,
                          lang=get_user_language(),
                          t=t)
 
