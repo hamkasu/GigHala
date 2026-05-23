@@ -1944,5 +1944,30 @@
     </script>
     <!-- ===== END FRACTIONAL MODAL ===== -->
 
+    <script>
+    function setLanguage(lang) {
+        try {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            var token = meta ? meta.getAttribute('content') : '';
+            fetch('/api/language', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': token,
+                    'X-CSRF-Token': token
+                },
+                body: JSON.stringify({ language: lang })
+            }).then(function() {
+                window.location.reload();
+            }).catch(function() {
+                window.location.reload();
+            });
+        } catch (e) {
+            window.location.reload();
+        }
+    }
+    </script>
+
 </body>
 </html>
