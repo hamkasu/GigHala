@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if lang == 'ms' %}Pengesahan 2FA{% else %}Two-Factor Authentication{% endif %} - GigHala</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0D7C66 0%, #41B3A3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .challenge-container {
+            background: white;
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+        }
+        .shield-icon {
+            width: 64px;
+            height: 64px;
+            background: #E6FFF5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+        .shield-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #000;
+            margin: 0 0 8px 0;
+        }
+        .subtitle {
+            font-size: 15px;
+            color: #666;
+            margin: 0 0 32px 0;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .code-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 8px;
+            text-align: center;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        .code-input:focus {
+            outline: none;
+            border-color: #0D7C66;
+            box-shadow: 0 0 0 3px rgba(13, 124, 102, 0.1);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: #0D7C66;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #095a4d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 124, 102, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: left;
+        }
+        .footer-links {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #666;
+        }
+        .footer-links a {
+            color: #0D7C66;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .hint {
+            font-size: 13px;
+            color: #888;
+            margin-top: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="challenge-container">
+        <div class="shield-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L3 7V12C3 16.55 7.16 20.74 12 22C16.84 20.74 21 16.55 21 12V7L12 2Z" fill="#0D7C66"/>
+                <path d="M10 13.4L8.4 11.8L7 13.2L10 16.2L17 9.2L15.6 7.8L10 13.4Z" fill="white"/>
+            </svg>
+        </div>
+
+        <h1>{% if lang == 'ms' %}Pengesahan Dua Faktor{% else %}Two-Factor Authentication{% endif %}</h1>
+        <p class="subtitle">
+            {% if lang == 'ms' %}
+                Masukkan kod 6 digit dari aplikasi pengesah anda (contoh: Google Authenticator).
+            {% else %}
+                Enter the 6-digit code from your authenticator app (e.g. Google Authenticator).
+            {% endif %}
+        </p>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="twoFaForm" onsubmit="return handleVerify(event)">
+            <div class="form-group">
+                <label>{% if lang == 'ms' %}Kod Pengesahan{% else %}Authentication Code{% endif %}</label>
+                <input
+                    type="text"
+                    id="totpCode"
+                    class="code-input"
+                    name="code"
+                    maxlength="6"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    autocomplete="one-time-code"
+                    placeholder="000000"
+                    autofocus
+                    required
+                >
+                <p class="hint">{% if lang == 'ms' %}Kod berubah setiap 30 saat.{% else %}Code refreshes every 30 seconds.{% endif %}</p>
+            </div>
+            <button type="submit" class="btn-primary" id="submitBtn">
+                {% if lang == 'ms' %}Sahkan & Log Masuk{% else %}Verify & Login{% endif %}
+            </button>
+        </form>
+
+        <div class="footer-links">
+            <a href="/login">{% if lang == 'ms' %}← Kembali ke Log Masuk{% else %}← Back to Login{% endif %}</a>
+        </div>
+    </div>
+
+    <script>
+        // Only allow digits
+        document.getElementById('totpCode').addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        });
+
+        async function handleVerify(event) {
+            event.preventDefault();
+            const code = document.getElementById('totpCode').value.trim();
+            const errorMessage = document.getElementById('errorMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            errorMessage.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = '{% if lang == 'ms' %}Mengesahkan...{% else %}Verifying...{% endif %}';
+
+            try {
+                const response = await fetch('/api/2fa/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ code })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/dashboard';
+                } else {
+                    errorMessage.textContent = result.error || '{% if lang == 'ms' %}Kod tidak sah. Sila cuba lagi.{% else %}Invalid code. Please try again.{% endif %}';
+                    errorMessage.style.display = 'block';
+                    document.getElementById('totpCode').value = '';
+                    document.getElementById('totpCode').focus();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '{% if lang == 'ms' %}Sahkan & Log Masuk{% else %}Verify & Login{% endif %}';
+
+                    // If session expired, redirect back to login
+                    if (result.error && result.error.includes('expired')) {
+                        setTimeout(() => { window.location.href = '/login'; }, 2000);
+                    }
+                }
+            } catch (error) {
+                console.error('2FA error:', error);
+                errorMessage.textContent = '{% if lang == 'ms' %}Ralat. Sila cuba lagi.{% else %}Error. Please try again.{% endif %}';
+                errorMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '{% if lang == 'ms' %}Sahkan & Log Masuk{% else %}Verify & Login{% endif %}';
+            }
+
+            return false;
+        }
+    </script>
+</body>
+</html>

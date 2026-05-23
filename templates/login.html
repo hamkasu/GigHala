@@ -284,8 +284,11 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Login successful, redirect to dashboard
-                    window.location.href = '/dashboard';
+                    if (result.requires_2fa) {
+                        window.location.href = '/2fa-challenge';
+                    } else {
+                        window.location.href = '/dashboard';
+                    }
                 } else {
                     // Show error message
                     errorMessage.textContent = result.error || '{% if lang == 'ms' %}Login gagal. Sila cuba lagi.{% else %}Login failed. Please try again.{% endif %}';
