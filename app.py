@@ -19,6 +19,7 @@ import re
 import stripe
 import uuid
 import math
+import time
 import requests
 from hijri_converter import Hijri, Gregorian
 from authlib.integrations.flask_client import OAuth
@@ -7158,11 +7159,22 @@ def _oauth_post_login_redirect(user):
 
 
 # OAuth Login Routes
+
+# Short-lived bridge tokens for Android OAuth: {token: (user_id, expires_at)}
+# Tokens are purged opportunistically on each exchange request.
+_mobile_tokens: dict = {}
+
 @app.route('/api/auth/google')
 def google_login():
     # Explicitly set redirect URI for Railway and Replit compatibility
     # ProxyFix middleware ensures request.host_url has correct scheme and host
     redirect_uri = request.host_url.rstrip('/') + '/api/auth/google/callback'
+    # Remember if this flow was initiated from the Android app so the callback
+    # can redirect back via deep link instead of the web dashboard.
+    if request.args.get('source') == 'android':
+        session['oauth_source'] = 'android'
+    else:
+        session.pop('oauth_source', None)
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/api/auth/google/callback')
@@ -7213,10 +7225,66 @@ def google_callback():
         session['user_id'] = user.id
         session.permanent = True
 
+        # Android OAuth flow: redirect back to the app via deep link with a
+        # short-lived bridge token (5 min TTL) instead of the web dashboard.
+        if session.pop('oauth_source', None) == 'android':
+            bridge_token = secrets.token_urlsafe(32)
+            _mobile_tokens[bridge_token] = (user.id, time.time() + 300)
+            return redirect(f'gighala://oauth?token={bridge_token}')
+
         return _oauth_post_login_redirect(user)
     except Exception as e:
         app.logger.error(f"Google OAuth error: {str(e)}")
         return redirect('/?error=google_auth_failed')
+
+@app.route('/api/auth/mobile/exchange', methods=['POST'])
+def mobile_token_exchange():
+    """Exchange a short-lived Android OAuth bridge token for a full session.
+
+    Called by the Android app after it receives a gighala://oauth?token=... deep link.
+    The token is single-use and expires after 5 minutes.
+    """
+    # Purge expired tokens opportunistically to keep the dict small
+    now = time.time()
+    expired_keys = [t for t, (_, exp) in list(_mobile_tokens.items()) if now > exp]
+    for k in expired_keys:
+        _mobile_tokens.pop(k, None)
+
+    data = request.get_json(silent=True) or {}
+    bridge_token = data.get('token', '')
+
+    entry = _mobile_tokens.pop(bridge_token, None)
+    if not entry:
+        return jsonify({'error': 'Invalid or expired token'}), 401
+
+    user_id, expires_at = entry
+    if time.time() > expires_at:
+        return jsonify({'error': 'Token expired'}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Establish a server-side session for the Android client
+    session['user_id'] = user.id
+    session.permanent = True
+
+    return jsonify({
+        'success': True,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'full_name': getattr(user, 'full_name', None),
+            'user_type': getattr(user, 'user_type', 'both'),
+            'profile_photo': getattr(user, 'profile_photo', None),
+            'is_verified': getattr(user, 'is_verified', False),
+            'is_admin': getattr(user, 'is_admin', False),
+            'halal_verified': getattr(user, 'halal_verified', False),
+            'totp_enabled': getattr(user, 'totp_enabled', False),
+        }
+    })
+
 
 @app.route('/api/auth/microsoft')
 def microsoft_login():

@@ -35,7 +35,7 @@ fun SocialLoginScreen(
     // Open OAuth in the real default browser (not Custom Tabs, which can fall back to
     // an in-process WebView and trigger Google's disallowed_useragent block).
     LaunchedEffect(Unit) {
-        val oauthUrl = "${BuildConfig.BASE_URL}/google_login?source=android"
+        val oauthUrl = "${BuildConfig.BASE_URL}/api/auth/google?source=android"
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(oauthUrl)).apply {
             addCategory(Intent.CATEGORY_BROWSABLE)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
