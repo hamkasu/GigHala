@@ -18738,6 +18738,24 @@ def request_payout():
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
 
+        # Enforce min/max payout bounds.
+        # Minimum prevents payouts whose fee exceeds the transfer value.
+        # Maximum caps per-transaction risk and flags unusually large withdrawals.
+        MIN_PAYOUT_AMOUNT = 10.00    # RM 10
+        MAX_PAYOUT_AMOUNT = 50000.00  # RM 50,000
+
+        if amount < MIN_PAYOUT_AMOUNT:
+            return jsonify({
+                'error': f'Minimum payout amount is RM{MIN_PAYOUT_AMOUNT:.2f}'
+            }), 400
+        if amount > MAX_PAYOUT_AMOUNT:
+            return jsonify({
+                'error': (
+                    f'Maximum payout amount is RM{MAX_PAYOUT_AMOUNT:,.2f} per request. '
+                    'Please contact support for larger withdrawals.'
+                )
+            }), 400
+
         # Get user
         user = User.query.get(user_id)
         if not user:
@@ -18777,9 +18795,11 @@ def request_payout():
         # Net amount after fee deduction only (SOCSO already deducted at escrow release)
         net_amount = round(amount - fee, 2)
 
-        # Generate payout number
-        import random
-        payout_number = f"PO-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(10000, 99999)}"
+        # Generate a collision-resistant payout number using 8 hex chars from
+        # uuid4 (~4 billion combinations per day) instead of the previous 5-digit
+        # random integer (~90k), which hit a 50% birthday-collision rate at ~300
+        # payouts/day and would crash with an unhandled IntegrityError.
+        payout_number = f"PO-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
 
         # Calculate next batch release time for manual payouts (8am or 4pm)
         scheduled_release_time, release_batch = calculate_next_batch_release_time()
@@ -21386,7 +21406,21 @@ def admin_update_payout(payout_id):
         new_status = data.get('status')
         admin_notes = data.get('admin_notes')
 
-        if new_status not in ['pending', 'processing', 'completed', 'failed', 'cancelled']:
+        # 'completed' is intentionally blocked here.  Use the dedicated
+        # PUT /api/admin/billing/payouts/<id>/confirm-payment endpoint instead,
+        # which applies pessimistic row/wallet locks, enforces the mark-ready
+        # prerequisite, and guarantees a single atomic held_balance release.
+        # Allowing 'completed' here would bypass all of those guards.
+        if new_status == 'completed':
+            return jsonify({
+                'error': (
+                    "Cannot set status to 'completed' via this endpoint. "
+                    "Use PUT /api/admin/billing/payouts/<id>/confirm-payment "
+                    "to complete a payout safely."
+                )
+            }), 400
+
+        if new_status not in ['pending', 'processing', 'failed', 'cancelled']:
             return jsonify({'error': 'Invalid status'}), 400
 
         old_status = payout.status
@@ -21397,89 +21431,6 @@ def admin_update_payout(payout_id):
 
         if new_status == 'processing' and old_status == 'pending':
             payout.processed_at = datetime.utcnow()
-
-        if new_status == 'completed':
-            payout.completed_at = datetime.utcnow()
-
-            # Release held balance and update wallet
-            wallet = Wallet.query.filter_by(user_id=payout.freelancer_id).first()
-            if wallet:
-                wallet.held_balance -= payout.amount
-
-                # Create payment history
-                history = PaymentHistory(
-                    user_id=payout.freelancer_id,
-                    payout_id=payout.id,
-                    type='payout',
-                    amount=payout.amount,
-                    balance_before=wallet.balance + payout.amount,
-                    balance_after=wallet.balance,
-                    description=f'Payout completed: {payout.payout_number}',
-                    reference_number=payout.payout_number
-                )
-                db.session.add(history)
-
-                # Send withdrawal completion notification email
-                user = User.query.get(payout.freelancer_id)
-                if user and user.email:
-                    try:
-                        html_content = render_template('email_withdrawal_confirmation.html',
-                            recipient_name=user.full_name or user.username,
-                            withdrawal_status="Completed",
-                            status_message="Your withdrawal has been successfully processed",
-                            main_message=f"Great news! Your withdrawal of MYR {payout.amount:.2f} has been successfully transferred to your bank account.",
-                            withdrawal_amount=f"{payout.net_amount:.2f}",
-                            transaction_id=payout.payout_number,
-                            request_date=payout.created_at.strftime('%d %B %Y, %H:%M') if payout.created_at else None,
-                            processing_date=payout.processed_at.strftime('%d %B %Y, %H:%M') if payout.processed_at else None,
-                            completion_date=datetime.utcnow().strftime('%d %B %Y, %H:%M'),
-                            bank_name=payout.bank_name,
-                            bank_account_number=payout.account_number,
-                            account_holder_name=payout.account_name,
-                            withdrawal_fee=f"{payout.fee:.2f}" if payout.fee else "0.00",
-                            requested_amount=f"{payout.amount:.2f}",
-                            wallet_url=request.host_url.rstrip('/') + '/wallet',
-                            transaction_url=request.host_url.rstrip('/') + '/payments',
-                            support_url=request.host_url.rstrip('/') + '/support',
-                            support_contact='support@gighala.my',
-                            settings_url=request.host_url.rstrip('/') + '/settings',
-                            terms_url=request.host_url.rstrip('/') + '/terms'
-                        )
-
-                        subject = f"Withdrawal Completed - {payout.payout_number}"
-                        success, msg, status_code, details = email_service.send_single_email(
-                            to_email=user.email,
-                            to_name=user.full_name or user.username,
-                            subject=subject,
-                            html_content=html_content
-                        )
-
-                        # Log email to database for archival
-                        log_email_to_database(
-                            email_type='transactional',
-                            subject=subject,
-                            html_content=html_content,
-                            text_content=None,
-                            recipient_emails=user.email,
-                            recipient_user_id=user.id,
-                            success=success,
-                            error_message=msg if not success else None,
-                            brevo_message_ids=details.get('brevo_message_ids', []),
-                            failed_recipients=details.get('failed_recipients', [])
-                        )
-
-                        app.logger.info(f"Sent withdrawal completion email to user {user.id}")
-                    except Exception as e:
-                        app.logger.error(f"Failed to send withdrawal completion email: {str(e)}")
-
-                # Send SMS notification for large withdrawals (>= RM500)
-                if user and user.phone and (payout.amount >= 500 or user.phone_verified):
-                    try:
-                        sms_message = f"GigHala: Withdrawal of MYR {payout.net_amount:.2f} completed! Ref: {payout.payout_number}. Funds transferred to your bank account."
-                        send_transaction_sms_notification(user.phone, sms_message)
-                        app.logger.info(f"Sent withdrawal completion SMS to user {user.id} (amount: MYR {payout.net_amount:.2f})")
-                    except Exception as e:
-                        app.logger.error(f"Failed to send withdrawal completion SMS: {str(e)}")
 
         if new_status in ['failed', 'cancelled']:
             # Return balance to wallet
