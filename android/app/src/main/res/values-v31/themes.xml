@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.GigHala" parent="android:Theme.Material.Light.NoActionBar" />
-
+    <!-- On API 31+ the system SplashScreen supports android:windowSplashScreenBrandingImage.
+         Kept in values-v31/ so AAPT2 only resolves the platform attribute where it exists. -->
     <style name="Theme.GigHala.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#FFFFFF</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/splash_tagline</item>
         <item name="postSplashScreenTheme">@style/Theme.GigHala</item>
     </style>
 </resources>
