@@ -20,3 +20,21 @@ val NeutralMid       = Color(0xFF757575)
 val NeutralLight     = Color(0xFFF5F5F5)
 val White            = Color(0xFFFFFFFF)
 val SurfaceVariant   = Color(0xFFF1F8F1)
+
+// ── AMOLED theme (pure-black for OLED displays) ────────────────────────────
+val AmoledBackground = Color(0xFF000000)
+val AmoledSurface    = Color(0xFF0D0D0D)
+val AmoledSurfaceVar = Color(0xFF1A1A1A)
+
+// ── Nature theme (warm earthy greens) ──────────────────────────────────────
+val NaturePrimary    = Color(0xFF2E7D32)   // Medium forest green
+val NatureBackground = Color(0xFFF1F8E9)   // Soft green tint
+val NatureSurfaceVar = Color(0xFFDCEDC8)   // Light sage
+val NatureSecondary  = Color(0xFF6D4C41)   // Warm earthy brown
+
+// ── High Contrast theme (accessibility) ───────────────────────────────────
+val HcPrimary        = Color(0xFF003300)   // Very deep green
+val HcSecondary      = Color(0xFF7A5800)   // Deep amber/gold
+val HcBackground     = Color(0xFFFFFFFF)
+val HcOnBackground   = Color(0xFF000000)
+val HcSurfaceVar     = Color(0xFFE0E0E0)

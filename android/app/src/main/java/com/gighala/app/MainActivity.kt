@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -15,7 +14,6 @@ import com.gighala.app.data.api.models.PaymentResult
 import com.gighala.app.ui.auth.AuthViewModel
 import com.gighala.app.ui.navigation.AppNavigation
 import com.gighala.app.ui.theme.GigHalaTheme
-import com.gighala.app.ui.theme.ThemeMode
 import com.gighala.app.ui.theme.ThemeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,13 +43,7 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
         setContent {
             val themeMode by themeViewModel.themeMode.collectAsState()
-            val systemDark = isSystemInDarkTheme()
-            val isDark = when (themeMode) {
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-                ThemeMode.SYSTEM -> systemDark
-            }
-            GigHalaTheme(darkTheme = isDark) {
+            GigHalaTheme(themeMode = themeMode) {
                 AppNavigation(
                     authViewModel = authViewModel,
                     paymentViewModel = paymentViewModel,
