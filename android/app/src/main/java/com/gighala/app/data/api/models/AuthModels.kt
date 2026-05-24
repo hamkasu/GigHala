@@ -45,22 +45,22 @@ data class UserDto(
     @Json(name = "portfolio_url") val portfolioUrl: String? = null,
     @Json(name = "ic_number") val icNumber: String? = null,
     @Json(name = "socso_membership_number") val socsoMembershipNumber: String? = null,
-    @Json(name = "socso_consent") val socsoConsent: Boolean = false,
+    @Json(name = "socso_consent") val socsoConsent: Boolean? = false,
     @Json(name = "bank_name") val bankName: String? = null,
     @Json(name = "bank_account_number") val bankAccountNumber: String? = null,
     @Json(name = "bank_account_holder") val bankAccountHolder: String? = null,
-    @Json(name = "available_for_fractional") val availableForFractional: Boolean = false,
+    @Json(name = "available_for_fractional") val availableForFractional: Boolean? = false,
     @Json(name = "fractional_role_type") val fractionalRoleType: String? = null,
     @Json(name = "fractional_days_available") val fractionalDaysAvailable: Double = 1.0,
-    @Json(name = "halal_verified") val halalVerified: Boolean = false,
+    @Json(name = "halal_verified") val halalVerified: Boolean? = false,
     val rating: Double = 0.0,
     @Json(name = "review_count") val reviewCount: Int = 0,
     @Json(name = "total_earnings") val totalEarnings: Double = 0.0,
     @Json(name = "completed_gigs") val completedGigs: Int = 0,
-    @Json(name = "is_verified") val isVerified: Boolean = false,
-    @Json(name = "is_admin") val isAdmin: Boolean = false,
-    @Json(name = "totp_enabled") val totpEnabled: Boolean = false,
-    @Json(name = "phone_verified") val phoneVerified: Boolean = false
+    @Json(name = "is_verified") val isVerified: Boolean? = false,
+    @Json(name = "is_admin") val isAdmin: Boolean? = false,
+    @Json(name = "totp_enabled") val totpEnabled: Boolean? = false,
+    @Json(name = "phone_verified") val phoneVerified: Boolean? = false
 )
 
 @JsonClass(generateAdapter = true)

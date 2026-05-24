@@ -198,7 +198,7 @@ fun GigDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Filled.Star, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.secondary)
                                     Text(" ${client.rating}", style = MaterialTheme.typography.bodySmall)
-                                    if (client.isVerified) {
+                                    if (client.isVerified == true) {
                                         Spacer(Modifier.width(8.dp))
                                         Icon(Icons.Filled.Verified, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
                                         Text(" Verified", style = MaterialTheme.typography.bodySmall)
