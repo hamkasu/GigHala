@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gighala.app.data.repository.AuthRepository
 import com.gighala.app.data.repository.AuthState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,23 +93,36 @@ class AuthViewModel @Inject constructor(
     fun startMobilePolling(requestId: String) {
         pollingJob?.cancel()
         pollingJob = viewModelScope.launch {
+            // Phase 1: poll every 2 s until a bridge token arrives or job is cancelled.
+            // Store the token in a local variable so Phase 2 can use it AFTER the loop
+            // exits — this avoids the self-cancellation bug where calling
+            // pollingJob?.cancel() inside the loop set the cancellation flag before the
+            // subsequent suspend call (exchangeMobileToken) could complete, causing
+            // runCatching to surface a CancellationException as a user-visible error.
+            var bridgeToken: String? = null
             while (isActive && authRepository.authState.value !is AuthState.Authenticated) {
                 delay(2_000)
                 try {
                     val token = authRepository.pollMobileAuth(requestId)
                     if (token != null) {
-                        // Token received — stop polling and exchange immediately
-                        pollingJob?.cancel()
-                        _uiState.value = AuthUiState(isLoading = true)
-                        authRepository.exchangeMobileToken(token)
-                            .onFailure { _uiState.value = AuthUiState(error = it.message) }
-                            .onSuccess { _uiState.value = AuthUiState() }
+                        bridgeToken = token
                         break
                     }
+                } catch (e: CancellationException) {
+                    throw e  // Never swallow coroutine cancellation
                 } catch (_: Exception) {
                     // Network hiccup — swallow and retry on next tick
                 }
             }
+
+            // Phase 2: exchange the token (runs in the same coroutine, which is
+            // still active because we broke cleanly — no self-cancellation).
+            val token = bridgeToken ?: return@launch
+            if (!isActive) return@launch
+            _uiState.value = AuthUiState(isLoading = true)
+            authRepository.exchangeMobileToken(token)
+                .onFailure { _uiState.value = AuthUiState(error = it.message) }
+                .onSuccess { _uiState.value = AuthUiState() }
         }
     }
 
