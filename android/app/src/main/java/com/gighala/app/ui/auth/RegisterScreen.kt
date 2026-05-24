@@ -11,8 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +42,17 @@ fun RegisterScreen(
     var privacyConsent by remember { mutableStateOf(false) }
     var socsoConsent by remember { mutableStateOf(false) }
 
+    // Capture theme colours outside buildAnnotatedString (not a composable)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    val linkStyle = TextLinkStyles(
+        style = SpanStyle(
+            color = primaryColor,
+            textDecoration = TextDecoration.Underline
+        )
+    )
+
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) onRegisterSuccess()
     }
@@ -49,8 +65,8 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(24.dp))
-        Text("Create Account", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-        Text("Join GigHala — halal work, blessed earnings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Create Account", style = MaterialTheme.typography.headlineMedium, color = primaryColor)
+        Text("Join GigHala — halal work, blessed earnings", style = MaterialTheme.typography.bodyMedium, color = onSurfaceVariantColor)
         Spacer(Modifier.height(24.dp))
 
         // Social sign-up buttons
@@ -82,7 +98,7 @@ fun RegisterScreen(
             Text(
                 "  or register with email  ",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = onSurfaceVariantColor
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
         }
@@ -147,7 +163,7 @@ fun RegisterScreen(
         }
         Spacer(Modifier.height(16.dp))
 
-        // Privacy Policy consent (PDPA 2010)
+        // Privacy Policy consent (PDPA 2010) — "Privacy Policy (PDPA 2010)" is a tappable link
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -155,7 +171,12 @@ fun RegisterScreen(
             Checkbox(checked = privacyConsent, onCheckedChange = { privacyConsent = it })
             Spacer(Modifier.width(8.dp))
             Text(
-                "I agree to GigHala's Privacy Policy (PDPA 2010)",
+                text = buildAnnotatedString {
+                    append("I agree to GigHala's ")
+                    pushLink(LinkAnnotation.Url("https://www.gighala.my/privacy", linkStyle))
+                    append("Privacy Policy (PDPA 2010)")
+                    pop()
+                },
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -202,11 +223,17 @@ fun RegisterScreen(
             TextButton(onClick = onNavigateLogin) { Text("Log In") }
         }
 
+        // Terms of service footer — "halal-compliant terms of service" is a tappable link
         Spacer(Modifier.height(8.dp))
         Text(
-            "By registering, you agree to GigHala's halal-compliant terms of service.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = buildAnnotatedString {
+                append("By registering, you agree to GigHala's ")
+                pushLink(LinkAnnotation.Url("https://www.gighala.my/terms", linkStyle))
+                append("halal-compliant terms of service")
+                pop()
+                append(".")
+            },
+            style = MaterialTheme.typography.bodySmall.copy(color = onSurfaceVariantColor)
         )
     }
 }

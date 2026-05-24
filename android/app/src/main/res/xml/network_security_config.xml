@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Configuration for GigHala
+    ============================================
+    - Cleartext (HTTP) traffic is forbidden globally and explicitly for gighala.my
+    - Only system CA certificates are trusted (no user-installed CAs in production)
+    - Certificate pinning TODO is left below — add SHA-256 pins once you have them
+      by running:  openssl s_client -connect www.gighala.my:443 | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64
+-->
+<network-security-config>
+
+    <!-- Global baseline: no cleartext, trust only system CAs -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Explicit config for the GigHala API domain -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">gighala.my</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+        <!--
+        TODO (Phase 6): Uncomment and fill in real SHA-256 pins before going live.
+        Use two pins — the active leaf cert and a backup (CA or intermediate).
+        Expiry date must be renewed before it lapses or users will be locked out.
+
+        <pin-set expiration="2027-06-01">
+            <pin digest="SHA-256">REPLACE_WITH_LEAF_CERT_HASH=</pin>
+            <pin digest="SHA-256">REPLACE_WITH_BACKUP_CERT_HASH=</pin>
+        </pin-set>
+        -->
+    </domain-config>
+
+</network-security-config>
