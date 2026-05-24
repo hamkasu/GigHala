@@ -85,7 +85,7 @@ fun HomeScreen(
         LazyColumn(
             state = listState,
             contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + 20.dp,
+                top = innerPadding.calculateTopPadding() + 8.dp,
                 bottom = contentPadding.calculateBottomPadding() + 80.dp,
                 start = 16.dp,
                 end = 16.dp
@@ -96,7 +96,7 @@ fun HomeScreen(
             item {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 ) {
                     items(CATEGORIES) { category ->
                         val selected = when {
