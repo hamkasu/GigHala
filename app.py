@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, send_from_directory, redirect, flash, url_for
+from flask import Flask, render_template, render_template_string, request, jsonify, session, send_from_directory, redirect, flash, url_for
 import click
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -7158,6 +7158,36 @@ def _oauth_post_login_redirect(user):
     return redirect('/dashboard')
 
 
+# ── Android OAuth bridge page ──────────────────────────────────────────────────
+# Chrome on Android blocks HTTP redirects to custom URI schemes (gighala://)
+# when they come from server-side OAuth redirects.  A JS-initiated navigation
+# is treated differently and reliably triggers the deep-link intent.
+_ANDROID_OAUTH_BRIDGE_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GigHala — Returning to app</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 60px 24px;
+           background: #f5f5f5; color: #333; }
+    a    { color: #2E7D32; font-weight: bold; }
+  </style>
+  <script>
+    // Primary: JS navigation — Chrome handles this correctly for custom schemes
+    window.location.href = "gighala://oauth?token={{ token }}";
+  </script>
+</head>
+<body>
+  <p>Returning to GigHala&hellip;</p>
+  <p>
+    <a href="gighala://oauth?token={{ token }}">
+      Tap here if the app doesn&rsquo;t open automatically
+    </a>
+  </p>
+</body>
+</html>"""
+
 # OAuth Login Routes
 
 # Short-lived bridge tokens for Android OAuth: {token: (user_id, expires_at)}
@@ -7230,7 +7260,10 @@ def google_callback():
         if session.pop('oauth_source', None) == 'android':
             bridge_token = secrets.token_urlsafe(32)
             _mobile_tokens[bridge_token] = (user.id, time.time() + 300)
-            return redirect(f'gighala://oauth?token={bridge_token}')
+            # Use an HTML intermediate page rather than a direct HTTP redirect:
+            # Chrome blocks custom-scheme (gighala://) HTTP redirects from OAuth
+            # flows, but JavaScript-initiated navigation is handled correctly.
+            return render_template_string(_ANDROID_OAUTH_BRIDGE_HTML, token=bridge_token)
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
