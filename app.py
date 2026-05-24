@@ -11294,7 +11294,12 @@ def release_escrow(gig_id):
             if gig.status != 'completed':
                 return jsonify({'error': 'Work must be marked as completed by the freelancer before releasing payment'}), 400
 
-        escrow = Escrow.query.filter_by(gig_id=gig_id, freelancer_id=target_freelancer_id).first()
+        # Use a pessimistic row-level lock so that concurrent release requests
+        # (e.g., client clicking "Release" twice in quick succession) cannot both
+        # pass the status check and double-credit the freelancer's wallet.
+        escrow = Escrow.query.filter_by(
+            gig_id=gig_id, freelancer_id=target_freelancer_id
+        ).with_for_update().first()
 
         if not escrow:
             return jsonify({'error': 'No escrow found'}), 404
@@ -12925,6 +12930,18 @@ def stripe_webhook():
             payload, sig_header, webhook_secret
         )
 
+        # Idempotency guard: Stripe guarantees at-least-once delivery, so the same
+        # event may arrive more than once (network retries, etc.).  Check the log
+        # table before doing anything — StripeWebhookLog.event_id has a unique
+        # constraint, but relying on a DB IntegrityError would return a 500 and
+        # cause Stripe to keep retrying.  An explicit 200 response stops retries.
+        existing_log = StripeWebhookLog.query.filter_by(event_id=event['id']).first()
+        if existing_log:
+            app.logger.info(
+                f"Stripe webhook duplicate ignored: {event['type']} (ID: {event['id']})"
+            )
+            return jsonify({'success': True, 'message': 'Event already processed'}), 200
+
         # Create webhook log for auditing
         webhook_log = StripeWebhookLog(
             event_id=event['id'],
@@ -12940,8 +12957,11 @@ def stripe_webhook():
         if event['type'] == 'checkout.session.completed':
             session_data = event['data']['object']
 
-            # Find escrow by session ID
-            escrow = Escrow.query.filter_by(payment_reference=session_data['id']).first()
+            # Acquire a row-level lock on the escrow so that concurrent webhook
+            # retries cannot both see status='pending' and double-fund the escrow.
+            escrow = Escrow.query.filter_by(
+                payment_reference=session_data['id']
+            ).with_for_update().first()
 
             if escrow and escrow.status == 'pending':
                 try:
@@ -18701,13 +18721,31 @@ def request_payout():
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        # Check wallet balance
-        wallet = Wallet.query.filter_by(user_id=user_id).first()
+        # Acquire a pessimistic row-level lock on the wallet before reading the
+        # balance so that concurrent requests (e.g., double-tap on mobile) cannot
+        # both pass the balance check and both debit the same funds.
+        wallet = Wallet.query.filter_by(user_id=user_id).with_for_update().first()
         if not wallet or wallet.balance < amount:
             return jsonify({'error': 'Insufficient balance'}), 400
 
-        # ALLOW multiple pending payouts - removing restriction if it existed
-        # Based on user feedback "stuck with one payout", I'll ensure we don't block additional requests
+        # Idempotency guard: if a payout request was submitted within the last
+        # 60 seconds and is still pending/processing, reject the duplicate.
+        # This prevents double-submissions without permanently blocking legitimate
+        # follow-up payouts once the first one completes.
+        recent_pending = Payout.query.filter(
+            Payout.freelancer_id == user_id,
+            Payout.status.in_(['pending', 'processing']),
+            Payout.requested_at > datetime.utcnow() - timedelta(seconds=60)
+        ).first()
+        if recent_pending:
+            app.logger.warning(
+                f"Duplicate payout request blocked for user {user_id} "
+                f"(existing: {recent_pending.payout_number})"
+            )
+            return jsonify({
+                'error': 'A payout request was just submitted. Please wait a moment before trying again.'
+            }), 429
+
         app.logger.info(f"User {user_id} requesting payout of {amount}. Current balance: {wallet.balance}")
         
         # Calculate fee (2% platform fee only - NO SOCSO deduction here)
@@ -21598,10 +21636,23 @@ def admin_mark_payout_ready(payout_id):
 def admin_confirm_payout_payment(payout_id):
     """Admin: Confirm that external payment has been released through banking app"""
     try:
-        payout = Payout.query.get_or_404(payout_id)
+        # Lock the payout row before reading status to prevent two admins confirming
+        # the same payout simultaneously and double-releasing the held balance.
+        payout = Payout.query.filter_by(id=payout_id).with_for_update().first()
+        if payout is None:
+            return jsonify({'error': 'Payout not found'}), 404
         admin_user_id = session['user_id']
         admin_user = User.query.get(admin_user_id)
         data = request.get_json()
+
+        # Idempotency: if already completed return 200 without re-processing so
+        # a second admin click doesn't deduct held_balance a second time.
+        if payout.status == 'completed':
+            app.logger.info(
+                f"Payout {payout.payout_number} already completed — "
+                f"duplicate confirm-payment request ignored"
+            )
+            return jsonify({'message': 'Payout already completed'}), 200
 
         # Validate payout is ready for release
         if not payout.ready_for_release:
@@ -21618,8 +21669,8 @@ def admin_confirm_payout_payment(payout_id):
         if data.get('admin_notes'):
             payout.admin_notes = (payout.admin_notes or '') + f"\n[{datetime.utcnow().strftime('%Y-%m-%d %H:%M')}] {data['admin_notes']}"
 
-        # Release held balance
-        wallet = Wallet.query.filter_by(user_id=payout.freelancer_id).first()
+        # Lock the wallet row too so balance is modified atomically with the payout status update.
+        wallet = Wallet.query.filter_by(user_id=payout.freelancer_id).with_for_update().first()
         if wallet:
             wallet.held_balance -= payout.amount
 
