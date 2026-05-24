@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "653371696575",
+    "project_id": "gighala-b4021",
+    "storage_bucket": "gighala-b4021.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:653371696575:android:281f3a17eebcf777532d0a",
+        "android_client_info": {
+          "package_name": "com.gighala.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8kuEDF9XmGsTvJX1Fh2kktuowq3bHCk0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
