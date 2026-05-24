@@ -7324,10 +7324,13 @@ def mobile_token_exchange():
             'full_name': getattr(user, 'full_name', None),
             'user_type': getattr(user, 'user_type', 'both'),
             'profile_photo': getattr(user, 'profile_photo', None),
-            'is_verified': getattr(user, 'is_verified', False),
-            'is_admin': getattr(user, 'is_admin', False),
-            'halal_verified': getattr(user, 'halal_verified', False),
-            'totp_enabled': getattr(user, 'totp_enabled', False),
+            # Use `or False` to coerce SQL NULL → Python False → JSON false.
+            # getattr's default only applies when the attribute is *missing*,
+            # not when the column exists but its value is NULL.
+            'is_verified':    bool(getattr(user, 'is_verified',    None) or False),
+            'is_admin':       bool(getattr(user, 'is_admin',       None) or False),
+            'halal_verified': bool(getattr(user, 'halal_verified', None) or False),
+            'totp_enabled':   bool(getattr(user, 'totp_enabled',   None) or False),
         }
     })
 
