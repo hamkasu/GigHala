@@ -6,6 +6,7 @@ from flask_login import LoginManager, UserMixin, current_user
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from decimal import Decimal
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from functools import wraps
@@ -2240,24 +2241,44 @@ def reset_rate_limit(identifier):
 # Commission calculation function
 def calculate_commission(amount):
     """
-    Calculate tiered commission based on transaction amount
+    Calculate tiered commission based on transaction amount using marginal/bracket
+    calculation.  Each tier's rate applies only to the slice of value that falls
+    within that tier, preventing the cliff artefact where a RM1 price increase
+    caused the total commission to jump discontinuously.
 
-    Tier 1: MYR 0 - 500     → 15% commission
-    Tier 2: MYR 501 - 2,000  → 10% commission
-    Tier 3: MYR 2,001+       → 5% commission
+    Brackets (MYR):
+        0 – 500      → 15% on this slice  (max RM 75.00)
+        500 – 2,000  → 10% on this slice  (max RM 150.00)
+        2,000 +      → 5%  on the remainder
+
+    Examples:
+        RM 500   → 500×0.15             = RM 75.00
+        RM 501   → 500×0.15 + 1×0.10   = RM 75.10  (was RM 50.10 under flat-rate)
+        RM 2,000 → 500×0.15 + 1500×0.10 = RM 225.00
+        RM 3,000 → 500×0.15 + 1500×0.10 + 1000×0.05 = RM 275.00
 
     Args:
-        amount (float): Transaction amount in MYR
+        amount (float | Decimal): Transaction amount in MYR
 
     Returns:
-        float: Commission amount
+        Decimal: Commission amount rounded to 2 decimal places
     """
-    if amount <= 500:
-        return round(amount * 0.15, 2)  # 15%
-    elif amount <= 2000:
-        return round(amount * 0.10, 2)  # 10%
-    else:
-        return round(amount * 0.05, 2)  # 5%
+    amount = Decimal(str(amount))
+    TIER1_CAP = Decimal('500')
+    TIER2_CAP = Decimal('2000')
+
+    commission = Decimal('0')
+    if amount > 0:
+        tier1 = min(amount, TIER1_CAP)
+        commission += tier1 * Decimal('0.15')
+    if amount > TIER1_CAP:
+        tier2 = min(amount, TIER2_CAP) - TIER1_CAP
+        commission += tier2 * Decimal('0.10')
+    if amount > TIER2_CAP:
+        tier3 = amount - TIER2_CAP
+        commission += tier3 * Decimal('0.05')
+
+    return commission.quantize(Decimal('0.01'))
 
 def calculate_socso(net_earnings):
     """
@@ -2267,14 +2288,15 @@ def calculate_socso(net_earnings):
     Required by Self-Employment Social Security Scheme (SESKSO/SKSPS)
 
     Args:
-        net_earnings (float): Net earnings after platform commission in MYR
+        net_earnings (float | Decimal): Net earnings after platform commission in MYR
 
     Returns:
-        float: SOCSO contribution amount rounded to 2 decimal places (sen)
+        Decimal: SOCSO contribution amount rounded to 2 decimal places (sen)
     """
+    net_earnings = Decimal(str(net_earnings))
     if net_earnings <= 0:
-        return 0.0
-    return round(net_earnings * 0.0125, 2)  # 1.25%
+        return Decimal('0.00')
+    return (net_earnings * Decimal('0.0125')).quantize(Decimal('0.01'))  # 1.25%
 
 def create_socso_contribution(freelancer_id, gross_amount, platform_commission, net_earnings,
                                contribution_type='escrow_release', gig_id=None,
@@ -2632,7 +2654,7 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.Text)
     rating = db.Column(db.Float, default=0.0)
     review_count = db.Column(db.Integer, default=0)
-    total_earnings = db.Column(db.Float, default=0.0)
+    total_earnings = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
     completed_gigs = db.Column(db.Integer, default=0)
     profile_video = db.Column(db.String(255))
     language = db.Column(db.String(5), default='ms')  # ms (Malay) or en (English)
@@ -2816,7 +2838,7 @@ class Referral(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     referred_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
-    bonus_amount = db.Column(db.Float, default=5.0)  # RM5 per successful referral
+    bonus_amount = db.Column(db.Numeric(12, 2), default=Decimal('5.00'))  # RM5 per successful referral
     status = db.Column(db.String(20), default='pending')  # pending, credited, rejected
     registration_ip = db.Column(db.String(45))  # IP used during referred user's registration
     credit_after = db.Column(db.DateTime)  # Earliest time the bonus may be credited (fraud delay)
@@ -2832,9 +2854,9 @@ class Gig(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(50), nullable=False)
-    budget_min = db.Column(db.Float, nullable=False)
-    budget_max = db.Column(db.Float, nullable=False)
-    approved_budget = db.Column(db.Float)  # Actual amount approved by client
+    budget_min = db.Column(db.Numeric(12, 2), nullable=False)
+    budget_max = db.Column(db.Numeric(12, 2), nullable=False)
+    approved_budget = db.Column(db.Numeric(12, 2))  # Actual amount approved by client
     payment_type = db.Column(db.String(20), default='full_payment')  # full_payment, milestone
     duration = db.Column(db.String(50))  # e.g., "1-3 days", "1 week"
     location = db.Column(db.String(100))
@@ -2845,7 +2867,7 @@ class Gig(db.Model):
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     workers_needed = db.Column(db.Integer, default=1)  # Number of workers needed for this gig (1 = single worker, >1 = multiple workers)
-    agreed_amount = db.Column(db.Float)
+    agreed_amount = db.Column(db.Numeric(12, 2))
     halal_compliant = db.Column(db.Boolean, default=True)
     halal_verified = db.Column(db.Boolean, default=False)
     is_instant_payout = db.Column(db.Boolean, default=False)
@@ -2891,7 +2913,7 @@ class GigWorker(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)  # Link to the accepted application
     escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'), nullable=True)  # Individual escrow for this worker's payment
-    agreed_amount = db.Column(db.Float)  # Individual worker's agreed amount
+    agreed_amount = db.Column(db.Numeric(12, 2))  # Individual worker's agreed amount
     status = db.Column(db.String(20), default='active')  # active, completed, withdrawn
     work_submitted = db.Column(db.Boolean, default=False)
     work_submission_date = db.Column(db.DateTime)
@@ -2937,7 +2959,7 @@ class Application(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     cover_letter = db.Column(db.Text)
-    proposed_price = db.Column(db.Float)
+    proposed_price = db.Column(db.Numeric(12, 2))
     video_pitch = db.Column(db.String(255))
     status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected
     is_shortlisted = db.Column(db.Boolean, default=False)
@@ -2982,10 +3004,10 @@ class Transaction(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    commission = db.Column(db.Float, default=0.0)
-    net_amount = db.Column(db.Float, nullable=False)
-    socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution (1.25% of net_amount)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    commission = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    net_amount = db.Column(db.Numeric(12, 2), nullable=False)
+    socso_amount = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))  # SOCSO contribution (1.25% of net_amount)
     payment_method = db.Column(db.String(50))  # ipay88, bank_transfer, touch_n_go
     status = db.Column(db.String(20), default='pending')  # pending, completed, failed
     transaction_date = db.Column(db.DateTime, default=datetime.utcnow)
@@ -3007,7 +3029,7 @@ class MicroTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    reward = db.Column(db.Float, nullable=False)
+    reward = db.Column(db.Numeric(12, 2), nullable=False)
     task_type = db.Column(db.String(50))  # review, survey, content_creation
     status = db.Column(db.String(20), default='available')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -3030,10 +3052,10 @@ class SiteStats(db.Model):
 class Wallet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
-    balance = db.Column(db.Float, default=0.0, nullable=False)
-    held_balance = db.Column(db.Float, default=0.0, nullable=False)
-    total_earned = db.Column(db.Float, default=0.0, nullable=False)
-    total_spent = db.Column(db.Float, default=0.0, nullable=False)
+    balance = db.Column(db.Numeric(12, 2), default=Decimal('0.00'), nullable=False)
+    held_balance = db.Column(db.Numeric(12, 2), default=Decimal('0.00'), nullable=False)
+    total_earned = db.Column(db.Numeric(12, 2), default=Decimal('0.00'), nullable=False)
+    total_spent = db.Column(db.Numeric(12, 2), default=Decimal('0.00'), nullable=False)
     currency = db.Column(db.String(3), default='MYR', nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -3045,10 +3067,10 @@ class Invoice(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    platform_fee = db.Column(db.Float, default=0.0)
-    tax_amount = db.Column(db.Float, default=0.0)
-    total_amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    platform_fee = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    tax_amount = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    total_amount = db.Column(db.Numeric(12, 2), nullable=False)
     status = db.Column(db.String(20), default='draft')  # draft, issued, paid, cancelled, refunded
     payment_method = db.Column(db.String(50))
     payment_reference = db.Column(db.String(100))
@@ -3076,9 +3098,9 @@ class Receipt(db.Model):
     escrow_id = db.Column(db.Integer, db.ForeignKey('escrow.id'))
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'))
     transaction_id = db.Column(db.Integer, db.ForeignKey('transaction.id'))
-    amount = db.Column(db.Float, nullable=False)
-    platform_fee = db.Column(db.Float, default=0.0)
-    total_amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    platform_fee = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    total_amount = db.Column(db.Numeric(12, 2), nullable=False)
     payment_method = db.Column(db.String(50))
     payment_reference = db.Column(db.String(100))
     description = db.Column(db.Text)
@@ -3107,10 +3129,10 @@ class Payout(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     payout_number = db.Column(db.String(50), unique=True, nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    fee = db.Column(db.Float, default=0.0)
-    socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution (1.25% of amount)
-    net_amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    fee = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    socso_amount = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))  # SOCSO contribution (1.25% of amount)
+    net_amount = db.Column(db.Numeric(12, 2), nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)  # bank_transfer, fpx, touch_n_go, grab_pay, boost
     account_number = db.Column(EncryptedString)  # PDPA: encrypted at rest
     account_name = db.Column(EncryptedString)    # PDPA: encrypted at rest
@@ -3142,10 +3164,10 @@ class PaymentHistory(db.Model):
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'))
     payout_id = db.Column(db.Integer, db.ForeignKey('payout.id'))
     type = db.Column(db.String(30), nullable=False)  # deposit, withdrawal, payment, refund, commission, payout, hold, release, socso
-    amount = db.Column(db.Float, nullable=False)
-    socso_amount = db.Column(db.Float, default=0.0)  # SOCSO contribution amount
-    balance_before = db.Column(db.Float, nullable=False)
-    balance_after = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    socso_amount = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))  # SOCSO contribution amount
+    balance_before = db.Column(db.Numeric(12, 2), nullable=False)
+    balance_after = db.Column(db.Numeric(12, 2), nullable=False)
     description = db.Column(db.Text)
     reference_number = db.Column(db.String(100))
     payment_gateway = db.Column(db.String(50))
@@ -3188,8 +3210,8 @@ class WorkerSpecialization(db.Model):
 
     # Specialized rate fields
     specialization_title = db.Column(db.String(100))  # Custom title like "Senior Quran Tutor"
-    base_hourly_rate = db.Column(db.Float)  # MYR per hour
-    base_fixed_rate = db.Column(db.Float)  # MYR per fixed gig
+    base_hourly_rate = db.Column(db.Numeric(12, 2))  # MYR per hour
+    base_fixed_rate = db.Column(db.Numeric(12, 2))  # MYR per fixed gig
     premium_multiplier = db.Column(db.Float, default=1.0)  # Multiplier for premium work (1.0 = no premium)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -3406,13 +3428,13 @@ class Escrow(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    platform_fee = db.Column(db.Float, default=0.0)
-    net_amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    platform_fee = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    net_amount = db.Column(db.Numeric(12, 2), nullable=False)
     status = db.Column(db.String(30), default='pending')
     payment_reference = db.Column(db.String(100))
     payment_gateway = db.Column(db.String(50))  # stripe, payhalal, bank_transfer
-    refunded_amount = db.Column(db.Float, default=0.0)  # Track partial refunds
+    refunded_amount = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))  # Track partial refunds
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     funded_at = db.Column(db.DateTime)
     released_at = db.Column(db.DateTime)
@@ -3493,7 +3515,7 @@ class Milestone(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
     order = db.Column(db.Integer, nullable=False)  # Order of milestone (1, 2, 3, etc.)
     status = db.Column(db.String(20), default='pending')  # pending, in_progress, completed, paid
     due_date = db.Column(db.DateTime)
@@ -3548,9 +3570,9 @@ class MilestonePayment(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     freelancer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    platform_fee = db.Column(db.Float, default=0.0)
-    net_amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    platform_fee = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    net_amount = db.Column(db.Numeric(12, 2), nullable=False)
     status = db.Column(db.String(30), default='pending')  # pending, funded, released, refunded, disputed
     payment_reference = db.Column(db.String(100))
     payment_gateway = db.Column(db.String(50))  # stripe, payhalal, bank_transfer
@@ -3863,11 +3885,11 @@ class SocsoContribution(db.Model):
     gig_id = db.Column(db.Integer, db.ForeignKey('gig.id'))
 
     # Financial details
-    gross_amount = db.Column(db.Float, nullable=False)  # Original gig amount
-    platform_commission = db.Column(db.Float, nullable=False)  # Platform fee deducted
-    net_earnings = db.Column(db.Float, nullable=False)  # Amount after commission, before SOCSO
-    socso_amount = db.Column(db.Float, nullable=False)  # 1.25% of net_earnings
-    final_payout = db.Column(db.Float, nullable=False)  # Amount after SOCSO deduction
+    gross_amount = db.Column(db.Numeric(12, 2), nullable=False)  # Original gig amount
+    platform_commission = db.Column(db.Numeric(12, 2), nullable=False)  # Platform fee deducted
+    net_earnings = db.Column(db.Numeric(12, 2), nullable=False)  # Amount after commission, before SOCSO
+    socso_amount = db.Column(db.Numeric(12, 2), nullable=False)  # 1.25% of net_earnings
+    final_payout = db.Column(db.Numeric(12, 2), nullable=False)  # Amount after SOCSO deduction
 
     # Contribution metadata
     contribution_month = db.Column(db.String(7), nullable=False)  # YYYY-MM format
@@ -4023,8 +4045,8 @@ class UrgentRequest(db.Model):
     description = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(50), nullable=False)
     urgency_level = db.Column(db.String(20), nullable=False)  # 1hour, same_day, 24hours, 48hours
-    budget_min = db.Column(db.Float)
-    budget_max = db.Column(db.Float)
+    budget_min = db.Column(db.Numeric(12, 2))
+    budget_max = db.Column(db.Numeric(12, 2))
     is_remote = db.Column(db.Boolean, default=True)
     location = db.Column(db.String(100))
     preferred_language = db.Column(db.String(50))
@@ -4033,9 +4055,9 @@ class UrgentRequest(db.Model):
     vetted_experts_only = db.Column(db.Boolean, default=False)
     priority_match = db.Column(db.Boolean, default=False)   # paid add-on
     urgent_boost = db.Column(db.Boolean, default=False)     # paid add-on
-    priority_match_price = db.Column(db.Float, default=0.0)
-    urgent_boost_price = db.Column(db.Float, default=0.0)
-    total_addons_price = db.Column(db.Float, default=0.0)
+    priority_match_price = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    urgent_boost_price = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
+    total_addons_price = db.Column(db.Numeric(12, 2), default=Decimal('0.00'))
     status = db.Column(db.String(20), default='new')  # new, reviewing, matched, closed
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     contact_name = db.Column(db.String(120))
@@ -4060,8 +4082,8 @@ class ManagedSolutionRequest(db.Model):
     industry = db.Column(db.String(100))
     business_problem = db.Column(db.Text, nullable=False)
     timeline = db.Column(db.String(50))
-    budget_min = db.Column(db.Float)
-    budget_max = db.Column(db.Float)
+    budget_min = db.Column(db.Numeric(12, 2))
+    budget_max = db.Column(db.Numeric(12, 2))
     is_remote = db.Column(db.Boolean, default=True)
     location = db.Column(db.String(100))
     experts_needed = db.Column(db.Integer, default=1)
@@ -21325,8 +21347,10 @@ def admin_get_payouts():
                 'net_amount': p.net_amount,
                 'payment_method': p.payment_method,
                 'bank_name': p.bank_name,
-                'account_number': p.account_number,
-                'account_name': p.account_name,
+                # PDPA: mask sensitive bank details in API responses; full values
+                # are only used inside the payout-processing email flow.
+                'account_number': ('****' + str(p.account_number)[-4:]) if p.account_number else None,
+                'account_name': (str(p.account_name)[0] + '***') if p.account_name else None,
                 'status': p.status,
                 'requested_at': p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'processed_at': p.processed_at.strftime('%Y-%m-%d %H:%M:%S') if p.processed_at else None,
@@ -21549,8 +21573,9 @@ def admin_get_payout_batches():
                 'net_amount': p.net_amount,
                 'payment_method': p.payment_method,
                 'bank_name': p.bank_name,
-                'account_number': p.account_number,
-                'account_name': p.account_name,
+                # PDPA: mask sensitive bank details in API responses
+                'account_number': ('****' + str(p.account_number)[-4:]) if p.account_number else None,
+                'account_name': (str(p.account_name)[0] + '***') if p.account_name else None,
                 'status': p.status,
                 'requested_at': p.requested_at.strftime('%Y-%m-%d %H:%M:%S'),
                 'ready_for_release': p.ready_for_release,
@@ -23185,6 +23210,31 @@ def _apply_column_migrations():
         app.logger.info("Column migrations applied successfully")
     except Exception as e:
         app.logger.warning(f"Column migrations failed (non-fatal): {e}")
+
+    # -----------------------------------------------------------------
+    # Migration 061: convert monetary DOUBLE PRECISION columns to
+    # NUMERIC(12,2) for exact decimal storage.  Only runs on PostgreSQL
+    # and only converts columns that are still DOUBLE PRECISION (i.e.
+    # environments bootstrapped via db.create_all() rather than the SQL
+    # migration scripts, which already used DECIMAL(10,2)).
+    # -----------------------------------------------------------------
+    try:
+        from sqlalchemy import text as _text
+        db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        if 'postgres' in db_url:
+            migration_path = os.path.join(
+                os.path.dirname(__file__), 'migrations',
+                '061_monetary_columns_numeric.sql'
+            )
+            if os.path.exists(migration_path):
+                with open(migration_path, 'r') as _f:
+                    migration_sql = _f.read()
+                with db.engine.connect() as _conn:
+                    _conn.execute(_text(migration_sql))
+                    _conn.commit()
+                app.logger.info("Migration 061: monetary NUMERIC columns applied")
+    except Exception as _e:
+        app.logger.warning(f"Migration 061 (non-fatal): {_e}")
 
 
 def _ensure_public_schema_create_privilege():
