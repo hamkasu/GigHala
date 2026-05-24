@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -18,14 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.gighala.app.R
 import com.gighala.app.data.repository.AuthState
 
 @Composable
@@ -57,10 +60,10 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         // Logo + brand
-        Icon(
-            painter = rememberVectorPainter(Icons.Filled.Lock),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+        Image(
+            painter = painterResource(R.drawable.ic_gighala_logo),
+            contentDescription = "GigHala Logo",
+            contentScale = ContentScale.Fit,
             modifier = Modifier.size(72.dp)
         )
         Spacer(Modifier.height(8.dp))
