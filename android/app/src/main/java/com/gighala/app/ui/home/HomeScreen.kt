@@ -94,7 +94,10 @@ fun HomeScreen(
         ) {
             // Category filter chips
             item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
                     items(CATEGORIES) { category ->
                         val selected = when {
                             category == "All" -> uiState.selectedCategory == null
