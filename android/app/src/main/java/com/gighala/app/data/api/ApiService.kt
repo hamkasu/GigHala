@@ -27,6 +27,10 @@ interface ApiService {
     @POST("api/auth/mobile/exchange")
     suspend fun exchangeMobileToken(@Body request: ExchangeTokenRequest): Response<AuthResponse>
 
+    /** Poll for OAuth completion (fallback when deep link doesn't fire). */
+    @GET("api/auth/mobile/poll")
+    suspend fun pollMobileAuth(@Query("request_id") requestId: String): Response<MobilePollResponse>
+
     @GET("api/me")
     suspend fun getCurrentUser(): Response<UserDto>
 

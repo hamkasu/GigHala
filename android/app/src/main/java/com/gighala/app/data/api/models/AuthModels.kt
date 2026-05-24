@@ -74,6 +74,13 @@ data class ExchangeTokenRequest(
 )
 
 @JsonClass(generateAdapter = true)
+data class MobilePollResponse(
+    val ready: Boolean,
+    val token: String? = null,
+    val error: String? = null
+)
+
+@JsonClass(generateAdapter = true)
 data class ForgotPasswordRequest(
     val email: String
 )

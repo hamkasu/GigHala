@@ -7193,6 +7193,9 @@ _ANDROID_OAUTH_BRIDGE_HTML = """<!DOCTYPE html>
 # Short-lived bridge tokens for Android OAuth: {token: (user_id, expires_at)}
 # Tokens are purged opportunistically on each exchange request.
 _mobile_tokens: dict = {}
+# Maps android_request_id → bridge_token for polling fallback.
+# Allows the Android app to detect OAuth completion without deep links.
+_mobile_tokens_by_request: dict = {}
 
 @app.route('/api/auth/google')
 def google_login():
@@ -7203,8 +7206,12 @@ def google_login():
     # can redirect back via deep link instead of the web dashboard.
     if request.args.get('source') == 'android':
         session['oauth_source'] = 'android'
+        # Persist the app-generated request_id so the callback can index the
+        # bridge token for polling (fallback when deep link doesn't fire).
+        session['android_request_id'] = request.args.get('request_id', '')
     else:
         session.pop('oauth_source', None)
+        session.pop('android_request_id', None)
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/api/auth/google/callback')
@@ -7259,7 +7266,13 @@ def google_callback():
         # short-lived bridge token (5 min TTL) instead of the web dashboard.
         if session.pop('oauth_source', None) == 'android':
             bridge_token = secrets.token_urlsafe(32)
-            _mobile_tokens[bridge_token] = (user.id, time.time() + 300)
+            expires_at = time.time() + 300
+            _mobile_tokens[bridge_token] = (user.id, expires_at)
+            # Also index by request_id so the Android app can poll for completion
+            # without relying on the deep link firing (robust fallback).
+            request_id = session.pop('android_request_id', '')
+            if request_id:
+                _mobile_tokens_by_request[request_id] = (bridge_token, expires_at)
             # Use an HTML intermediate page rather than a direct HTTP redirect:
             # Chrome blocks custom-scheme (gighala://) HTTP redirects from OAuth
             # flows, but JavaScript-initiated navigation is handled correctly.
@@ -7317,6 +7330,42 @@ def mobile_token_exchange():
             'totp_enabled': getattr(user, 'totp_enabled', False),
         }
     })
+
+
+@app.route('/api/auth/mobile/poll')
+def mobile_auth_poll():
+    """Polling endpoint: Android app checks every 2 s whether OAuth completed.
+
+    This is a fallback for when the gighala:// deep link doesn't fire
+    automatically (e.g. browser blocks custom-scheme redirects, or the user
+    has to tap the link manually).  The app passes the request_id it generated
+    before opening the browser; the server returns the bridge token once the
+    OAuth callback has stored it.
+    """
+    now = time.time()
+
+    # Purge expired entries opportunistically
+    expired = [rid for rid, (_, exp) in list(_mobile_tokens_by_request.items()) if now > exp]
+    for rid in expired:
+        _mobile_tokens_by_request.pop(rid, None)
+
+    request_id = request.args.get('request_id', '').strip()
+    if not request_id:
+        return jsonify({'ready': False, 'error': 'missing request_id'}), 400
+
+    entry = _mobile_tokens_by_request.get(request_id)
+    if not entry:
+        return jsonify({'ready': False})
+
+    bridge_token, expires_at = entry
+    if now > expires_at:
+        _mobile_tokens_by_request.pop(request_id, None)
+        return jsonify({'ready': False, 'error': 'expired'})
+
+    # Token is ready — remove from request index (single use), leave in
+    # _mobile_tokens so the subsequent /exchange call can validate it.
+    _mobile_tokens_by_request.pop(request_id, None)
+    return jsonify({'ready': True, 'token': bridge_token})
 
 
 @app.route('/api/auth/microsoft')

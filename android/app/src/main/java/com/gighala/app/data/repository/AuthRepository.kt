@@ -110,4 +110,16 @@ class AuthRepository @Inject constructor(
         else error(body.error ?: body.message ?: "Sign-in failed")
         body
     }
+
+    /**
+     * Polls the server once to check if the OAuth flow completed for [requestId].
+     * Returns the bridge token when ready, null when still pending.
+     * Throws on network / parse errors — callers should catch and retry.
+     */
+    suspend fun pollMobileAuth(requestId: String): String? {
+        val response = api.pollMobileAuth(requestId)
+        if (!response.isSuccessful) return null
+        val body = response.body() ?: return null
+        return if (body.ready) body.token else null
+    }
 }

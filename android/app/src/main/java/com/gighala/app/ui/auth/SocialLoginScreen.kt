@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.gighala.app.BuildConfig
 import com.gighala.app.data.repository.AuthState
 import kotlinx.coroutines.delay
+import java.util.UUID
 
 /** GigHala brand green — matches the launcher icon background. */
 private val GigHalaGreen = Color(0xFF2E7D32)
@@ -37,25 +38,31 @@ fun SocialLoginScreen(
     val authState by viewModel.authState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
+    // Stable UUID that identifies this OAuth attempt on the server.
+    // Passed as a query param so the backend can index the bridge token for
+    // polling — the app doesn't rely on the deep link alone.
+    val requestId = remember { UUID.randomUUID().toString() }
+
     // Show a "didn't redirect?" helper after 12 s in case Chrome didn't fire
-    // the deep link automatically (rare, but seen on some emulators).
+    // the deep link automatically.
     var showManualHelp by remember { mutableStateOf(false) }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) onSuccess()
     }
 
-    // Open OAuth in a Chrome Custom Tab.
-    //
-    // Custom Tabs (≠ WebView) send the full Chrome user-agent, so Google's
-    // "disallowed_useragent" check does NOT block them.  They also handle
-    // deep-link redirects (gighala://...) more reliably than an external
-    // browser: when Chrome Custom Tab gets a custom-scheme redirect it fires
-    // the intent directly to the owning app and closes the tab automatically.
+    // Open OAuth in a Chrome Custom Tab AND start polling the server every 2 s.
+    // Whichever arrives first (deep link via onNewIntent OR poll response) wins.
     LaunchedEffect(Unit) {
-        openOAuthCustomTab(context, provider)
+        openOAuthCustomTab(context, provider, requestId)
+        viewModel.startMobilePolling(requestId)
         delay(12_000)
         showManualHelp = true
+    }
+
+    // Cancel polling when the screen leaves the composition (Cancel / back)
+    DisposableEffect(Unit) {
+        onDispose { viewModel.stopMobilePolling() }
     }
 
     val providerLabel = when (provider) {
@@ -109,7 +116,7 @@ fun SocialLoginScreen(
                         Spacer(Modifier.height(8.dp))
                         Button(onClick = {
                             viewModel.clearError()
-                            openOAuthCustomTab(context, provider)
+                            openOAuthCustomTab(context, provider, requestId)
                         }) { Text("Try Again") }
                         TextButton(onClick = onBack) { Text("Go Back") }
                     }
@@ -148,7 +155,7 @@ fun SocialLoginScreen(
                                         textAlign = TextAlign.Center
                                     )
                                     OutlinedButton(onClick = {
-                                        openOAuthCustomTab(context, provider)
+                                        openOAuthCustomTab(context, provider, requestId)
                                     }) { Text("Open Browser Again") }
                                 }
                             }
@@ -169,10 +176,14 @@ fun SocialLoginScreen(
  * Falls back to a plain ACTION_VIEW intent if Chrome / Custom Tabs is
  * unavailable (e.g. on an emulator without Chrome installed).
  */
-private fun openOAuthCustomTab(context: android.content.Context, provider: String) {
+private fun openOAuthCustomTab(
+    context: android.content.Context,
+    provider: String,
+    requestId: String
+) {
     val path = when (provider) {
-        "google" -> "/api/auth/google?source=android"
-        else     -> "/api/auth/google?source=android"
+        "google" -> "/api/auth/google?source=android&request_id=$requestId"
+        else     -> "/api/auth/google?source=android&request_id=$requestId"
     }
     val url = Uri.parse("${BuildConfig.BASE_URL}$path")
 
