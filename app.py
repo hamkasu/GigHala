@@ -17375,7 +17375,8 @@ def announce_direct_hire():
                 'failed_count': details.get('failed_count', 0)
             }), 200
         else:
-            return jsonify({'error': message}), 500
+            http_status = status_code if status_code in (400, 401, 403) else 500
+            return jsonify({'error': message}), http_status
 
     except Exception as e:
         app.logger.error(f"announce_direct_hire error: {str(e)}", exc_info=True)
@@ -17480,7 +17481,8 @@ def announce_2fa_activation():
                 'failed_count': details.get('failed_count', 0)
             }), 200
         else:
-            return jsonify({'error': message}), 500
+            http_status = status_code if status_code in (400, 401, 403) else 500
+            return jsonify({'error': message}), http_status
 
     except Exception as e:
         app.logger.error(f"announce_2fa error: {str(e)}", exc_info=True)

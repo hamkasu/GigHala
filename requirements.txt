@@ -41,9 +41,15 @@ pillow>=10.0.0
 Authlib>=1.3.0
 oauthlib
 
+# Email Providers
+# Primary: Amazon SES (EMAIL_PROVIDER=ses) — boto3
+# Fallback options: sendgrid | brevo
+boto3>=1.34.0
+sendgrid>=6.11.0
+brevo-python
+
 # Communication Services
 twilio
-brevo-python
 
 # AI / Groq
 groq

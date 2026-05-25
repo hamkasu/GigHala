@@ -3836,6 +3836,18 @@
         if (e.target === this) closeEmailLogModal();
     });
 
+    // Shared helper — renders an error banner, using a purple warning style
+    // for Brevo IP-block errors (HTTP 401) and red for everything else.
+    function showEmailError(statusDiv, httpStatus, errorMsg) {
+        const isIpBlock = httpStatus === 401;
+        const style = isIpBlock
+            ? 'background:#f5f3ff;color:#5b21b6;border:1px solid #c4b5fd;'
+            : 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;';
+        statusDiv.innerHTML = `<div style="padding:14px;border-radius:8px;${style}">
+            ${isIpBlock ? '⚠️' : '❌'} ${errorMsg || 'Failed to send'}
+        </div>`;
+    }
+
     // ==================== DIRECT HIRE ANNOUNCEMENT ====================
     async function sendDirectHireAnnouncement() {
         const recipientType = document.getElementById('announce-recipient-type').value;
@@ -3862,7 +3874,7 @@
                     Delivered: ${data.successful_count} · Failed: ${data.failed_count} · Total: ${data.recipients_count}
                 </div>`;
             } else {
-                statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ ${data.error || 'Failed to send'}</div>`;
+                showEmailError(statusDiv, response.status, data.error);
             }
         } catch (err) {
             statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ Network error: ${err.message}</div>`;
@@ -3900,7 +3912,7 @@
                     Delivered: ${data.successful_count} · Failed: ${data.failed_count} · Total: ${data.recipients_count}
                 </div>`;
             } else {
-                statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ ${data.error || 'Failed to send'}</div>`;
+                showEmailError(statusDiv, response.status, data.error);
             }
         } catch (err) {
             statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ Network error: ${err.message}</div>`;
@@ -3936,7 +3948,7 @@
                     Delivered: ${data.successful_count} · Failed: ${data.failed_count} · Targeted: ${data.recipients_targeted}
                 </div>`;
             } else {
-                statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ ${data.error || 'Failed to send'}</div>`;
+                showEmailError(statusDiv, response.status, data.error);
             }
         } catch (err) {
             statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ Network error: ${err.message}</div>`;
