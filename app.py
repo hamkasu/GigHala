@@ -5260,6 +5260,15 @@ def login_page():
         return redirect('/dashboard')
     return render_template('login.html', lang=get_user_language(), t=t)
 
+@app.route('/2fa-challenge')
+def two_fa_challenge_page():
+    """2FA challenge page — shown after successful password/OAuth auth when 2FA is enabled"""
+    if 'user_id' in session:
+        return redirect('/dashboard')
+    if 'pre_auth_user_id' not in session:
+        return redirect('/login')
+    return render_template('2fa_challenge.html', lang=get_user_language(), t=t)
+
 @app.route('/register', endpoint='web_register')
 def register_page():
     """Registration page"""
@@ -7148,10 +7157,24 @@ def _oauth_post_login_redirect(user):
     After OAuth login/signup, redirect the user to the appropriate page.
     - New users without PDPA consent → /consent (PDPA 2010 s.6)
     - Users needing phone/email setup → /dashboard?show_phone_prompt=true
+    - Users with 2FA enabled → /2fa-challenge
     - Everyone else → /dashboard
     """
     if not user.privacy_consent:
         return redirect('/consent')
+    if user.totp_enabled:
+        session.pop('user_id', None)
+        session['pre_auth_user_id'] = user.id
+        session['pre_auth_timestamp'] = datetime.utcnow().isoformat()
+        session.permanent = False
+        security_logger.log_authentication(
+            event_type='login_2fa_challenge',
+            username=user.username,
+            status='pending',
+            message=f'2FA challenge issued for OAuth user {user.username}',
+            user_id=user.id
+        )
+        return redirect('/2fa-challenge')
     placeholder = user.email.endswith('@x.placeholder') or user.email.endswith('@facebook.placeholder')
     if not user.phone or not user.phone_verified or placeholder:
         return redirect('/dashboard?show_phone_prompt=true')
