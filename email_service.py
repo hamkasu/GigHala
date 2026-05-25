@@ -1,5 +1,6 @@
 """Brevo Email Service for bulk admin emails"""
 import os
+import re
 from flask import current_app
 
 try:
@@ -8,6 +9,34 @@ try:
 except ImportError:
     brevo = None
     BREVO_AVAILABLE = False
+
+
+def _parse_brevo_error(exc):
+    """
+    Inspect a Brevo API exception and return (is_ip_blocked, human_message).
+
+    Brevo returns HTTP 401 with code='unauthorized' and a message that
+    mentions "unrecognised IP address" when the server IP is not whitelisted.
+    We detect this pattern so we can abort the send loop immediately instead
+    of repeating the same failure for every recipient.
+    """
+    err_str = str(exc)
+    # Look for the fingerprint Brevo uses for IP-whitelist rejections
+    if 'status_code: 401' in err_str and (
+        'unrecognised IP' in err_str or
+        'unauthorized' in err_str.lower()
+    ):
+        # Try to pull the IP out of the error body
+        ip_match = re.search(r'unrecognised IP address ([\d.]+)', err_str)
+        ip_hint = f" <code>{ip_match.group(1)}</code>" if ip_match else ""
+        msg = (
+            f"🚫 Brevo IP not whitelisted: server IP{ip_hint} was rejected. "
+            f"Add it at <a href='https://app.brevo.com/security/authorised_ips' "
+            f"target='_blank' style='color:#7c3aed;font-weight:600;'>"
+            f"app.brevo.com/security/authorised_ips</a> then retry."
+        )
+        return True, msg
+    return False, str(exc)
 
 
 class EmailService:
@@ -106,9 +135,36 @@ class EmailService:
             except Exception as e:
                 failed_sends += 1
                 failed_recipients.append(email)
-                current_app.logger.error(f"[EMAIL_SEND] ✗ Email {idx}/{total_recipients} error for {email}: {str(e)}")
 
-        current_app.logger.info(f"[EMAIL_SEND] Email sending complete: {successful_sends} succeeded, {failed_sends} failed out of {total_recipients} total")
+                is_ip_blocked, human_msg = _parse_brevo_error(e)
+                current_app.logger.error(
+                    f"[EMAIL_SEND] ✗ Email {idx}/{total_recipients} error for {email}: {str(e)}"
+                )
+
+                if is_ip_blocked:
+                    # No point hammering Brevo with 100+ more requests —
+                    # every one will get the same 401.  Abort now.
+                    remaining = total_recipients - idx
+                    failed_sends += remaining
+                    failed_recipients += [r[0] for r in recipient_list[idx:]]
+                    current_app.logger.error(
+                        f"[EMAIL_SEND] Aborting send loop early — IP not whitelisted. "
+                        f"Skipped remaining {remaining} recipients. {human_msg}"
+                    )
+                    error_details = {
+                        'successful_count': successful_sends,
+                        'failed_count': failed_sends,
+                        'total_count': total_recipients,
+                        'successful_recipients': successful_recipients,
+                        'failed_recipients': failed_recipients,
+                        'brevo_message_ids': brevo_message_ids
+                    }
+                    return False, human_msg, 401, error_details
+
+        current_app.logger.info(
+            f"[EMAIL_SEND] Email sending complete: {successful_sends} succeeded, "
+            f"{failed_sends} failed out of {total_recipients} total"
+        )
 
         result_details = {
             'successful_count': successful_sends,
