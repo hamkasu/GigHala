@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aktifkan Pengesahan Dua Faktor (2FA) - GigHala</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #0f4c81 0%, #1a73c4 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header .emoji {
+            font-size: 52px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        .header p {
+            color: #cce4ff;
+            margin: 10px 0 0 0;
+            font-size: 15px;
+        }
+        .security-badge {
+            display: inline-block;
+            background-color: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-top: 15px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 17px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .intro-text {
+            font-size: 15px;
+            color: #444444;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        /* Alert box */
+        .alert-box {
+            background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 20px 22px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .alert-box p {
+            margin: 0;
+            font-size: 15px;
+            color: #7c5700;
+            line-height: 1.7;
+        }
+        .alert-box strong {
+            color: #92400e;
+        }
+        /* Why 2FA section */
+        .why-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 5px solid #1a73c4;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .why-box h2 {
+            color: #1e40af;
+            font-size: 19px;
+            margin: 0 0 16px 0;
+            font-weight: 700;
+        }
+        .why-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 13px;
+            font-size: 15px;
+            color: #1e3a5f;
+            line-height: 1.6;
+        }
+        .why-item .icon {
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        /* Steps */
+        .steps-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 20px 0;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+        .step-number {
+            background: linear-gradient(135deg, #1a73c4 0%, #0f4c81 100%);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-right: 16px;
+            margin-top: 1px;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-content strong {
+            display: block;
+            font-size: 15px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        .step-content p {
+            margin: 0;
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        .step-content .app-list {
+            display: inline-block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin: 6px 4px 0 0;
+        }
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 44px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .cta-note {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-top: 12px;
+        }
+        /* App recommendations */
+        .apps-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 22px;
+            margin-bottom: 28px;
+        }
+        .apps-box h3 {
+            color: #15803d;
+            font-size: 16px;
+            margin: 0 0 14px 0;
+            font-weight: 700;
+        }
+        .app-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #166534;
+        }
+        .app-row .app-icon {
+            font-size: 22px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        /* Security tip */
+        .tip-box {
+            background-color: #fff1f2;
+            border-left: 4px solid #f43f5e;
+            border-radius: 6px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+        }
+        .tip-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #9f1239;
+            line-height: 1.7;
+        }
+        /* FAQ */
+        .faq-item {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+        }
+        .faq-item .q {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 6px 0;
+        }
+        .faq-item .a {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1.6;
+        }
+        /* Footer */
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 25px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 7px 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .footer a {
+            color: #1a73c4;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        /* Mobile */
+        @media only screen and (max-width: 600px) {
+            .content { padding: 28px 18px; }
+            .header h1 { font-size: 22px; }
+            .cta-button { padding: 16px 30px; font-size: 15px; }
+            .step-item { padding: 14px 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+
+    <!-- Header -->
+    <div class="header">
+        <span class="emoji">🔐</span>
+        <h1>Lindungi Akaun Anda<br>Dengan Pengesahan Dua Faktor</h1>
+        <p>Keselamatan akaun anda adalah keutamaan kami</p>
+        <div class="security-badge">⚠️ Tindakan Keselamatan Disyorkan</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+        <p class="greeting">Assalamualaikum <strong>{{ user_name }}</strong>,</p>
+
+        <p class="intro-text">
+            Kami ingin mengingatkan anda bahawa akaun GigHala anda belum dilindungi dengan
+            <strong>Pengesahan Dua Faktor (2FA)</strong>. Ciri ini menambah satu lapisan
+            perlindungan tambahan kepada akaun anda dan <em>amat disyorkan</em> untuk semua
+            pengguna, terutamanya mereka yang menyimpan maklumat kewangan di platform kami.
+        </p>
+
+        <!-- Alert -->
+        <div class="alert-box">
+            <p>
+                ⚠️ <strong>Tanpa 2FA</strong>, akaun anda bergantung pada kata laluan sahaja.
+                Jika kata laluan anda terdedah, pengguna lain boleh mengakses akaun, wang, dan
+                maklumat peribadi anda. Aktifkan 2FA sekarang untuk melindungi diri anda.
+            </p>
+        </div>
+
+        <!-- Why 2FA -->
+        <div class="why-box">
+            <h2>🛡️ Mengapa 2FA Penting?</h2>
+
+            <div class="why-item">
+                <span class="icon">💰</span>
+                <div><strong>Lindungi wang anda</strong> — Walaupun seseorang mengetahui kata laluan anda,
+                mereka tidak boleh mengakses akaun tanpa kod 2FA dari telefon anda.</div>
+            </div>
+
+            <div class="why-item">
+                <span class="icon">📋</span>
+                <div><strong>Selamatkan maklumat peribadi</strong> — Profil, IC, dan maklumat bank anda
+                kekal selamat daripada akses tidak sah.</div>
+            </div>
+
+            <div class="why-item">
+                <span class="icon">⚡</span>
+                <div><strong>Amaran segera</strong> — Jika ada cubaan log masuk tanpa kebenaran anda,
+                anda akan tahu serta-merta kerana mereka tetap tidak boleh masuk tanpa telefon anda.</div>
+            </div>
+
+            <div class="why-item">
+                <span class="icon">✅</span>
+                <div><strong>Mudah dan percuma</strong> — Proses persediaan hanya mengambil masa
+                kurang daripada 2 minit.</div>
+            </div>
+        </div>
+
+        <!-- Steps -->
+        <h2 class="steps-title">📋 Cara Aktifkan 2FA — 6 Langkah Mudah</h2>
+
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <strong>Muat turun Aplikasi Pengesah</strong>
+                <p>Pasang salah satu aplikasi pengesah di telefon anda sebelum mula:</p>
+                <span class="app-list">📱 Google Authenticator</span>
+                <span class="app-list">🔑 Authy</span>
+                <span class="app-list">🛡️ Microsoft Authenticator</span>
+            </div>
+        </div>
+
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <strong>Log masuk ke GigHala</strong>
+                <p>Buka laman web GigHala dan log masuk ke akaun anda seperti biasa.</p>
+            </div>
+        </div>
+
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <strong>Pergi ke Tetapan Akaun</strong>
+                <p>Klik pada gambar profil anda di bahagian atas, kemudian pilih
+                <strong>"Tetapan"</strong>. Tatal ke bawah ke bahagian
+                <strong>"🔒 Pengesahan Dua Faktor (2FA)"</strong>.</p>
+            </div>
+        </div>
+
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <strong>Klik "Aktifkan 2FA"</strong>
+                <p>Klik butang <strong>"Aktifkan 2FA"</strong>. Sistem akan menjana
+                kod QR khas untuk akaun anda.</p>
+            </div>
+        </div>
+
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <strong>Imbas Kod QR</strong>
+                <p>Buka aplikasi pengesah di telefon anda, tekan <strong>"+"</strong> atau
+                <strong>"Tambah Akaun"</strong>, kemudian imbas kod QR yang dipaparkan
+                di skrin. Akaun <strong>GigHala</strong> akan muncul dalam aplikasi anda.</p>
+            </div>
+        </div>
+
+        <div class="step-item">
+            <div class="step-number">6</div>
+            <div class="step-content">
+                <strong>Masukkan Kod 6 Digit &amp; Sahkan</strong>
+                <p>Aplikasi pengesah anda akan memaparkan kod 6 digit yang bertukar
+                setiap 30 saat. Masukkan kod tersebut ke dalam medan <strong>"Kod Pengesahan"</strong>
+                dan klik <strong>"Sahkan &amp; Aktifkan"</strong>. Selesai! 🎉</p>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <a href="{{ base_url }}/settings#security" class="cta-button">
+                🔐 Aktifkan 2FA Sekarang
+            </a>
+            <p class="cta-note">Mengambil masa kurang daripada 2 minit</p>
+        </div>
+
+        <!-- App recommendations -->
+        <div class="apps-box">
+            <h3>📱 Aplikasi Pengesah Yang Disyorkan</h3>
+            <div class="app-row">
+                <span class="app-icon">🔵</span>
+                <div><strong>Google Authenticator</strong> — Percuma, mudah digunakan.
+                Tersedia di <em>Google Play Store</em> &amp; <em>Apple App Store</em>.</div>
+            </div>
+            <div class="app-row">
+                <span class="app-icon">🟣</span>
+                <div><strong>Authy</strong> — Sokong sandaran awan dan pelbagai peranti.
+                Sesuai jika anda menukar telefon dengan kerap.</div>
+            </div>
+            <div class="app-row">
+                <span class="app-icon">🔷</span>
+                <div><strong>Microsoft Authenticator</strong> — Pilihan bagus untuk pengguna
+                Microsoft. Tersedia di kedua-dua stor.</div>
+            </div>
+        </div>
+
+        <!-- Security tip -->
+        <div class="tip-box">
+            <p>
+                🔴 <strong>Penting:</strong> Jangan kongsikan kod 6 digit anda dengan sesiapa —
+                termasuk kakitangan GigHala. Kod ini hanya untuk kegunaan anda sahaja semasa
+                log masuk. GigHala <u>tidak akan pernah</u> meminta kod ini melalui e-mel atau telefon.
+            </p>
+        </div>
+
+        <!-- FAQ -->
+        <h3 style="font-size: 17px; font-weight: 700; color: #1a1a1a; margin: 0 0 16px 0;">
+            ❓ Soalan Lazim
+        </h3>
+
+        <div class="faq-item">
+            <p class="q">S: Apa yang berlaku jika saya kehilangan telefon saya?</p>
+            <p class="a">J: Hubungi pasukan sokongan GigHala dengan IC anda untuk proses pengesahan identiti dan pemulihan akaun. Oleh itu, pastikan maklumat profil anda sentiasa terkini.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="q">S: Adakah saya perlu memasukkan kod 2FA setiap kali log masuk?</p>
+            <p class="a">J: Ya, setiap kali anda log masuk ke akaun GigHala, anda perlu memasukkan kod 6 digit dari aplikasi pengesah anda selepas kata laluan.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="q">S: Bolehkah saya nyahaktifkan 2FA kemudian?</p>
+            <p class="a">J: Ya, anda boleh nyahaktifkan 2FA pada bila-bila masa dari halaman Tetapan Akaun. Namun, kami amat mengesyorkan anda kekalkan ciri ini aktif untuk keselamatan maksimum.</p>
+        </div>
+
+        <div class="faq-item">
+            <p class="q">S: Adakah ini percuma?</p>
+            <p class="a">J: Ya, ciri 2FA adalah <strong>100% percuma</strong> untuk semua pengguna GigHala.</p>
+        </div>
+
+        <!-- Final CTA -->
+        <div style="text-align: center; margin: 35px 0 10px 0;">
+            <p style="font-size: 15px; color: #374151; margin-bottom: 20px; font-weight: 500;">
+                Jangan tunggu sehingga berlaku sesuatu. Lindungi akaun anda hari ini.
+            </p>
+            <a href="{{ base_url }}/settings#security"
+               style="display: inline-block; background: linear-gradient(135deg, #0f4c81 0%, #1a73c4 100%);
+                      color: #ffffff; text-decoration: none; padding: 15px 36px;
+                      border-radius: 8px; font-size: 16px; font-weight: 600;">
+                Pergi ke Tetapan Keselamatan →
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p style="font-weight: 700; color: #374151; font-size: 15px;">GigHala</p>
+        <p>Platform Freelance Syariah-Principled Malaysia</p>
+        <p>
+            <a href="{{ base_url }}/settings">Tetapan</a> |
+            <a href="{{ base_url }}/dashboard">Dashboard</a> |
+            <a href="{{ base_url }}/help">Bantuan</a>
+        </p>
+        <p style="margin-top: 16px; font-size: 12px; color: #9ca3af;">
+            Anda menerima e-mel ini kerana anda adalah ahli GigHala yang belum mengaktifkan 2FA.<br>
+            Untuk pertanyaan, hubungi kami di <a href="mailto:support@gighala.com">support@gighala.com</a>
+        </p>
+    </div>
+
+</div>
+</body>
+</html>
