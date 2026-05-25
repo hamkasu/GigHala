@@ -19,7 +19,8 @@ gunicorn==21.2.0
 python-dotenv==1.0.0
 
 # Validation
-email-validator==2.1.0
+email-validator>=2.1.1
+disposable-email-domains>=0.0.88
 
 # Payment Processing
 stripe>=7.0.0
