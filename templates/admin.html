@@ -1321,6 +1321,39 @@
         </div>
     </div>
 
+    <!-- ── Quick Announcement: 2FA Activation ── -->
+    <div class="data-table" style="margin-bottom: 24px; border: 2px solid #1a73c4;">
+        <div class="table-header" style="background: linear-gradient(135deg, #0f4c81, #1a73c4); color: white;">
+            <h2 style="color: white;">🔐 Quick Announcement — 2FA Activation</h2>
+        </div>
+        <div style="padding: 24px;">
+            <p style="font-size: 15px; color: var(--text-gray); margin: 0 0 16px;">
+                Send the pre-built Malay 2FA activation reminder email. By default only sends to
+                verified users who have <strong>not yet enabled 2FA</strong>, so you won't spam
+                users who are already protected.
+            </p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <div>
+                    <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Send to:</label>
+                    <select id="twofa-announce-recipient-type"
+                            style="padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: white;">
+                        <option value="non_2fa">Users Without 2FA (Recommended)</option>
+                        <option value="all">All Verified Users</option>
+                        <option value="all_users">All Users (Everyone)</option>
+                    </select>
+                </div>
+                <div style="margin-top: 22px;">
+                    <button onclick="send2faAnnouncement()"
+                            id="twofa-announce-btn"
+                            style="background: #1a73c4; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                        Send 2FA Activation Email
+                    </button>
+                </div>
+            </div>
+            <div id="twofa-announce-status" style="margin-top: 14px;"></div>
+        </div>
+    </div>
+
     <div class="data-table">
         <div class="table-header">
             <h2>📧 Send Email to Users</h2>
@@ -3874,6 +3907,42 @@
         } finally {
             btn.disabled = false;
             btn.textContent = 'Send Referral Email';
+        }
+    }
+
+    // ==================== 2FA ANNOUNCEMENT ====================
+    async function send2faAnnouncement() {
+        const recipientType = document.getElementById('twofa-announce-recipient-type').value;
+        const btn = document.getElementById('twofa-announce-btn');
+        const statusDiv = document.getElementById('twofa-announce-status');
+
+        const labels = { non_2fa: 'users who have not yet enabled 2FA', all: 'all verified users', all_users: 'ALL users (including unverified)' };
+        if (!confirm(`Send the 2FA activation email to ${labels[recipientType] || recipientType}? This cannot be undone.`)) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        statusDiv.innerHTML = '<div style="padding:12px;background:#eff6ff;color:#1e40af;border-radius:8px;">Sending 2FA activation emails — this may take a moment...</div>';
+
+        try {
+            const response = await fetch('/api/admin/announce-2fa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipient_type: recipientType })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                statusDiv.innerHTML = `<div style="padding:12px;background:#dbeafe;color:#1e40af;border-radius:8px;">
+                    ✅ <strong>2FA activation emails sent!</strong><br>
+                    Delivered: ${data.successful_count} · Failed: ${data.failed_count} · Targeted: ${data.recipients_targeted}
+                </div>`;
+            } else {
+                statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ ${data.error || 'Failed to send'}</div>`;
+            }
+        } catch (err) {
+            statusDiv.innerHTML = `<div style="padding:12px;background:#fee2e2;color:#991b1b;border-radius:8px;">❌ Network error: ${err.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send 2FA Activation Email';
         }
     }
 
