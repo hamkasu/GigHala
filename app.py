@@ -21646,9 +21646,9 @@ def admin_get_payouts():
                 'payout_number': p.payout_number,
                 'freelancer_name': user.username if user else 'N/A',
                 'freelancer_email': user.email if user else 'N/A',
-                'amount': p.amount,
-                'fee': p.fee,
-                'net_amount': p.net_amount,
+                'amount': float(p.amount),
+                'fee': float(p.fee),
+                'net_amount': float(p.net_amount),
                 'payment_method': p.payment_method,
                 'bank_name': p.bank_name,
                 # PDPA: mask sensitive bank details in API responses; full values
