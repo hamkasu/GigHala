@@ -114,7 +114,7 @@ class EmailService:
         # Provider-specific keys
         self.sendgrid_key = os.environ.get('SENDGRID_API_KEY', '')
         self.brevo_key    = os.environ.get('BREVO_API_KEY', '')
-        self.ses_region   = os.environ.get('AWS_SES_REGION', 'ap-southeast-1')
+        self.ses_region   = os.environ.get('AWS_SES_REGION', 'ap-southeast-2')
         self.ses_access   = os.environ.get('AWS_ACCESS_KEY_ID', '')
         self.ses_secret   = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 
