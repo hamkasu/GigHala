@@ -1,10 +1,16 @@
 """
 GigHala Email Service — multi-provider
 
-Active provider is selected by the EMAIL_PROVIDER environment variable:
-  sendgrid  (recommended) — set SENDGRID_API_KEY
-  ses                     — set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SES_REGION
-  brevo     (legacy)      — set BREVO_API_KEY
+Active provider is selected by the EMAIL_PROVIDER environment variable
+(default: ses):
+
+  ses       (default)  — Amazon SES
+                         requires AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+                         optional: AWS_SES_REGION (default ap-southeast-1)
+  sendgrid             — Twilio SendGrid
+                         requires SENDGRID_API_KEY
+  brevo     (legacy)   — Brevo / Sendinblue
+                         requires BREVO_API_KEY
 
 FROM address is always taken from:
   EMAIL_FROM_ADDRESS  (e.g. noreply@gighala.com)
@@ -95,7 +101,7 @@ class EmailService:
     """
 
     def __init__(self):
-        self.provider    = os.environ.get('EMAIL_PROVIDER', 'brevo').lower()
+        self.provider    = os.environ.get('EMAIL_PROVIDER', 'ses').lower()
         self.from_email  = (
             os.environ.get('EMAIL_FROM_ADDRESS') or
             os.environ.get('BREVO_FROM_EMAIL', '')
