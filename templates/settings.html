@@ -1143,6 +1143,114 @@
                 <button type="submit" class="btn btn-primary">Tukar Kata Laluan</button>
             </div>
         </form>
+
+        <div class="divider"></div>
+
+        <!-- ===== 2FA SECTION ===== -->
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">
+            🔐 Pengesahan Dua Faktor (2FA)
+        </h3>
+        <p style="font-size: 14px; color: var(--text-gray); margin-bottom: 20px;">
+            Tambah lapisan keselamatan tambahan. Selepas log masuk, anda perlu memasukkan kod dari aplikasi pengesah anda.
+        </p>
+
+        <!-- Status banner — toggled by JS -->
+        <div id="twofa-status-enabled" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:10px; padding:16px 20px; margin-bottom:20px; display:none;">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <span style="font-size:24px;">✅</span>
+                <div>
+                    <div style="font-weight:700; color:#065f46; font-size:15px;">2FA Diaktifkan</div>
+                    <div id="twofa-enabled-since" style="font-size:13px; color:#047857;"></div>
+                </div>
+                <button id="twofa-show-disable-btn" class="btn btn-danger" style="margin-left:auto;">
+                    Nyahaktifkan 2FA
+                </button>
+            </div>
+        </div>
+
+        <div id="twofa-status-disabled" style="display:none; background:#fefce8; border:1px solid #fde68a; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <span style="font-size:24px;">⚠️</span>
+                <div>
+                    <div style="font-weight:700; color:#92400e; font-size:15px;">2FA Tidak Diaktifkan</div>
+                    <div style="font-size:13px; color:#b45309;">Akaun anda kurang perlindungan. Aktifkan 2FA sekarang.</div>
+                </div>
+                <button id="twofa-show-setup-btn" class="btn btn-primary" style="margin-left:auto;">
+                    Aktifkan 2FA
+                </button>
+            </div>
+        </div>
+
+        <!-- Setup panel (hidden until user clicks Enable) -->
+        <div id="twofa-setup-panel" style="display:none; background:var(--bg-light); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:20px;">
+            <h4 style="margin:0 0 16px 0; font-size:15px; color:var(--text-dark);">Langkah 1 — Imbas kod QR</h4>
+            <p style="font-size:13px; color:var(--text-gray); margin-bottom:16px;">
+                Buka aplikasi pengesah anda (contoh: Google Authenticator, Authy) dan imbas kod QR di bawah.
+            </p>
+
+            <div style="text-align:center; margin-bottom:20px;">
+                <div id="twofa-qr-loading" style="padding:40px; color:var(--text-gray); font-size:14px;">Menjana kod QR...</div>
+                <img id="twofa-qr-image" src="" alt="QR Code" style="display:none; max-width:200px; border-radius:8px; border:1px solid var(--border);">
+            </div>
+
+            <div id="twofa-manual-secret" style="display:none; margin-bottom:20px;">
+                <p style="font-size:13px; color:var(--text-gray); margin-bottom:8px;">
+                    Tidak dapat mengimbas? Masukkan kunci ini secara manual:
+                </p>
+                <div style="background:white; border:1px solid var(--border); border-radius:8px; padding:12px; font-family:monospace; font-size:14px; letter-spacing:2px; word-break:break-all; color:var(--text-dark);" id="twofa-secret-key"></div>
+                <p style="font-size:12px; color:var(--text-light); margin-top:6px;">Nama akaun: GigHala | Jenis: Berasaskan masa (TOTP)</p>
+            </div>
+            <button type="button" id="twofa-toggle-secret-btn" style="background:none; border:none; color:var(--primary); font-size:13px; cursor:pointer; padding:0; margin-bottom:20px;">
+                Tunjukkan kunci manual ▼
+            </button>
+
+            <h4 style="margin:0 0 12px 0; font-size:15px; color:var(--text-dark);">Langkah 2 — Sahkan kod</h4>
+            <p style="font-size:13px; color:var(--text-gray); margin-bottom:12px;">
+                Masukkan kod 6 digit dari aplikasi pengesah anda untuk mengesahkan persediaan.
+            </p>
+            <div id="twofa-setup-error" class="alert alert-error" style="display:none;"></div>
+            <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+                <div style="flex:1; min-width:160px;">
+                    <label class="form-label">Kod Pengesahan</label>
+                    <input type="text" id="twofa-setup-code" class="form-input"
+                        maxlength="6" inputmode="numeric" pattern="[0-9]{6}"
+                        placeholder="000000" autocomplete="one-time-code"
+                        style="font-size:20px; font-weight:700; letter-spacing:6px; text-align:center;">
+                </div>
+                <button type="button" id="twofa-verify-setup-btn" class="btn btn-primary">
+                    Sahkan &amp; Aktifkan
+                </button>
+                <button type="button" id="twofa-cancel-setup-btn" class="btn btn-secondary">
+                    Batal
+                </button>
+            </div>
+        </div>
+
+        <!-- Disable panel (hidden until user clicks Disable) -->
+        <div id="twofa-disable-panel" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:24px; margin-bottom:20px;">
+            <h4 style="margin:0 0 12px 0; font-size:15px; color:#991b1b;">Nyahaktifkan 2FA</h4>
+            <p style="font-size:13px; color:#b91c1c; margin-bottom:16px;">
+                Masukkan kod dari aplikasi pengesah anda untuk mengesahkan. Selepas ini, 2FA akan dimatikan pada akaun anda.
+            </p>
+            <div id="twofa-disable-error" class="alert alert-error" style="display:none;"></div>
+            <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+                <div style="flex:1; min-width:160px;">
+                    <label class="form-label">Kod Pengesahan</label>
+                    <input type="text" id="twofa-disable-code" class="form-input"
+                        maxlength="6" inputmode="numeric" pattern="[0-9]{6}"
+                        placeholder="000000" autocomplete="one-time-code"
+                        style="font-size:20px; font-weight:700; letter-spacing:6px; text-align:center;">
+                </div>
+                <button type="button" id="twofa-confirm-disable-btn" class="btn btn-danger">
+                    Ya, Nyahaktifkan
+                </button>
+                <button type="button" id="twofa-cancel-disable-btn" class="btn btn-secondary">
+                    Batal
+                </button>
+            </div>
+        </div>
+        <!-- /2FA SECTION -->
+
     </div>
 
     <!-- ===== FRACTIONAL PROFILE SECTION ===== -->
@@ -2034,6 +2142,218 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (removeBtn) removeBtn.addEventListener('click', removePhoto);
+})();
+</script>
+
+<script>
+// ===== 2FA Settings UI =====
+(function () {
+    const csrfToken = () => document.querySelector('[name=csrf_token]')?.value || '';
+
+    const el = id => document.getElementById(id);
+
+    // Elements
+    const statusEnabled   = el('twofa-status-enabled');
+    const statusDisabled  = el('twofa-status-disabled');
+    const setupPanel      = el('twofa-setup-panel');
+    const disablePanel    = el('twofa-disable-panel');
+    const enabledSince    = el('twofa-enabled-since');
+    const qrLoading       = el('twofa-qr-loading');
+    const qrImage         = el('twofa-qr-image');
+    const secretKey       = el('twofa-secret-key');
+    const manualSecret    = el('twofa-manual-secret');
+    const setupCodeInput  = el('twofa-setup-code');
+    const setupError      = el('twofa-setup-error');
+    const disableCodeInput = el('twofa-disable-code');
+    const disableError    = el('twofa-disable-error');
+
+    function showEnabled(enabledAt) {
+        statusEnabled.style.display  = 'block';
+        statusDisabled.style.display = 'none';
+        setupPanel.style.display     = 'none';
+        disablePanel.style.display   = 'none';
+        if (enabledAt) {
+            const d = new Date(enabledAt);
+            enabledSince.textContent = 'Diaktifkan pada: ' + d.toLocaleDateString('ms-MY', { day:'numeric', month:'long', year:'numeric' });
+        }
+    }
+
+    function showDisabled() {
+        statusEnabled.style.display  = 'none';
+        statusDisabled.style.display = 'block';
+        setupPanel.style.display     = 'none';
+        disablePanel.style.display   = 'none';
+    }
+
+    // Load current 2FA status on page load
+    async function loadStatus() {
+        try {
+            const res = await fetch('/api/2fa/status');
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.totp_enabled) {
+                showEnabled(data.totp_enabled_at);
+            } else {
+                showDisabled();
+            }
+        } catch (e) {
+            console.error('Could not load 2FA status', e);
+        }
+    }
+
+    // Show setup panel and fetch QR code
+    el('twofa-show-setup-btn').addEventListener('click', async function () {
+        statusDisabled.style.display = 'none';
+        setupPanel.style.display     = 'block';
+        qrLoading.style.display      = 'block';
+        qrImage.style.display        = 'none';
+        setupCodeInput.value         = '';
+        setupError.style.display     = 'none';
+
+        try {
+            const res = await fetch('/api/2fa/setup/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setupError.textContent  = data.error || 'Gagal memulakan persediaan 2FA.';
+                setupError.style.display = 'block';
+                qrLoading.style.display  = 'none';
+                return;
+            }
+            qrLoading.style.display = 'none';
+            qrImage.src             = data.qr_code;
+            qrImage.style.display   = 'block';
+            secretKey.textContent   = data.secret;
+        } catch (e) {
+            qrLoading.textContent = 'Ralat memuatkan kod QR. Sila cuba lagi.';
+        }
+    });
+
+    // Toggle manual secret key visibility
+    el('twofa-toggle-secret-btn').addEventListener('click', function () {
+        if (manualSecret.style.display === 'none') {
+            manualSecret.style.display = 'block';
+            this.textContent = 'Sembunyikan kunci manual ▲';
+        } else {
+            manualSecret.style.display = 'none';
+            this.textContent = 'Tunjukkan kunci manual ▼';
+        }
+    });
+
+    // Cancel setup
+    el('twofa-cancel-setup-btn').addEventListener('click', function () {
+        setupPanel.style.display     = 'none';
+        statusDisabled.style.display = 'block';
+        setupCodeInput.value         = '';
+        setupError.style.display     = 'none';
+    });
+
+    // Verify and enable 2FA
+    el('twofa-verify-setup-btn').addEventListener('click', async function () {
+        const code = setupCodeInput.value.trim();
+        setupError.style.display = 'none';
+
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+            setupError.textContent  = 'Sila masukkan kod 6 digit yang sah.';
+            setupError.style.display = 'block';
+            return;
+        }
+
+        this.disabled    = true;
+        this.textContent = 'Mengesahkan...';
+
+        try {
+            const res = await fetch('/api/2fa/setup/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showEnabled(new Date().toISOString());
+                alert('✅ 2FA berjaya diaktifkan! Akaun anda kini lebih selamat.');
+            } else {
+                setupError.textContent   = data.error || 'Kod tidak sah. Sila cuba lagi.';
+                setupError.style.display = 'block';
+                setupCodeInput.value     = '';
+                setupCodeInput.focus();
+            }
+        } catch (e) {
+            setupError.textContent   = 'Ralat rangkaian. Sila cuba lagi.';
+            setupError.style.display = 'block';
+        } finally {
+            this.disabled    = false;
+            this.textContent = 'Sahkan & Aktifkan';
+        }
+    });
+
+    // Show disable panel
+    el('twofa-show-disable-btn').addEventListener('click', function () {
+        disablePanel.style.display   = 'block';
+        statusEnabled.style.display  = 'none';
+        disableCodeInput.value       = '';
+        disableError.style.display   = 'none';
+        disableCodeInput.focus();
+    });
+
+    // Cancel disable
+    el('twofa-cancel-disable-btn').addEventListener('click', function () {
+        disablePanel.style.display  = 'none';
+        statusEnabled.style.display = 'block';
+        disableCodeInput.value      = '';
+        disableError.style.display  = 'none';
+    });
+
+    // Confirm disable 2FA
+    el('twofa-confirm-disable-btn').addEventListener('click', async function () {
+        const code = disableCodeInput.value.trim();
+        disableError.style.display = 'none';
+
+        if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+            disableError.textContent  = 'Sila masukkan kod 6 digit yang sah.';
+            disableError.style.display = 'block';
+            return;
+        }
+
+        this.disabled    = true;
+        this.textContent = 'Memproses...';
+
+        try {
+            const res = await fetch('/api/2fa/disable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showDisabled();
+                alert('2FA telah dimatikan pada akaun anda.');
+            } else {
+                disableError.textContent   = data.error || 'Kod tidak sah. Sila cuba lagi.';
+                disableError.style.display = 'block';
+                disableCodeInput.value     = '';
+                disableCodeInput.focus();
+            }
+        } catch (e) {
+            disableError.textContent   = 'Ralat rangkaian. Sila cuba lagi.';
+            disableError.style.display = 'block';
+        } finally {
+            this.disabled    = false;
+            this.textContent = 'Ya, Nyahaktifkan';
+        }
+    });
+
+    // Only digits in code inputs
+    [setupCodeInput, disableCodeInput].forEach(input => {
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        });
+    });
+
+    // Init
+    loadStatus();
 })();
 </script>
 {% endblock %}
