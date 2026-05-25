@@ -3116,7 +3116,7 @@
             // Update pending amount
             const pendingAmount = payouts
                 .filter(p => p.status === 'pending')
-                .reduce((sum, p) => sum + p.amount, 0);
+                .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
             document.getElementById('pending-payout-amount').textContent = `MYR ${pendingAmount.toFixed(2)}`;
 
             if (payouts.length === 0) {
@@ -3128,9 +3128,9 @@
                 <tr>
                     <td><strong>${payout.payout_number}</strong></td>
                     <td>${payout.freelancer_name}</td>
-                    <td>MYR ${payout.amount.toFixed(2)}</td>
-                    <td>MYR ${payout.fee.toFixed(2)}</td>
-                    <td>MYR ${payout.net_amount.toFixed(2)}</td>
+                    <td>MYR ${parseFloat(payout.amount || 0).toFixed(2)}</td>
+                    <td>MYR ${parseFloat(payout.fee || 0).toFixed(2)}</td>
+                    <td>MYR ${parseFloat(payout.net_amount || 0).toFixed(2)}</td>
                     <td>${payout.payment_method.replace(/_/g, ' ').toUpperCase()}</td>
                     <td>
                         ${payout.bank_name || 'N/A'}<br>
