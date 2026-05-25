@@ -17382,6 +17382,111 @@ def announce_direct_hire():
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
 
+@app.route('/api/admin/announce-2fa', methods=['POST'])
+@admin_required
+def announce_2fa_activation():
+    """
+    Send a Malay 2FA-activation reminder email to users who have not yet
+    enabled TOTP.  Accepts an optional recipient_type filter:
+      - 'non_2fa' (default) — verified users without 2FA enabled
+      - 'all_users'         — every user regardless of 2FA status
+      - 'all'               — every verified user
+    """
+    try:
+        data = request.get_json() or {}
+        recipient_type = data.get('recipient_type', 'non_2fa')
+
+        if recipient_type == 'non_2fa':
+            users = User.query.filter(
+                User.is_verified == True,
+                (User.totp_enabled == False) | (User.totp_enabled == None)
+            ).all()
+        elif recipient_type == 'all_users':
+            users = User.query.all()
+        elif recipient_type == 'all':
+            users = User.query.filter(User.is_verified == True).all()
+        else:
+            return jsonify({'error': 'Invalid recipient_type. Use non_2fa, all_users, or all.'}), 400
+
+        if not users:
+            return jsonify({'error': 'No matching users found (all verified users may already have 2FA enabled)'}), 400
+
+        base_url = request.host_url.rstrip('/')
+        subject = "🔐 Lindungi Akaun GigHala Anda — Aktifkan Pengesahan Dua Faktor (2FA)"
+
+        html_content = render_template(
+            'email_2fa_activation.html',
+            user_name='Pengguna GigHala',
+            base_url=base_url
+        )
+
+        text_content = (
+            "Assalamualaikum,\n\n"
+            "Akaun GigHala anda belum dilindungi dengan Pengesahan Dua Faktor (2FA).\n\n"
+            "2FA menambah lapisan keselamatan tambahan — walaupun seseorang mengetahui "
+            "kata laluan anda, mereka tidak boleh log masuk tanpa kod dari telefon anda.\n\n"
+            "CARA AKTIFKAN 2FA (6 Langkah Mudah):\n"
+            "1. Muat turun aplikasi pengesah (Google Authenticator / Authy / Microsoft Authenticator)\n"
+            "2. Log masuk ke akaun GigHala anda\n"
+            "3. Pergi ke Tetapan Akaun → bahagian 'Pengesahan Dua Faktor (2FA)'\n"
+            "4. Klik 'Aktifkan 2FA'\n"
+            "5. Imbas kod QR menggunakan aplikasi pengesah anda\n"
+            "6. Masukkan kod 6 digit yang dipaparkan, kemudian klik 'Sahkan & Aktifkan'\n\n"
+            f"Aktifkan sekarang: {base_url}/settings\n\n"
+            "Mengambil masa kurang daripada 2 minit.\n\n"
+            "Terima kasih,\n"
+            "Pasukan Keselamatan GigHala"
+        )
+
+        to_emails = [(user.email, user.full_name or user.username) for user in users]
+
+        success, message, status_code, details = email_service.send_bulk_email(
+            to_emails=to_emails,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+
+        # Archive in email log
+        try:
+            all_recipient_emails = [e for e, _ in to_emails]
+            email_log = EmailSendLog(
+                email_type='admin_bulk',
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                recipient_emails=json.dumps(all_recipient_emails),
+                sender_user_id=current_user.id if current_user and current_user.is_authenticated else None,
+                recipient_count=details.get('total_count', len(users)),
+                successful_count=details.get('successful_count', 0),
+                failed_count=details.get('failed_count', 0),
+                recipient_type=recipient_type,
+                success=success,
+                error_message=message if not success else None,
+                brevo_message_ids=json.dumps(details.get('brevo_message_ids', [])),
+                failed_recipients=json.dumps(details.get('failed_recipients', []))
+            )
+            db.session.add(email_log)
+            db.session.commit()
+        except Exception as log_error:
+            app.logger.error(f"announce_2fa email log error: {str(log_error)}")
+
+        if success:
+            return jsonify({
+                'message': f'2FA activation email sent successfully',
+                'recipient_type': recipient_type,
+                'recipients_targeted': len(users),
+                'successful_count': details.get('successful_count', 0),
+                'failed_count': details.get('failed_count', 0)
+            }), 200
+        else:
+            return jsonify({'error': message}), 500
+
+    except Exception as e:
+        app.logger.error(f"announce_2fa error: {str(e)}", exc_info=True)
+        return jsonify({'error': f'Failed to send 2FA announcement: {str(e)}'}), 500
+
+
 @app.route('/api/admin/announce-referral-code', methods=['POST'])
 @admin_required
 def announce_referral_code():
