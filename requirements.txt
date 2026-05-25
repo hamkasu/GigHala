@@ -41,8 +41,10 @@ pillow>=10.0.0
 Authlib>=1.3.0
 oauthlib
 
-# Communication Services
-twilio
+# Email Providers
+# Set EMAIL_PROVIDER=sendgrid (recommended) or ses or brevo
+sendgrid>=6.11.0
+boto3>=1.34.0          # Amazon SES
 brevo-python
 
 # AI / Groq
