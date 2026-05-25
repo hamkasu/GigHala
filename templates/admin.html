@@ -1809,7 +1809,7 @@
         const element = document.getElementById(elementId);
         if (element) {
             element.style.color = '#dc2626';
-            element.textContent = message;
+            element.innerHTML = message;
             element.style.padding = '12px';
             element.style.backgroundColor = '#fee2e2';
             element.style.borderRadius = '8px';
@@ -3722,7 +3722,7 @@
                 document.getElementById('email-attachments-preview').innerHTML = '';
                 selectedUserIds.clear();
             } else {
-                showError('email-status', data.error || 'Failed to send email');
+                showEmailError(document.getElementById('email-status'), response.status, data.error || 'Failed to send email');
             }
         } catch (error) {
             showError('email-status', 'Error: ' + error.message);
