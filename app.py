@@ -6838,7 +6838,7 @@ def setup_2fa_start():
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
 
         # Log 2FA setup initiated
-        security_logger.log_security_event(
+        security_logger.log_authentication(
             event_type='2fa_setup_initiated',
             username=user.username,
             status='success',
@@ -6881,7 +6881,7 @@ def setup_2fa_verify():
         # Verify the code
         totp = pyotp.TOTP(user.totp_secret)
         if not totp.verify(totp_code, valid_window=1):
-            security_logger.log_security_event(
+            security_logger.log_authentication(
                 event_type='2fa_setup_verification_failed',
                 username=user.username,
                 status='failure',
@@ -6896,13 +6896,12 @@ def setup_2fa_verify():
         db.session.commit()
 
         # Log 2FA enabled
-        security_logger.log_security_event(
+        security_logger.log_authentication(
             event_type='2fa_enabled',
             username=user.username,
             status='success',
             message=f'2FA enabled for user {user.username}',
-            user_id=user.id,
-            severity='medium'
+            user_id=user.id
         )
 
         return jsonify({
@@ -6951,14 +6950,16 @@ def disable_2fa():
         user.totp_enabled_at = None
         db.session.commit()
 
-        # Log 2FA disabled
-        security_logger.log_security_event(
+        # Log 2FA disabled (high severity — security downgrade)
+        security_logger.log_event(
+            event_category='authentication',
             event_type='2fa_disabled',
-            username=user.username,
+            action='2FA disabled',
+            severity='high',
             status='success',
             message=f'2FA disabled for user {user.username}',
             user_id=user.id,
-            severity='high'  # High severity because it's a security downgrade
+            username=user.username
         )
 
         return jsonify({
