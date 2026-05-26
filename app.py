@@ -1403,10 +1403,9 @@ def get_dual_date(date_obj=None, lang=None):
     gregorian = f"{date_obj.day} {greg_month} {date_obj.year}"
 
     # Convert to Hijri - Always use Malaysian (Malay) month names
-    # Apply -1 day offset: the hijri_converter library uses the Umm al-Qura (Saudi) calendar,
-    # but Malaysia's JAKIM determines Hijri dates independently via local moon sighting.
-    # For 1447H, Malaysia starts Ramadan on 19 Feb 2026 (not 18 Feb as per Umm al-Qura).
-    adjusted = date_obj - timedelta(days=1)
+    # No offset applied: for Zulhijah 1447H, Malaysia's JAKIM calendar aligns with
+    # the Umm al-Qura (Saudi) calendar used by the hijri_converter library.
+    adjusted = date_obj - timedelta(days=0)
     hijri = Gregorian(adjusted.year, adjusted.month, adjusted.day).to_hijri()
     hijri_month = HIJRI_MONTHS['ms'][hijri.month - 1]  # Force Malaysian style
     hijri_str = f"{hijri.day} {hijri_month} {hijri.year}H"
@@ -1425,8 +1424,8 @@ def is_ramadan():
     """Check if the current Hijri date falls in Ramadan (month 9)"""
     timezone_str = os.getenv('TIMEZONE', 'Asia/Kuala_Lumpur')
     now = datetime.now(ZoneInfo(timezone_str))
-    # Apply same -1 day JAKIM offset as get_dual_date
-    adjusted = now - timedelta(days=1)
+    # Apply same JAKIM offset as get_dual_date (aligned with Umm al-Qura for Zulhijah 1447H)
+    adjusted = now - timedelta(days=0)
     hijri = Gregorian(adjusted.year, adjusted.month, adjusted.day).to_hijri()
     return hijri.month == 9
 
