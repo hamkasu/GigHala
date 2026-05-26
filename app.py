@@ -13109,11 +13109,15 @@ def stripe_webhook():
     """Handle Stripe webhook events with enhanced logging and error handling"""
     payload = request.get_data(as_text=True)
     sig_header = request.headers.get('Stripe-Signature')
-    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+    # Use get_stripe_keys() so test/live webhook secrets are resolved correctly,
+    # with fallback to the legacy STRIPE_WEBHOOK_SECRET variable.
+    stripe_keys = get_stripe_keys()
+    webhook_secret = stripe_keys.get('webhook_secret')
 
     # SECURITY FIX: Mandatory webhook signature verification
     if not webhook_secret:
-        app.logger.error("STRIPE_WEBHOOK_SECRET not configured - webhook rejected")
+        app.logger.error("Stripe webhook secret not configured - webhook rejected")
         return jsonify({'error': 'Webhook verification not configured'}), 500
 
     if not sig_header:
