@@ -771,6 +771,13 @@
                         <p>Pay via online banking, credit card, or e-wallet</p>
                     </div>
                 </div>
+                <div class="payment-method" data-method="stripe">
+                    <div class="payment-method-icon">📱</div>
+                    <div class="payment-method-info">
+                        <h4>Card / Google Pay / Apple Pay</h4>
+                        <p>Pay with credit/debit card or mobile wallet via Stripe</p>
+                    </div>
+                </div>
                 <div class="payment-method" data-method="manual">
                     <div class="payment-method-icon">💳</div>
                     <div class="payment-method-info">
@@ -795,11 +802,36 @@
         const selectedMethod = document.querySelector('.payment-method.selected').dataset.method;
         document.getElementById('confirmFundBtn').disabled = true;
         document.getElementById('confirmFundBtn').textContent = 'Processing...';
-        
+
+        if (selectedMethod === 'stripe') {
+            // Stripe Checkout - supports card, Google Pay and Apple Pay
+            fetch('/api/stripe/create-checkout-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gig_id: currentGigId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    showAlert(data.error || 'Failed to initiate payment', 'error');
+                    document.getElementById('confirmFundBtn').disabled = false;
+                    document.getElementById('confirmFundBtn').textContent = 'Proceed to Payment';
+                }
+            })
+            .catch(error => {
+                showAlert('Failed to initiate payment', 'error');
+                document.getElementById('confirmFundBtn').disabled = false;
+                document.getElementById('confirmFundBtn').textContent = 'Proceed to Payment';
+            });
+            return;
+        }
+
         fetch(`/api/escrow/${currentGigId}/pay`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({})
+            body: JSON.stringify({ method: selectedMethod })
         })
         .then(response => response.json())
         .then(data => {

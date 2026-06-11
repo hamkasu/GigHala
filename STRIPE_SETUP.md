@@ -9,10 +9,11 @@ Complete guide for integrating and configuring Stripe payments in GigHala.
 4. [Configuration](#configuration)
 5. [Database Setup](#database-setup)
 6. [Webhook Configuration](#webhook-configuration)
-7. [Testing](#testing)
-8. [Production Deployment](#production-deployment)
-9. [API Endpoints](#api-endpoints)
-10. [Troubleshooting](#troubleshooting)
+7. [Google Pay & Apple Pay](#google-pay--apple-pay)
+8. [Testing](#testing)
+9. [Production Deployment](#production-deployment)
+10. [API Endpoints](#api-endpoints)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -20,6 +21,7 @@ Complete guide for integrating and configuring Stripe payments in GigHala.
 
 GigHala uses Stripe as a payment gateway for escrow funding with the following capabilities:
 - Secure card payments (Visa, Mastercard, AMEX)
+- Google Pay and Apple Pay digital wallets
 - Saved payment methods for repeat customers
 - Full and partial refunds
 - Automated webhook processing
@@ -203,6 +205,47 @@ FROM stripe_webhook_log
 ORDER BY created_at DESC
 LIMIT 10;
 ```
+
+---
+
+## Google Pay & Apple Pay
+
+GigHala uses Stripe-hosted Checkout, so Google Pay and Apple Pay work without any
+domain registration or extra integration code. Stripe automatically shows the
+wallet button on the checkout page when the customer's device supports it:
+
+- **Apple Pay** — shown in Safari on iPhone, iPad, and Mac with a card in Apple Wallet
+- **Google Pay** — shown in Chrome (desktop and Android) when the customer has Google Pay set up
+
+### Enabling Wallets
+
+1. Go to **Stripe Dashboard → Settings → Payments → Payment methods**
+2. Under **Wallets**, ensure **Apple Pay** and **Google Pay** are turned on
+   (they are enabled by default on new Stripe accounts)
+3. No code or webhook changes are required — wallet payments arrive as card
+   payments and are processed by the existing `checkout.session.completed` handler
+
+### Where Customers See Them
+
+- **Escrow page** (`/escrow`): the "Card / Google Pay / Apple Pay" payment method
+  in the Fund Escrow modal redirects to Stripe Checkout
+- **Gig detail page**: the "Card / Google Pay / Apple Pay (Stripe)" option in the
+  payment method dropdown
+- **Android app**: escrow funding opens Stripe Checkout in the browser, where
+  Google Pay is offered automatically
+
+### Testing Wallets
+
+Wallet buttons only appear on supported device/browser combinations:
+
+- **Google Pay:** Open the checkout URL in Chrome while signed in to a Google
+  account with a saved card. In test mode, Stripe charges a test card instead
+  of the real card.
+- **Apple Pay:** Open the checkout URL in Safari on an Apple device with a card
+  in Apple Wallet. Test mode works with real wallet cards without charging them.
+
+If the wallet button doesn't appear, the customer simply sees the standard card
+form — there is no error state.
 
 ---
 

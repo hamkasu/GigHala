@@ -12143,14 +12143,16 @@ def initiate_escrow_payment(gig_id):
         
         # Get PayHalal client
         client = get_payhalal_client()
-        
-        if not client.is_available():
-            # PayHalal not configured - return manual payment instructions
+
+        if data.get('method') == 'manual' or not client.is_available():
+            # Manual bank transfer requested, or PayHalal not configured
             return jsonify({
                 'success': True,
                 'payment_method': 'manual',
                 'escrow': escrow.to_dict(),
-                'message': 'PayHalal is not configured. Please use manual bank transfer.',
+                'message': 'Please complete the bank transfer using the details below.'
+                           if data.get('method') == 'manual'
+                           else 'PayHalal is not configured. Please use manual bank transfer.',
                 'manual_instructions': {
                     'bank_name': 'Maybank',
                     'account_number': '512345678901',
@@ -12959,6 +12961,9 @@ def create_stripe_checkout_session():
             cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
 
         # Create Stripe Checkout session
+        # Google Pay and Apple Pay are offered automatically on the Stripe-hosted
+        # checkout page for supported devices when 'card' is enabled (wallets must
+        # be turned on in Stripe Dashboard > Settings > Payment methods)
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{

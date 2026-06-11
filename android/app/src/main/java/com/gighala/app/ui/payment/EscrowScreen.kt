@@ -178,7 +178,7 @@ private fun PaymentForm(
             onClick = onPay,
             modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
-            Text("Pay with Card", style = MaterialTheme.typography.titleMedium)
+            Text("Pay with Card / Google Pay", style = MaterialTheme.typography.titleMedium)
         }
     }
 }
