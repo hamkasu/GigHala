@@ -12185,16 +12185,6 @@ def initiate_escrow_payment(gig_id):
         return_url = f"{base_url}/escrow?payment=success&gig_id={gig_id}"
         callback_url = f"{base_url}/api/payhalal/escrow-webhook"
 
-        # Map the requested method to a PayHalal payment channel.
-        # 'fpx' = online banking, 'qr'/'ewallet' = DuitNow QR / Touch 'n Go / GrabPay.
-        # None lets the PayHalal page show all available channels.
-        payhalal_channel = {
-            'fpx': 'fpx',
-            'qr': 'ewallet',
-            'ewallet': 'ewallet',
-            'card': 'card'
-        }.get((data.get('method') or '').lower())
-
         # Create PayHalal payment
         result = client.create_payment(
             amount=total_amount,
@@ -12204,8 +12194,7 @@ def initiate_escrow_payment(gig_id):
             customer_name=user.full_name or user.username,
             return_url=return_url,
             callback_url=callback_url,
-            customer_phone=user.phone,
-            payment_method=payhalal_channel
+            customer_phone=user.phone
         )
         
         if result.get('success'):
@@ -12971,12 +12960,21 @@ def create_stripe_checkout_session():
             success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}"
             cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
 
-        # Create Stripe Checkout session
+        # Map the requested method to Stripe payment method types (MYR).
+        # 'fpx' = Malaysian online banking, 'qr'/'ewallet' = GrabPay.
+        # FPX and GrabPay must be activated in Stripe Dashboard > Settings > Payment methods.
         # Google Pay and Apple Pay are offered automatically on the Stripe-hosted
-        # checkout page for supported devices when 'card' is enabled (wallets must
-        # be turned on in Stripe Dashboard > Settings > Payment methods)
+        # checkout page for supported devices when 'card' is enabled.
+        payment_method_types = {
+            'fpx': ['fpx'],
+            'qr': ['grabpay'],
+            'ewallet': ['grabpay'],
+            'grabpay': ['grabpay']
+        }.get((data.get('method') or '').lower(), ['card'])
+
+        # Create Stripe Checkout session
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=payment_method_types,
             line_items=[{
                 'price_data': {
                     'currency': 'myr',
