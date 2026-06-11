@@ -2255,7 +2255,8 @@
                         <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
                         <select class="form-input" id="paymentGateway">
                             <option value="stripe">{{ 'Kad / Google Pay / Apple Pay (Stripe)' if lang == 'ms' else 'Card / Google Pay / Apple Pay (Stripe)' }}</option>
-                            <option value="payhalal">{{ 'FPX/E-Wallet (PayHalal)' if lang == 'ms' else 'FPX/E-Wallet (PayHalal)' }}</option>
+                            <option value="fpx">{{ 'FPX Perbankan Dalam Talian' if lang == 'ms' else 'FPX Online Banking' }}</option>
+                            <option value="qr">{{ 'QR / E-Dompet (DuitNow QR, TnG, GrabPay)' if lang == 'ms' else 'QR / E-Wallet (DuitNow QR, TnG, GrabPay)' }}</option>
                         </select>
                     </div>
                     <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()" id="fundEscrowBtn">
@@ -2331,7 +2332,8 @@
                         <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
                         <select class="form-input" id="paymentGateway">
                             <option value="stripe">{{ 'Kad / Google Pay / Apple Pay (Stripe)' if lang == 'ms' else 'Card / Google Pay / Apple Pay (Stripe)' }}</option>
-                            <option value="payhalal">{{ 'FPX/E-Wallet (PayHalal)' if lang == 'ms' else 'FPX/E-Wallet (PayHalal)' }}</option>
+                            <option value="fpx">{{ 'FPX Perbankan Dalam Talian' if lang == 'ms' else 'FPX Online Banking' }}</option>
+                            <option value="qr">{{ 'QR / E-Dompet (DuitNow QR, TnG, GrabPay)' if lang == 'ms' else 'QR / E-Wallet (DuitNow QR, TnG, GrabPay)' }}</option>
                         </select>
                     </div>
                     <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()" id="fundEscrowBtn">
@@ -3033,9 +3035,9 @@
         if (gateway === 'stripe') {
             // Use Stripe Checkout
             initiateStripeCheckout(parseFloat(amount), button, originalText);
-        } else if (gateway === 'payhalal') {
-            // Use PayHalal
-            initiatePayHalalPayment(parseFloat(amount), button, originalText);
+        } else if (gateway === 'payhalal' || gateway === 'fpx' || gateway === 'qr') {
+            // Use PayHalal with the selected channel (FPX or QR/e-wallet)
+            initiatePayHalalPayment(parseFloat(amount), button, originalText, gateway);
         } else {
             alert('{{ "Gerbang pembayaran tidak dikonfigurasikan" if lang == "ms" else "Payment gateway not configured" }}');
             button.disabled = false;
@@ -3123,13 +3125,14 @@
         });
     }
 
-    function initiatePayHalalPayment(amount, button, originalText) {
+    function initiatePayHalalPayment(amount, button, originalText, method) {
         // Create PayHalal payment
         fetch('/api/escrow/{{ gig.id }}/pay', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount: amount
+                amount: amount,
+                method: method || 'payhalal'
             })
         })
         .then(response => response.json())

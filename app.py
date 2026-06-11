@@ -12184,7 +12184,17 @@ def initiate_escrow_payment(gig_id):
         
         return_url = f"{base_url}/escrow?payment=success&gig_id={gig_id}"
         callback_url = f"{base_url}/api/payhalal/escrow-webhook"
-        
+
+        # Map the requested method to a PayHalal payment channel.
+        # 'fpx' = online banking, 'qr'/'ewallet' = DuitNow QR / Touch 'n Go / GrabPay.
+        # None lets the PayHalal page show all available channels.
+        payhalal_channel = {
+            'fpx': 'fpx',
+            'qr': 'ewallet',
+            'ewallet': 'ewallet',
+            'card': 'card'
+        }.get((data.get('method') or '').lower())
+
         # Create PayHalal payment
         result = client.create_payment(
             amount=total_amount,
@@ -12194,7 +12204,8 @@ def initiate_escrow_payment(gig_id):
             customer_name=user.full_name or user.username,
             return_url=return_url,
             callback_url=callback_url,
-            customer_phone=user.phone
+            customer_phone=user.phone,
+            payment_method=payhalal_channel
         )
         
         if result.get('success'):
