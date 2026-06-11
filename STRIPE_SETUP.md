@@ -10,10 +10,11 @@ Complete guide for integrating and configuring Stripe payments in GigHala.
 5. [Database Setup](#database-setup)
 6. [Webhook Configuration](#webhook-configuration)
 7. [Google Pay & Apple Pay](#google-pay--apple-pay)
-8. [Testing](#testing)
-9. [Production Deployment](#production-deployment)
-10. [API Endpoints](#api-endpoints)
-11. [Troubleshooting](#troubleshooting)
+8. [FPX & GrabPay (QR / E-Wallet)](#fpx--grabpay-qr--e-wallet)
+9. [Testing](#testing)
+10. [Production Deployment](#production-deployment)
+11. [API Endpoints](#api-endpoints)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -22,6 +23,8 @@ Complete guide for integrating and configuring Stripe payments in GigHala.
 GigHala uses Stripe as a payment gateway for escrow funding with the following capabilities:
 - Secure card payments (Visa, Mastercard, AMEX)
 - Google Pay and Apple Pay digital wallets
+- FPX Malaysian online banking
+- GrabPay e-wallet (QR scan on desktop, app redirect on mobile)
 - Saved payment methods for repeat customers
 - Full and partial refunds
 - Automated webhook processing
@@ -246,6 +249,44 @@ Wallet buttons only appear on supported device/browser combinations:
 
 If the wallet button doesn't appear, the customer simply sees the standard card
 form — there is no error state.
+
+---
+
+## FPX & GrabPay (QR / E-Wallet)
+
+Per-gig escrow payments also support FPX (Malaysian online banking) and GrabPay
+through Stripe Checkout. The customer picks the method in the Fund Escrow modal
+(or the gig detail payment dropdown), and the backend creates a checkout session
+restricted to that payment method:
+
+| UI option | Stripe payment method | Flow |
+|-----------|----------------------|------|
+| FPX Online Banking | `fpx` | Redirect to customer's bank for approval |
+| QR / E-Wallet | `grabpay` | QR code on desktop, Grab app redirect on mobile |
+
+### Activation (Required)
+
+Unlike card payments, FPX and GrabPay must be **activated** on your Stripe
+account before checkout sessions can be created with them:
+
+1. Go to **Stripe Dashboard → Settings → Payments → Payment methods**
+2. Request/enable **FPX** and **GrabPay**
+3. Both require a MYR Stripe account (Malaysia) — already the case for GigHala
+
+If a method is not activated, creating the checkout session fails and the
+customer sees a payment error — activate both before exposing the options in
+production.
+
+### Notes
+
+- FPX has a minimum transaction amount of RM 2.00
+- FPX and GrabPay payments are confirmed via the same
+  `checkout.session.completed` webhook as cards — no code changes needed
+- In test mode, Stripe provides simulated FPX bank approval and GrabPay
+  authorization pages, so both flows can be tested end-to-end without real
+  accounts
+- DuitNow QR and Touch 'n Go are **not** supported by Stripe; GrabPay is the
+  QR/e-wallet option available on Stripe Malaysia
 
 ---
 

@@ -12184,7 +12184,7 @@ def initiate_escrow_payment(gig_id):
         
         return_url = f"{base_url}/escrow?payment=success&gig_id={gig_id}"
         callback_url = f"{base_url}/api/payhalal/escrow-webhook"
-        
+
         # Create PayHalal payment
         result = client.create_payment(
             amount=total_amount,
@@ -12960,12 +12960,21 @@ def create_stripe_checkout_session():
             success_url = f"{base_url}/api/stripe/checkout-success?session_id={{CHECKOUT_SESSION_ID}}&gig_id={gig_id}"
             cancel_url = f"{base_url}/escrow?payment=cancelled&gig_id={gig_id}"
 
-        # Create Stripe Checkout session
+        # Map the requested method to Stripe payment method types (MYR).
+        # 'fpx' = Malaysian online banking, 'qr'/'ewallet' = GrabPay.
+        # FPX and GrabPay must be activated in Stripe Dashboard > Settings > Payment methods.
         # Google Pay and Apple Pay are offered automatically on the Stripe-hosted
-        # checkout page for supported devices when 'card' is enabled (wallets must
-        # be turned on in Stripe Dashboard > Settings > Payment methods)
+        # checkout page for supported devices when 'card' is enabled.
+        payment_method_types = {
+            'fpx': ['fpx'],
+            'qr': ['grabpay'],
+            'ewallet': ['grabpay'],
+            'grabpay': ['grabpay']
+        }.get((data.get('method') or '').lower(), ['card'])
+
+        # Create Stripe Checkout session
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=payment_method_types,
             line_items=[{
                 'price_data': {
                     'currency': 'myr',

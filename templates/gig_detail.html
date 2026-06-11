@@ -2255,7 +2255,8 @@
                         <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
                         <select class="form-input" id="paymentGateway">
                             <option value="stripe">{{ 'Kad / Google Pay / Apple Pay (Stripe)' if lang == 'ms' else 'Card / Google Pay / Apple Pay (Stripe)' }}</option>
-                            <option value="payhalal">{{ 'FPX/E-Wallet (PayHalal)' if lang == 'ms' else 'FPX/E-Wallet (PayHalal)' }}</option>
+                            <option value="fpx">{{ 'FPX Perbankan Dalam Talian' if lang == 'ms' else 'FPX Online Banking' }}</option>
+                            <option value="qr">{{ 'QR / E-Dompet (GrabPay)' if lang == 'ms' else 'QR / E-Wallet (GrabPay)' }}</option>
                         </select>
                     </div>
                     <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()" id="fundEscrowBtn">
@@ -2331,7 +2332,8 @@
                         <label class="form-label">{{ 'Kaedah Pembayaran' if lang == 'ms' else 'Payment Method' }}</label>
                         <select class="form-input" id="paymentGateway">
                             <option value="stripe">{{ 'Kad / Google Pay / Apple Pay (Stripe)' if lang == 'ms' else 'Card / Google Pay / Apple Pay (Stripe)' }}</option>
-                            <option value="payhalal">{{ 'FPX/E-Wallet (PayHalal)' if lang == 'ms' else 'FPX/E-Wallet (PayHalal)' }}</option>
+                            <option value="fpx">{{ 'FPX Perbankan Dalam Talian' if lang == 'ms' else 'FPX Online Banking' }}</option>
+                            <option value="qr">{{ 'QR / E-Dompet (GrabPay)' if lang == 'ms' else 'QR / E-Wallet (GrabPay)' }}</option>
                         </select>
                     </div>
                     <button class="escrow-btn escrow-btn-primary" style="width: 100%;" onclick="fundEscrow()" id="fundEscrowBtn">
@@ -3030,12 +3032,9 @@
         button.disabled = true;
         button.innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite;"></span> {{ "Memproses..." if lang == "ms" else "Processing..." }}';
 
-        if (gateway === 'stripe') {
-            // Use Stripe Checkout
-            initiateStripeCheckout(parseFloat(amount), button, originalText);
-        } else if (gateway === 'payhalal') {
-            // Use PayHalal
-            initiatePayHalalPayment(parseFloat(amount), button, originalText);
+        if (gateway === 'stripe' || gateway === 'fpx' || gateway === 'qr') {
+            // Use Stripe Checkout (card/Google Pay/Apple Pay, FPX, or GrabPay QR)
+            initiateStripeCheckout(parseFloat(amount), button, originalText, gateway);
         } else {
             alert('{{ "Gerbang pembayaran tidak dikonfigurasikan" if lang == "ms" else "Payment gateway not configured" }}');
             button.disabled = false;
@@ -3090,14 +3089,15 @@
         });
     }
 
-    function initiateStripeCheckout(amount, button, originalText) {
+    function initiateStripeCheckout(amount, button, originalText, method) {
         // Create Stripe checkout session
         fetch('/api/stripe/create-checkout-session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 gig_id: {{ gig.id }},
-                amount: amount
+                amount: amount,
+                method: method || 'stripe'
             })
         })
         .then(response => response.json())
@@ -3111,38 +3111,6 @@
                 window.location.href = data.checkout_url;
             } else {
                 alert('{{ "Ralat mencipta sesi pembayaran" if lang == "ms" else "Error creating payment session" }}');
-                button.disabled = false;
-                button.innerHTML = originalText;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('{{ "Ralat berlaku. Sila cuba lagi." if lang == "ms" else "An error occurred. Please try again." }}');
-            button.disabled = false;
-            button.innerHTML = originalText;
-        });
-    }
-
-    function initiatePayHalalPayment(amount, button, originalText) {
-        // Create PayHalal payment
-        fetch('/api/escrow/{{ gig.id }}/pay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: amount
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-                button.disabled = false;
-                button.innerHTML = originalText;
-            } else if (data.payment_url) {
-                // Redirect to PayHalal payment page
-                window.location.href = data.payment_url;
-            } else {
-                alert('{{ "Ralat mencipta pembayaran" if lang == "ms" else "Error creating payment" }}');
                 button.disabled = false;
                 button.innerHTML = originalText;
             }
@@ -3523,7 +3491,7 @@
 
 {% block extra_footer %}
 <div style="text-align: center; padding: 24px; font-size: 11px; color: var(--text-gray); margin-top: 32px; border-top: 1px solid var(--border);">
-    Semua transaksi diproses melalui PayHalal – Shariah-Compliant, Selamat, dan Dipercayai oleh Bank Negara Malaysia. Pembayaran anda dilindungi sepenuhnya.
+    Semua transaksi diproses dengan selamat melalui Stripe – menyokong FPX, kad kredit/debit, Google Pay, Apple Pay dan GrabPay. Pembayaran anda dilindungi sepenuhnya.
 </div>
 {% endblock %}
 {% endblock %}

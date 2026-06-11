@@ -764,11 +764,18 @@
             </div>
             
             <div class="payment-methods">
-                <div class="payment-method selected" data-method="payhalal">
+                <div class="payment-method selected" data-method="fpx">
                     <div class="payment-method-icon">🏦</div>
                     <div class="payment-method-info">
-                        <h4>PayHalal (FPX / Card / E-Wallet)</h4>
-                        <p>Pay via online banking, credit card, or e-wallet</p>
+                        <h4>FPX Online Banking</h4>
+                        <p>Pay directly from your Malaysian bank account</p>
+                    </div>
+                </div>
+                <div class="payment-method" data-method="qr">
+                    <div class="payment-method-icon">🔲</div>
+                    <div class="payment-method-info">
+                        <h4>QR / E-Wallet</h4>
+                        <p>Pay with GrabPay — scan QR or use the Grab app</p>
                     </div>
                 </div>
                 <div class="payment-method" data-method="stripe">
@@ -803,12 +810,12 @@
         document.getElementById('confirmFundBtn').disabled = true;
         document.getElementById('confirmFundBtn').textContent = 'Processing...';
 
-        if (selectedMethod === 'stripe') {
-            // Stripe Checkout - supports card, Google Pay and Apple Pay
+        if (['stripe', 'fpx', 'qr'].includes(selectedMethod)) {
+            // Stripe Checkout - card/Google Pay/Apple Pay, FPX, or GrabPay QR
             fetch('/api/stripe/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gig_id: currentGigId })
+                body: JSON.stringify({ gig_id: currentGigId, method: selectedMethod })
             })
             .then(response => response.json())
             .then(data => {
@@ -1000,7 +1007,7 @@
 
 {% block extra_footer %}
 <div style="text-align: center; padding: 24px; font-size: 11px; color: var(--text-gray); margin-top: 32px; border-top: 1px solid var(--border);">
-    Semua transaksi diproses melalui PayHalal – Shariah-Compliant, Selamat, dan Dipercayai oleh Bank Negara Malaysia. Pembayaran anda dilindungi sepenuhnya.
+    Semua transaksi diproses dengan selamat melalui Stripe – menyokong FPX, kad kredit/debit, Google Pay, Apple Pay dan GrabPay. Pembayaran anda dilindungi sepenuhnya.
 </div>
 {% endblock %}
 {% endblock %}
