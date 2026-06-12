@@ -3451,9 +3451,16 @@ class Escrow(db.Model):
 
     def to_dict(self):
         """Convert escrow to dictionary for JSON response"""
+        # Normalize Numeric columns to float: they load as Decimal, which breaks
+        # mixed arithmetic with floats and serializes to JSON as strings
+        amount = float(self.amount)
+        platform_fee = float(self.platform_fee or 0)
+        net_amount = float(self.net_amount)
+        refunded_amount = float(self.refunded_amount or 0)
+
         # Calculate SOCSO on net amount (after platform fee)
-        socso_amount = calculate_socso(self.net_amount)
-        final_payout = round(self.net_amount - socso_amount, 2)
+        socso_amount = float(calculate_socso(net_amount))
+        final_payout = round(net_amount - socso_amount, 2)
 
         return {
             'id': self.id,
@@ -3461,13 +3468,13 @@ class Escrow(db.Model):
             'gig_id': self.gig_id,
             'client_id': self.client_id,
             'freelancer_id': self.freelancer_id,
-            'amount': self.amount,
-            'platform_fee': self.platform_fee,
-            'net_amount': self.net_amount,
+            'amount': amount,
+            'platform_fee': platform_fee,
+            'net_amount': net_amount,
             'socso_amount': socso_amount,
             'final_payout': final_payout,
-            'refunded_amount': self.refunded_amount or 0.0,
-            'remaining_amount': self.amount - (self.refunded_amount or 0.0),
+            'refunded_amount': refunded_amount,
+            'remaining_amount': round(amount - refunded_amount, 2),
             'status': self.status,
             'status_label': self.get_status_label(),
             'status_color': self.get_status_color(),
@@ -12109,7 +12116,7 @@ def initiate_escrow_payment(gig_id):
             return jsonify({'error': 'Invalid amount'}), 400
         
         # Calculate fees
-        platform_fee = calculate_commission(amount)
+        platform_fee = float(calculate_commission(amount))
         processing_fee = calculate_payhalal_processing_fee(amount)
         total_amount = amount + processing_fee
         net_amount = amount - platform_fee
@@ -12256,7 +12263,7 @@ def test_fund_escrow(gig_id):
             return jsonify({'error': 'Escrow already funded for this gig'}), 400
 
         # Calculate platform fee
-        platform_fee = calculate_commission(amount)
+        platform_fee = float(calculate_commission(amount))
         net_amount = amount - platform_fee
 
         # Create or update escrow
@@ -12911,7 +12918,7 @@ def create_stripe_checkout_session():
             return jsonify({'error': 'Invalid amount'}), 400
         
         # Calculate fees
-        platform_fee = calculate_commission(amount)
+        platform_fee = float(calculate_commission(amount))
         processing_fee = (amount * PROCESSING_FEE_PERCENT) + PROCESSING_FEE_FIXED
         total_amount = amount + processing_fee
         net_amount = amount - platform_fee
@@ -20143,7 +20150,7 @@ def complete_gig_transaction(gig_id):
             return jsonify({'error': 'Invalid payment amount'}), 400
 
         # Calculate commission using tiered structure
-        commission = calculate_commission(amount)
+        commission = float(calculate_commission(amount))
         net_amount = amount - commission
 
         # Generate invoice number
@@ -23080,9 +23087,9 @@ def get_pending_payments():
             
             if accepted_app:
                 freelancer = User.query.get(gig.freelancer_id)
-                amount = accepted_app.proposed_price or gig.budget_max
-                
-                commission = calculate_commission(amount)
+                amount = float(accepted_app.proposed_price or gig.budget_max)
+
+                commission = float(calculate_commission(amount))
                 commission_rate = 0.15 if amount <= 500 else (0.10 if amount <= 2000 else 0.05)
                 processing_fee = (amount * PROCESSING_FEE_PERCENT) + PROCESSING_FEE_FIXED
                 net_amount = amount - commission - processing_fee
@@ -23133,9 +23140,9 @@ def approve_payment(gig_id):
         if not accepted_app:
             return jsonify({'error': 'No accepted application found'}), 400
         
-        amount = accepted_app.proposed_price or gig.budget_max
-        
-        commission = calculate_commission(amount)
+        amount = float(accepted_app.proposed_price or gig.budget_max)
+
+        commission = float(calculate_commission(amount))
         processing_fee = (amount * PROCESSING_FEE_PERCENT) + PROCESSING_FEE_FIXED
         net_amount = amount - commission - processing_fee
         
@@ -25447,7 +25454,7 @@ def hire_direct():
             db.session.add(system_msg)
 
         # --- Create pending Escrow ---
-        platform_fee = calculate_commission(amount)
+        platform_fee = float(calculate_commission(amount))
         net_amount = amount - platform_fee
         order_id = f"ESC-{new_gig.id}-{uuid.uuid4().hex[:8].upper()}"
 
