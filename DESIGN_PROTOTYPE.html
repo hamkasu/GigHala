@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigHala - Design Prototype (Minimalist Marketplace)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        :root {
+            --primary-green: #0D7C66;
+            --accent-teal: #41B3A2;
+            --light-bg: #F9FAFB;
+            --cream-bg: #FFF8F0;
+            --text-dark: #000000;
+            --text-gray: #6B7280;
+            --border-light: #E5E7EB;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-dark);
+            background: white;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+
+        /* ============ NAVBAR (Simplified) ============ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            background: white;
+            border-bottom: 1px solid var(--border-light);
+            z-index: 1000;
+            padding: 16px 0;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 24px;
+            font-weight: 800;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-left: auto;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-green);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-nav-login {
+            background: none;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-nav-login:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .btn-nav-register {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-nav-register:hover {
+            background: #0a5d4f;
+        }
+
+        /* ============ HERO SECTION (New Design) ============ */
+        .hero {
+            padding: 60px 0 80px;
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            text-align: center;
+        }
+
+        .hero-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-gray);
+            margin-bottom: 40px;
+        }
+
+        /* Search Bar - Hero Element */
+        .hero-search {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            display: flex;
+            gap: 12px;
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        .search-input::placeholder {
+            color: #ccc;
+        }
+
+        .search-select {
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+            color: var(--text-dark);
+        }
+
+        .search-btn {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 8px 28px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #0a5d4f;
+        }
+
+        /* CTA Buttons Below Search */
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .btn-primary-large {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary-large:hover {
+            background: #0a5d4f;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary-large {
+            background: transparent;
+            color: var(--primary-green);
+            border: 2px solid var(--primary-green);
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary-large:hover {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        /* Trust Badges Below CTA */
+        .hero-trust {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trust-item::before {
+            content: "✓";
+            color: var(--primary-green);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* ============ CATEGORIES SECTION (Compact) ============ */
+        .categories {
+            padding: 60px 0;
+            background: white;
+        }
+
+        .section-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+        }
+
+        .category-card:hover {
+            background: white;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .category-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .category-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .category-count {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        /* ============ GIGS SECTION ============ */
+        .gigs {
+            padding: 60px 0;
+            background: var(--light-bg);
+        }
+
+        .gigs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .gig-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .gig-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .gig-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .gig-title {
+            font-weight: 600;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .gig-price {
+            font-weight: 700;
+            color: var(--primary-green);
+            font-size: 14px;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+
+        .gig-rating {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+        }
+
+        .gig-description {
+            font-size: 13px;
+            color: var(--text-gray);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .gig-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .gig-badge {
+            background: var(--cream-bg);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-dark);
+        }
+
+        .gig-badge.halal {
+            background: #d1f2eb;
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        .gig-cta {
+            color: var(--primary-green);
+            font-weight: 600;
+            font-size: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .gig-cta:hover {
+            text-decoration: underline;
+        }
+
+        /* ============ HOW IT WORKS ============ */
+        .how-it-works {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 32px;
+        }
+
+        .step-card {
+            text-align: center;
+        }
+
+        .step-number {
+            font-family: 'Crimson Pro', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        .step-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .step-description {
+            font-size: 13px;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        /* ============ TESTIMONIALS ============ */
+        .testimonials {
+            padding: 60px 0;
+            background: var(--cream-bg);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .testimonial-rating {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .testimonial-text {
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            display: flex;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-bg);
+            flex-shrink: 0;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .author-role {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        /* ============ CTA SECTION ============ */
+        .cta-section {
+            padding: 80px 0;
+            background: linear-gradient(135deg, var(--primary-green), var(--accent-teal));
+            text-align: center;
+            color: white;
+        }
+
+        .cta-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 44px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .cta-subtitle {
+            font-size: 16px;
+            margin-bottom: 28px;
+            opacity: 0.95;
+        }
+
+        .btn-cta {
+            background: white;
+            color: var(--primary-green);
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-note {
+            font-size: 12px;
+            margin-top: 16px;
+            opacity: 0.9;
+        }
+
+        /* ============ FOOTER ============ */
+        .footer {
+            padding: 60px 0 24px;
+            background: var(--text-dark);
+            color: white;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-link {
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .footer-link a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-link a:hover {
+            color: white;
+        }
+
+        .footer-heading {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #444;
+            padding-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 32px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .categories-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .gigs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                gap: 16px;
+            }
+
+            .hero-search {
+                flex-direction: column;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+        }
+
+        /* Info Banner */
+        .design-note {
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Design Note -->
+    <div class="design-note">
+        <strong>🎨 Design Prototype:</strong> This page shows the redesigned landing page with a minimalist, Upwork-inspired aesthetic while maintaining GigHala's brand identity. Compare with the current design to see the changes.
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo-icon">☪</span>
+                <span>GigHala</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Cari Gig</a>
+                <a href="#" class="nav-link">FAQ</a>
+                <div class="nav-buttons">
+                    <button class="btn-nav-login">Log Masuk</button>
+                    <button class="btn-nav-register">Daftar</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">Cari Gig Halal Terbaik</h1>
+            <p class="hero-subtitle">Platform gig economy #1 Malaysia dengan 2,000+ peluang kerja halal</p>
+
+            <!-- Search Bar (Main Hero Element) -->
+            <div class="hero-search">
+                <input type="text" class="search-input" placeholder="Cari gig atau skill..." />
+                <select class="search-select">
+                    <option>Semua Kategori</option>
+                    <option>Design</option>
+                    <option>Content</option>
+                    <option>Development</option>
+                </select>
+                <button class="search-btn">Cari</button>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="hero-cta">
+                <button class="btn-primary-large">Mula Jana Pendapatan</button>
+                <button class="btn-secondary-large">Lihat Gig Terkini</button>
+            </div>
+
+            <!-- Trust Badges -->
+            <div class="hero-trust">
+                <div class="trust-item">JAKIM Verified</div>
+                <div class="trust-item">SSM Registered</div>
+                <div class="trust-item">50K+ Members</div>
+                <div class="trust-item">Instant Payout</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORIES SECTION -->
+    <section class="categories">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Popular Categories</h2>
+                <p class="section-subtitle">Pilih skill anda</p>
+            </div>
+            <div class="categories-grid">
+                <div class="category-card">
+                    <div class="category-icon">🎨</div>
+                    <div class="category-name">Design</div>
+                    <div class="category-count">340 Gig</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">✍️</div>
+                    <div class="category-name">Content</div>
+                    <div class="category-count">289 Gig</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">💻</div>
+                    <div class="category-name">Development</div>
+                    <div class="category-count">127 Gig</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">📱</div>
+                    <div class="category-name">Social Media</div>
+                    <div class="category-count">156 Gig</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">📊</div>
+                    <div class="category-name">Data</div>
+                    <div class="category-count">89 Gig</div>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">🎬</div>
+                    <div class="category-name">Video</div>
+                    <div class="category-count">112 Gig</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GIGS SECTION -->
+    <section class="gigs">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Gig Terkini</h2>
+                <p class="section-subtitle">Peluang kerja terbaru dari klien terverifikasi</p>
+            </div>
+            <div class="gigs-grid">
+                <div class="gig-card">
+                    <div class="gig-header">
+                        <div class="gig-title">Design Modern Logo</div>
+                        <div class="gig-price">RM 250-500</div>
+                    </div>
+                    <div class="gig-rating">⭐ 5.0 (127 ulasan)</div>
+                    <p class="gig-description">Buat logo moden untuk brand startup fintech kami. Perlu 3-4 design concepts.</p>
+                    <div class="gig-meta">
+                        <span class="gig-badge halal">☪ Halal</span>
+                        <span class="gig-badge">Remote</span>
+                    </div>
+                    <a href="#" class="gig-cta">Lihat Butiran →</a>
+                </div>
+
+                <div class="gig-card">
+                    <div class="gig-header">
+                        <div class="gig-title">Translate Content EN-MS</div>
+                        <div class="gig-price">RM 400-800</div>
+                    </div>
+                    <div class="gig-rating">⭐ 4.9 (89 ulasan)</div>
+                    <p class="gig-description">Terjemahkan artikel blog tentang teknologi dari English ke Bahasa Malaysia.</p>
+                    <div class="gig-meta">
+                        <span class="gig-badge halal">☪ Halal</span>
+                        <span class="gig-badge">⚡ Instant</span>
+                    </div>
+                    <a href="#" class="gig-cta">Lihat Butiran →</a>
+                </div>
+
+                <div class="gig-card">
+                    <div class="gig-header">
+                        <div class="gig-title">Social Media Content Pack</div>
+                        <div class="gig-price">RM 500-1200</div>
+                    </div>
+                    <div class="gig-rating">⭐ 5.0 (156 ulasan)</div>
+                    <p class="gig-description">Buat 30 post social media untuk clothing brand. Termasuk copy & design.</p>
+                    <div class="gig-meta">
+                        <span class="gig-badge halal">☪ Halal</span>
+                        <span class="gig-badge">🔥 Popular</span>
+                    </div>
+                    <a href="#" class="gig-cta">Lihat Butiran →</a>
+                </div>
+
+                <div class="gig-card">
+                    <div class="gig-header">
+                        <div class="gig-title">Website Development</div>
+                        <div class="gig-price">RM 800-2500</div>
+                    </div>
+                    <div class="gig-rating">⭐ 4.8 (203 ulasan)</div>
+                    <p class="gig-description">Bangun website e-commerce dengan WordPress. Responsive, fast, SEO-friendly.</p>
+                    <div class="gig-meta">
+                        <span class="gig-badge halal">☪ Halal</span>
+                        <span class="gig-badge">📈 Trending</span>
+                    </div>
+                    <a href="#" class="gig-cta">Lihat Butiran →</a>
+                </div>
+
+                <div class="gig-card">
+                    <div class="gig-header">
+                        <div class="gig-title">Voice Over (Malay)</div>
+                        <div class="gig-price">RM 200-600</div>
+                    </div>
+                    <div class="gig-rating">⭐ 4.9 (112 ulasan)</div>
+                    <p class="gig-description">Rekod voice over profesional untuk video explainer. Kualiti studio, fast turnaround.</p>
+                    <div class="gig-meta">
+                        <span class="gig-badge halal">☪ Halal</span>
+                        <span class="gig-badge">Remote</span>
+                    </div>
+                    <a href="#" class="gig-cta">Lihat Butiran →</a>
+                </div>
+
+                <div class="gig-card">
+                    <div class="gig-header">
+                        <div class="gig-title">Data Entry & Analysis</div>
+                        <div class="gig-price">RM 100-400</div>
+                    </div>
+                    <div class="gig-rating">⭐ 5.0 (78 ulasan)</div>
+                    <p class="gig-description">Entry data daripada dokumen PDF ke spreadsheet Excel. Akurat & cepat.</p>
+                    <div class="gig-meta">
+                        <span class="gig-badge halal">☪ Halal</span>
+                        <span class="gig-badge">⚡ Instant</span>
+                    </div>
+                    <a href="#" class="gig-cta">Lihat Butiran →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Cara Kerja</h2>
+                <p class="section-subtitle">Mudah & cepat - mula jana dalam 5 minit</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">📝</div>
+                    <h3 class="step-title">Daftar Percuma</h3>
+                    <p class="step-description">Buat akaun dalam 2 minit. Tiada bayaran pendaftaran, tiada syarat rumit.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">🔍</div>
+                    <h3 class="step-title">Cari Gig Sesuai</h3>
+                    <p class="step-description">Pilih dari 2000+ gig halal mengikut skill, lokasi dan budget anda.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">💼</div>
+                    <h3 class="step-title">Apply & Kerja</h3>
+                    <p class="step-description">Submit proposal anda atau buat video pitch 30 saat untuk menonjol.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <div class="step-icon">💰</div>
+                    <h3 class="step-title">Terima Bayaran</h3>
+                    <p class="step-description">Instant payout dalam 24 jam ke Touch 'n Go atau bank anda.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Kisah Kejayaan</h2>
+                <p class="section-subtitle">Ratusan freelancers berjaya jana pendapatan konsisten</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Dalam 2 bulan, saya dah buat RM 4,500 dari video editing! Platform ni betul-betul game changer untuk ibu tunggal macam saya."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar"></div>
+                        <div class="author-info">
+                            <div class="author-name">Nurul Huda</div>
+                            <div class="author-role">Video Editor • KL</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Fresh grad cari kerja susah. GigHala bagi peluang saya buat income sambil tunggu tawaran tetap. Sekarang RM 2,800/bulan!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar"></div>
+                        <div class="author-info">
+                            <div class="author-name">Ahmad Zaki</div>
+                            <div class="author-role">Graphic Designer • Penang</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                    <p class="testimonial-text">"Saya tutor online part-time. Platform ni connect saya dengan pelajar SPM yang betul-betul perlukan bantuan. Win-win situation!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar"></div>
+                        <div class="author-info">
+                            <div class="author-name">Siti Aisyah</div>
+                            <div class="author-role">SPM Tutor • JB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">Siap untuk mula jana pendapatan halal?</h2>
+            <p class="cta-subtitle">Join 50,000+ freelancers yang dah berjaya</p>
+            <button class="btn-cta">Daftar Sekarang - 100% Percuma</button>
+            <div class="cta-note">✓ Tiada bayaran tersembunyi  •  ✓ Bayaran instant  •  ✓ Halal verified</div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-brand">
+                        <span>☪</span>
+                        <span>GigHala</span>
+                    </div>
+                    <p class="footer-text">Platform gig economy halal #1 di Malaysia. Jana pendapatan berkah dari rumah.</p>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Platform</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">Cari Gig</a></li>
+                        <li class="footer-link"><a href="#">Kategori</a></li>
+                        <li class="footer-link"><a href="#">Cara Kerja</a></li>
+                        <li class="footer-link"><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Resources</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">Blog</a></li>
+                        <li class="footer-link"><a href="#">Panduan</a></li>
+                        <li class="footer-link"><a href="#">FAQ</a></li>
+                        <li class="footer-link"><a href="#">Support</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-heading">Legal</h4>
+                    <ul class="footer-links">
+                        <li class="footer-link"><a href="#">Syarat & Terma</a></li>
+                        <li class="footer-link"><a href="#">Privasi</a></li>
+                        <li class="footer-link"><a href="#">Halal Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GigHala. Berdaftar dengan SSM (Calmic Sdn Bhd)</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
