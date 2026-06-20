@@ -3449,6 +3449,13 @@ class Escrow(db.Model):
     termination_requested_by = db.Column(db.String(20), nullable=True)  # 'client' or 'freelancer'
     termination_notice_date = db.Column(db.DateTime, nullable=True)  # When notice was issued (30-day window starts here)
 
+    # DuitNow QR payment fields
+    payment_method = db.Column(db.String(30), default='bank_transfer')  # duitnow, fpx, bank_transfer, etc.
+    qr_code_image = db.Column(db.LargeBinary)  # PNG image bytes for QR code
+    qr_code_string = db.Column(db.Text)  # DuitNow EMVCo formatted string
+    duitnow_reference = db.Column(db.String(50))  # Unique reference in DuitNow QR
+    payment_confirmation_ref = db.Column(db.String(100))  # Client's bank transaction reference
+
     def to_dict(self):
         """Convert escrow to dictionary for JSON response"""
         # Normalize Numeric columns to float: they load as Decimal, which breaks
@@ -3480,6 +3487,9 @@ class Escrow(db.Model):
             'status_color': self.get_status_color(),
             'payment_reference': self.payment_reference,
             'payment_gateway': self.payment_gateway,
+            'payment_method': self.payment_method,
+            'duitnow_reference': self.duitnow_reference,
+            'payment_confirmation_ref': self.payment_confirmation_ref,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'funded_at': self.funded_at.isoformat() if self.funded_at else None,
             'released_at': self.released_at.isoformat() if self.released_at else None,
@@ -12087,43 +12097,43 @@ def dispute_escrow(gig_id):
 @app.route('/api/escrow/<int:gig_id>/pay', methods=['POST'])
 @verified_required
 def initiate_escrow_payment(gig_id):
-    """Initiate PayHalal payment to fund an escrow"""
+    """Initiate escrow payment with support for multiple methods: DuitNow, PayHalal, bank transfer"""
     try:
         from payhalal import get_payhalal_client, calculate_payhalal_processing_fee
-        
+        from services.duitnow_service import generate_escrow_duitnow_qr
+
         gig = Gig.query.get_or_404(gig_id)
         user_id = session['user_id']
         user = User.query.get(user_id)
-        
+
         # Only client can initiate payment
         if gig.client_id != user_id:
             return jsonify({'error': 'Only the client can fund the escrow'}), 403
-        
+
         # Gig must have an assigned freelancer
         if not gig.freelancer_id:
             return jsonify({'error': 'Gig must have an assigned freelancer before funding'}), 400
-        
+
         # Check if escrow already funded
         existing = Escrow.query.filter_by(gig_id=gig_id).first()
         if existing and existing.status in ['funded', 'released']:
             return jsonify({'error': 'Escrow already funded for this gig'}), 400
-        
-        # Get amount from request or use gig budget_max
+
+        # Get request parameters
         data = request.json or {}
         amount = float(data.get('amount', gig.budget_max or 0))
-        
+        payment_method = data.get('payment_method', 'bank_transfer')  # NEW: duitnow, fpx, bank_transfer
+
         if amount <= 0:
             return jsonify({'error': 'Invalid amount'}), 400
-        
+
         # Calculate fees
         platform_fee = float(calculate_commission(amount))
-        processing_fee = calculate_payhalal_processing_fee(amount)
-        total_amount = amount + processing_fee
         net_amount = amount - platform_fee
-        
-        # Generate unique order ID
+
+        # Generate unique order ID for reference
         order_id = f"ESC-{gig_id}-{uuid.uuid4().hex[:8].upper()}"
-        
+
         # Create or update escrow as pending
         if existing:
             escrow = existing
@@ -12132,6 +12142,7 @@ def initiate_escrow_payment(gig_id):
             escrow.net_amount = net_amount
             escrow.status = 'pending'
             escrow.payment_reference = order_id
+            escrow.payment_method = payment_method
         else:
             escrow = Escrow(
                 escrow_number=generate_escrow_number(),
@@ -12142,55 +12153,142 @@ def initiate_escrow_payment(gig_id):
                 platform_fee=platform_fee,
                 net_amount=net_amount,
                 status='pending',
-                payment_reference=order_id
+                payment_reference=order_id,
+                payment_method=payment_method
             )
             db.session.add(escrow)
-        
-        db.session.commit()
-        
-        # Get PayHalal client
-        client = get_payhalal_client()
 
-        if data.get('method') == 'manual' or not client.is_available():
-            # Manual bank transfer requested, or PayHalal not configured
+        db.session.commit()
+
+        # =====================================================================
+        # HANDLE DUITNOW QR PAYMENT
+        # =====================================================================
+        if payment_method == 'duitnow':
+            try:
+                # Generate DuitNow QR code
+                duitnow_ref = f"ESC-{gig_id}-{uuid.uuid4().hex[:8].upper()}"
+
+                qr_result = generate_escrow_duitnow_qr(
+                    escrow_amount=amount,
+                    escrow_reference=duitnow_ref
+                )
+
+                if not qr_result.get('success'):
+                    return jsonify({
+                        'success': False,
+                        'error': qr_result.get('error', 'Failed to generate QR code')
+                    }), 500
+
+                # Update escrow with QR code details
+                escrow.duitnow_reference = duitnow_ref
+                escrow.qr_code_string = qr_result['qr_string']
+                escrow.qr_code_image = qr_result['qr_image_bytes']
+                escrow.payment_gateway = 'duitnow'
+                db.session.commit()
+
+                return jsonify({
+                    'success': True,
+                    'payment_method': 'duitnow',
+                    'escrow': escrow.to_dict(),
+                    'qr_code': qr_result['qr_image_base64'],
+                    'payment_details': {
+                        'bank_name': 'Maybank',
+                        'account_number': '512345678901',
+                        'account_name': 'GigHala Sdn Bhd',
+                        'amount': amount,
+                        'reference': duitnow_ref,
+                        'instructions': 'Scan the QR code with your banking app. The amount and reference will be auto-filled. Complete payment and submit your bank reference.'
+                    },
+                    'fee_breakdown': {
+                        'gig_amount': amount,
+                        'platform_fee': platform_fee,
+                        'freelancer_receives': net_amount
+                    }
+                }), 200
+
+            except Exception as e:
+                app.logger.error(f"DuitNow QR generation error: {str(e)}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Failed to generate QR code: {str(e)}'
+                }), 500
+
+        # =====================================================================
+        # HANDLE MANUAL BANK TRANSFER OR PAYHALAL
+        # =====================================================================
+
+        processing_fee = 0
+        total_amount = amount
+
+        if payment_method == 'bank_transfer' or data.get('method') == 'manual':
+            # Manual bank transfer
+            escrow.payment_gateway = 'bank_transfer'
+            db.session.commit()
+
             return jsonify({
                 'success': True,
-                'payment_method': 'manual',
+                'payment_method': 'bank_transfer',
                 'escrow': escrow.to_dict(),
-                'message': 'Please complete the bank transfer using the details below.'
-                           if data.get('method') == 'manual'
-                           else 'PayHalal is not configured. Please use manual bank transfer.',
+                'message': 'Please complete the bank transfer using the details below.',
                 'manual_instructions': {
                     'bank_name': 'Maybank',
                     'account_number': '512345678901',
                     'account_name': 'GigHala Sdn Bhd',
                     'reference': order_id,
-                    'amount': total_amount
+                    'amount': amount
+                },
+                'fee_breakdown': {
+                    'gig_amount': amount,
+                    'platform_fee': platform_fee,
+                    'freelancer_receives': net_amount
                 }
             }), 200
-        
-        # Build callback URLs - use request.host_url for absolute URLs
+
+        # Get PayHalal client
+        client = get_payhalal_client()
+
+        if not client.is_available():
+            # PayHalal not configured, fall back to manual
+            escrow.payment_gateway = 'bank_transfer'
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'payment_method': 'bank_transfer',
+                'escrow': escrow.to_dict(),
+                'message': 'PayHalal is not configured. Please use manual bank transfer.',
+                'manual_instructions': {
+                    'bank_name': 'Maybank',
+                    'account_number': '512345678901',
+                    'account_name': 'GigHala Sdn Bhd',
+                    'reference': order_id,
+                    'amount': amount
+                }
+            }), 200
+
+        # Build callback URLs
         base_url = request.host_url.rstrip('/')
         if not base_url:
-            # Fallback to REPLIT_DEV_DOMAIN if request.host_url is not available
             domain = os.environ.get('REPLIT_DEV_DOMAIN', '')
             if domain:
                 base_url = f"https://{domain}" if not domain.startswith('http') else domain
             else:
-                # Last resort: use REPLIT_DOMAINS
                 domains = os.environ.get('REPLIT_DOMAINS', '')
                 if domains:
                     first_domain = domains.split(',')[0].strip()
                     base_url = f"https://{first_domain}"
-        
+
         if not base_url:
             return jsonify({
                 'success': False,
                 'error': 'Unable to determine application URL for payment callback'
             }), 500
-        
+
         return_url = f"{base_url}/escrow?payment=success&gig_id={gig_id}"
         callback_url = f"{base_url}/api/payhalal/escrow-webhook"
+
+        processing_fee = calculate_payhalal_processing_fee(amount)
+        total_amount = amount + processing_fee
 
         # Create PayHalal payment
         result = client.create_payment(
@@ -12203,8 +12301,11 @@ def initiate_escrow_payment(gig_id):
             callback_url=callback_url,
             customer_phone=user.phone
         )
-        
+
         if result.get('success'):
+            escrow.payment_gateway = 'payhalal'
+            db.session.commit()
+
             return jsonify({
                 'success': True,
                 'payment_method': 'payhalal',
@@ -12226,7 +12327,7 @@ def initiate_escrow_payment(gig_id):
                 'error': result.get('error', 'Failed to create payment'),
                 'escrow': escrow.to_dict()
             }), 400
-            
+
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Initiate escrow payment error: {str(e)}")
@@ -12568,6 +12669,93 @@ def confirm_manual_escrow_payment(gig_id):
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Confirm manual escrow error: {str(e)}")
+        return jsonify({'error': 'Failed to confirm payment'}), 500
+
+
+@app.route('/api/escrow/<int:gig_id>/confirm-duitnow', methods=['POST'])
+def confirm_duitnow_escrow_payment(gig_id):
+    """Confirm DuitNow payment for escrow (client submits bank ref, admin verifies)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        gig = Gig.query.get_or_404(gig_id)
+
+        escrow = Escrow.query.filter_by(gig_id=gig_id).first()
+
+        if not escrow:
+            return jsonify({'error': 'No pending escrow found'}), 404
+
+        if escrow.payment_method != 'duitnow':
+            return jsonify({'error': 'This escrow is not a DuitNow payment'}), 400
+
+        if escrow.status != 'pending':
+            return jsonify({'error': f'Escrow is not pending (status: {escrow.status})'}), 400
+
+        # Only client or admin can confirm
+        if gig.client_id != user_id and not user.is_admin:
+            return jsonify({'error': 'Access denied'}), 403
+
+        data = request.json or {}
+        bank_reference = data.get('bank_reference', '')
+
+        if not bank_reference:
+            return jsonify({'error': 'Bank reference is required'}), 400
+
+        if user.is_admin:
+            # Admin can directly confirm after verifying bank statement
+            escrow.status = 'funded'
+            escrow.funded_at = datetime.utcnow()
+            escrow.payment_confirmation_ref = bank_reference
+            escrow.admin_notes = (
+                f"DuitNow payment confirmed by admin. "
+                f"Bank ref: {bank_reference}. "
+                f"DuitNow ref: {escrow.duitnow_reference}"
+            )
+
+            # Update wallet
+            client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+            if not client_wallet:
+                client_wallet = Wallet(user_id=escrow.client_id)
+                db.session.add(client_wallet)
+
+            client_wallet.held_balance += escrow.amount
+
+            # Create receipt for escrow funding
+            gig = Gig.query.get(escrow.gig_id)
+            if gig:
+                receipt = create_escrow_receipt(escrow, gig, 'duitnow')
+
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'message': 'DuitNow payment confirmed and escrow funded',
+                'escrow': escrow.to_dict(),
+                'receipt_number': receipt.receipt_number if 'receipt' in locals() else None
+            }), 200
+        else:
+            # Client submits bank reference for admin review
+            escrow.payment_confirmation_ref = bank_reference
+            escrow.admin_notes = (
+                f"Client submitted DuitNow confirmation. "
+                f"Bank ref: {bank_reference}. "
+                f"DuitNow ref: {escrow.duitnow_reference}. "
+                f"Awaiting admin verification."
+            )
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'message': 'Bank reference submitted. Admin will verify your DuitNow payment within 24 hours.',
+                'escrow': escrow.to_dict()
+            }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Confirm DuitNow escrow error: {str(e)}")
         return jsonify({'error': 'Failed to confirm payment'}), 500
 
 
