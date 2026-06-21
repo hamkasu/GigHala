@@ -12724,6 +12724,7 @@ def confirm_duitnow_escrow_payment(gig_id):
             client_wallet.held_balance += escrow.amount
 
             # Create receipt for escrow funding
+            receipt = None
             gig = Gig.query.get(escrow.gig_id)
             if gig:
                 receipt = create_escrow_receipt(escrow, gig, 'duitnow')
@@ -12734,7 +12735,7 @@ def confirm_duitnow_escrow_payment(gig_id):
                 'success': True,
                 'message': 'DuitNow payment confirmed and escrow funded',
                 'escrow': escrow.to_dict(),
-                'receipt_number': receipt.receipt_number if 'receipt' in locals() else None
+                'receipt_number': receipt.receipt_number if receipt else None
             }), 200
         else:
             # Client submits bank reference for admin review
@@ -12772,8 +12773,12 @@ def get_pending_duitnow_confirmations():
         if not user or not user.is_admin:
             return jsonify({'error': 'Access denied'}), 403
 
-        # Get escrows with DuitNow payments that are pending
-        pending_escrows = Escrow.query.filter(
+        # Get escrows with DuitNow payments that are pending (with joins to avoid N+1 queries)
+        pending_escrows = db.session.query(Escrow, Gig, User).join(
+            Gig, Escrow.gig_id == Gig.id
+        ).join(
+            User, Escrow.client_id == User.id
+        ).filter(
             Escrow.payment_method == 'duitnow',
             Escrow.status == 'pending'
         ).all()
@@ -12789,26 +12794,22 @@ def get_pending_duitnow_confirmations():
         confirmations = []
         total_amount = 0
 
-        for escrow in pending_escrows:
-            gig = Gig.query.get(escrow.gig_id)
-            client = User.query.get(escrow.client_id)
-
-            if gig and client:
-                total_amount += float(escrow.amount)
-                confirmations.append({
-                    'escrow_id': escrow.id,
-                    'gig_id': escrow.gig_id,
-                    'gig_title': gig.title,
-                    'gig_code': gig.gig_code or f'GIG-{gig.id}',
-                    'client_id': client.id,
-                    'client_name': client.full_name or client.username,
-                    'client_email': client.email,
-                    'amount': float(escrow.amount),
-                    'duitnow_reference': escrow.duitnow_reference,
-                    'bank_reference': escrow.payment_confirmation_ref,
-                    'status': escrow.status,
-                    'created_at': escrow.created_at.isoformat() if escrow.created_at else None,
-                })
+        for escrow, gig, client in pending_escrows:
+            total_amount += float(escrow.amount)
+            confirmations.append({
+                'escrow_id': escrow.id,
+                'gig_id': escrow.gig_id,
+                'gig_title': gig.title,
+                'gig_code': gig.gig_code or f'GIG-{gig.id}',
+                'client_id': client.id,
+                'client_name': client.full_name or client.username,
+                'client_email': client.email,
+                'amount': float(escrow.amount),
+                'duitnow_reference': escrow.duitnow_reference,
+                'bank_reference': escrow.payment_confirmation_ref,
+                'status': escrow.status,
+                'created_at': escrow.created_at.isoformat() if escrow.created_at else None,
+            })
 
         return jsonify({
             'success': True,
@@ -12834,7 +12835,7 @@ def admin_confirm_duitnow_payment(escrow_id):
         if not user or not user.is_admin:
             return jsonify({'error': 'Access denied'}), 403
 
-        escrow = Escrow.query.get_or_404(escrow_id)
+        escrow = Escrow.query.with_for_update().get_or_404(escrow_id)
 
         if escrow.payment_method != 'duitnow':
             return jsonify({'error': 'This escrow is not a DuitNow payment'}), 400
@@ -12924,7 +12925,7 @@ def admin_reject_duitnow_payment(escrow_id):
         if not user or not user.is_admin:
             return jsonify({'error': 'Access denied'}), 403
 
-        escrow = Escrow.query.get_or_404(escrow_id)
+        escrow = Escrow.query.with_for_update().get_or_404(escrow_id)
 
         if escrow.payment_method != 'duitnow':
             return jsonify({'error': 'This escrow is not a DuitNow payment'}), 400
