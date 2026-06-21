@@ -425,11 +425,133 @@
         .escrow-actions {
             flex-direction: column;
         }
-        
+
         .escrow-actions .btn {
             width: 100%;
             justify-content: center;
         }
+    }
+
+    /* DuitNow QR Code Styles */
+    .qr-code-container {
+        background: white;
+        border: 2px dashed var(--primary);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .qr-code-container h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 16px;
+    }
+
+    .qr-code-display {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 24px;
+    }
+
+    .qr-code-display img {
+        max-width: 280px;
+        width: 100%;
+        height: auto;
+        border-radius: var(--radius-md);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .qr-code-instructions {
+        background: #F0FDF4;
+        border: 1px solid #BBEF63;
+        border-radius: var(--radius-md);
+        padding: 16px;
+        text-align: left;
+        margin-bottom: 16px;
+    }
+
+    .qr-code-instructions h5 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #15803D;
+        margin-bottom: 12px;
+    }
+
+    .qr-code-instructions ol {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 13px;
+        color: #15803D;
+    }
+
+    .qr-code-instructions li {
+        margin-bottom: 6px;
+        line-height: 1.5;
+    }
+
+    .duitnow-details {
+        background: var(--bg-light);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .duitnow-details .bank-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        margin-bottom: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .duitnow-details .bank-row:last-child {
+        border-bottom: none;
+    }
+
+    .duitnow-details .bank-row span:first-child {
+        color: var(--text-gray);
+        font-weight: 500;
+    }
+
+    .duitnow-details .bank-row span:last-child {
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .duitnow-ref-section {
+        background: #FFFBEB;
+        border: 1px solid #FCD34D;
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-top: 16px;
+    }
+
+    .duitnow-ref-section label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #92400E;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .duitnow-ref-section input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #FCD34D;
+        border-radius: var(--radius-md);
+        font-size: 13px;
+    }
+
+    .payment-method.duitnow {
+        border-color: #10B981;
+    }
+
+    .payment-method.duitnow.selected {
+        background: #F0FDF4;
+        border-color: #10B981;
     }
 </style>
 {% endblock %}
@@ -785,6 +907,13 @@
                         <p>Pay with credit/debit card or mobile wallet via Stripe</p>
                     </div>
                 </div>
+                <div class="payment-method duitnow" data-method="duitnow">
+                    <div class="payment-method-icon">🏦</div>
+                    <div class="payment-method-info">
+                        <h4>DuitNow QR Code</h4>
+                        <p>Scan with your banking app - fastest payment method</p>
+                    </div>
+                </div>
                 <div class="payment-method" data-method="manual">
                     <div class="payment-method-icon">💳</div>
                     <div class="payment-method-info">
@@ -835,6 +964,32 @@
             return;
         }
 
+        // Handle DuitNow QR separately
+        if (selectedMethod === 'duitnow') {
+            fetch(`/api/escrow/${currentGigId}/pay`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment_method: 'duitnow' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.payment_method === 'duitnow') {
+                    closeModal('fundModal');
+                    showDuitNowPaymentModal(data);
+                } else {
+                    showAlert(data.error || 'Failed to generate QR code', 'error');
+                    document.getElementById('confirmFundBtn').disabled = false;
+                    document.getElementById('confirmFundBtn').textContent = 'Proceed to Payment';
+                }
+            })
+            .catch(error => {
+                showAlert('Failed to initiate DuitNow payment', 'error');
+                document.getElementById('confirmFundBtn').disabled = false;
+                document.getElementById('confirmFundBtn').textContent = 'Proceed to Payment';
+            });
+            return;
+        }
+
         fetch(`/api/escrow/${currentGigId}/pay`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -859,6 +1014,121 @@
             showAlert('Failed to initiate payment', 'error');
             document.getElementById('confirmFundBtn').disabled = false;
             document.getElementById('confirmFundBtn').textContent = 'Proceed to Payment';
+        });
+    }
+
+    function showDuitNowPaymentModal(data) {
+        currentEscrowData = data;
+        const details = data.payment_details;
+        const qrCode = data.qr_code;
+
+        // Create modal content with QR code and instructions
+        const modalHtml = `
+            <div class="qr-code-container">
+                <h4>Scan QR Code with Your Banking App</h4>
+                <div class="qr-code-display">
+                    <img src="${qrCode}" alt="DuitNow QR Code" />
+                </div>
+
+                <div class="duitnow-details">
+                    <div class="bank-row">
+                        <span>Bank</span>
+                        <span>${details.bank_name}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span>Account</span>
+                        <span>${details.account_number}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span>Recipient</span>
+                        <span>${details.account_name}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span>Amount</span>
+                        <span style="font-size: 16px; color: var(--primary);">RM ${details.amount.toFixed(2)}</span>
+                    </div>
+                    <div class="bank-row">
+                        <span>Reference</span>
+                        <span style="font-family: monospace; font-size: 12px;">${details.reference}</span>
+                    </div>
+                </div>
+
+                <div class="qr-code-instructions">
+                    <h5>✓ How to Pay with DuitNow</h5>
+                    <ol>
+                        <li>Open your banking app (Maybank, CIMB, Public Bank, etc.)</li>
+                        <li>Look for "Scan QR" or "DuitNow" option</li>
+                        <li>Point your camera at the QR code above</li>
+                        <li>The amount and reference will auto-fill</li>
+                        <li>Enter your PIN to confirm payment</li>
+                    </ol>
+                </div>
+
+                <div class="duitnow-ref-section">
+                    <label for="duitnowReference">After Payment: Enter Your Bank Reference</label>
+                    <input type="text" id="duitnowReference" placeholder="e.g., DEC202512345678" />
+                    <p style="font-size: 12px; color: #92400E; margin-top: 8px;">
+                        Find this in your banking app under "Transaction Details" or "Payment Confirmation"
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // Update modal footer with DuitNow-specific buttons
+        const modalFooter = `
+            <button class="btn btn-ghost" onclick="closeDuitNowModal()">Cancel Payment</button>
+            <button class="btn btn-fund" onclick="submitDuitNowPayment()">Confirm Payment Sent</button>
+        `;
+
+        // Show in a new modal
+        const duitnowModal = document.createElement('div');
+        duitnowModal.className = 'modal active';
+        duitnowModal.id = 'duitnowModal';
+        duitnowModal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>DuitNow Payment</h2>
+                </div>
+                <div class="modal-body">
+                    ${modalHtml}
+                </div>
+                <div class="modal-footer">
+                    ${modalFooter}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(duitnowModal);
+    }
+
+    function closeDuitNowModal() {
+        const modal = document.getElementById('duitnowModal');
+        if (modal) modal.remove();
+    }
+
+    function submitDuitNowPayment() {
+        const bankRef = document.getElementById('duitnowReference').value.trim();
+        if (!bankRef) {
+            showAlert('Please enter your bank reference number from the transaction confirmation', 'error');
+            return;
+        }
+
+        fetch(`/api/escrow/${currentGigId}/confirm-duitnow`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bank_reference: bankRef })
+        })
+        .then(response => response.json())
+        .then(data => {
+            closeDuitNowModal();
+            if (data.success) {
+                showAlert(data.message, 'success');
+                loadEscrows();
+            } else {
+                showAlert(data.error || 'Failed to submit payment confirmation', 'error');
+            }
+        })
+        .catch(error => {
+            showAlert('Failed to submit payment confirmation', 'error');
         });
     }
 

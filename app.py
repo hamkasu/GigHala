@@ -12759,6 +12759,243 @@ def confirm_duitnow_escrow_payment(gig_id):
         return jsonify({'error': 'Failed to confirm payment'}), 500
 
 
+# ============================================================================
+# ADMIN DUITNOW CONFIRMATION MANAGEMENT
+# ============================================================================
+
+@app.route('/api/admin/duitnow/pending-confirmations', methods=['GET'])
+@login_required
+def get_pending_duitnow_confirmations():
+    """Get all pending DuitNow payment confirmations for admin dashboard"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            return jsonify({'error': 'Access denied'}), 403
+
+        # Get escrows with DuitNow payments that are pending
+        pending_escrows = Escrow.query.filter(
+            Escrow.payment_method == 'duitnow',
+            Escrow.status == 'pending'
+        ).all()
+
+        # Get today's confirmed DuitNow payments for statistics
+        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        confirmed_today = Escrow.query.filter(
+            Escrow.payment_method == 'duitnow',
+            Escrow.status == 'funded',
+            Escrow.funded_at >= today
+        ).count()
+
+        confirmations = []
+        total_amount = 0
+
+        for escrow in pending_escrows:
+            gig = Gig.query.get(escrow.gig_id)
+            client = User.query.get(escrow.client_id)
+
+            if gig and client:
+                total_amount += float(escrow.amount)
+                confirmations.append({
+                    'escrow_id': escrow.id,
+                    'gig_id': escrow.gig_id,
+                    'gig_title': gig.title,
+                    'gig_code': gig.gig_code or f'GIG-{gig.id}',
+                    'client_id': client.id,
+                    'client_name': client.full_name or client.username,
+                    'client_email': client.email,
+                    'amount': float(escrow.amount),
+                    'duitnow_reference': escrow.duitnow_reference,
+                    'bank_reference': escrow.payment_confirmation_ref,
+                    'status': escrow.status,
+                    'created_at': escrow.created_at.isoformat() if escrow.created_at else None,
+                })
+
+        return jsonify({
+            'success': True,
+            'confirmations': confirmations,
+            'stats': {
+                'pending': len(confirmations),
+                'total_amount': total_amount,
+                'confirmed_today': confirmed_today
+            }
+        }), 200
+
+    except Exception as e:
+        app.logger.error(f"Get pending DuitNow confirmations error: {str(e)}")
+        return jsonify({'error': 'Failed to load confirmations'}), 500
+
+
+@app.route('/api/admin/duitnow/<int:escrow_id>/confirm', methods=['POST'])
+@login_required
+def admin_confirm_duitnow_payment(escrow_id):
+    """Admin confirms DuitNow payment after bank statement verification"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            return jsonify({'error': 'Access denied'}), 403
+
+        escrow = Escrow.query.get_or_404(escrow_id)
+
+        if escrow.payment_method != 'duitnow':
+            return jsonify({'error': 'This escrow is not a DuitNow payment'}), 400
+
+        if escrow.status != 'pending':
+            return jsonify({'error': f'Escrow is not pending (status: {escrow.status})'}), 400
+
+        # Mark escrow as funded
+        escrow.status = 'funded'
+        escrow.funded_at = datetime.utcnow()
+        escrow.admin_notes = (
+            f"DuitNow payment confirmed by admin {user.username}. "
+            f"Verified against bank statement. "
+            f"Bank reference: {escrow.payment_confirmation_ref}. "
+            f"DuitNow reference: {escrow.duitnow_reference}."
+        )
+
+        # Update wallet
+        client_wallet = Wallet.query.filter_by(user_id=escrow.client_id).first()
+        if not client_wallet:
+            client_wallet = Wallet(user_id=escrow.client_id)
+            db.session.add(client_wallet)
+
+        client_wallet.held_balance += float(escrow.amount)
+
+        # Create receipt
+        gig = Gig.query.get(escrow.gig_id)
+        if gig:
+            receipt = create_escrow_receipt(escrow, gig, 'duitnow')
+
+        # Record audit trail
+        try:
+            audit = AuditLog(
+                event_category='financial',
+                event_type='duitnow_payment_confirmed',
+                severity='low',
+                action=f'DuitNow payment confirmed for escrow {escrow.escrow_number}',
+                resource_type='escrow',
+                resource_id=str(escrow_id),
+                status='success',
+                message=f'Amount: RM {escrow.amount}. Reference: {escrow.payment_confirmation_ref}',
+            )
+            db.session.add(audit)
+        except Exception:
+            pass
+
+        db.session.commit()
+
+        # Send email notification to client
+        try:
+            from email_service import email_service
+            client = User.query.get(escrow.client_id)
+            if client:
+                email_service.send_email(
+                    to_email=client.email,
+                    subject='DuitNow Payment Confirmed',
+                    html_template='email_payment_confirmation.html',
+                    context={
+                        'user_name': client.full_name or client.username,
+                        'escrow_number': escrow.escrow_number,
+                        'amount': f'RM {escrow.amount:.2f}',
+                        'status': 'Confirmed',
+                        'gig_title': gig.title if gig else 'Unknown'
+                    }
+                )
+        except Exception as e:
+            app.logger.warning(f"Failed to send confirmation email: {str(e)}")
+
+        return jsonify({
+            'success': True,
+            'message': 'DuitNow payment confirmed and escrow funded',
+            'escrow': escrow.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin confirm DuitNow error: {str(e)}")
+        return jsonify({'error': 'Failed to confirm payment'}), 500
+
+
+@app.route('/api/admin/duitnow/<int:escrow_id>/reject', methods=['POST'])
+@login_required
+def admin_reject_duitnow_payment(escrow_id):
+    """Admin rejects DuitNow payment and requests resubmission"""
+    try:
+        user = User.query.get(session['user_id'])
+        if not user or not user.is_admin:
+            return jsonify({'error': 'Access denied'}), 403
+
+        escrow = Escrow.query.get_or_404(escrow_id)
+
+        if escrow.payment_method != 'duitnow':
+            return jsonify({'error': 'This escrow is not a DuitNow payment'}), 400
+
+        if escrow.status != 'pending':
+            return jsonify({'error': f'Escrow is not pending (status: {escrow.status})'}), 400
+
+        data = request.json or {}
+        rejection_reason = data.get('reason', 'Payment verification failed')
+
+        # Update escrow with rejection notes
+        escrow.admin_notes = (
+            f"DuitNow payment rejected by admin {user.username}. "
+            f"Reason: {rejection_reason}. "
+            f"Client requested to resubmit with correct bank reference."
+        )
+
+        # Record audit trail
+        try:
+            audit = AuditLog(
+                event_category='financial',
+                event_type='duitnow_payment_rejected',
+                severity='medium',
+                action=f'DuitNow payment rejected for escrow {escrow.escrow_number}',
+                resource_type='escrow',
+                resource_id=str(escrow_id),
+                status='rejected',
+                message=f'Reason: {rejection_reason}',
+            )
+            db.session.add(audit)
+        except Exception:
+            pass
+
+        db.session.commit()
+
+        # Send email notification to client
+        try:
+            from email_service import email_service
+            client = User.query.get(escrow.client_id)
+            gig = Gig.query.get(escrow.gig_id)
+            if client:
+                email_service.send_email(
+                    to_email=client.email,
+                    subject='DuitNow Payment Verification Failed - Action Required',
+                    html_template='email_text.html',
+                    context={
+                        'subject': 'DuitNow Payment Verification Failed',
+                        'message': f'''Your DuitNow payment for gig "{gig.title if gig else 'Unknown'}"
+                        (Reference: {escrow.duitnow_reference}) could not be verified.
+
+                        Reason: {rejection_reason}
+
+                        Please check your bank statement and resubmit the correct bank transaction reference.
+                        The reference can usually be found in your banking app under "Transaction Details".'''
+                    }
+                )
+        except Exception as e:
+            app.logger.warning(f"Failed to send rejection email: {str(e)}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Payment rejected. Client has been notified to resubmit.',
+            'escrow': escrow.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Admin reject DuitNow error: {str(e)}")
+        return jsonify({'error': 'Failed to reject payment'}), 500
+
+
 @app.route('/api/escrow/my-escrows', methods=['GET'])
 def get_my_escrows():
     """Get all escrows for the current user (as client or freelancer).
@@ -16326,6 +16563,18 @@ def admin_page():
         return render_template('index.html', lang=get_user_language(), t=t)
 
     return render_template('admin.html', user=user, lang=get_user_language(), t=t)
+
+@app.route('/admin/duitnow-confirmations')
+def admin_duitnow_confirmations_page():
+    """Serve admin DuitNow confirmations management page"""
+    if 'user_id' not in session:
+        return redirect(url_for('index'))
+
+    user = User.query.get(session['user_id'])
+    if not user or not user.is_admin:
+        return redirect(url_for('index'))
+
+    return render_template('admin_duitnow_confirmations.html', user=user, lang=get_user_language(), t=t)
 
 @app.route('/admin/security-logs')
 @page_login_required
