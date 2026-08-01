@@ -190,10 +190,18 @@ elif database_url.startswith('postgresql://'):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-from sqlalchemy.pool import NullPool
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'poolclass': NullPool,
-}
+# Reuse database connections across requests instead of opening a fresh one
+# per request (previously NullPool). pool_pre_ping transparently replaces
+# connections dropped while idle, and pool_recycle keeps them younger than
+# typical proxy idle timeouts. Sized conservatively for a single gunicorn
+# worker plus APScheduler background threads.
+if database_url.startswith('postgresql'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_size': 5,
+        'max_overflow': 10,
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 
 # Secure session configuration for OAuth
 # For Railway/Production: use X-Forwarded-Proto header to detect HTTPS through proxy
