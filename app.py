@@ -64,11 +64,17 @@ def get_stripe_keys():
         publishable_key = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
         webhook_secret = os.environ.get('STRIPE_TEST_WEBHOOK_SECRET')
 
-    # Fallback to legacy keys if specific mode keys not set
+    # Fallback to legacy keys if specific mode keys not set.
+    # Outside live mode, never fall back to a live-prefixed key — a
+    # test-configured environment must not be able to charge real cards.
     if not secret_key:
-        secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        legacy_secret = os.environ.get('STRIPE_SECRET_KEY')
+        if legacy_secret and (stripe_mode == 'live' or not legacy_secret.startswith('sk_live_')):
+            secret_key = legacy_secret
     if not publishable_key:
-        publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+        legacy_publishable = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+        if legacy_publishable and (stripe_mode == 'live' or not legacy_publishable.startswith('pk_live_')):
+            publishable_key = legacy_publishable
     if not webhook_secret:
         webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
@@ -79,26 +85,48 @@ def get_stripe_keys():
         'mode': stripe_mode
     }
 
+def _fallback_stripe_secret_key():
+    """Resolve a Stripe secret key from environment variables alone, for when
+    the database-backed mode setting is not readable yet.
+
+    The live key is preferred only when STRIPE_MODE is explicitly 'live'.
+    When STRIPE_MODE is explicitly set to anything else, live-prefixed keys
+    are refused entirely so a test environment can never charge real cards.
+    When STRIPE_MODE is unset, test/legacy keys are preferred and the live
+    key is a last resort (for live deployments that only configure it).
+    """
+    mode = os.environ.get('STRIPE_MODE')
+    if mode == 'live':
+        candidates = [
+            os.environ.get('STRIPE_LIVE_SECRET_KEY'),
+            os.environ.get('STRIPE_SECRET_KEY'),
+        ]
+    else:
+        candidates = [
+            os.environ.get('STRIPE_TEST_SECRET_KEY'),
+            os.environ.get('STRIPE_SECRET_KEY'),
+            os.environ.get('STRIPE_LIVE_SECRET_KEY'),
+        ]
+        if mode:
+            candidates = [k for k in candidates if k and not k.startswith('sk_live_')]
+    return next((k for k in candidates if k), None)
+
 def init_stripe():
     """Initialize Stripe with the appropriate keys"""
     try:
         keys = get_stripe_keys()
         if keys and keys['secret_key']:
             stripe.api_key = keys['secret_key']
-            print(f"DEBUG: Initialized Stripe in {keys['mode']} mode")
             return keys
-        else:
-            print("DEBUG: Stripe keys not found in get_stripe_keys")
     except Exception as e:
         print(f"DEBUG: init_stripe error: {str(e)}")
-    
+
     # Fallback for initial setup before DB is ready or if keys missing
-    stripe.api_key = os.environ.get('STRIPE_LIVE_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
-    print(f"DEBUG: Stripe initialized using fallback")
+    stripe.api_key = _fallback_stripe_secret_key()
     return None
 
-# Initialize Stripe (will use live key if available, then fallback)
-stripe.api_key = os.environ.get('STRIPE_LIVE_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
+# Initialize Stripe from environment until the database-backed mode setting is readable
+stripe.api_key = _fallback_stripe_secret_key()
 
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
@@ -128,11 +156,26 @@ def translate_cat_filter(slug):
 # This is essential for OAuth to work correctly when behind a proxy
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1, x_port=1, x_prefix=1)
 
+# Production detection (Railway or explicit FLASK_ENV) — used for the secret
+# key check below and for secure-cookie settings further down.
+IS_PRODUCTION = (
+    os.environ.get('FLASK_ENV') == 'production' or
+    os.environ.get('RAILWAY_ENVIRONMENT') is not None or
+    os.environ.get('RAILWAY_STATIC_URL') is not None
+)
+
 # Set secret key - CRITICAL for OAuth state management
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("SECRET_KEY")
 if not app.secret_key:
-    # Generate a random secret key for development if none is set
-    # In production, ALWAYS set SESSION_SECRET - OAuth won't work without it!
+    if IS_PRODUCTION:
+        # A per-process random key breaks sessions and CSRF across gunicorn
+        # workers and logs everyone out on every restart — refuse to start.
+        raise RuntimeError(
+            "SESSION_SECRET (or SECRET_KEY) environment variable must be set "
+            "in production. Sessions, CSRF and OAuth cannot work without a "
+            "stable secret key shared by all workers."
+        )
+    # Generate a random secret key for local development only
     app.secret_key = secrets.token_hex(32)
     print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET environment variable in production!")
 
@@ -147,19 +190,23 @@ elif database_url.startswith('postgresql://'):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-from sqlalchemy.pool import NullPool
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'poolclass': NullPool,
-}
+# Reuse database connections across requests instead of opening a fresh one
+# per request (previously NullPool). pool_pre_ping transparently replaces
+# connections dropped while idle, and pool_recycle keeps them younger than
+# typical proxy idle timeouts. Sized conservatively for a single gunicorn
+# worker plus APScheduler background threads.
+if database_url.startswith('postgresql'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_size': 5,
+        'max_overflow': 10,
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
 
 # Secure session configuration for OAuth
 # For Railway/Production: use X-Forwarded-Proto header to detect HTTPS through proxy
 # For local: detect HTTPS based on request scheme
-is_https = (
-    os.environ.get('FLASK_ENV') == 'production' or 
-    os.environ.get('RAILWAY_ENVIRONMENT') is not None or
-    os.environ.get('RAILWAY_STATIC_URL') is not None
-)
+is_https = IS_PRODUCTION
 app.config['SESSION_COOKIE_SECURE'] = is_https  # CRITICAL for OAuth over HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -1849,6 +1896,7 @@ def verify_email_token(token):
         app.logger.info(f"Email verified for user {user.username} ({user.email})")
         return True, "Email verified successfully", user
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error verifying email token: {str(e)}")
         return False, f"Error verifying email: {str(e)}", None
 
@@ -4777,6 +4825,7 @@ def view_gig(gig_id):
         # Let 404 and other HTTP exceptions propagate normally
         raise
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error viewing gig {gig_id}: {str(e)}")
         return render_template('error.html', error="Terdapat masalah teknikal. Sila cuba lagi.", lang=get_user_language(), t=t), 500
 
@@ -6461,6 +6510,7 @@ def resend_verification_email():
         else:
             return jsonify({'error': message}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Resend verification error: {str(e)}")
         return jsonify({'error': 'Failed to resend verification email'}), 500
 
@@ -6682,6 +6732,7 @@ def forgot_password():
         return jsonify({'message': 'If an account exists with this email, you will receive password reset instructions.'}), 200
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error in forgot_password: {str(e)}")
         return jsonify({'error': 'An error occurred. Please try again later.'}), 500
 
@@ -6729,6 +6780,7 @@ def reset_password():
         return jsonify({'message': 'Password reset successfully. You can now log in with your new password.'}), 200
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error in reset_password: {str(e)}")
         return jsonify({'error': 'An error occurred. Please try again later.'}), 500
 
@@ -7166,6 +7218,7 @@ def set_language():
         
         return jsonify({'message': 'Language updated successfully', 'language': language}), 200
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error setting language: {str(e)}")
         return jsonify({'error': 'Failed to set language'}), 500
 
@@ -7320,6 +7373,7 @@ def google_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Google OAuth error: {str(e)}")
         return redirect('/?error=google_auth_failed')
 
@@ -7466,6 +7520,7 @@ def microsoft_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Microsoft OAuth error: {str(e)}")
         return redirect('/?error=microsoft_auth_failed')
 
@@ -7531,6 +7586,7 @@ def apple_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Apple OAuth error: {str(e)}")
         return redirect('/?error=apple_auth_failed')
 
@@ -7585,6 +7641,7 @@ def x_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"X OAuth error: {str(e)}")
         return redirect('/?error=x_auth_failed')
 
@@ -7661,6 +7718,7 @@ def facebook_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Facebook OAuth error: {str(e)}")
         return redirect('/?error=facebook_auth_failed')
 
@@ -10451,6 +10509,7 @@ def cancel_gig(gig_id):
                 # Process Stripe refund if payment was made via Stripe
                 stripe_refund_id = None
                 if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+                    init_stripe()
                     try:
                         if stripe.api_key:
                             refund = stripe.Refund.create(
@@ -10616,6 +10675,7 @@ def worker_cancel_gig(gig_id):
             if remaining_amount > 0:
                 stripe_refund_id = None
                 if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+                    init_stripe()
                     try:
                         if stripe.api_key:
                             refund = stripe.Refund.create(
@@ -11944,6 +12004,7 @@ def refund_escrow(gig_id):
         # Process Stripe refund if payment was made via Stripe
         stripe_refund_id = None
         if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+            init_stripe()
             try:
                 if not stripe.api_key:
                     app.logger.error("Stripe not configured for refund")
@@ -12207,6 +12268,7 @@ def initiate_escrow_payment(gig_id):
                 }), 200
 
             except Exception as e:
+                db.session.rollback()
                 app.logger.error(f"DuitNow QR generation error: {str(e)}")
                 return jsonify({
                     'success': False,
@@ -12600,6 +12662,7 @@ def payhalal_escrow_webhook():
         return jsonify({'success': True, 'message': 'Webhook received'}), 200
         
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"PayHalal escrow webhook error: {str(e)}")
         return jsonify({'error': 'Webhook processing failed'}), 500
 
@@ -13213,6 +13276,7 @@ def create_stripe_checkout_session():
         }), 200
         
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error: {str(e)}")
         return jsonify({'error': f'Payment error: {str(e)}'}), 400
     except Exception as e:
@@ -13292,9 +13356,11 @@ def stripe_checkout_success():
             flash('Payment not completed. Please try again.', 'warning')
             
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe verification error: {str(e)}")
         flash('Could not verify payment. Please check your escrow status.', 'error')
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Checkout success error: {str(e)}")
         flash('Error processing payment. Please contact support.', 'error')
     
@@ -13653,11 +13719,13 @@ def stripe_webhook():
         return jsonify({'status': 'success', 'received': True}), 200
 
     except ValueError as e:
+        db.session.rollback()
         error_msg = f"Invalid webhook payload: {str(e)}"
         app.logger.error(error_msg)
         return jsonify({'error': 'Invalid payload'}), 400
 
     except stripe.error.SignatureVerificationError as e:
+        db.session.rollback()
         error_msg = f"Invalid webhook signature: {str(e)}"
         app.logger.error(error_msg)
         return jsonify({'error': 'Invalid signature'}), 400
@@ -13707,6 +13775,7 @@ def stripe_config():
 def get_payment_methods():
     """Get user's saved payment methods"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13742,9 +13811,11 @@ def get_payment_methods():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error: {str(e)}")
         return jsonify({'error': 'Failed to fetch payment methods'}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Get payment methods error: {str(e)}")
         return jsonify({'error': 'Failed to fetch payment methods'}), 500
 
@@ -13754,6 +13825,7 @@ def get_payment_methods():
 def create_setup_intent():
     """Create a SetupIntent for adding a new payment method"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13782,9 +13854,11 @@ def create_setup_intent():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error: {str(e)}")
         return jsonify({'error': 'Failed to create setup intent'}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Create setup intent error: {str(e)}")
         return jsonify({'error': 'Failed to create setup intent'}), 500
 
@@ -13794,6 +13868,7 @@ def create_setup_intent():
 def delete_payment_method(payment_method_id):
     """Delete a saved payment method"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13828,6 +13903,7 @@ def delete_payment_method(payment_method_id):
 def create_stripe_connect_account():
     """Create a Stripe Connect Express account for the user (for instant payouts in Malaysia)"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13893,6 +13969,7 @@ def create_stripe_connect_account():
         }), 201
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error creating Connect account: {str(e)}")
         return jsonify({'error': f'Stripe error: {str(e)}'}), 500
     except Exception as e:
@@ -13906,6 +13983,7 @@ def create_stripe_connect_account():
 def create_stripe_account_link():
     """Create an account link for Stripe Connect onboarding"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13956,6 +14034,7 @@ def create_stripe_account_link():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error creating account link: {str(e)}")
         return jsonify({'error': f'Stripe error: {str(e)}'}), 500
     except Exception as e:
@@ -13969,6 +14048,7 @@ def create_stripe_account_link():
 def get_stripe_account_status():
     """Get the status of user's Stripe Connect account"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -14023,9 +14103,11 @@ def get_stripe_account_status():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error fetching account status: {str(e)}")
         return jsonify({'error': f'Stripe error: {str(e)}'}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error fetching account status: {str(e)}")
         return jsonify({'error': 'Failed to fetch account status'}), 500
 
@@ -14035,6 +14117,7 @@ def get_stripe_account_status():
 def create_instant_payout():
     """Create an instant payout to user's bank account via Stripe Connect (Malaysia)"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -15989,6 +16072,7 @@ def urgent_request_page():
             return redirect(url_for('urgent_request_success', code=req.request_code))
 
         except Exception as e:
+            db.session.rollback()
             app.logger.error(f'Urgent request submission error: {e}')
             flash('Terdapat ralat. Sila cuba lagi.', 'error')
 
@@ -16098,6 +16182,7 @@ def managed_solution_page():
             return redirect(url_for('managed_solution_success', code=mgd.request_code))
 
         except Exception as e:
+            db.session.rollback()
             app.logger.error(f'Managed solution submission error: {e}')
             flash('Terdapat ralat. Sila cuba lagi.', 'error')
 
@@ -16541,6 +16626,7 @@ def register_user_for_socso():
         }), 200
 
     except ValueError as e:
+        db.session.rollback()
         app.logger.error(f"Invalid date format: {str(e)}")
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
     except Exception as e:
@@ -17476,6 +17562,7 @@ def admin_send_email():
             return jsonify({'error': message}), 500
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Admin send email error: {str(e)}")
         return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
 
@@ -17591,6 +17678,7 @@ def announce_direct_hire():
             return jsonify({'error': message}), http_status
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"announce_direct_hire error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
@@ -17682,6 +17770,7 @@ def announce_2fa_activation():
             db.session.add(email_log)
             db.session.commit()
         except Exception as log_error:
+            db.session.rollback()
             app.logger.error(f"announce_2fa email log error: {str(log_error)}")
 
         if success:
@@ -17697,6 +17786,7 @@ def announce_2fa_activation():
             return jsonify({'error': message}), http_status
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"announce_2fa error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Failed to send 2FA announcement: {str(e)}'}), 500
 
@@ -17881,6 +17971,7 @@ def announce_referral_code():
         }), 200
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"announce_referral_code error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
@@ -19001,6 +19092,7 @@ def get_wallet():
             'available_balance': wallet.balance - wallet.held_balance
         }), 200
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Get wallet error: {str(e)}")
         return jsonify({'error': 'Failed to get wallet information'}), 500
 
@@ -23339,7 +23431,8 @@ def approve_payment(gig_id):
         
         stripe_payment_id = None
         payment_method = 'internal'
-        
+
+        init_stripe()
         if stripe.api_key:
             try:
                 payment_intent = stripe.PaymentIntent.create(
@@ -24072,6 +24165,7 @@ def init_database():
         # Apply incremental column migrations that db.create_all() won't handle
         _apply_column_migrations()
     except Exception as e:
+        db.session.rollback()
         print(f"Database initialization error: {e}")
         _db_initialized = True  # Mark as done to avoid retry loops
 
@@ -25418,6 +25512,7 @@ def add_portfolio_item():
         
         return jsonify({'success': True, 'item': item.to_dict()}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Portfolio add error: {str(e)}")
         return jsonify({'error': 'Failed to add portfolio item'}), 500
 
@@ -25438,6 +25533,7 @@ def delete_portfolio_item(item_id):
         db.session.commit()
         return jsonify({'success': True}), 200
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Portfolio delete error: {str(e)}")
         return jsonify({'error': 'Failed to delete item'}), 500
 
@@ -25674,6 +25770,7 @@ def hire_direct():
             db.session.add(notification)
             db.session.commit()
         except Exception:
+            db.session.rollback()
             pass  # notifications are non-critical
 
         return jsonify({
@@ -25736,6 +25833,7 @@ def message_support():
         db.session.commit()
         return redirect(f'/messages/{conv_id}')
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error starting support conversation: {str(e)}")
         return redirect('/messages')
 
@@ -26073,6 +26171,7 @@ GigHala - Your Trusted Syariah-Principled Gig Platform
         msg_data['sender_username'] = sender.username if sender else 'unknown'
         return jsonify({'success': True, 'message': msg_data}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Send message error: {str(e)}")
         return jsonify({'error': 'Failed to send message'}), 500
 
@@ -26135,6 +26234,7 @@ def start_conversation():
         
         return jsonify({'success': True, 'conversation_id': conv.id}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Start conversation error: {str(e)}")
         return jsonify({'error': 'Failed to start conversation'}), 500
 
@@ -26172,6 +26272,7 @@ def message_admin():
         
         return jsonify({'success': True, 'conversation_id': conv.id}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Message admin error: {str(e)}")
         return jsonify({'error': 'Failed to start conversation'}), 500
 
@@ -26426,6 +26527,7 @@ def submit_verification():
         
         return jsonify({'success': True, 'message': 'Verification submitted successfully'}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Verification submit error: {str(e)}")
         return jsonify({'error': 'Failed to submit verification'}), 500
 
@@ -26566,6 +26668,7 @@ def review_verification(verification_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Verification review error: {str(e)}")
         return jsonify({'error': 'Failed to process verification'}), 500
 
@@ -26693,6 +26796,7 @@ def file_dispute():
         db.session.commit()
         return jsonify({'success': True, 'dispute_id': dispute.id}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"File dispute error: {str(e)}")
         return jsonify({'error': 'Failed to file dispute'}), 500
 
@@ -26729,6 +26833,7 @@ def add_dispute_message(dispute_id):
         
         return jsonify({'success': True}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Dispute message error: {str(e)}")
         return jsonify({'error': 'Failed to add message'}), 500
 
@@ -26807,6 +26912,7 @@ def resolve_dispute(dispute_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Resolve dispute error: {str(e)}")
         return jsonify({'error': 'Failed to resolve dispute'}), 500
 
@@ -26895,6 +27001,7 @@ def respond_to_feedback(feedback_id):
         
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Respond to feedback error: {str(e)}")
         return jsonify({'error': 'Failed to respond to feedback'}), 500
 
@@ -26954,6 +27061,7 @@ def create_milestones():
         db.session.commit()
         return jsonify({'success': True}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Create milestones error: {str(e)}")
         return jsonify({'error': 'Failed to create milestones'}), 500
 
@@ -26986,6 +27094,7 @@ def submit_milestone(milestone_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Submit milestone error: {str(e)}")
         return jsonify({'error': 'Failed to submit milestone'}), 500
 
@@ -27058,6 +27167,7 @@ def approve_milestone(milestone_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Approve milestone error: {str(e)}")
         return jsonify({'error': 'Failed to approve milestone'}), 500
 
@@ -28000,6 +28110,7 @@ def create_support_ticket():
 
         return jsonify({'success': True, 'ticket_number': ticket.ticket_number, 'ticket_id': ticket.id})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Create support ticket error: {str(e)}')
         return jsonify({'error': 'Failed to create ticket'}), 500
 
@@ -28340,6 +28451,7 @@ def admin_respond_to_ticket(ticket_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Admin respond to ticket error: {str(e)}')
         return jsonify({'error': 'Failed to respond'}), 500
 
@@ -28388,6 +28500,7 @@ def admin_escalate_ticket(ticket_id):
 
         return jsonify({'success': True, 'new_level': target_level, 'level_label': ESCALATION_LABELS[target_level]})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Escalate ticket error: {str(e)}')
         return jsonify({'error': 'Failed to escalate ticket'}), 500
 
@@ -28420,6 +28533,7 @@ def admin_resolve_ticket(ticket_id):
 
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Resolve ticket error: {str(e)}')
         return jsonify({'error': 'Failed to resolve ticket'}), 500
 
