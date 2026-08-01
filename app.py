@@ -156,11 +156,26 @@ def translate_cat_filter(slug):
 # This is essential for OAuth to work correctly when behind a proxy
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1, x_port=1, x_prefix=1)
 
+# Production detection (Railway or explicit FLASK_ENV) — used for the secret
+# key check below and for secure-cookie settings further down.
+IS_PRODUCTION = (
+    os.environ.get('FLASK_ENV') == 'production' or
+    os.environ.get('RAILWAY_ENVIRONMENT') is not None or
+    os.environ.get('RAILWAY_STATIC_URL') is not None
+)
+
 # Set secret key - CRITICAL for OAuth state management
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("SECRET_KEY")
 if not app.secret_key:
-    # Generate a random secret key for development if none is set
-    # In production, ALWAYS set SESSION_SECRET - OAuth won't work without it!
+    if IS_PRODUCTION:
+        # A per-process random key breaks sessions and CSRF across gunicorn
+        # workers and logs everyone out on every restart — refuse to start.
+        raise RuntimeError(
+            "SESSION_SECRET (or SECRET_KEY) environment variable must be set "
+            "in production. Sessions, CSRF and OAuth cannot work without a "
+            "stable secret key shared by all workers."
+        )
+    # Generate a random secret key for local development only
     app.secret_key = secrets.token_hex(32)
     print("⚠️  WARNING: Using auto-generated SECRET_KEY. Set SESSION_SECRET environment variable in production!")
 
@@ -183,11 +198,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 # Secure session configuration for OAuth
 # For Railway/Production: use X-Forwarded-Proto header to detect HTTPS through proxy
 # For local: detect HTTPS based on request scheme
-is_https = (
-    os.environ.get('FLASK_ENV') == 'production' or 
-    os.environ.get('RAILWAY_ENVIRONMENT') is not None or
-    os.environ.get('RAILWAY_STATIC_URL') is not None
-)
+is_https = IS_PRODUCTION
 app.config['SESSION_COOKIE_SECURE'] = is_https  # CRITICAL for OAuth over HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
