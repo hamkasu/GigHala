@@ -1896,6 +1896,7 @@ def verify_email_token(token):
         app.logger.info(f"Email verified for user {user.username} ({user.email})")
         return True, "Email verified successfully", user
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error verifying email token: {str(e)}")
         return False, f"Error verifying email: {str(e)}", None
 
@@ -4824,6 +4825,7 @@ def view_gig(gig_id):
         # Let 404 and other HTTP exceptions propagate normally
         raise
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error viewing gig {gig_id}: {str(e)}")
         return render_template('error.html', error="Terdapat masalah teknikal. Sila cuba lagi.", lang=get_user_language(), t=t), 500
 
@@ -6508,6 +6510,7 @@ def resend_verification_email():
         else:
             return jsonify({'error': message}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Resend verification error: {str(e)}")
         return jsonify({'error': 'Failed to resend verification email'}), 500
 
@@ -6729,6 +6732,7 @@ def forgot_password():
         return jsonify({'message': 'If an account exists with this email, you will receive password reset instructions.'}), 200
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error in forgot_password: {str(e)}")
         return jsonify({'error': 'An error occurred. Please try again later.'}), 500
 
@@ -6776,6 +6780,7 @@ def reset_password():
         return jsonify({'message': 'Password reset successfully. You can now log in with your new password.'}), 200
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error in reset_password: {str(e)}")
         return jsonify({'error': 'An error occurred. Please try again later.'}), 500
 
@@ -7213,6 +7218,7 @@ def set_language():
         
         return jsonify({'message': 'Language updated successfully', 'language': language}), 200
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error setting language: {str(e)}")
         return jsonify({'error': 'Failed to set language'}), 500
 
@@ -7367,6 +7373,7 @@ def google_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Google OAuth error: {str(e)}")
         return redirect('/?error=google_auth_failed')
 
@@ -7513,6 +7520,7 @@ def microsoft_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Microsoft OAuth error: {str(e)}")
         return redirect('/?error=microsoft_auth_failed')
 
@@ -7578,6 +7586,7 @@ def apple_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Apple OAuth error: {str(e)}")
         return redirect('/?error=apple_auth_failed')
 
@@ -7632,6 +7641,7 @@ def x_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"X OAuth error: {str(e)}")
         return redirect('/?error=x_auth_failed')
 
@@ -7708,6 +7718,7 @@ def facebook_callback():
 
         return _oauth_post_login_redirect(user)
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Facebook OAuth error: {str(e)}")
         return redirect('/?error=facebook_auth_failed')
 
@@ -12257,6 +12268,7 @@ def initiate_escrow_payment(gig_id):
                 }), 200
 
             except Exception as e:
+                db.session.rollback()
                 app.logger.error(f"DuitNow QR generation error: {str(e)}")
                 return jsonify({
                     'success': False,
@@ -12650,6 +12662,7 @@ def payhalal_escrow_webhook():
         return jsonify({'success': True, 'message': 'Webhook received'}), 200
         
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"PayHalal escrow webhook error: {str(e)}")
         return jsonify({'error': 'Webhook processing failed'}), 500
 
@@ -13263,6 +13276,7 @@ def create_stripe_checkout_session():
         }), 200
         
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error: {str(e)}")
         return jsonify({'error': f'Payment error: {str(e)}'}), 400
     except Exception as e:
@@ -13342,9 +13356,11 @@ def stripe_checkout_success():
             flash('Payment not completed. Please try again.', 'warning')
             
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe verification error: {str(e)}")
         flash('Could not verify payment. Please check your escrow status.', 'error')
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Checkout success error: {str(e)}")
         flash('Error processing payment. Please contact support.', 'error')
     
@@ -13703,11 +13719,13 @@ def stripe_webhook():
         return jsonify({'status': 'success', 'received': True}), 200
 
     except ValueError as e:
+        db.session.rollback()
         error_msg = f"Invalid webhook payload: {str(e)}"
         app.logger.error(error_msg)
         return jsonify({'error': 'Invalid payload'}), 400
 
     except stripe.error.SignatureVerificationError as e:
+        db.session.rollback()
         error_msg = f"Invalid webhook signature: {str(e)}"
         app.logger.error(error_msg)
         return jsonify({'error': 'Invalid signature'}), 400
@@ -13793,9 +13811,11 @@ def get_payment_methods():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error: {str(e)}")
         return jsonify({'error': 'Failed to fetch payment methods'}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Get payment methods error: {str(e)}")
         return jsonify({'error': 'Failed to fetch payment methods'}), 500
 
@@ -13834,9 +13854,11 @@ def create_setup_intent():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error: {str(e)}")
         return jsonify({'error': 'Failed to create setup intent'}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Create setup intent error: {str(e)}")
         return jsonify({'error': 'Failed to create setup intent'}), 500
 
@@ -13947,6 +13969,7 @@ def create_stripe_connect_account():
         }), 201
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error creating Connect account: {str(e)}")
         return jsonify({'error': f'Stripe error: {str(e)}'}), 500
     except Exception as e:
@@ -14011,6 +14034,7 @@ def create_stripe_account_link():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error creating account link: {str(e)}")
         return jsonify({'error': f'Stripe error: {str(e)}'}), 500
     except Exception as e:
@@ -14079,9 +14103,11 @@ def get_stripe_account_status():
         }), 200
 
     except stripe.error.StripeError as e:
+        db.session.rollback()
         app.logger.error(f"Stripe error fetching account status: {str(e)}")
         return jsonify({'error': f'Stripe error: {str(e)}'}), 500
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error fetching account status: {str(e)}")
         return jsonify({'error': 'Failed to fetch account status'}), 500
 
@@ -16046,6 +16072,7 @@ def urgent_request_page():
             return redirect(url_for('urgent_request_success', code=req.request_code))
 
         except Exception as e:
+            db.session.rollback()
             app.logger.error(f'Urgent request submission error: {e}')
             flash('Terdapat ralat. Sila cuba lagi.', 'error')
 
@@ -16155,6 +16182,7 @@ def managed_solution_page():
             return redirect(url_for('managed_solution_success', code=mgd.request_code))
 
         except Exception as e:
+            db.session.rollback()
             app.logger.error(f'Managed solution submission error: {e}')
             flash('Terdapat ralat. Sila cuba lagi.', 'error')
 
@@ -16598,6 +16626,7 @@ def register_user_for_socso():
         }), 200
 
     except ValueError as e:
+        db.session.rollback()
         app.logger.error(f"Invalid date format: {str(e)}")
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
     except Exception as e:
@@ -17533,6 +17562,7 @@ def admin_send_email():
             return jsonify({'error': message}), 500
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Admin send email error: {str(e)}")
         return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
 
@@ -17648,6 +17678,7 @@ def announce_direct_hire():
             return jsonify({'error': message}), http_status
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"announce_direct_hire error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
@@ -17739,6 +17770,7 @@ def announce_2fa_activation():
             db.session.add(email_log)
             db.session.commit()
         except Exception as log_error:
+            db.session.rollback()
             app.logger.error(f"announce_2fa email log error: {str(log_error)}")
 
         if success:
@@ -17754,6 +17786,7 @@ def announce_2fa_activation():
             return jsonify({'error': message}), http_status
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"announce_2fa error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Failed to send 2FA announcement: {str(e)}'}), 500
 
@@ -17938,6 +17971,7 @@ def announce_referral_code():
         }), 200
 
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"announce_referral_code error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Failed to send announcement: {str(e)}'}), 500
 
@@ -19058,6 +19092,7 @@ def get_wallet():
             'available_balance': wallet.balance - wallet.held_balance
         }), 200
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Get wallet error: {str(e)}")
         return jsonify({'error': 'Failed to get wallet information'}), 500
 
@@ -24130,6 +24165,7 @@ def init_database():
         # Apply incremental column migrations that db.create_all() won't handle
         _apply_column_migrations()
     except Exception as e:
+        db.session.rollback()
         print(f"Database initialization error: {e}")
         _db_initialized = True  # Mark as done to avoid retry loops
 
@@ -25476,6 +25512,7 @@ def add_portfolio_item():
         
         return jsonify({'success': True, 'item': item.to_dict()}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Portfolio add error: {str(e)}")
         return jsonify({'error': 'Failed to add portfolio item'}), 500
 
@@ -25496,6 +25533,7 @@ def delete_portfolio_item(item_id):
         db.session.commit()
         return jsonify({'success': True}), 200
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Portfolio delete error: {str(e)}")
         return jsonify({'error': 'Failed to delete item'}), 500
 
@@ -25732,6 +25770,7 @@ def hire_direct():
             db.session.add(notification)
             db.session.commit()
         except Exception:
+            db.session.rollback()
             pass  # notifications are non-critical
 
         return jsonify({
@@ -25794,6 +25833,7 @@ def message_support():
         db.session.commit()
         return redirect(f'/messages/{conv_id}')
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error starting support conversation: {str(e)}")
         return redirect('/messages')
 
@@ -26131,6 +26171,7 @@ GigHala - Your Trusted Syariah-Principled Gig Platform
         msg_data['sender_username'] = sender.username if sender else 'unknown'
         return jsonify({'success': True, 'message': msg_data}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Send message error: {str(e)}")
         return jsonify({'error': 'Failed to send message'}), 500
 
@@ -26193,6 +26234,7 @@ def start_conversation():
         
         return jsonify({'success': True, 'conversation_id': conv.id}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Start conversation error: {str(e)}")
         return jsonify({'error': 'Failed to start conversation'}), 500
 
@@ -26230,6 +26272,7 @@ def message_admin():
         
         return jsonify({'success': True, 'conversation_id': conv.id}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Message admin error: {str(e)}")
         return jsonify({'error': 'Failed to start conversation'}), 500
 
@@ -26484,6 +26527,7 @@ def submit_verification():
         
         return jsonify({'success': True, 'message': 'Verification submitted successfully'}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Verification submit error: {str(e)}")
         return jsonify({'error': 'Failed to submit verification'}), 500
 
@@ -26624,6 +26668,7 @@ def review_verification(verification_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Verification review error: {str(e)}")
         return jsonify({'error': 'Failed to process verification'}), 500
 
@@ -26751,6 +26796,7 @@ def file_dispute():
         db.session.commit()
         return jsonify({'success': True, 'dispute_id': dispute.id}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"File dispute error: {str(e)}")
         return jsonify({'error': 'Failed to file dispute'}), 500
 
@@ -26787,6 +26833,7 @@ def add_dispute_message(dispute_id):
         
         return jsonify({'success': True}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Dispute message error: {str(e)}")
         return jsonify({'error': 'Failed to add message'}), 500
 
@@ -26865,6 +26912,7 @@ def resolve_dispute(dispute_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Resolve dispute error: {str(e)}")
         return jsonify({'error': 'Failed to resolve dispute'}), 500
 
@@ -26953,6 +27001,7 @@ def respond_to_feedback(feedback_id):
         
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Respond to feedback error: {str(e)}")
         return jsonify({'error': 'Failed to respond to feedback'}), 500
 
@@ -27012,6 +27061,7 @@ def create_milestones():
         db.session.commit()
         return jsonify({'success': True}), 201
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Create milestones error: {str(e)}")
         return jsonify({'error': 'Failed to create milestones'}), 500
 
@@ -27044,6 +27094,7 @@ def submit_milestone(milestone_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Submit milestone error: {str(e)}")
         return jsonify({'error': 'Failed to submit milestone'}), 500
 
@@ -27116,6 +27167,7 @@ def approve_milestone(milestone_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Approve milestone error: {str(e)}")
         return jsonify({'error': 'Failed to approve milestone'}), 500
 
@@ -28058,6 +28110,7 @@ def create_support_ticket():
 
         return jsonify({'success': True, 'ticket_number': ticket.ticket_number, 'ticket_id': ticket.id})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Create support ticket error: {str(e)}')
         return jsonify({'error': 'Failed to create ticket'}), 500
 
@@ -28398,6 +28451,7 @@ def admin_respond_to_ticket(ticket_id):
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Admin respond to ticket error: {str(e)}')
         return jsonify({'error': 'Failed to respond'}), 500
 
@@ -28446,6 +28500,7 @@ def admin_escalate_ticket(ticket_id):
 
         return jsonify({'success': True, 'new_level': target_level, 'level_label': ESCALATION_LABELS[target_level]})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Escalate ticket error: {str(e)}')
         return jsonify({'error': 'Failed to escalate ticket'}), 500
 
@@ -28478,6 +28533,7 @@ def admin_resolve_ticket(ticket_id):
 
         return jsonify({'success': True})
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f'Resolve ticket error: {str(e)}')
         return jsonify({'error': 'Failed to resolve ticket'}), 500
 
