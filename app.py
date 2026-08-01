@@ -64,11 +64,17 @@ def get_stripe_keys():
         publishable_key = os.environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
         webhook_secret = os.environ.get('STRIPE_TEST_WEBHOOK_SECRET')
 
-    # Fallback to legacy keys if specific mode keys not set
+    # Fallback to legacy keys if specific mode keys not set.
+    # Outside live mode, never fall back to a live-prefixed key — a
+    # test-configured environment must not be able to charge real cards.
     if not secret_key:
-        secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        legacy_secret = os.environ.get('STRIPE_SECRET_KEY')
+        if legacy_secret and (stripe_mode == 'live' or not legacy_secret.startswith('sk_live_')):
+            secret_key = legacy_secret
     if not publishable_key:
-        publishable_key = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+        legacy_publishable = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+        if legacy_publishable and (stripe_mode == 'live' or not legacy_publishable.startswith('pk_live_')):
+            publishable_key = legacy_publishable
     if not webhook_secret:
         webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
@@ -79,26 +85,48 @@ def get_stripe_keys():
         'mode': stripe_mode
     }
 
+def _fallback_stripe_secret_key():
+    """Resolve a Stripe secret key from environment variables alone, for when
+    the database-backed mode setting is not readable yet.
+
+    The live key is preferred only when STRIPE_MODE is explicitly 'live'.
+    When STRIPE_MODE is explicitly set to anything else, live-prefixed keys
+    are refused entirely so a test environment can never charge real cards.
+    When STRIPE_MODE is unset, test/legacy keys are preferred and the live
+    key is a last resort (for live deployments that only configure it).
+    """
+    mode = os.environ.get('STRIPE_MODE')
+    if mode == 'live':
+        candidates = [
+            os.environ.get('STRIPE_LIVE_SECRET_KEY'),
+            os.environ.get('STRIPE_SECRET_KEY'),
+        ]
+    else:
+        candidates = [
+            os.environ.get('STRIPE_TEST_SECRET_KEY'),
+            os.environ.get('STRIPE_SECRET_KEY'),
+            os.environ.get('STRIPE_LIVE_SECRET_KEY'),
+        ]
+        if mode:
+            candidates = [k for k in candidates if k and not k.startswith('sk_live_')]
+    return next((k for k in candidates if k), None)
+
 def init_stripe():
     """Initialize Stripe with the appropriate keys"""
     try:
         keys = get_stripe_keys()
         if keys and keys['secret_key']:
             stripe.api_key = keys['secret_key']
-            print(f"DEBUG: Initialized Stripe in {keys['mode']} mode")
             return keys
-        else:
-            print("DEBUG: Stripe keys not found in get_stripe_keys")
     except Exception as e:
         print(f"DEBUG: init_stripe error: {str(e)}")
-    
+
     # Fallback for initial setup before DB is ready or if keys missing
-    stripe.api_key = os.environ.get('STRIPE_LIVE_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
-    print(f"DEBUG: Stripe initialized using fallback")
+    stripe.api_key = _fallback_stripe_secret_key()
     return None
 
-# Initialize Stripe (will use live key if available, then fallback)
-stripe.api_key = os.environ.get('STRIPE_LIVE_SECRET_KEY') or os.environ.get('STRIPE_SECRET_KEY') or os.environ.get('STRIPE_TEST_SECRET_KEY')
+# Initialize Stripe from environment until the database-backed mode setting is readable
+stripe.api_key = _fallback_stripe_secret_key()
 
 PROCESSING_FEE_PERCENT = 0.029
 PROCESSING_FEE_FIXED = 1.00
@@ -10451,6 +10479,7 @@ def cancel_gig(gig_id):
                 # Process Stripe refund if payment was made via Stripe
                 stripe_refund_id = None
                 if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+                    init_stripe()
                     try:
                         if stripe.api_key:
                             refund = stripe.Refund.create(
@@ -10616,6 +10645,7 @@ def worker_cancel_gig(gig_id):
             if remaining_amount > 0:
                 stripe_refund_id = None
                 if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+                    init_stripe()
                     try:
                         if stripe.api_key:
                             refund = stripe.Refund.create(
@@ -11944,6 +11974,7 @@ def refund_escrow(gig_id):
         # Process Stripe refund if payment was made via Stripe
         stripe_refund_id = None
         if escrow.payment_gateway == 'stripe' and escrow.payment_reference:
+            init_stripe()
             try:
                 if not stripe.api_key:
                     app.logger.error("Stripe not configured for refund")
@@ -13707,6 +13738,7 @@ def stripe_config():
 def get_payment_methods():
     """Get user's saved payment methods"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13754,6 +13786,7 @@ def get_payment_methods():
 def create_setup_intent():
     """Create a SetupIntent for adding a new payment method"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13794,6 +13827,7 @@ def create_setup_intent():
 def delete_payment_method(payment_method_id):
     """Delete a saved payment method"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13828,6 +13862,7 @@ def delete_payment_method(payment_method_id):
 def create_stripe_connect_account():
     """Create a Stripe Connect Express account for the user (for instant payouts in Malaysia)"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13906,6 +13941,7 @@ def create_stripe_connect_account():
 def create_stripe_account_link():
     """Create an account link for Stripe Connect onboarding"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -13969,6 +14005,7 @@ def create_stripe_account_link():
 def get_stripe_account_status():
     """Get the status of user's Stripe Connect account"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -14035,6 +14072,7 @@ def get_stripe_account_status():
 def create_instant_payout():
     """Create an instant payout to user's bank account via Stripe Connect (Malaysia)"""
     try:
+        init_stripe()
         if not stripe.api_key:
             return jsonify({'error': 'Stripe is not configured'}), 500
 
@@ -23339,7 +23377,8 @@ def approve_payment(gig_id):
         
         stripe_payment_id = None
         payment_method = 'internal'
-        
+
+        init_stripe()
         if stripe.api_key:
             try:
                 payment_intent = stripe.PaymentIntent.create(
